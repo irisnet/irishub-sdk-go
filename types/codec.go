@@ -1,8 +1,15 @@
-package utils
+package types
 
 import (
-	amino "github.com/tendermint/go-amino"
+	"github.com/tendermint/go-amino"
 )
+
+
+var defaultCdc Codec
+
+func init()  {
+	defaultCdc = NewAmino()
+}
 
 type Encode interface {
 	MarshalBinaryLengthPrefixed(o interface{}) ([]byte, error)
@@ -24,5 +31,12 @@ type Amino struct {
 }
 
 func NewAmino() Amino {
-	return Amino{amino.NewCodec()}
+	cdc := amino.NewCodec()
+	RegisterAuth(cdc)
+	RegisterBank(cdc)
+	return Amino{cdc}
+}
+
+func DefaultCodec() Codec {
+	return defaultCdc
 }

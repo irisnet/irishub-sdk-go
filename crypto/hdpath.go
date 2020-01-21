@@ -1,4 +1,4 @@
-package types
+package crypto
 
 import (
 	"crypto/hmac"
@@ -19,66 +19,10 @@ const (
 	FullPath    = BIP44Prefix + PartialPath
 )
 
-// BIP44Params wraps BIP 44 params (5 level BIP 32 path).
-// To receive a canonical string representation ala
-// m / purpose' / coin_type' / account' / change / address_index
-// call String() on a BIP44Params instance.
-type BIP44Params struct {
-	purpose    uint32
-	coinType   uint32
-	account    uint32
-	change     bool
-	addressIdx uint32
-}
-
-// NewParams creates a BIP 44 parameter object from the params:
-// m / purpose' / coin_type' / account' / change / address_index
-func NewParams(purpose, coinType, account uint32, change bool, addressIdx uint32) *BIP44Params {
-	return &BIP44Params{
-		purpose:    purpose,
-		coinType:   coinType,
-		account:    account,
-		change:     change,
-		addressIdx: addressIdx,
-	}
-}
-
-// Return the BIP44 fields as an array.
-func (p BIP44Params) DerivationPath() []uint32 {
-	change := uint32(0)
-	if p.change {
-		change = 1
-	}
-	return []uint32{
-		p.purpose,
-		p.coinType,
-		p.account,
-		change,
-		p.addressIdx,
-	}
-}
-
-func (p BIP44Params) String() string {
-	var changeStr string
-	if p.change {
-		changeStr = "1"
-	} else {
-		changeStr = "0"
-	}
-	// m / purpose' / coin_type' / account' / change / address_index
-	return fmt.Sprintf("%d'/%d'/%d'/%s/%d",
-		p.purpose,
-		p.coinType,
-		p.account,
-		changeStr,
-		p.addressIdx)
-}
-
 // ComputeMastersFromSeed returns the master public key, master secret, and chain code in hex.
 func ComputeMastersFromSeed(seed []byte) (secret [32]byte, chainCode [32]byte) {
 	masterSecret := []byte("Bitcoin seed")
 	secret, chainCode = i64(masterSecret, seed)
-
 	return
 }
 
@@ -127,12 +71,6 @@ func derivePrivateKey(privKeyBytes [32]byte, chainCode [32]byte, index uint32, h
 		_, ecPub := btcec.PrivKeyFromBytes(btcec.S256(), privKeyBytes[:])
 		pubkeyBytes := ecPub.SerializeCompressed()
 		data = pubkeyBytes
-
-		/* By using btcec, we can remove the dependency on tendermint/crypto/secp256k1
-		pubkey := secp256k1.PrivKeySecp256k1(privKeyBytes).PubKey()
-		public := pubkey.(secp256k1.PubKeySecp256k1)
-		data = public[:]
-		*/
 	}
 	data = append(data, uint32ToBytes(index)...)
 	data2, chainCode2 := i64(chainCode[:], data)

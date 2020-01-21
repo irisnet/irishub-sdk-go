@@ -1,28 +1,34 @@
-package client
+package client_test
 
 import (
 	"testing"
 
+	"github.com/irisnet/irishub-sdk-go/client"
 	"github.com/irisnet/irishub-sdk-go/types"
 	"github.com/stretchr/testify/suite"
 )
 
 type ClientTestSuite struct {
 	suite.Suite
-	client Client
+	client.Client
 }
 
 func (c *ClientTestSuite) SetupTest() {
-	cfg := types.NewSDKConfig("localhost:26657", "irishub-test", "600000000000000000iris-atto", 20000, types.Mainnet, types.Commit, createTestKeyDAO())
-	c.client = NewClient(cfg)
+	cfg := types.SDKConfig{
+		NodeURI: "localhost:26657",
+		Network: types.Mainnet,
+		ChainID: "irishub-test",
+		Gas:     20000,
+		Fee:     "600000000000000000iris-atto",
+		KeyDAO:  createTestKeyDAO(),
+		Mode:    types.Commit,
+		Online:  true,
+	}
+	c.Client = client.NewClient(cfg)
 }
 
 func TestClientSuite(t *testing.T) {
 	suite.Run(t, new(ClientTestSuite))
-}
-
-func (c *ClientTestSuite) GetBank() types.Bank {
-	return c.client.Bank
 }
 
 func createTestKeyDAO() TestKeyDAO {

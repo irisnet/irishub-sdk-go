@@ -1,4 +1,4 @@
-package types
+package crypto
 
 import (
 	"encoding/hex"
@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/cosmos/go-bip39"
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 )
 
@@ -15,13 +16,11 @@ const (
 
 type KeyManager interface {
 	Sign(data []byte) ([]byte, error)
-	GetPrivKey() PrivKey
-	GetAddr() AccAddress
+	GetPrivKey() crypto.PrivKey
 }
 
 type keyManager struct {
-	privKey  PrivKey
-	addr     AccAddress
+	privKey  crypto.PrivKey
 	mnemonic string
 }
 
@@ -80,11 +79,9 @@ func (m *keyManager) recoveryFromMnemonic(mnemonic, keyPath string) error {
 		return err
 	}
 	priKey := secp256k1.PrivKeySecp256k1(derivedPriv)
-	addr := AccAddress(priKey.PubKey().Address())
 	if err != nil {
 		return err
 	}
-	m.addr = addr
 	m.privKey = priKey
 	m.mnemonic = mnemonic
 	return nil
@@ -102,8 +99,6 @@ func (m *keyManager) recoveryFromPrivateKey(privateKey string) error {
 	var keyBytesArray [32]byte
 	copy(keyBytesArray[:], priBytes[:32])
 	priKey := secp256k1.PrivKeySecp256k1(keyBytesArray)
-	addr := AccAddress(priKey.PubKey().Address())
-	m.addr = addr
 	m.privKey = priKey
 	return nil
 }
@@ -112,10 +107,6 @@ func (m *keyManager) Sign(data []byte) ([]byte, error) {
 	return m.privKey.Sign(data)
 }
 
-func (m *keyManager) GetPrivKey() PrivKey {
+func (m *keyManager) GetPrivKey() crypto.PrivKey {
 	return m.privKey
-}
-
-func (m *keyManager) GetAddr() AccAddress {
-	return m.addr
 }
