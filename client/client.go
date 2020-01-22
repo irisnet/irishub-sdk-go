@@ -11,8 +11,8 @@ import (
 )
 
 type Client struct {
-	types.Bank
-	types.Event
+	modules.Bank
+	modules.Event
 }
 
 func NewClient(cfg types.SDKConfig) Client {
@@ -31,7 +31,7 @@ func NewClient(cfg types.SDKConfig) Client {
 
 	baseClient := baseClient{ctx}
 	client := Client{
-		Bank: modules.NewBank(baseClient),
+		Bank:  modules.NewBankClient(baseClient),
 		Event: modules.NewEvent(baseClient),
 	}
 	client.setNetwork(ctx.Network)
@@ -88,8 +88,18 @@ func (bm baseClient) QueryAccount(address string) (baseAccount types.BaseAccount
 	return
 }
 
-func (bm baseClient) GetTxContext() types.TxContext {
-	return *bm.TxContext
+func (bm baseClient) GetSender(name string) types.AccAddress {
+	keyDAO := (*bm.TxContext).KeyDAO
+	keystore := keyDAO.Read(name)
+	return types.MustAccAddressFromBech32(keystore.GetAddress())
+}
+
+func (bm baseClient) GetRPC() net.RPCClient {
+	return (*bm.TxContext).RPC
+}
+
+func (bm baseClient) GetCodec() types.Codec {
+	return (*bm.TxContext).Codec
 }
 
 func (bm baseClient) prepareTxContext(baseTx types.BaseTx) error {

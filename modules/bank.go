@@ -4,13 +4,21 @@ import (
 	"github.com/irisnet/irishub-sdk-go/types"
 )
 
-type bankClient struct {
-	types.TxManager
+type Bank interface {
+	GetAccount(address string) (types.BaseAccount, error)
+	GetTokenStats(tokenID string) (types.TokenStats, error)
+	Send(to string, amount types.Coins, baseTx types.BaseTx) (types.Result, error)
+	Burn(amount types.Coins, baseTx types.BaseTx) (types.Result, error)
+	SetMemoRegexp(memoRegexp string, baseTx types.BaseTx) (types.Result, error)
 }
 
-func NewBank(tm types.TxManager) types.Bank {
+type bankClient struct {
+	types.TxCtxManager
+}
+
+func NewBankClient(tm types.TxCtxManager) Bank {
 	return bankClient{
-		TxManager: tm,
+		TxCtxManager: tm,
 	}
 }
 
@@ -30,23 +38,30 @@ func (bc bankClient) GetTokenStats(tokenID string) (result types.TokenStats, err
 }
 
 func (bc bankClient) Send(to string, amount types.Coins, baseTx types.BaseTx) (types.Result, error) {
-	keystore := bc.GetTxContext().KeyDAO.Read(baseTx.From)
-	inAddr := types.MustAccAddressFromBech32(keystore.GetAddress())
+	sender := bc.GetSender(baseTx.From)
 	outAddr := types.MustAccAddressFromBech32(to)
-	in := []types.Input{types.NewInput(inAddr, amount)}
+	in := []types.Input{types.NewInput(sender, amount)}
 	out := []types.Output{types.NewOutput(outAddr, amount)}
 
-	msgSend := types.NewMsgSend(in, out)
-	if err := msgSend.ValidateBasic(); err != nil {
+	msg := types.NewMsgSend(in, out)
+	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
 	}
-	return bc.Broadcast(baseTx, []types.Msg{msgSend})
+	return bc.Broadcast(baseTx, []types.Msg{msg})
 }
 func (bc bankClient) Burn(amount types.Coins, baseTx types.BaseTx) (types.Result, error) {
-	//TODO
-	return nil, nil
+	sender := bc.GetSender(baseTx.From)
+	msg := types.NewMsgBurn(sender, amount)
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+	return bc.Broadcast(baseTx, []types.Msg{msg})
 }
 func (bc bankClient) SetMemoRegexp(memoRegexp string, baseTx types.BaseTx) (types.Result, error) {
-	//TODO
-	return nil, nil
+	sender := bc.GetSender(baseTx.From)
+	msg := types.NewMsgSetMemoRegexp(sender, memoRegexp)
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+	return bc.Broadcast(baseTx, []types.Msg{msg})
 }
