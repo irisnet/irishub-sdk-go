@@ -19,12 +19,12 @@ type Stake interface {
 	QueryUnbondingDelegation(delegatorAddr, validatorAddr string) (types.UnbondingDelegation, error)
 	QueryUnbondingDelegations(delegatorAddr, validatorAddr string) (types.UnbondingDelegations, error)
 	QueryRedelegation(delegatorAddr, srcValidatorAddr, dstValidatorAddr string) (types.Redelegation, error)
-	QueryRedelegations(delegatorAddr string) (types.Redelegation, error)
+	QueryRedelegations(delegatorAddr string) (types.Redelegations, error)
 	QueryDelegationsTo(validatorAddr string) (types.Delegations, error)
 	QueryUnbondingDelegationsFrom(validatorAddr string) (types.UnbondingDelegations, error)
 	QueryRedelegationsFrom(validatorAddr string) (types.Redelegations, error)
 	QueryValidator(address string) (types.Validator, error)
-	QueryValidators(page, size int) (types.Validators, error)
+	QueryValidators(page uint64, size uint16) (types.Validators, error)
 	QueryAllValidators() (types.Validators, error)
 	QueryPool() (types.StakePool, error)
 	QueryParams() (types.StakeParams, error)
@@ -38,8 +38,8 @@ type stakeClient struct {
 }
 
 // unmarshal a redelegation from a store key and value
-func MustUnmarshalValidator(cdc types.Codec, operatorAddr, value []byte) types.Validator {
-	validator, err := UnmarshalValidator(cdc, operatorAddr, value)
+func mustUnmarshalValidator(cdc types.Codec, operatorAddr, value []byte) types.Validator {
+	validator, err := unmarshalValidator(cdc, operatorAddr, value)
 	if err != nil {
 		panic(err)
 	}
@@ -47,7 +47,7 @@ func MustUnmarshalValidator(cdc types.Codec, operatorAddr, value []byte) types.V
 }
 
 // unmarshal a redelegation from a store key and value
-func UnmarshalValidator(cdc types.Codec, operatorAddr, value []byte) (validator types.Validator, err error) {
+func unmarshalValidator(cdc types.Codec, operatorAddr, value []byte) (validator types.Validator, err error) {
 	if len(operatorAddr) != types.AddrLen {
 		err = errors.New("bad address")
 		return
@@ -113,4 +113,10 @@ type QueryDelegatorParams struct {
 // - 'custom/stake/validatorRedelegations'
 type QueryValidatorParams struct {
 	ValidatorAddr types.ValAddress
+}
+
+type QueryRedelegationParams struct {
+	DelegatorAddr types.AccAddress
+	ValSrcAddr    types.ValAddress
+	ValDstAddr    types.ValAddress
 }

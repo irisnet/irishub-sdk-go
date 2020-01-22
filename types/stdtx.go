@@ -304,3 +304,9 @@ func (rb ResultBroadcastTx) GetLog() string {
 func (rb ResultBroadcastTx) GetHeight() int64 {
 	return 0
 }
+
+// defines the params for all list queries:
+type PaginationParams struct {
+	Page uint64
+	Size uint16
+}

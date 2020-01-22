@@ -42,32 +42,112 @@ func (s stakeClient) QueryDelegations(delegatorAddr string) (delegations types.D
 	return
 }
 
-func (s stakeClient) QueryUnbondingDelegation(delegatorAddr, validatorAddr string) (types.UnbondingDelegation, error) {
-	panic("implement me")
+func (s stakeClient) QueryUnbondingDelegation(delegatorAddr, validatorAddr string) (ubd types.UnbondingDelegation, err error) {
+	delAddr, err := types.AccAddressFromBech32(delegatorAddr)
+	if err != nil {
+		return ubd, err
+	}
+	varAddr, err := types.ValAddressFromBech32(validatorAddr)
+	if err != nil {
+		return ubd, err
+	}
+	param := QueryBondsParams{
+		DelegatorAddr: delAddr,
+		ValidatorAddr: varAddr,
+	}
+
+	err = s.Query("custom/stake/unbondingDelegation", param, &ubd)
+	return
 }
 
-func (s stakeClient) QueryUnbondingDelegations(delegatorAddr, validatorAddr string) (types.UnbondingDelegations, error) {
-	panic("implement me")
+func (s stakeClient) QueryUnbondingDelegations(delegatorAddr, validatorAddr string) (ubds types.UnbondingDelegations, err error) {
+	delAddr, err := types.AccAddressFromBech32(delegatorAddr)
+	if err != nil {
+		return ubds, err
+	}
+	param := QueryDelegatorParams{
+		DelegatorAddr: delAddr,
+	}
+
+	err = s.Query("custom/stake/delegatorUnbondingDelegations", param, &ubds)
+	return
 }
 
-func (s stakeClient) QueryRedelegation(delegatorAddr, srcValidatorAddr, dstValidatorAddr string) (types.Redelegation, error) {
-	panic("implement me")
+func (s stakeClient) QueryRedelegation(delegatorAddr, srcValidatorAddr, dstValidatorAddr string) (rd types.Redelegation, err error) {
+	delAddr, err := types.AccAddressFromBech32(delegatorAddr)
+	if err != nil {
+		return rd, err
+	}
+	srcVarAddr, err := types.ValAddressFromBech32(srcValidatorAddr)
+	if err != nil {
+		return rd, err
+	}
+
+	dstVarAddr, err := types.ValAddressFromBech32(dstValidatorAddr)
+	if err != nil {
+		return rd, err
+	}
+
+	param := QueryRedelegationParams{
+		DelegatorAddr: delAddr,
+		ValSrcAddr:    srcVarAddr,
+		ValDstAddr:    dstVarAddr,
+	}
+
+	err = s.Query("custom/stake/redelegation", param, &rd)
+	return
 }
 
-func (s stakeClient) QueryRedelegations(delegatorAddr string) (types.Redelegation, error) {
-	panic("implement me")
+func (s stakeClient) QueryRedelegations(delegatorAddr string) (rds types.Redelegations, err error) {
+	delAddr, err := types.AccAddressFromBech32(delegatorAddr)
+	if err != nil {
+		return rds, err
+	}
+	param := QueryDelegatorParams{
+		DelegatorAddr: delAddr,
+	}
+
+	err = s.Query("custom/stake/delegatorRedelegations", param, &rds)
+	return
 }
 
-func (s stakeClient) QueryDelegationsTo(validatorAddr string) (types.Delegations, error) {
-	panic("implement me")
+func (s stakeClient) QueryDelegationsTo(validatorAddr string) (delegations types.Delegations, err error) {
+	varAddr, err := types.ValAddressFromBech32(validatorAddr)
+	if err != nil {
+		return delegations, err
+	}
+	param := QueryValidatorParams{
+		ValidatorAddr: varAddr,
+	}
+
+	err = s.Query("custom/stake/validatorDelegations", param, &delegations)
+	return
 }
 
-func (s stakeClient) QueryUnbondingDelegationsFrom(validatorAddr string) (types.UnbondingDelegations, error) {
-	panic("implement me")
+func (s stakeClient) QueryUnbondingDelegationsFrom(validatorAddr string) (ubds types.UnbondingDelegations, err error) {
+	varAddr, err := types.ValAddressFromBech32(validatorAddr)
+	if err != nil {
+		return ubds, err
+	}
+	param := QueryValidatorParams{
+		ValidatorAddr: varAddr,
+	}
+
+	err = s.Query("custom/stake/validatorUnbondingDelegations", param, &ubds)
+	return
 }
 
-func (s stakeClient) QueryRedelegationsFrom(validatorAddr string) (types.Redelegations, error) {
-	panic("implement me")
+func (s stakeClient) QueryRedelegationsFrom(validatorAddr string) (rds types.Redelegations, err error) {
+	varAddr, err := types.ValAddressFromBech32(validatorAddr)
+	if err != nil {
+		return rds, err
+	}
+	param := QueryValidatorParams{
+		ValidatorAddr: varAddr,
+	}
+
+	err = s.Query("custom/stake/validatorRedelegations", param, &rds)
+	return
 }
 
 func (s stakeClient) QueryValidator(valAddr string) (validator types.Validator, err error) {
@@ -83,8 +163,13 @@ func (s stakeClient) QueryValidator(valAddr string) (validator types.Validator, 
 	return
 }
 
-func (s stakeClient) QueryValidators(page, size int) (types.Validators, error) {
-	panic("implement me")
+func (s stakeClient) QueryValidators(page uint64, size uint16) (validators types.Validators, err error) {
+	param := types.PaginationParams{
+		Page: page,
+		Size: size,
+	}
+	err = s.Query("custom/stake/validators", param, &validators)
+	return
 }
 
 func (s stakeClient) QueryAllValidators() (validators types.Validators, err error) {
@@ -100,18 +185,20 @@ func (s stakeClient) QueryAllValidators() (validators types.Validators, err erro
 	}
 	for _, kv := range resKVs {
 		addr := kv.Key[1:]
-		validator := MustUnmarshalValidator(cdc, addr, kv.Value)
+		validator := mustUnmarshalValidator(cdc, addr, kv.Value)
 		validators = append(validators, validator)
 	}
 	return
 }
 
-func (s stakeClient) QueryPool() (types.StakePool, error) {
-	panic("implement me")
+func (s stakeClient) QueryPool() (pool types.StakePool, err error) {
+	err = s.Query("custom/stake/pool", nil, &pool)
+	return
 }
 
-func (s stakeClient) QueryParams() (types.StakeParams, error) {
-	panic("implement me")
+func (s stakeClient) QueryParams() (params types.StakeParams, err error) {
+	err = s.Query("custom/stake/parameters", nil, &params)
+	return
 }
 
 func (s stakeClient) Delegate(validatorAddr string, amount types.Coin, baseTx types.BaseTx) (types.Result, error) {

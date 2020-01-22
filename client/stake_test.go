@@ -28,3 +28,9 @@ func (c *ClientTestSuite) TestQueryAllValidators() {
 	require.NoError(c.T(), err)
 	fmt.Printf("%v", acc)
 }
+
+func (c *ClientTestSuite) TestQueryValidators() {
+	acc, err := c.QueryValidators(1, 100)
+	require.NoError(c.T(), err)
+	fmt.Printf("%v", acc)
+}

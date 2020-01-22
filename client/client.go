@@ -3,14 +3,14 @@ package client
 import (
 	"errors"
 	"fmt"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	"strconv"
 
-	"github.com/irisnet/irishub-sdk-go/modules/stake"
+	cmn "github.com/tendermint/tendermint/libs/common"
+	rpcclient "github.com/tendermint/tendermint/rpc/client"
 
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/event"
+	"github.com/irisnet/irishub-sdk-go/modules/stake"
 	"github.com/irisnet/irishub-sdk-go/net"
 	"github.com/irisnet/irishub-sdk-go/types"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -67,11 +67,14 @@ func (bm baseClient) Broadcast(baseTx types.BaseTx, msg []types.Msg) (types.Resu
 }
 
 func (bm baseClient) Query(path string, data interface{}, result interface{}) error {
-	bz, err := bm.Codec.MarshalJSON(data)
-	if err != nil {
-		return err
+	var bz []byte
+	var err error
+	if data != nil {
+		bz, err = bm.Codec.MarshalJSON(data)
+		if err != nil {
+			return err
+		}
 	}
-
 	res, err := bm.RPC.Query(path, bz)
 	if err != nil {
 		return err

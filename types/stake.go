@@ -35,18 +35,18 @@ type Delegation struct {
 	DelegatorAddr string `json:"delegator_addr"`
 	ValidatorAddr string `json:"validator_addr"`
 	Shares        string `json:"shares"`
-	Height        string `json:"height"`
+	Height        int64  `json:"height"`
 }
 
 type UnbondingDelegations []UnbondingDelegation
 type UnbondingDelegation struct {
-	TxHash         string `json:"tx_hash"`
-	DelegatorAddr  string `json:"delegator_addr"`
-	ValidatorAddr  string `json:"validator_addr"`
-	CreationHeight string `json:"creation_height"`
-	MinTime        string `json:"min_time"`
-	InitialBalance Coin   `json:"initial_balance"`
-	Balance        Coin   `json:"balance"`
+	TxHash         string    `json:"tx_hash"`
+	DelegatorAddr  string    `json:"delegator_addr"`
+	ValidatorAddr  string    `json:"validator_addr"`
+	CreationHeight int64     `json:"creation_height"`
+	MinTime        time.Time `json:"min_time"`
+	InitialBalance Coin      `json:"initial_balance"`
+	Balance        Coin      `json:"balance"`
 }
 
 type Redelegations []Redelegation
@@ -54,7 +54,7 @@ type Redelegation struct {
 	DelegatorAddr    string `json:"delegator_addr"`
 	ValidatorSrcAddr string `json:"validator_src_addr"`
 	ValidatorDstAddr string `json:"validator_dst_addr"`
-	CreationHeight   string `json:"creation_height"`
+	CreationHeight   int64  `json:"creation_height"`
 	MinTime          string `json:"min_time"`
 	InitialBalance   Coin   `json:"initial_balance"`
 	Balance          Coin   `json:"balance"`
