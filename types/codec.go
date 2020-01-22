@@ -4,10 +4,9 @@ import (
 	"github.com/tendermint/go-amino"
 )
 
-
 var defaultCdc Codec
 
-func init()  {
+func init() {
 	defaultCdc = NewAmino()
 }
 
@@ -34,6 +33,7 @@ func NewAmino() Amino {
 	cdc := amino.NewCodec()
 	RegisterAuth(cdc)
 	RegisterBank(cdc)
+	RegisterStake(cdc)
 	return Amino{cdc}
 }
 

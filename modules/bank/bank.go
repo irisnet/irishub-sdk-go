@@ -1,20 +1,8 @@
-package modules
+package bank
 
 import (
 	"github.com/irisnet/irishub-sdk-go/types"
 )
-
-type Bank interface {
-	GetAccount(address string) (types.BaseAccount, error)
-	GetTokenStats(tokenID string) (types.TokenStats, error)
-	Send(to string, amount types.Coins, baseTx types.BaseTx) (types.Result, error)
-	Burn(amount types.Coins, baseTx types.BaseTx) (types.Result, error)
-	SetMemoRegexp(memoRegexp string, baseTx types.BaseTx) (types.Result, error)
-}
-
-type bankClient struct {
-	types.TxCtxManager
-}
 
 func NewBankClient(tm types.TxCtxManager) Bank {
 	return bankClient{
@@ -29,7 +17,7 @@ func (bc bankClient) GetAccount(address string) (types.BaseAccount, error) {
 
 // GetTokenStats return token information specified tokenID
 func (bc bankClient) GetTokenStats(tokenID string) (result types.TokenStats, err error) {
-	param := types.QueryTokenParams{TokenId: tokenID}
+	param := QueryTokenParams{TokenId: tokenID}
 	err = bc.Query("custom/acc/tokenStats", param, &result)
 	if err != nil {
 		return result, err

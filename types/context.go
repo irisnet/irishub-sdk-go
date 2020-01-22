@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	cmn "github.com/tendermint/tendermint/libs/common"
 
 	"github.com/pkg/errors"
 
@@ -12,6 +13,7 @@ import (
 type TxCtxManager interface {
 	Broadcast(baseTx BaseTx, msg []Msg) (Result, error)
 	Query(path string, data interface{}, result interface{}) error
+	QueryStore(key cmn.HexBytes, storeName string) ([]byte, error)
 	QueryAccount(address string) (BaseAccount, error)
 	GetSender(name string) AccAddress
 	GetRPC() net.RPCClient

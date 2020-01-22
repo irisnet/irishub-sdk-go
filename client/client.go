@@ -2,17 +2,24 @@ package client
 
 import (
 	"errors"
+	"fmt"
+	cmn "github.com/tendermint/tendermint/libs/common"
+	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	"strconv"
 
-	"github.com/irisnet/irishub-sdk-go/modules"
+	"github.com/irisnet/irishub-sdk-go/modules/stake"
+
+	"github.com/irisnet/irishub-sdk-go/modules/bank"
+	"github.com/irisnet/irishub-sdk-go/modules/event"
 	"github.com/irisnet/irishub-sdk-go/net"
 	"github.com/irisnet/irishub-sdk-go/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 type Client struct {
-	modules.Bank
-	modules.Event
+	bank.Bank
+	event.Event
+	stake.Stake
 }
 
 func NewClient(cfg types.SDKConfig) Client {
@@ -31,8 +38,9 @@ func NewClient(cfg types.SDKConfig) Client {
 
 	baseClient := baseClient{ctx}
 	client := Client{
-		Bank:  modules.NewBankClient(baseClient),
-		Event: modules.NewEvent(baseClient),
+		Bank:  bank.NewBankClient(baseClient),
+		Event: event.NewEvent(baseClient),
+		Stake: stake.NewStakeClient(baseClient),
 	}
 	client.setNetwork(ctx.Network)
 	return client
@@ -74,12 +82,31 @@ func (bm baseClient) Query(path string, data interface{}, result interface{}) er
 	return nil
 }
 
+func (bm baseClient) QueryStore(key cmn.HexBytes, storeName string) (res []byte, err error) {
+	path := fmt.Sprintf("/store/%s/%s", storeName, "subspace")
+	opts := rpcclient.ABCIQueryOptions{
+		//Height: cliCtx.Height,
+		Prove: false,
+	}
+
+	result, err := bm.RPC.ABCIQueryWithOptions(path, key, opts)
+	if err != nil {
+		return res, err
+	}
+
+	resp := result.Response
+	if !resp.IsOK() {
+		return res, errors.New(resp.Log)
+	}
+	return resp.Value, nil
+}
+
 func (bm baseClient) QueryAccount(address string) (baseAccount types.BaseAccount, err error) {
 	addr, err := types.AccAddressFromBech32(address)
 	if err != nil {
 		return baseAccount, err
 	}
-	param := types.QueryAccountParams{
+	param := bank.QueryAccountParams{
 		Address: addr,
 	}
 	if err = bm.Query("custom/acc/account", param, &baseAccount); err != nil {

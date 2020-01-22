@@ -269,16 +269,6 @@ type TokenStats struct {
 	TotalSupply  Coins `json:"total_supply"`
 }
 
-// defines the params for query: "custom/acc/account"
-type QueryAccountParams struct {
-	Address AccAddress
-}
-
-// QueryTokenParams is the query parameters for 'custom/asset/tokens/{id}'
-type QueryTokenParams struct {
-	TokenId string
-}
-
 func RegisterBank(cdc *amino.Codec) {
 	cdc.RegisterConcrete(MsgSend{}, "irishub/bank/Send", nil)
 	cdc.RegisterConcrete(MsgBurn{}, "irishub/bank/Burn", nil)
