@@ -9,11 +9,13 @@ import (
 	"github.com/irisnet/irishub-sdk-go/net"
 )
 
-type TxManager interface {
+type TxCtxManager interface {
 	Broadcast(baseTx BaseTx, msg []Msg) (Result, error)
 	Query(path string, data interface{}, result interface{}) error
 	QueryAccount(address string) (BaseAccount, error)
-	GetTxContext() TxContext
+	GetSender(name string) AccAddress
+	GetRPC() net.RPCClient
+	GetCodec() Codec
 }
 
 // TxContext implements a transaction context created in SDK modules.

@@ -11,6 +11,12 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
+type Event interface {
+	UnsubscribeAll() error
+	SubscribeNewBlock(callback types.EventCallback) error
+	SubscribeTx(params types.KVPair, callback types.EventCallback) error
+}
+
 type eventsClient struct {
 	wsClient net.RPCClient
 	cdc      types.Codec
@@ -30,18 +36,19 @@ func (s Subscriber) GetData() types.EventData {
 	return s.data
 }
 
-func NewEvent(tm types.TxManager) types.Event {
-	wsClient := tm.GetTxContext().RPC
+func NewEvent(tm types.TxCtxManager) Event {
+	wsClient := tm.GetRPC()
 	_ = wsClient.Start()
 	return eventsClient{
 		wsClient: wsClient,
-		cdc:      tm.GetTxContext().Codec,
+		cdc:      tm.GetCodec(),
 	}
 }
 
-func (e eventsClient) SubscribeTx(query string, callback types.EventCallback) error {
+func (e eventsClient) SubscribeTx(params types.KVPair, callback types.EventCallback) error {
 	ctx := context.Background()
 	subscriber := getSubscriberID()
+	query := params.ToQueryString()
 	ch, err := e.wsClient.Subscribe(ctx, subscriber, query, 0)
 	if err != nil {
 		return err

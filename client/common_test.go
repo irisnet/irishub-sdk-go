@@ -8,6 +8,11 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+const (
+	addr    = "iaa1x3f572u057lv88mva2q3z40ls8pup9hsa74f9x"
+	privKey = "8D03FEDB094224959DD12016D24782429216246BC03084211C0305F9767C3C38"
+)
+
 type ClientTestSuite struct {
 	suite.Suite
 	client.Client
@@ -36,8 +41,8 @@ func createTestKeyDAO() TestKeyDAO {
 		store: map[string]types.KeyStore{},
 	}
 	keystore := TestKeystore{
-		Private: "8D03FEDB094224959DD12016D24782429216246BC03084211C0305F9767C3C38",
-		Address: "iaa1x3f572u057lv88mva2q3z40ls8pup9hsa74f9x",
+		Private: privKey,
+		Address: addr,
 	}
 	_ = dao.Write("test1", keystore)
 	return dao

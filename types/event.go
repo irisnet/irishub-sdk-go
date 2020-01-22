@@ -8,12 +8,6 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
-type Event interface {
-	UnsubscribeAll() error
-	SubscribeNewBlock(callback EventCallback) error
-	SubscribeTx(query string, callback EventCallback) error
-}
-
 type Subscription interface {
 	Unsubscribe()
 	GetData() EventData
@@ -48,13 +42,13 @@ func (kv KVPair) ToQueryString() string {
 	}
 	return buf.String()
 }
-func EventQueryTxFor(txHash string) string {
+func EventQueryTxFor(txHash string) KVPair {
 	kv := NewKVPair()
 	kv.Put(tmtypes.TxHashKey, txHash)
 	return EventQueryTx(kv)
 }
 
-func EventQueryTx(kv KVPair) string {
+func EventQueryTx(kv KVPair) KVPair {
 	kv.Put(tmtypes.EventTypeKey, tmtypes.EventTx)
-	return kv.ToQueryString()
+	return kv
 }
