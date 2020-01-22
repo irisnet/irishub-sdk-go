@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"os/user"
 
-	cmn "github.com/tendermint/tendermint/libs/common"
-
 	"github.com/irisnet/irishub-sdk-go/net"
-
 	"github.com/irisnet/irishub-sdk-go/types"
+	cmn "github.com/tendermint/tendermint/libs/common"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
@@ -94,7 +92,7 @@ func (e eventsClient) SubscribeNewBlock(callback types.EventCallback) error {
 	go func() {
 		for {
 			data := <-ch
-			block := data.Data.(tmtypes.EventDataNewBlock)
+			block := data.Data.(types.EventDataNewBlock)
 			sub.data = block
 			callback(sub)
 		}
