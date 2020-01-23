@@ -1,11 +1,12 @@
-package client_test
+package sim
 
 import (
-	"testing"
-
 	"github.com/irisnet/irishub-sdk-go/client"
+	"github.com/irisnet/irishub-sdk-go/modules/bank"
+	"github.com/irisnet/irishub-sdk-go/modules/event"
+	"github.com/irisnet/irishub-sdk-go/modules/stake"
+	"github.com/irisnet/irishub-sdk-go/net"
 	"github.com/irisnet/irishub-sdk-go/types"
-	"github.com/stretchr/testify/suite"
 )
 
 const (
@@ -14,27 +15,38 @@ const (
 	privKey = "8D03FEDB094224959DD12016D24782429216246BC03084211C0305F9767C3C38"
 )
 
-type ClientTestSuite struct {
-	suite.Suite
-	client.Client
+type TestClient struct {
+	bank.Bank
+	stake.Stake
+	event.Event
 }
 
-func (c *ClientTestSuite) SetupTest() {
-	cfg := types.SDKConfig{
-		NodeURI: "localhost:26657",
-		Network: types.Mainnet,
+func NewTestClient() TestClient {
+	cdc := types.NewAmino()
+	rpc := net.NewRPCClient("localhost:26657")
+	ctx := &types.TxContext{
+		Codec:   cdc,
 		ChainID: "irishub-test",
-		Gas:     20000,
-		Fee:     "600000000000000000iris-atto",
-		KeyDAO:  createTestKeyDAO(),
-		Mode:    types.Commit,
 		Online:  true,
+		KeyDAO:  createTestKeyDAO(),
+		Network: types.Mainnet,
+		Mode:    types.Commit,
+		RPC:     rpc,
 	}
-	c.Client = client.NewClient(cfg)
+	txm := client.NewBaseClient(ctx)
+	return TestClient{
+		Bank:  bank.NewBankClient(txm),
+		Stake: stake.NewStakeClient(txm),
+		Event: event.NewEvent(txm),
+	}
 }
 
-func TestClientSuite(t *testing.T) {
-	suite.Run(t, new(ClientTestSuite))
+func (TestClient) GetTestSender() string {
+	return addr
+}
+
+func (TestClient) GetTestValidator() string {
+	return valAddr
 }
 
 func createTestKeyDAO() TestKeyDAO {

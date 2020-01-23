@@ -23,35 +23,32 @@ type Client struct {
 }
 
 func NewClient(cfg types.SDKConfig) Client {
-	cdc := types.NewAmino()
-	rpc := net.NewRPCClient(cfg.NodeURI)
-
 	ctx := &types.TxContext{
-		Codec:   cdc,
+		Codec:   types.NewAmino(),
 		ChainID: cfg.ChainID,
 		Online:  cfg.Online,
 		KeyDAO:  cfg.KeyDAO,
 		Network: cfg.Network,
 		Mode:    cfg.Mode,
-		RPC:     rpc,
+		RPC:     net.NewRPCClient(cfg.NodeURI),
 	}
 
-	baseClient := baseClient{ctx}
+	baseClient := NewBaseClient(ctx)
 	client := Client{
 		Bank:  bank.NewBankClient(baseClient),
 		Event: event.NewEvent(baseClient),
 		Stake: stake.NewStakeClient(baseClient),
 	}
-	client.setNetwork(ctx.Network)
 	return client
-}
-
-func (c Client) setNetwork(network types.Network) {
-	types.SetNetwork(network)
 }
 
 type baseClient struct {
 	*types.TxContext
+}
+
+func NewBaseClient(ctx *types.TxContext) types.TxCtxManager {
+	types.SetNetwork(ctx.Network)
+	return baseClient{ctx}
 }
 
 func (bm baseClient) Broadcast(baseTx types.BaseTx, msg []types.Msg) (types.Result, error) {
