@@ -9,13 +9,13 @@ import (
 
 var (
 	// Denominations can be 3 ~ 21 characters long.
-	reABS              = `([a-z][0-9a-z]{2}[:])?`
-	reCoinName         = reABS + `(([a-z][a-z0-9]{2,7}|x)\.)?([a-z][a-z0-9]{2,7})`
-	reDenom            = reCoinName + `(-[a-z]{3,5})?`
-	reAmount           = `[0-9]+(\.[0-9]+)?`
-	reSpace            = `[[:space:]]*`
-	reDenomCompiled    = regexp.MustCompile(fmt.Sprintf(`^%s$`, reDenom))
-	reCoinCompiled     = regexp.MustCompile(fmt.Sprintf(`^(%s)%s(%s)$`, reAmount, reSpace, reDenom))
+	reABS           = `([a-z][0-9a-z]{2}[:])?`
+	reCoinName      = reABS + `(([a-z][a-z0-9]{2,7}|x)\.)?([a-z][a-z0-9]{2,7})`
+	reDenom         = reCoinName + `(-[a-z]{3,5})?`
+	reAmount        = `[0-9]+(\.[0-9]+)?`
+	reSpace         = `[[:space:]]*`
+	reDenomCompiled = regexp.MustCompile(fmt.Sprintf(`^%s$`, reDenom))
+	reCoinCompiled  = regexp.MustCompile(fmt.Sprintf(`^(%s)%s(%s)$`, reAmount, reSpace, reDenom))
 
 	irisAtto       = "iris-atto"
 	minDenomSuffix = "-min"
@@ -47,10 +47,20 @@ func NewCoin(denom string, amount Int) Coin {
 	}
 }
 
+// IsPositive returns true if coin amount is positive.
+//
+func (coin Coin) IsPositive() bool {
+	return coin.Amount.i != nil && coin.Amount.IsPositive()
+}
+
 // IsNegative returns true if the coin amount is negative and false otherwise.
 //
 func (coin Coin) IsNegative() bool {
 	return coin.Amount.i != nil && coin.Amount.IsNegative()
+}
+
+func (coin Coin) IsValidIrisAtto() bool {
+	return coin.Denom == "iris-atto" && coin.IsPositive()
 }
 
 // IsZero returns if this coin has zero amount

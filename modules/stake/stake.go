@@ -1,6 +1,8 @@
 package stake
 
 import (
+	"errors"
+
 	"github.com/irisnet/irishub-sdk-go/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
@@ -201,14 +203,65 @@ func (s stakeClient) QueryParams() (params types.StakeParams, err error) {
 	return
 }
 
-func (s stakeClient) Delegate(validatorAddr string, amount types.Coin, baseTx types.BaseTx) (types.Result, error) {
-	panic("implement me")
+func (s stakeClient) Delegate(validatorAddr string, amount types.Coin, baseTx types.BaseTx) (res types.Result, err error) {
+	delAddr := s.GetSender(baseTx.From)
+	varAddr, err := types.ValAddressFromBech32(validatorAddr)
+	if err != nil {
+		return res, err
+	}
+	msg := types.NewMsgDelegate(delAddr, varAddr, amount)
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+	return s.Broadcast(baseTx, []types.Msg{msg})
 }
 
-func (s stakeClient) Unbond(validatorAddr string, amount string, baseTx types.BaseTx) (types.Result, error) {
-	panic("implement me")
+func (s stakeClient) Undelegate(validatorAddr string, amount types.Coin, baseTx types.BaseTx) (res types.Result, err error) {
+	delAddr := s.GetSender(baseTx.From)
+	varAddr, err := types.ValAddressFromBech32(validatorAddr)
+	if err != nil {
+		return res, err
+	}
+	val, err := s.QueryValidator(validatorAddr)
+	if err != nil {
+		return res, err
+	}
+	exRate := val.DelegatorShareExRate()
+	if exRate.IsZero() {
+		return res, errors.New("zero exRate should not happen")
+	}
+	amountDec := types.NewDecFromInt(amount.Amount)
+	share := amountDec.Quo(exRate)
+	msg := types.NewMsgUndelegate(delAddr, varAddr, share)
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+	return s.Broadcast(baseTx, []types.Msg{msg})
 }
 
-func (s stakeClient) Redelegate(validatorSrcAddr, validatorDstAddr, amount string, baseTx types.BaseTx) (types.Result, error) {
-	panic("implement me")
+func (s stakeClient) Redelegate(srcValidatorAddr, dstValidatorAddr string, amount types.Coin, baseTx types.BaseTx) (res types.Result, err error) {
+	delAddr := s.GetSender(baseTx.From)
+	srcValAddr, err := types.ValAddressFromBech32(srcValidatorAddr)
+	if err != nil {
+		return res, err
+	}
+	dstValAddr, err := types.ValAddressFromBech32(dstValidatorAddr)
+	if err != nil {
+		return res, err
+	}
+	val, err := s.QueryValidator(srcValidatorAddr)
+	if err != nil {
+		return res, err
+	}
+	exRate := val.DelegatorShareExRate()
+	if exRate.IsZero() {
+		return res, errors.New("zero exRate should not happen")
+	}
+	amountDec := types.NewDecFromInt(amount.Amount)
+	share := amountDec.Quo(exRate)
+	msg := types.NewMsgBeginRedelegate(delAddr, srcValAddr, dstValAddr, share)
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+	return s.Broadcast(baseTx, []types.Msg{msg})
 }

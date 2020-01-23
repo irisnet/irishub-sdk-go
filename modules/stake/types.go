@@ -29,8 +29,8 @@ type Stake interface {
 	QueryPool() (types.StakePool, error)
 	QueryParams() (types.StakeParams, error)
 	Delegate(validatorAddr string, amount types.Coin, baseTx types.BaseTx) (types.Result, error)
-	Unbond(validatorAddr string, amount string, baseTx types.BaseTx) (types.Result, error)
-	Redelegate(validatorSrcAddr, validatorDstAddr, amount string, baseTx types.BaseTx) (types.Result, error)
+	Undelegate(validatorAddr string, amount types.Coin, baseTx types.BaseTx) (types.Result, error)
+	Redelegate(validatorSrcAddr, validatorDstAddr string, amount types.Coin, baseTx types.BaseTx) (types.Result, error)
 }
 
 type stakeClient struct {
@@ -63,9 +63,9 @@ func unmarshalValidator(cdc types.Codec, operatorAddr, value []byte) (validator 
 		OperatorAddress: types.ValAddress(operatorAddr).String(),
 		ConsensusPubkey: conPubkey,
 		Jailed:          storeValue.Jailed,
-		Tokens:          storeValue.Tokens.String(),
+		Tokens:          storeValue.Tokens,
 		Status:          storeValue.Status,
-		DelegatorShares: storeValue.DelegatorShares.String(),
+		DelegatorShares: storeValue.DelegatorShares,
 		Description:     storeValue.Description,
 		BondHeight:      storeValue.BondHeight,
 		UnbondingHeight: storeValue.UnbondingHeight,
