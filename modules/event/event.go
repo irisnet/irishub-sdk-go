@@ -18,12 +18,12 @@ type Event interface {
 }
 
 type eventsClient struct {
-	wsClient net.RPCClient
+	wsClient *net.RPCClient
 	cdc      types.Codec
 }
 
 type subContent struct {
-	wsClient net.RPCClient
+	wsClient *net.RPCClient
 	ctx      context.Context
 	query    string
 	data     types.EventData
@@ -38,10 +38,15 @@ func (s subContent) GetData() types.EventData {
 
 func NewEvent(tm types.TxCtxManager) Event {
 	wsClient := tm.GetRPC()
-	_ = wsClient.Start()
 	return eventsClient{
-		wsClient: wsClient,
+		wsClient: &wsClient,
 		cdc:      tm.GetCodec(),
+	}
+}
+
+func (e eventsClient) Start() {
+	if !e.wsClient.IsRunning() {
+		_ = e.wsClient.Start()
 	}
 }
 
@@ -49,6 +54,7 @@ func (e eventsClient) SubscribeTx(params types.KVPair, callback types.EventCallb
 	ctx := context.Background()
 	subscriber := getSubscriberID()
 	query := params.ToQueryString()
+	e.Start()
 	ch, err := e.wsClient.Subscribe(ctx, subscriber, query, 0)
 	if err != nil {
 		return err
@@ -87,6 +93,7 @@ func (e eventsClient) SubscribeNewBlock(callback types.EventCallback) error {
 	ctx := context.Background()
 	subscriber := getSubscriberID()
 	query := tmtypes.QueryForEvent(tmtypes.EventNewBlock).String()
+	e.Start()
 	ch, err := e.wsClient.Subscribe(ctx, subscriber, query, 0)
 	if err != nil {
 		return err
@@ -108,7 +115,10 @@ func (e eventsClient) SubscribeNewBlock(callback types.EventCallback) error {
 }
 
 func (e eventsClient) UnsubscribeAll() error {
-	return e.wsClient.UnsubscribeAll(context.Background(), getSubscriberID())
+	if e.wsClient.IsRunning() {
+		return e.wsClient.UnsubscribeAll(context.Background(), getSubscriberID())
+	}
+	return nil
 }
 
 func getSubscriberID() string {
