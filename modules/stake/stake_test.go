@@ -14,7 +14,7 @@ import (
 
 type StakeTestSuite struct {
 	suite.Suite
-	stake.Stake
+	stake.Client
 	sender, validator string
 }
 
@@ -24,7 +24,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (sts *StakeTestSuite) SetupTest() {
 	tc := sim.NewTestClient()
-	sts.Stake = tc.Stake
+	sts.Client = tc.Stake
 	sts.sender = tc.GetTestSender()
 	sts.validator = tc.GetTestValidator()
 }

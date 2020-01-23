@@ -36,11 +36,11 @@ func (s subContent) GetData() types.EventData {
 	return s.data
 }
 
-func NewEvent(tm types.TxCtxManager) Event {
-	wsClient := tm.GetRPC()
+func NewEvent(ac types.AbstractClient) Event {
+	wsClient := ac.GetRPC()
 	return eventsClient{
 		wsClient: &wsClient,
-		cdc:      tm.GetCodec(),
+		cdc:      ac.GetCodec(),
 	}
 }
 

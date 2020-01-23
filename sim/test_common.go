@@ -16,9 +16,9 @@ const (
 )
 
 type TestClient struct {
-	bank.Bank
-	stake.Stake
-	event.Event
+	Bank  bank.Client
+	Event event.Event
+	Stake stake.Client
 }
 
 func NewTestClient() TestClient {

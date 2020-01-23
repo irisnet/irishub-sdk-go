@@ -10,7 +10,7 @@ import (
 	"github.com/irisnet/irishub-sdk-go/net"
 )
 
-type TxCtxManager interface {
+type AbstractClient interface {
 	Broadcast(baseTx BaseTx, msg []Msg) (Result, error)
 	Query(path string, data interface{}, result interface{}) error
 	QueryStore(key cmn.HexBytes, storeName string) ([]byte, error)

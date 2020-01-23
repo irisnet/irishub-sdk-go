@@ -13,7 +13,7 @@ var (
 	validatorsKey = []byte{0x21} // prefix for each key to a validator
 )
 
-type Stake interface {
+type Client interface {
 	QueryDelegation(delegatorAddr, validatorAddr string) (types.Delegation, error)
 	QueryDelegations(delegatorAddr string) (types.Delegations, error)
 	QueryUnbondingDelegation(delegatorAddr, validatorAddr string) (types.UnbondingDelegation, error)
@@ -34,7 +34,7 @@ type Stake interface {
 }
 
 type stakeClient struct {
-	types.TxCtxManager
+	types.AbstractClient
 }
 
 // unmarshal a redelegation from a store key and value

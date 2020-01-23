@@ -7,9 +7,9 @@ import (
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
-func NewStakeClient(tm types.TxCtxManager) Stake {
+func NewStakeClient(ac types.AbstractClient) Client {
 	return stakeClient{
-		TxCtxManager: tm,
+		AbstractClient: ac,
 	}
 }
 

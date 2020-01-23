@@ -4,9 +4,9 @@ import (
 	"github.com/irisnet/irishub-sdk-go/types"
 )
 
-func NewBankClient(tm types.TxCtxManager) Bank {
+func NewBankClient(ac types.AbstractClient) Client {
 	return bankClient{
-		TxCtxManager: tm,
+		AbstractClient: ac,
 	}
 }
 

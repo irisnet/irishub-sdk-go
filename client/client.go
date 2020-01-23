@@ -17,9 +17,9 @@ import (
 )
 
 type Client struct {
-	bank.Bank
-	event.Event
-	stake.Stake
+	Bank  bank.Client
+	Event event.Event
+	Stake stake.Client
 }
 
 func NewClient(cfg types.SDKConfig) Client {
@@ -46,7 +46,7 @@ type baseClient struct {
 	*types.TxContext
 }
 
-func NewBaseClient(ctx *types.TxContext) types.TxCtxManager {
+func NewBaseClient(ctx *types.TxContext) types.AbstractClient {
 	types.SetNetwork(ctx.Network)
 	return baseClient{ctx}
 }
