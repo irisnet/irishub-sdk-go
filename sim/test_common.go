@@ -35,8 +35,8 @@ func NewTestClient() TestClient {
 	}
 	txm := client.NewBaseClient(ctx)
 	return TestClient{
-		Bank:  bank.NewBankClient(txm),
-		Stake: stake.NewStakeClient(txm),
+		Bank:  bank.NewClient(txm),
+		Stake: stake.NewClient(txm),
 		Event: event.NewEvent(txm),
 	}
 }

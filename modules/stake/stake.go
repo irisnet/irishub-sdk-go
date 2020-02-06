@@ -7,7 +7,7 @@ import (
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
-func NewStakeClient(ac types.AbstractClient) Client {
+func NewClient(ac types.AbstractClient) Client {
 	return stakeClient{
 		AbstractClient: ac,
 	}

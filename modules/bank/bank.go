@@ -4,7 +4,7 @@ import (
 	"github.com/irisnet/irishub-sdk-go/types"
 )
 
-func NewBankClient(ac types.AbstractClient) Client {
+func NewClient(ac types.AbstractClient) Client {
 	return bankClient{
 		AbstractClient: ac,
 	}
