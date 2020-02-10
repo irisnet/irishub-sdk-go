@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/irisnet/irishub-sdk-go/modules/distr"
+	"github.com/irisnet/irishub-sdk-go/modules/gov"
+
 	cmn "github.com/tendermint/tendermint/libs/common"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 
@@ -20,6 +23,8 @@ type Client struct {
 	bank.Bank
 	event.Event
 	stake.Stake
+	gov.Gov
+	distr.Distr
 }
 
 func New(cfg types.SDKConfig) Client {
@@ -38,6 +43,8 @@ func New(cfg types.SDKConfig) Client {
 		Bank:  bank.New(baseClient),
 		Event: event.New(baseClient),
 		Stake: stake.New(baseClient),
+		Gov:   gov.New(baseClient),
+		Distr: distr.New(baseClient),
 	}
 	return client
 }

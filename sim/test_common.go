@@ -3,6 +3,7 @@ package sim
 import (
 	"github.com/irisnet/irishub-sdk-go/client"
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
+	"github.com/irisnet/irishub-sdk-go/modules/distr"
 	"github.com/irisnet/irishub-sdk-go/modules/event"
 	"github.com/irisnet/irishub-sdk-go/modules/gov"
 	"github.com/irisnet/irishub-sdk-go/modules/stake"
@@ -21,6 +22,7 @@ type TestClient struct {
 	event.Event
 	stake.Stake
 	gov.Gov
+	distr.Distr
 }
 
 func NewTestClient() TestClient {
@@ -41,6 +43,7 @@ func NewTestClient() TestClient {
 		Stake: stake.New(txm),
 		Event: event.New(txm),
 		Gov:   gov.New(txm),
+		Distr: distr.New(txm),
 	}
 }
 
