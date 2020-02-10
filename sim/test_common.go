@@ -4,6 +4,7 @@ import (
 	"github.com/irisnet/irishub-sdk-go/client"
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/event"
+	"github.com/irisnet/irishub-sdk-go/modules/gov"
 	"github.com/irisnet/irishub-sdk-go/modules/stake"
 	"github.com/irisnet/irishub-sdk-go/net"
 	"github.com/irisnet/irishub-sdk-go/types"
@@ -19,6 +20,7 @@ type TestClient struct {
 	bank.Bank
 	event.Event
 	stake.Stake
+	gov.Gov
 }
 
 func NewTestClient() TestClient {
@@ -35,9 +37,10 @@ func NewTestClient() TestClient {
 	}
 	txm := client.NewBaseClient(ctx)
 	return TestClient{
-		Bank:  bank.NewClient(txm),
-		Stake: stake.NewClient(txm),
-		Event: event.NewEvent(txm),
+		Bank:  bank.New(txm),
+		Stake: stake.New(txm),
+		Event: event.New(txm),
+		Gov:   gov.New(txm),
 	}
 }
 

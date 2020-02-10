@@ -173,6 +173,7 @@ func (txCtx TxContext) makeSignature(name string, msg StdSignMsg) (sig StdSignat
 		if err != nil {
 			return sig, err
 		}
+		fmt.Println(string(msg.Bytes(txCtx.Codec)))
 		sigBytes, err := keyManager.Sign(msg.Bytes(txCtx.Codec))
 		if err != nil {
 			return sig, err

@@ -36,7 +36,7 @@ func (s subContent) GetData() types.EventData {
 	return s.data
 }
 
-func NewEvent(ac types.AbstractClient) Event {
+func New(ac types.AbstractClient) Event {
 	wsClient := ac.GetRPC()
 	return eventsClient{
 		wsClient: &wsClient,

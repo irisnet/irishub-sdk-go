@@ -34,6 +34,7 @@ func NewAmino() Amino {
 	RegisterAuth(cdc)
 	RegisterBank(cdc)
 	RegisterStake(cdc)
+	RegisterGov(cdc)
 	return Amino{cdc}
 }
 

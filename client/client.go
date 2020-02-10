@@ -35,9 +35,9 @@ func New(cfg types.SDKConfig) Client {
 
 	baseClient := NewBaseClient(ctx)
 	client := Client{
-		Bank:  bank.NewClient(baseClient),
-		Event: event.NewEvent(baseClient),
-		Stake: stake.NewClient(baseClient),
+		Bank:  bank.New(baseClient),
+		Event: event.New(baseClient),
+		Stake: stake.New(baseClient),
 	}
 	return client
 }
