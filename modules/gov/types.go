@@ -2,7 +2,7 @@ package gov
 
 import "github.com/irisnet/irishub-sdk-go/types"
 
-type Client interface {
+type Gov interface {
 	Deposit(proposalID uint64, amount types.Coins, baseTx types.BaseTx) (types.Result, error)
 	Vote(proposalID uint64, option types.VoteOption, baseTx types.BaseTx) (types.Result, error)
 	QueryDeposit(proposalID uint64, depositor types.AccAddress) (types.VoteResult, error)

@@ -17,12 +17,12 @@ import (
 )
 
 type Client struct {
-	Bank  bank.Client
-	Event event.Event
-	Stake stake.Client
+	bank.Bank
+	event.Event
+	stake.Stake
 }
 
-func NewClient(cfg types.SDKConfig) Client {
+func New(cfg types.SDKConfig) Client {
 	ctx := &types.TxContext{
 		Codec:   types.NewAmino(),
 		ChainID: cfg.ChainID,

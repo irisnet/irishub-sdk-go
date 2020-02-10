@@ -17,7 +17,7 @@ import (
 type EventTestSuite struct {
 	suite.Suite
 	event.Event
-	bank.Client
+	bank.Bank
 	sender, validator string
 }
 
@@ -28,7 +28,7 @@ func TestKeeperTestSuite(t *testing.T) {
 func (ets *EventTestSuite) SetupTest() {
 	tc := sim.NewTestClient()
 	ets.Event = tc.Event
-	ets.Client = tc.Client
+	ets.Bank = tc.Client
 	ets.sender = tc.GetTestSender()
 	ets.validator = tc.GetTestValidator()
 }

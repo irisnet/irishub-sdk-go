@@ -13,7 +13,7 @@ import (
 
 type BankTestSuite struct {
 	suite.Suite
-	bank.Client
+	bank.Bank
 	sender, validator string
 }
 
@@ -23,7 +23,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (tbs *BankTestSuite) SetupTest() {
 	tc := sim.NewTestClient()
-	tbs.Client = tc.Bank
+	tbs.Bank = tc.Bank
 	tbs.sender = tc.GetTestSender()
 	tbs.validator = tc.GetTestValidator()
 }

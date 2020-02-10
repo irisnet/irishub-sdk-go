@@ -2,7 +2,7 @@ package bank
 
 import "github.com/irisnet/irishub-sdk-go/types"
 
-type Client interface {
+type Bank interface {
 	GetAccount(address string) (types.BaseAccount, error)
 	GetTokenStats(tokenID string) (types.TokenStats, error)
 	Send(to string, amount types.Coins, baseTx types.BaseTx) (types.Result, error)

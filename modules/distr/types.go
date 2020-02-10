@@ -2,7 +2,7 @@ package distr
 
 import "github.com/irisnet/irishub-sdk-go/types"
 
-type Client interface {
+type Distr interface {
 	QueryWithdrawAddress(delAddr string) (types.AccAddress, error)
 	QueryDelegationDistInfo(delAddr, valAddr string) (types.DelegationDistInfo, error)
 	QueryAllDelegationDistInfo(delAddr string) (types.DelegationDistInfo, error)
