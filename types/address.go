@@ -8,9 +8,9 @@ import (
 	"fmt"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/libs/bech32"
 
 	"github.com/irisnet/irishub-sdk-go/utils"
-	"github.com/tendermint/tendermint/libs/bech32"
 )
 
 const (

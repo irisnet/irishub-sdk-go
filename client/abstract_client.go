@@ -16,24 +16,22 @@ type abstractClient struct {
 	*types.TxContext
 }
 
-func NewBaseClient(ctx *types.TxContext) types.AbstractClient {
-	types.SetNetwork(ctx.Network)
-	return abstractClient{ctx}
-}
-
 func (ac abstractClient) Broadcast(baseTx types.BaseTx, msg []types.Msg) (types.Result, error) {
 	err := ac.prepareTxContext(baseTx)
 	if err != nil {
 		return nil, err
 	}
+
 	tx, err := ac.BuildAndSign(baseTx.From, msg)
 	if err != nil {
 		return nil, err
 	}
+
 	txByte, err := ac.Codec.MarshalBinaryLengthPrefixed(tx)
 	if err != nil {
 		return nil, err
 	}
+
 	return ac.broadcastTx(txByte)
 }
 
@@ -43,6 +41,7 @@ func (ac abstractClient) BroadcastTx(signedTx types.StdTx, mode types.BroadcastM
 	if err != nil {
 		return nil, err
 	}
+
 	return ac.broadcastTx(txByte)
 }
 
@@ -58,11 +57,13 @@ func (ac abstractClient) Sign(stdTx types.StdTx, name string, password string, o
 	if err != nil {
 		return stdTx, err
 	}
+
 	ac.WithOnline(online)
 	tx, err := ac.BuildAndSign(baseTx.From, stdTx.GetMsgs())
 	if err != nil {
 		return stdTx, err
 	}
+
 	return tx, nil
 }
 
@@ -75,13 +76,16 @@ func (ac abstractClient) Query(path string, data interface{}, result interface{}
 			return err
 		}
 	}
+
 	res, err := ac.RPC.Query(path, bz)
 	if err != nil {
 		return err
 	}
+
 	if err = ac.Codec.UnmarshalJSON(res, result); err != nil {
 		return err
 	}
+
 	return nil
 }
 

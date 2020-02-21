@@ -72,7 +72,7 @@ func (fee StdFee) Bytes() []byte {
 	if len(fee.Amount) == 0 {
 		fee.Amount = Coins{}
 	}
-	bz, err := defaultCdc.MarshalJSON(fee)
+	bz, err := NewAminoCodec().MarshalJSON(fee)
 	if err != nil {
 		panic(err)
 	}

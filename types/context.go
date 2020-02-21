@@ -1,9 +1,9 @@
 package types
 
 import (
-	cmn "github.com/tendermint/tendermint/libs/common"
-
 	"github.com/pkg/errors"
+
+	cmn "github.com/tendermint/tendermint/libs/common"
 
 	"github.com/irisnet/irishub-sdk-go/crypto"
 	"github.com/irisnet/irishub-sdk-go/net"

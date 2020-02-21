@@ -31,6 +31,7 @@ func New(cfg types.SDKConfig) Client {
 func makeCodec() types.Codec {
 	cdc := types.NewAminoCodec()
 
+	types.RegisterCodec(cdc)
 	// register msg
 	bank.RegisterCodec(cdc)
 
