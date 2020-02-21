@@ -17,6 +17,8 @@ const (
 type KeyManager interface {
 	Sign(data []byte) ([]byte, error)
 	GetPrivKey() crypto.PrivKey
+	ExportAsMnemonic() (string, error)
+	ExportAsPrivateKey() (string, error)
 }
 
 type keyManager struct {

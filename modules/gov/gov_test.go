@@ -2,9 +2,10 @@ package gov_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/irisnet/irishub-sdk-go/modules/gov"
 	"github.com/irisnet/irishub-sdk-go/types"
-	"testing"
 
 	"github.com/irisnet/irishub-sdk-go/sim"
 	"github.com/stretchr/testify/require"
@@ -31,7 +32,7 @@ func (gts *GovTestSuite) SetupTest() {
 func (gts GovTestSuite) TestDeposit() {
 	baseTx := types.BaseTx{
 		From: "test1",
-		Gas:  "20000",
+		Gas:  20000,
 		Fee:  "600000000000000000iris-atto",
 		Memo: "test",
 		Mode: types.Commit,
@@ -46,7 +47,7 @@ func (gts GovTestSuite) TestDeposit() {
 func (gts GovTestSuite) TestVote() {
 	baseTx := types.BaseTx{
 		From: "test1",
-		Gas:  "20000",
+		Gas:  20000,
 		Fee:  "600000000000000000iris-atto",
 		Memo: "test",
 		Mode: types.Commit,

@@ -47,6 +47,11 @@ func NewCoin(denom string, amount Int) Coin {
 	}
 }
 
+// String provides a human-readable representation of a coin
+func (coin Coin) String() string {
+	return fmt.Sprintf("%v%v", coin.Amount, coin.Denom)
+}
+
 // IsPositive returns true if coin amount is positive.
 //
 func (coin Coin) IsPositive() bool {
@@ -296,6 +301,18 @@ func removeZeroCoins(coins Coins) Coins {
 	}
 
 	return coins[:i]
+}
+
+func (coins Coins) String() string {
+	if len(coins) == 0 {
+		return ""
+	}
+
+	out := ""
+	for _, coin := range coins {
+		out += fmt.Sprintf("%v,", coin.String())
+	}
+	return out[:len(out)-1]
 }
 
 //-----------------------------------------------------------------------------

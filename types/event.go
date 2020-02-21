@@ -2,39 +2,112 @@ package types
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/irisnet/irishub-sdk-go/net"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
-type Subscription interface {
-	Unsubscribe()
-	GetData() EventData
+type Subscription struct {
+	ws           *net.RPCClient
+	ctx          context.Context
+	query        string
+	subscriberID string
 }
 
-type EventCallback func(Subscription)
-type EventData interface{}
+func NewSubscription(ctx context.Context, wsClient *net.RPCClient, query, subscriberID string) Subscription {
+	return Subscription{
+		ws:           wsClient,
+		ctx:          ctx,
+		query:        query,
+		subscriberID: subscriberID,
+	}
+}
+func (s Subscription) Unsubscribe() {
+	_ = s.ws.Unsubscribe(s.ctx, s.subscriberID, s.query)
+}
+
+//===============EventDataTx for SubscribeTx=================
 type EventDataTx struct {
-	Hash   string                 `json:"hash"`
-	Height int64                  `json:"height"`
-	Index  uint32                 `json:"index"`
-	Tx     StdTx                  `json:"tx"`
-	Result abci.ResponseDeliverTx `json:"result"`
+	Hash   string   `json:"hash"`
+	Height int64    `json:"height"`
+	Index  uint32   `json:"index"`
+	Tx     StdTx    `json:"tx"`
+	Result TxResult `json:"result"`
 }
-type EventDataNewBlock = tmtypes.EventDataNewBlock
+type TxResult struct {
+	Log       string `json:"log,omitempty"`
+	GasWanted int64  `json:"gas_wanted"`
+	GasUsed   int64  `json:"gas_used"`
+	Tags      []Tag  `json:"tags"`
+}
 
-type KVPair map[string]string
+type Tag struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+type EventTxCallback func(EventDataTx)
 
-func NewKVPair() KVPair {
-	return make(map[string]string)
+//===============EventDataNewBlock for SubscribeNewBlock=================
+type EventDataNewBlock struct {
+	Block            Block            `json:"block"`
+	ResultBeginBlock ResultBeginBlock `json:"result_begin_block"`
+	ResultEndBlock   ResultEndBlock   `json:"result_end_block"`
 }
-func (kv KVPair) Put(k, v string) {
-	kv[k] = v
+
+type Block struct {
+	tmtypes.Header `json:"header"`
+	Data           `json:"data"`
+	Evidence       tmtypes.EvidenceData `json:"evidence"`
+	LastCommit     *tmtypes.Commit      `json:"last_commit"`
 }
-func (kv KVPair) ToQueryString() string {
+
+type Data struct {
+	Txs []StdTx `json:"txs"`
+}
+
+type ResultBeginBlock struct {
+	Tags []Tag `json:"tags"`
+}
+
+type ResultEndBlock struct {
+	Tags             []Tag             `json:"tags"`
+	ValidatorUpdates []ValidatorUpdate `json:"validator_updates"`
+}
+
+type ValidatorUpdate struct {
+	PubKey EventPubKey `json:"pub_key"`
+	Power  int64       `json:"power"`
+}
+
+type EventPubKey struct {
+	Type  string `json:"type"`
+	Value string `json:"value"`
+}
+
+type EventNewBlockCallback func(EventDataNewBlock)
+
+//===============EventQueryBuilder for build query string=================
+type EventQueryBuilder struct {
+	params map[EventKey]EventValue
+}
+
+func NewEventQueryBuilder() *EventQueryBuilder {
+	return &EventQueryBuilder{
+		params: make(map[EventKey]EventValue),
+	}
+}
+
+func (eqb *EventQueryBuilder) AddCondition(eventKey EventKey,
+	value EventValue) *EventQueryBuilder {
+	eqb.params[eventKey] = value
+	return eqb
+}
+
+func (eqb *EventQueryBuilder) Build() string {
 	var buf bytes.Buffer
-	for k, v := range kv {
+	for k, v := range eqb.params {
 		if buf.Len() > 0 {
 			buf.WriteString(" AND ")
 		}
@@ -42,13 +115,22 @@ func (kv KVPair) ToQueryString() string {
 	}
 	return buf.String()
 }
-func EventQueryTxFor(txHash string) KVPair {
-	kv := NewKVPair()
-	kv.Put(tmtypes.TxHashKey, txHash)
-	return EventQueryTx(kv)
-}
 
-func EventQueryTx(kv KVPair) KVPair {
-	kv.Put(tmtypes.EventTypeKey, tmtypes.EventTx)
-	return kv
-}
+type EventKey string
+
+const (
+	TypeKey        EventKey = "tm.event"
+	ActionKey      EventKey = "action"
+	SenderKey      EventKey = "sender"
+	RecipientKey   EventKey = "recipient"
+	TxHashKeyKey   EventKey = "tx.hash"
+	TxHeightKeyKey EventKey = "tx.height"
+)
+
+type EventValue string
+
+const (
+	SendValue          EventValue = "send"
+	BurnValue          EventValue = "burn"
+	SetMemoRegexpValue EventValue = "set-memo-regexp"
+)

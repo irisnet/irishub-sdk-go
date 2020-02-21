@@ -47,7 +47,7 @@ func (tbs BankTestSuite) TestSend() {
 	to := "iaa120v5ev44cwft687l0jcr5ec3vh2626vsschv7e"
 	baseTx := types.BaseTx{
 		From: "test1",
-		Gas:  "20000",
+		Gas:  20000,
 		Fee:  "600000000000000000iris-atto",
 		Memo: "test",
 		Mode: types.Commit,
@@ -63,7 +63,7 @@ func (tbs BankTestSuite) TestBurn() {
 	coins := types.NewCoins(coin)
 	baseTx := types.BaseTx{
 		From: "test1",
-		Gas:  "20000",
+		Gas:  20000,
 		Fee:  "600000000000000000iris-atto",
 		Memo: "test",
 		Mode: types.Commit,
@@ -76,7 +76,7 @@ func (tbs BankTestSuite) TestBurn() {
 func (tbs BankTestSuite) TestSetMemoRegexp() {
 	baseTx := types.BaseTx{
 		From: "test1",
-		Gas:  "20000",
+		Gas:  20000,
 		Fee:  "600000000000000000iris-atto",
 		Memo: "test",
 		Mode: types.Commit,

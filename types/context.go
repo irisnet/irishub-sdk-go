@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	cmn "github.com/tendermint/tendermint/libs/common"
 
 	"github.com/pkg/errors"
@@ -12,6 +11,8 @@ import (
 
 type AbstractClient interface {
 	Broadcast(baseTx BaseTx, msg []Msg) (Result, error)
+	BroadcastTx(signedTx StdTx, mode BroadcastMode) (Result, error)
+	Sign(stdTx StdTx, name string, password string, online bool) (StdTx, error)
 	Query(path string, data interface{}, result interface{}) error
 	QueryStore(key cmn.HexBytes, storeName string) ([]byte, error)
 	QueryAccount(address string) (BaseAccount, error)
@@ -28,7 +29,7 @@ type TxContext struct {
 	Gas           uint64
 	ChainID       string
 	Memo          string
-	Fee           string
+	Fee           Coins
 	KeyDAO        KeyDAO
 	Online        bool
 	Network       Network
@@ -56,7 +57,7 @@ func (txCtx *TxContext) WithGas(gas uint64) *TxContext {
 }
 
 // WithFee returns a pointer of the context with an updated Fee.
-func (txCtx *TxContext) WithFee(fee string) *TxContext {
+func (txCtx *TxContext) WithFee(fee Coins) *TxContext {
 	txCtx.Fee = fee
 	return txCtx
 }
@@ -115,10 +116,10 @@ func (txCtx *TxContext) WithSimulate(simulate bool) *TxContext {
 	return txCtx
 }
 
-func (txCtx TxContext) BuildAndSign(name string, msgs []Msg) ([]byte, error) {
+func (txCtx TxContext) BuildAndSign(name string, msgs []Msg) (StdTx, error) {
 	msg, err := txCtx.Build(msgs)
 	if err != nil {
-		return nil, err
+		return StdTx{}, err
 	}
 	return txCtx.Sign(name, msg)
 }
@@ -130,36 +131,24 @@ func (txCtx TxContext) Build(msgs []Msg) (StdSignMsg, error) {
 	if chainID == "" {
 		return StdSignMsg{}, errors.Errorf("chain ID required but not specified")
 	}
-
-	fee := Coins{}
-	if txCtx.Fee != "" {
-		parsedFee, err := ParseCoins(txCtx.Fee)
-		if err != nil {
-			return StdSignMsg{}, fmt.Errorf("encountered error in parsing transaction Fee: %s", err.Error())
-		}
-
-		fee = parsedFee
-	}
-
 	return StdSignMsg{
 		ChainID:       txCtx.ChainID,
 		AccountNumber: txCtx.AccountNumber,
 		Sequence:      txCtx.Sequence,
 		Memo:          txCtx.Memo,
 		Msgs:          msgs,
-		Fee:           NewStdFee(txCtx.Gas, fee...),
+		Fee:           NewStdFee(txCtx.Gas, txCtx.Fee...),
 	}, nil
 }
 
 // Sign signs a transaction given a name, passphrase, and a single message to
 // signed. An error is returned if signing fails.
-func (txCtx TxContext) Sign(name string, msg StdSignMsg) ([]byte, error) {
+func (txCtx TxContext) Sign(name string, msg StdSignMsg) (StdTx, error) {
 	sig, err := txCtx.makeSignature(name, msg)
 	if err != nil {
-		return nil, err
+		return StdTx{}, err
 	}
-	tx := NewStdTx(msg.Msgs, msg.Fee, []StdSignature{sig}, msg.Memo)
-	return txCtx.Codec.MarshalBinaryLengthPrefixed(tx)
+	return NewStdTx(msg.Msgs, msg.Fee, []StdSignature{sig}, msg.Memo), nil
 }
 
 func (txCtx TxContext) makeSignature(name string, msg StdSignMsg) (sig StdSignature, err error) {

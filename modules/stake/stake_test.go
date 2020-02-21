@@ -66,7 +66,7 @@ func (sts StakeTestSuite) TestDelegate() {
 	coin := types.NewCoin("iris-atto", amt)
 	baseTx := types.BaseTx{
 		From: "test1",
-		Gas:  "20000",
+		Gas:  20000,
 		Fee:  "600000000000000000iris-atto",
 		Memo: "test",
 		Mode: types.Commit,
@@ -81,7 +81,7 @@ func (sts StakeTestSuite) TestUnDelegate() {
 	coin := types.NewCoin("iris-atto", amt)
 	baseTx := types.BaseTx{
 		From: "test1",
-		Gas:  "20000",
+		Gas:  20000,
 		Fee:  "600000000000000000iris-atto",
 		Memo: "test",
 		Mode: types.Commit,

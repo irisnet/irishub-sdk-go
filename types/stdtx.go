@@ -233,7 +233,7 @@ func (tx StdTx) GetSignatures() []StdSignature { return tx.Signatures }
 type BaseTx struct {
 	From     string        `json:"from"`
 	Password string        `json:"password"`
-	Gas      string        `json:"gas"`
+	Gas      uint64        `json:"gas"`
 	Fee      string        `json:"fee"`
 	Memo     string        `json:"memo"`
 	Mode     BroadcastMode `json:"broadcast_mode"`

@@ -3,10 +3,9 @@ package client
 import (
 	"errors"
 	"fmt"
-	"strconv"
-
 	"github.com/irisnet/irishub-sdk-go/modules/distr"
 	"github.com/irisnet/irishub-sdk-go/modules/gov"
+	"github.com/irisnet/irishub-sdk-go/modules/tx"
 
 	cmn "github.com/tendermint/tendermint/libs/common"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
@@ -25,6 +24,7 @@ type Client struct {
 	stake.Stake
 	gov.Gov
 	distr.Distr
+	tx.Tx
 }
 
 func New(cfg types.SDKConfig) Client {
@@ -45,6 +45,7 @@ func New(cfg types.SDKConfig) Client {
 		Stake: stake.New(baseClient),
 		Gov:   gov.New(baseClient),
 		Distr: distr.New(baseClient),
+		Tx:    tx.New(baseClient),
 	}
 	return client
 }
@@ -67,7 +68,40 @@ func (bm baseClient) Broadcast(baseTx types.BaseTx, msg []types.Msg) (types.Resu
 	if err != nil {
 		return nil, err
 	}
-	return bm.broadcastTx(tx)
+	txByte, err := bm.Codec.MarshalBinaryLengthPrefixed(tx)
+	if err != nil {
+		return nil, err
+	}
+	return bm.broadcastTx(txByte)
+}
+
+func (bm baseClient) BroadcastTx(signedTx types.StdTx, mode types.BroadcastMode) (types.Result, error) {
+	bm.Mode = mode
+	txByte, err := bm.Codec.MarshalBinaryLengthPrefixed(signedTx)
+	if err != nil {
+		return nil, err
+	}
+	return bm.broadcastTx(txByte)
+}
+
+func (bm baseClient) Sign(stdTx types.StdTx, name string, password string, online bool) (types.StdTx, error) {
+	baseTx := types.BaseTx{
+		From:     name,
+		Password: password,
+		Gas:      stdTx.Fee.Gas,
+		Fee:      stdTx.Fee.Amount.String(),
+		Memo:     stdTx.Memo,
+	}
+	err := bm.prepareTxContext(baseTx)
+	if err != nil {
+		return stdTx, err
+	}
+	bm.WithOnline(online)
+	tx, err := bm.BuildAndSign(baseTx.From, stdTx.GetMsgs())
+	if err != nil {
+		return stdTx, err
+	}
+	return tx, nil
 }
 
 func (bm baseClient) Query(path string, data interface{}, result interface{}) error {
@@ -147,16 +181,12 @@ func (bm baseClient) prepareTxContext(baseTx types.BaseTx) error {
 		ctx = ctx.WithAccountNumber(account.AccountNumber).
 			WithSequence(account.Sequence)
 	}
-	if len(baseTx.Gas) > 0 {
-		gas, err := strconv.ParseUint(baseTx.Gas, 10, 64)
-		if err != nil {
-			return errors.New("gas must be either integer")
-		}
-		ctx = ctx.WithGas(gas)
-	}
-
 	if len(baseTx.Fee) > 0 {
-		ctx = ctx.WithFee(baseTx.Fee)
+		fee, err := types.ParseCoins(baseTx.Fee)
+		if err != nil {
+			return err
+		}
+		ctx = ctx.WithFee(fee)
 	}
 
 	if len(baseTx.Mode) > 0 {
@@ -167,6 +197,7 @@ func (bm baseClient) prepareTxContext(baseTx types.BaseTx) error {
 		ctx = ctx.WithSimulate(baseTx.Simulate)
 	}
 
+	ctx = ctx.WithGas(baseTx.Gas)
 	ctx = ctx.WithMemo(baseTx.Memo)
 	return nil
 }

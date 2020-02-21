@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	addr    = "iaa1x3f572u057lv88mva2q3z40ls8pup9hsa74f9x"
+	addr    = "faa1d3mf696gvtwq2dfx03ghe64akf6t5vyz6pe3le"
 	valAddr = "iva1x3f572u057lv88mva2q3z40ls8pup9hsg0lxcp"
-	privKey = "8D03FEDB094224959DD12016D24782429216246BC03084211C0305F9767C3C38"
+	privKey = "927be78a5f5b63bb95ff34ed9c6e4b39b6af6d2f9f59731452de659cac9b19db"
 )
 
 type TestClient struct {
@@ -33,7 +33,7 @@ func NewTestClient() TestClient {
 		ChainID: "irishub-test",
 		Online:  true,
 		KeyDAO:  createTestKeyDAO(),
-		Network: types.Mainnet,
+		Network: types.Testnet,
 		Mode:    types.Commit,
 		RPC:     rpc,
 	}
