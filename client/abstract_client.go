@@ -8,6 +8,7 @@ import (
 	cmn "github.com/tendermint/tendermint/libs/common"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 
+	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/net"
 	"github.com/irisnet/irishub-sdk-go/types"
 )
@@ -109,16 +110,16 @@ func (ac abstractClient) QueryStore(key cmn.HexBytes, storeName string) (res []b
 }
 
 func (ac abstractClient) QueryAccount(address string) (baseAccount types.BaseAccount, err error) {
-	//addr, err := types.AccAddressFromBech32(address)
-	//if err != nil {
-	//	return baseAccount, err
-	//}
-	//param := bank.QueryAccountParams{
-	//	Address: addr,
-	//}
-	//if err = ac.Query("custom/acc/account", param, &baseAccount); err != nil {
-	//	return baseAccount, err
-	//}
+	addr, err := types.AccAddressFromBech32(address)
+	if err != nil {
+		return baseAccount, err
+	}
+	param := bank.QueryAccountParams{
+		Address: addr,
+	}
+	if err = ac.Query("custom/acc/account", param, &baseAccount); err != nil {
+		return baseAccount, err
+	}
 	return
 }
 
