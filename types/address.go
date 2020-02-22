@@ -228,9 +228,72 @@ func (va ValAddress) Format(s fmt.State, verb rune) {
 	}
 }
 
+// ConsAddress defines a wrapper around bytes meant to present a consensus node.
+// When marshaled to a string or JSON, it uses Bech32.
+type ConsAddress []byte
+
+// String implements the Stringer interface.
+func (ca ConsAddress) String() string {
+	bech32PrefixConsAddr := GetAddrPrefixCfg().GetBech32ConsensusAddrPrefix()
+	bech32Addr, err := bech32.ConvertAndEncode(bech32PrefixConsAddr, ca.Bytes())
+	if err != nil {
+		panic(err)
+	}
+
+	return bech32Addr
+}
+
+// Bytes returns the raw address bytes.
+func (ca ConsAddress) Bytes() []byte {
+	return ca
+}
+
+// ConsAddressFromHex creates a ConsAddress from a hex string.
+func ConsAddressFromHex(address string) (addr ConsAddress, err error) {
+	if len(address) == 0 {
+		return addr, errors.New("decoding Bech32 address failed: must provide an address")
+	}
+
+	bz, err := hex.DecodeString(address)
+	if err != nil {
+		return nil, err
+	}
+
+	return ConsAddress(bz), nil
+}
+
+// ConsAddressFromBech32 creates a ConsAddress from a Bech32 string.
+func ConsAddressFromBech32(address string) (addr ConsAddress, err error) {
+	bech32PrefixConsAddr := GetAddrPrefixCfg().GetBech32ConsensusAddrPrefix()
+	bz, err := GetFromBech32(address, bech32PrefixConsAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	return ConsAddress(bz), nil
+}
+
 // Bech32ifyConsPub returns a Bech32 encoded string containing the
 // Bech32PrefixConsPub prefixfor a given consensus node's PubKey.
 func Bech32ifyConsPub(pub crypto.PubKey) (string, error) {
 	bech32PrefixConsPub := GetAddrPrefixCfg().GetBech32ConsensusPubPrefix()
 	return bech32.ConvertAndEncode(bech32PrefixConsPub, pub.Bytes())
+}
+
+// GetFromBech32 decodes a bytestring from a Bech32 encoded string.
+func GetFromBech32(bech32str, prefix string) ([]byte, error) {
+	if len(bech32str) == 0 {
+		return nil, errors.New("decoding Bech32 address failed: must provide an address")
+	}
+
+	hrp, bz, err := bech32.DecodeAndConvert(bech32str)
+	if err != nil {
+		return nil, err
+	}
+
+	if hrp != prefix {
+		return nil, fmt.Errorf("invalid Bech32 prefix; expected %s, got %s", prefix, hrp)
+	}
+
+	return bz, nil
 }

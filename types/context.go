@@ -1,25 +1,9 @@
 package types
 
 import (
-	"github.com/pkg/errors"
-
-	cmn "github.com/tendermint/tendermint/libs/common"
-
 	"github.com/irisnet/irishub-sdk-go/crypto"
-	"github.com/irisnet/irishub-sdk-go/net"
+	"github.com/pkg/errors"
 )
-
-type AbstractClient interface {
-	Broadcast(baseTx BaseTx, msg []Msg) (Result, error)
-	BroadcastTx(signedTx StdTx, mode BroadcastMode) (Result, error)
-	Sign(stdTx StdTx, name string, password string, online bool) (StdTx, error)
-	Query(path string, data interface{}, result interface{}) error
-	QueryStore(key cmn.HexBytes, storeName string) ([]byte, error)
-	QueryAccount(address string) (BaseAccount, error)
-	GetSender(name string) AccAddress
-	GetRPC() net.RPCClient
-	GetCodec() Codec
-}
 
 // TxContext implements a transaction context created in SDK modules.
 type TxContext struct {
@@ -34,7 +18,7 @@ type TxContext struct {
 	Online        bool
 	Network       Network
 	Mode          BroadcastMode
-	RPC           net.RPCClient
+	RPC           RPC
 	Simulate      bool
 }
 
@@ -105,7 +89,7 @@ func (txCtx *TxContext) WithMode(mode BroadcastMode) *TxContext {
 }
 
 // WithRPC returns a pointer of the context with a rpc.
-func (txCtx *TxContext) WithRPC(rpc net.RPCClient) *TxContext {
+func (txCtx *TxContext) WithRPC(rpc RPC) *TxContext {
 	txCtx.RPC = rpc
 	return txCtx
 }

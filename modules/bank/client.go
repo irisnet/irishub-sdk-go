@@ -40,7 +40,7 @@ func (b bankClient) QueryTokenStats(tokenID string) (result types.TokenStats, er
 
 //Send is responsible for transferring tokens from `From` to `to` account
 func (b bankClient) Send(to string, amount types.Coins, baseTx types.BaseTx) (types.Result, error) {
-	sender := b.GetSender(baseTx.From)
+	sender := b.QueryAddress(baseTx.From)
 	in := []Input{
 		NewInput(sender, amount),
 	}
@@ -59,7 +59,7 @@ func (b bankClient) Send(to string, amount types.Coins, baseTx types.BaseTx) (ty
 
 //Send is responsible for burning some tokens from `From` account
 func (b bankClient) Burn(amount types.Coins, baseTx types.BaseTx) (types.Result, error) {
-	sender := b.GetSender(baseTx.From)
+	sender := b.QueryAddress(baseTx.From)
 	msg := NewMsgBurn(sender, amount)
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
@@ -69,10 +69,14 @@ func (b bankClient) Burn(amount types.Coins, baseTx types.BaseTx) (types.Result,
 
 //Send is responsible for setting memo regexp for your own address, so that you can only receive coins from transactions with the corresponding memo.
 func (b bankClient) SetMemoRegexp(memoRegexp string, baseTx types.BaseTx) (types.Result, error) {
-	sender := b.GetSender(baseTx.From)
+	sender := b.QueryAddress(baseTx.From)
 	msg := NewMsgSetMemoRegexp(sender, memoRegexp)
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
 	}
 	return b.Broadcast(baseTx, []types.Msg{msg})
+}
+
+func (b bankClient) subscribeSendTx() {
+
 }
