@@ -3,6 +3,7 @@ package crypto
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/irisnet/irishub-sdk-go/types"
 	"strings"
 
 	"github.com/cosmos/go-bip39"
@@ -19,6 +20,7 @@ type KeyManager interface {
 	GetPrivKey() crypto.PrivKey
 	ExportAsMnemonic() (string, error)
 	ExportAsPrivateKey() (string, error)
+	ExportAsKeyStore(password string) (types.Keystore, error)
 }
 
 type keyManager struct {

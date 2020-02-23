@@ -18,10 +18,6 @@ const (
 	Gas     = 20000
 )
 
-type TestClient struct {
-	types.Bank
-}
-
 func NewClient() client.Client {
 	return client.New(types.SDKConfig{
 		NodeURI: NodeURI,
@@ -33,14 +29,6 @@ func NewClient() client.Client {
 		Mode:    Mode,
 		Online:  Online,
 	})
-}
-
-func (TestClient) GetTestSender() string {
-	return Addr
-}
-
-func (TestClient) GetTestValidator() string {
-	return ValAddr
 }
 
 func createTestKeyDAO() TestKeyDAO {

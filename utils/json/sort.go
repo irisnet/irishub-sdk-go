@@ -1,11 +1,11 @@
-package utils
+package json
 
 import "encoding/json"
 
-// MustSortJSON is like SortJSON but panic if an error occurs, e.g., if
+// MustSort is like Sort but panic if an error occurs, e.g., if
 // the passed JSON isn't valid.
-func MustSortJSON(toSortJSON []byte) []byte {
-	js, err := SortJSON(toSortJSON)
+func MustSort(toSortJSON []byte) []byte {
+	js, err := Sort(toSortJSON)
 	if err != nil {
 		panic(err)
 	}
@@ -17,7 +17,7 @@ func MustSortJSON(toSortJSON []byte) []byte {
 // This method can be used to canonicalize JSON to be returned by GetSignBytes,
 // e.g. for the ledger integration.
 // If the passed JSON isn't valid it will return an error.
-func SortJSON(toSortJSON []byte) ([]byte, error) {
+func Sort(toSortJSON []byte) ([]byte, error) {
 	var c interface{}
 	err := json.Unmarshal(toSortJSON, &c)
 	if err != nil {
