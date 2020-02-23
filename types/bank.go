@@ -15,3 +15,12 @@ type TokenStats struct {
 	BurnedTokens Coins `json:"burned_tokens"`
 	TotalSupply  Coins `json:"total_supply"`
 }
+
+type EventDataMsgSend struct {
+	Height int64  `json:"height"`
+	Hash   string `json:"hash"`
+	From   string `json:"from"`
+	To     string `json:"to"`
+	Amount []Coin `json:"amount"`
+}
+type EventMsgSendCallback func(EventDataMsgSend)

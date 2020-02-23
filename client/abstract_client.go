@@ -228,3 +228,7 @@ func (ac abstractClient) broadcastTxAsync(tx []byte) (result types.ResultBroadca
 		Hash: res.Hash,
 	}, nil
 }
+
+func (ac abstractClient) EventListener() types.WSClient {
+	return ac.RPC
+}

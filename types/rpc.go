@@ -31,4 +31,5 @@ type AbstractClient interface {
 	QueryStore(key cmn.HexBytes, storeName string) ([]byte, error)
 	QueryAccount(address string) (BaseAccount, error)
 	QueryAddress(name string) AccAddress
+	EventListener() WSClient
 }

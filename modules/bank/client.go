@@ -1,18 +1,17 @@
+// This module is mainly used to transfer coins between accounts,
+// query account balances, and provide common offline transaction signing and broadcasting methods.
+// In addition, the available units of tokens in the IRIShub system are defined using [coin-type](https://www.irisnet.org/docs/concepts/coin-type.html).
+//
+// [More Details](https://www.irisnet.org/docs/features/bank.html)
+
 package bank
 
 import (
+	"strings"
+
 	"github.com/irisnet/irishub-sdk-go/types"
 )
 
-/**
- * This module is mainly used to transfer coins between accounts,
- * query account balances, and provide common offline transaction signing and broadcasting methods.
- * In addition, the available units of tokens in the IRIShub system are defined using [coin-type](https://www.irisnet.org/docs/concepts/coin-type.html).
- *
- * [More Details](https://www.irisnet.org/docs/features/bank.html)
- *
- * @category Modules
- */
 type bankClient struct {
 	types.AbstractClient
 }
@@ -77,6 +76,34 @@ func (b bankClient) SetMemoRegexp(memoRegexp string, baseTx types.BaseTx) (types
 	return b.Broadcast(baseTx, []types.Msg{msg})
 }
 
-func (b bankClient) subscribeSendTx() {
+//SubscribeSendTx Subscribe MsgSend event and return subscription
+func (b bankClient) SubscribeSendTx(from, to string, callback types.EventMsgSendCallback) types.Subscription {
+	var builder = types.NewEventQueryBuilder()
 
+	from = strings.TrimSpace(from)
+	if len(from) != 0 {
+		builder.AddCondition(types.SenderKey, types.EventValue(from))
+	}
+
+	to = strings.TrimSpace(to)
+	if len(to) != 0 {
+		builder.AddCondition(types.RecipientKey, types.EventValue(to))
+	}
+
+	subscription, _ := b.EventListener().SubscribeTx(builder, func(data types.EventDataTx) {
+		for _, msg := range data.Tx.Msgs {
+			if value, ok := msg.(MsgSend); ok {
+				for i, m := range value.Inputs {
+					callback(types.EventDataMsgSend{
+						Height: data.Height,
+						Hash:   data.Hash,
+						From:   m.Address.String(),
+						To:     value.Outputs[i].Address.String(),
+						Amount: m.Coins,
+					})
+				}
+			}
+		}
+	})
+	return subscription
 }
