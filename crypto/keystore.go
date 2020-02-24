@@ -9,38 +9,33 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/crypto/sha3"
 
-	"github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/utils"
 	"github.com/irisnet/irishub-sdk-go/utils/uuid"
 )
 
-func NewKeyStoreKeyManager(file string, auth string) (KeyManager, error) {
+func NewKeyStoreKeyManager(keystore string, auth string) (KeyManager, error) {
 	k := keyManager{}
-	err := k.recoveryFromKeyStore(file, auth)
+	err := k.recoveryFromKeyStore(keystore, auth)
 	return &k, err
 }
 
-func (m *keyManager) ExportAsKeyStore(password string) (types.Keystore, error) {
+func (m *keyManager) ExportAsKeystore(password string) (Keystore, error) {
 	return generateKeyStore(m.GetPrivKey(), password)
 }
 
-func (m *keyManager) recoveryFromKeyStore(keystoreFile string, auth string) error {
+func (m *keyManager) recoveryFromKeyStore(keystore string, auth string) error {
 	if auth == "" {
 		return fmt.Errorf("Password is missing ")
 	}
-	keyJson, err := ioutil.ReadFile(keystoreFile)
-	if err != nil {
-		return err
-	}
-	var encryptedKey types.Keystore
-	err = json.Unmarshal(keyJson, &encryptedKey)
+
+	var encryptedKey Keystore
+	err := json.Unmarshal([]byte(keystore), &encryptedKey)
 	if err != nil {
 		return err
 	}
@@ -57,26 +52,25 @@ func (m *keyManager) recoveryFromKeyStore(keystoreFile string, auth string) erro
 	return nil
 }
 
-func generateKeyStore(privateKey crypto.PrivKey, password string) (types.Keystore, error) {
-	addr := types.AccAddress(privateKey.PubKey().Address())
+func generateKeyStore(privateKey crypto.PrivKey, password string) (Keystore, error) {
 	salt, err := utils.GenerateRandomBytes(32)
 	if err != nil {
-		return types.Keystore{}, err
+		return Keystore{}, err
 	}
 	iv, err := utils.GenerateRandomBytes(16)
 	if err != nil {
-		return types.Keystore{}, err
+		return Keystore{}, err
 	}
 
 	derivedKey := pbkdf2.Key([]byte(password), salt, 262144, 32, sha256.New)
 	encryptKey := derivedKey[:32]
 	secpPrivateKey, ok := privateKey.(secp256k1.PrivKeySecp256k1)
 	if !ok {
-		return types.Keystore{}, fmt.Errorf(" Only PrivKeySecp256k1 key is supported ")
+		return Keystore{}, fmt.Errorf(" Only PrivKeySecp256k1 key is supported ")
 	}
 	cipherText, err := aesCTRXOR(encryptKey, secpPrivateKey[:], iv)
 	if err != nil {
-		return types.Keystore{}, err
+		return Keystore{}, err
 	}
 
 	hasher := sha3.NewLegacyKeccak512()
@@ -86,20 +80,20 @@ func generateKeyStore(privateKey crypto.PrivKey, password string) (types.Keystor
 
 	id, err := uuid.NewV4()
 	if err != nil {
-		return types.Keystore{}, err
+		return Keystore{}, err
 	}
-	return types.Keystore{
-		Address: addr.String(),
+	return Keystore{
+		//Address: addr.String(),
 		Id:      id.String(),
 		Version: 1,
-		Crypto: types.Crypto{
+		Crypto: Crypto{
 			CipherText: hex.EncodeToString(cipherText),
-			CipherParams: types.CipherParams{
+			CipherParams: CipherParams{
 				IV: hex.EncodeToString(iv),
 			},
 			Cipher: "aes-128-ctr",
 			Kdf:    "pbkdf2",
-			KdfParams: types.KdfParams{
+			KdfParams: KdfParams{
 				DkLen: 32,
 				Salt:  hex.EncodeToString(salt),
 				C:     262144,
@@ -122,7 +116,7 @@ func aesCTRXOR(key, inText, iv []byte) ([]byte, error) {
 	return outText, err
 }
 
-func decryptKey(keyProtected types.Keystore, auth string) ([]byte, error) {
+func decryptKey(keyProtected Keystore, auth string) ([]byte, error) {
 	mac, err := hex.DecodeString(keyProtected.Crypto.Mac)
 	if err != nil {
 		return nil, err
@@ -158,7 +152,7 @@ func decryptKey(keyProtected types.Keystore, auth string) ([]byte, error) {
 	return plainText, err
 }
 
-func getKDFKey(crypto types.Crypto, auth string) ([]byte, error) {
+func getKDFKey(crypto Crypto, auth string) ([]byte, error) {
 	authArray := []byte(auth)
 	kdfParams := crypto.KdfParams
 	if kdfParams.Salt == "" || kdfParams.DkLen == 0 ||
@@ -188,4 +182,31 @@ func ensureInt(x interface{}) int {
 		res = int(x.(float64))
 	}
 	return res
+}
+
+type Keystore struct {
+	Address string `json:"address"`
+	Id      string `json:"id"`
+	Version int    `json:"version"`
+	Crypto  Crypto `json:"crypto"`
+}
+
+type Crypto struct {
+	CipherText   string       `json:"cipher_text"`
+	CipherParams CipherParams `json:"cipher_params"`
+	Cipher       string       `json:"cipher"`
+	Kdf          string       `json:"kdf"`
+	KdfParams    KdfParams    `json:"kdf_params"`
+	Mac          string       `json:"mac"`
+}
+
+type CipherParams struct {
+	IV string `json:"iv"`
+}
+
+type KdfParams struct {
+	DkLen int    `json:"dk_len"`
+	Salt  string `json:"salt"`
+	C     int64  `json:"c"`
+	Prf   string `json:"prf"`
 }

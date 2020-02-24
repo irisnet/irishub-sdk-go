@@ -23,13 +23,20 @@ type RPC interface {
 	Queries
 }
 
-type AbstractClient interface {
+type TxManager interface {
 	Broadcast(baseTx BaseTx, msg []Msg) (Result, error)
 	BroadcastTx(signedTx StdTx, mode BroadcastMode) (Result, error)
 	Sign(stdTx StdTx, name string, password string, online bool) (StdTx, error)
+}
+
+type Query interface {
 	Query(path string, data interface{}, result interface{}) error
-	QueryStore(key cmn.HexBytes, storeName string) ([]byte, error)
 	QueryAccount(address string) (BaseAccount, error)
-	QueryAddress(name string) AccAddress
-	EventListener() WSClient
+	QueryAddress(name, password string) (addr AccAddress, err error)
+}
+
+type AbstractClient interface {
+	TxManager
+	Query
+	WSClient
 }
