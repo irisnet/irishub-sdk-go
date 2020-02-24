@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/irisnet/irishub-sdk-go/sim"
-	"github.com/irisnet/irishub-sdk-go/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/irisnet/irishub-sdk-go/sim"
+	"github.com/irisnet/irishub-sdk-go/types"
 )
 
 type BankTestSuite struct {

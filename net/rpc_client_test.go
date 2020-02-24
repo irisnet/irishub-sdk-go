@@ -3,12 +3,14 @@ package net_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/sim"
-	"github.com/irisnet/irishub-sdk-go/types"
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
+
+	"github.com/irisnet/irishub-sdk-go/sim"
+	"github.com/irisnet/irishub-sdk-go/types"
 )
 
 type WSClientTestSuite struct {

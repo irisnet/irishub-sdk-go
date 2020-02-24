@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	bech322 "github.com/irisnet/irishub-sdk-go/utils/bech32"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/libs/bech32"
+
+	"github.com/irisnet/irishub-sdk-go/utils/bech32"
 )
 
 const (
@@ -24,7 +24,7 @@ type AccAddress []byte
 // AccAddressFromBech32 creates an AccAddress from a Bech32 string.
 func AccAddressFromBech32(address string) (addr AccAddress, err error) {
 	bech32PrefixAccAddr := GetAddrPrefixCfg().GetBech32AccountAddrPrefix()
-	bz, err := bech322.GetFromBech32(address, bech32PrefixAccAddr)
+	bz, err := bech32.GetFromBech32(address, bech32PrefixAccAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func ValAddressFromHex(address string) (addr ValAddress, err error) {
 // ValAddressFromBech32 creates a ValAddress from a Bech32 string.
 func ValAddressFromBech32(address string) (addr ValAddress, err error) {
 	bech32PrefixValAddr := GetAddrPrefixCfg().GetBech32ValidatorAddrPrefix()
-	bz, err := bech322.GetFromBech32(address, bech32PrefixValAddr)
+	bz, err := bech32.GetFromBech32(address, bech32PrefixValAddr)
 	if err != nil {
 		return nil, err
 	}

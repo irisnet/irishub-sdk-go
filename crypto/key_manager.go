@@ -3,8 +3,9 @@ package crypto
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/types"
 	"strings"
+
+	"github.com/irisnet/irishub-sdk-go/types"
 
 	"github.com/cosmos/go-bip39"
 	"github.com/tendermint/tendermint/crypto"

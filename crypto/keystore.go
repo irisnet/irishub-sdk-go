@@ -9,14 +9,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/types"
-	"github.com/irisnet/irishub-sdk-go/utils"
-	"github.com/irisnet/irishub-sdk-go/utils/uuid"
+	"io/ioutil"
+
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/crypto/sha3"
-	"io/ioutil"
+
+	"github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils"
+	"github.com/irisnet/irishub-sdk-go/utils/uuid"
 )
 
 func NewKeyStoreKeyManager(file string, auth string) (KeyManager, error) {

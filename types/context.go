@@ -1,8 +1,9 @@
 package types
 
 import (
-	"github.com/irisnet/irishub-sdk-go/crypto"
 	"github.com/pkg/errors"
+
+	"github.com/irisnet/irishub-sdk-go/crypto"
 )
 
 // TxContext implements a transaction context created in SDK modules.
