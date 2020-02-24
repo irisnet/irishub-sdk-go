@@ -9,7 +9,6 @@ import (
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
-	"github.com/irisnet/irishub-sdk-go/net"
 	"github.com/irisnet/irishub-sdk-go/types"
 )
 
@@ -123,18 +122,10 @@ func (ac abstractClient) QueryAccount(address string) (baseAccount types.BaseAcc
 	return
 }
 
-func (ac abstractClient) GetSender(name string) types.AccAddress {
+func (ac abstractClient) QueryAddress(name string) types.AccAddress {
 	keyDAO := (*ac.TxContext).KeyDAO
 	keystore := keyDAO.Read(name)
 	return types.MustAccAddressFromBech32(keystore.GetAddress())
-}
-
-func (ac abstractClient) GetRPC() net.RPCClient {
-	return (*ac.TxContext).RPC
-}
-
-func (ac abstractClient) GetCodec() types.Codec {
-	return (*ac.TxContext).Codec
 }
 
 func (ac abstractClient) prepareTxContext(baseTx types.BaseTx) error {
@@ -236,4 +227,8 @@ func (ac abstractClient) broadcastTxAsync(tx []byte) (result types.ResultBroadca
 		Log:  res.Log,
 		Hash: res.Hash,
 	}, nil
+}
+
+func (ac abstractClient) EventListener() types.WSClient {
+	return ac.RPC
 }

@@ -7,7 +7,7 @@ import (
 	"regexp"
 
 	"github.com/irisnet/irishub-sdk-go/types"
-	"github.com/irisnet/irishub-sdk-go/utils"
+	json2 "github.com/irisnet/irishub-sdk-go/utils/json"
 )
 
 const memoRegexpLengthLimit = 50
@@ -97,7 +97,7 @@ func (msg MsgSend) GetSignBytes() []byte {
 	if err != nil {
 		panic(err)
 	}
-	return utils.MustSortJSON(b)
+	return json2.MustSort(b)
 }
 
 // Implements Msg.
@@ -124,7 +124,7 @@ func (in Input) GetSignBytes() []byte {
 	if err != nil {
 		panic(err)
 	}
-	return utils.MustSortJSON(bin)
+	return json2.MustSort(bin)
 }
 
 // ValidateBasic - validate transaction input
@@ -165,7 +165,7 @@ func (out Output) GetSignBytes() []byte {
 	if err != nil {
 		panic(err)
 	}
-	return utils.MustSortJSON(bin)
+	return json2.MustSort(bin)
 }
 
 // ValidateBasic - validate transaction output
@@ -227,7 +227,7 @@ func (msg MsgBurn) GetSignBytes() []byte {
 	if err != nil {
 		panic(err)
 	}
-	return utils.MustSortJSON(b)
+	return json2.MustSort(b)
 }
 
 // Implements Msg.
@@ -270,7 +270,7 @@ func (msg MsgSetMemoRegexp) GetSignBytes() []byte {
 	if err != nil {
 		panic(err)
 	}
-	return utils.MustSortJSON(b)
+	return json2.MustSort(b)
 }
 
 // Implements Msg.

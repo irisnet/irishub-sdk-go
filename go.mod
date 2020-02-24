@@ -16,7 +16,7 @@ require (
 	github.com/prometheus/client_golang v1.3.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563 // indirect
 	github.com/rs/cors v1.7.0 // indirect
-	github.com/stretchr/testify v1.4.0 // indirect
+	github.com/stretchr/testify v1.4.0
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/tendermint/go-amino v0.15.1
 	github.com/tendermint/tendermint v0.31.0

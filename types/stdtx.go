@@ -5,11 +5,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/irisnet/irishub-sdk-go/utils"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/multisig"
 	cmn "github.com/tendermint/tendermint/libs/common"
+
+	json2 "github.com/irisnet/irishub-sdk-go/utils/json"
 )
 
 const (
@@ -116,7 +117,7 @@ func (msg StdSignMsg) Bytes(cdc Codec) []byte {
 	if err != nil {
 		panic(err)
 	}
-	return utils.MustSortJSON(bz)
+	return json2.MustSort(bz)
 }
 
 // StdSignDoc is replay-prevention structure.

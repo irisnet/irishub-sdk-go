@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/irisnet/irishub-sdk-go/types"
+
 	"github.com/cosmos/go-bip39"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
@@ -19,6 +21,7 @@ type KeyManager interface {
 	GetPrivKey() crypto.PrivKey
 	ExportAsMnemonic() (string, error)
 	ExportAsPrivateKey() (string, error)
+	ExportAsKeyStore(password string) (types.Keystore, error)
 }
 
 type keyManager struct {
