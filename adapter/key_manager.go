@@ -89,7 +89,7 @@ func (adapter daoAdapter) Insert(name, password string) (address, mnemonic strin
 			Password: password,
 		}
 	}
-	err = manager.keyDAO.Write(name, store)
+	err = adapter.keyDAO.Write(name, store)
 	return
 }
 

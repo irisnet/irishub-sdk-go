@@ -20,7 +20,7 @@ func New(cfg types.SDKConfig) Client {
 		Codec:      cdc,
 		ChainID:    cfg.ChainID,
 		Online:     cfg.Online,
-		KeyManager: adapter.NewKeyManager(cfg.KeyDAO),
+		KeyManager: adapter.NewDAOAdapter(cfg.KeyDAO, cfg.StoreType),
 		Network:    cfg.Network,
 		Mode:       cfg.Mode,
 	}
