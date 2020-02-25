@@ -27,18 +27,30 @@ type Service interface {
 		repeatedTotal int64,
 		baseTx BaseTx,
 		callback ServiceInvokeHandler,
-	) (string, error)
+	) (requestContextID string, err error)
 
-	RegisterInvocationListener(subscriptions []ServiceRespSubscription,
+	RegisterInvocationListener(serviceRouter ServiceRouter,
 		baseTx BaseTx) error
 
-	RegisterSingleInvocationListener(subscription ServiceRespSubscription,
+	RegisterSingleInvocationListener(serviceName string,
+		respondHandler ServiceRespondHandler,
 		baseTx BaseTx) error
 }
 
-type ServiceInvokeHandler func(reqCtxID string, responses []string)
+type ServiceInvokeHandler func(reqCtxID string, responses string)
 type ServiceRespondHandler func(input string) (output string, errMsg string)
-type ServiceRespSubscription struct {
-	ServiceName    string
-	RespondHandler ServiceRespondHandler
+type ServiceRouter map[string]ServiceRespondHandler
+
+// Request defines a request which contains the detailed request data
+type Request struct {
+	ServiceName                string     `json:"service_name"`
+	Provider                   AccAddress `json:"provider"`
+	Consumer                   AccAddress `json:"consumer"`
+	Input                      string     `json:"input"`
+	ServiceFee                 Coins      `json:"service_fee"`
+	SuperMode                  bool       `json:"super_mode"`
+	RequestHeight              int64      `json:"request_height"`
+	ExpirationHeight           int64      `json:"expiration_height"`
+	RequestContextID           []byte     `json:"request_context_id"`
+	RequestContextBatchCounter uint64     `json:"request_context_batch_counter"`
 }

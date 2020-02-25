@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+
 	cmn "github.com/tendermint/tendermint/libs/common"
+
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
@@ -16,6 +18,7 @@ const (
 	TxHashKeyKey   EventKey = "tx.hash"
 	TxHeightKeyKey EventKey = "tx.height"
 
+	TxValue            EventValue = "Tx"
 	SendValue          EventValue = "send"
 	BurnValue          EventValue = "burn"
 	SetMemoRegexpValue EventValue = "set-memo-regexp"
@@ -56,6 +59,7 @@ type Tag struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
+type Tags []Tag
 
 func ParseTags(pairs []cmn.KVPair) (tags []Tag) {
 	if pairs == nil || len(pairs) == 0 {
@@ -71,15 +75,22 @@ func ParseTags(pairs []cmn.KVPair) (tags []Tag) {
 	}
 	return
 }
-
-type Tags []Tag
-
-func (t Tags) ToMap() map[string]string {
-	tags := make(map[string]string, len(t))
+func (t Tags) GetValues(key string) (values []string) {
 	for _, tag := range t {
-		tags[tag.Key] = tag.Value
+		if tag.Key == key {
+			values = append(values, tag.Value)
+		}
 	}
-	return tags
+	return
+}
+
+func (t Tags) GetValue(key string) string {
+	for _, tag := range t {
+		if tag.Key == key {
+			return tag.Value
+		}
+	}
+	return ""
 }
 
 type EventTxCallback func(EventDataTx)

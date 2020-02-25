@@ -99,7 +99,7 @@ func (r RPCClient) SubscribeNewBlock(callback types.EventNewBlockCallback) (type
 func (r RPCClient) SubscribeTx(builder *types.EventQueryBuilder, callback types.EventTxCallback) (types.Subscription, error) {
 	ctx := context.Background()
 	subscriber := getSubscriberID()
-	query := builder.Build()
+	query := builder.AddCondition(types.TypeKey, types.TxValue).Build()
 	r.start()
 	ch, err := r.Subscribe(ctx, subscriber, query, 0)
 	if err != nil {

@@ -104,10 +104,10 @@ func (s serviceClient) InvokeService(serviceName string,
 		return "", err
 	}
 
-	requestContextID := result.GetTags().ToMap()[TagRequestContextID]
+	requestContextID := result.GetTags().GetValue(TagRequestContextID)
 
-	builder := sdk.NewEventQueryBuilder()
-	builder.AddCondition(sdk.ActionKey, sdk.EventValue(TagRespondService)).
+	builder := sdk.NewEventQueryBuilder().
+		AddCondition(sdk.ActionKey, sdk.EventValue(TagRespondService)).
 		AddCondition(sdk.EventKey(TagConsumer), sdk.EventValue(consumer.String()))
 
 	var subscription sdk.Subscription
@@ -115,15 +115,11 @@ func (s serviceClient) InvokeService(serviceName string,
 		var responses []string
 		for _, msg := range tx.Tx.Msgs {
 			msg, ok := msg.(MsgRespondService)
-			if ok {
+			request := s.QueryRequest(msg.RequestID)
+			if ok && request.ServiceName == serviceName {
 				responses = append(responses, msg.Output)
+				callback(requestContextID, msg.Output)
 			}
-		}
-		//TODO responseThreshold ?
-		if len(responses) > 0 {
-			go func() {
-				callback(requestContextID, responses)
-			}()
 		}
 		//cancel subscription
 		if !repeated {
@@ -137,62 +133,71 @@ func (s serviceClient) InvokeService(serviceName string,
 	return requestContextID, nil
 }
 
-func (s serviceClient) RegisterInvocationListener(subscriptions []sdk.ServiceRespSubscription, baseTx sdk.BaseTx) error {
+func (s serviceClient) RegisterInvocationListener(serviceRouter sdk.ServiceRouter, baseTx sdk.BaseTx) error {
 	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return err
 	}
 
-	handlerMap := make(map[string]sdk.ServiceRespondHandler)
-	for _, subscription := range subscriptions {
-		handlerMap[subscription.ServiceName] = subscription.RespondHandler
-	}
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
+
 	_, err = s.SubscribeNewBlock(func(block sdk.EventDataNewBlock) {
-		tags := block.ResultEndBlock.Tags.ToMap()
-		//TODO add ServiceName to Tags
-		reqID := tags[TagRequestID]
-		serviceName := tags[TagServiceName]
-		if tags[TagProvider] == provider.String() &&
-			reqID != "" {
-			if handler, ok := handlerMap[serviceName]; ok {
-				input := s.QueryRequest(reqID)
-				output, errMsg := handler(input)
+		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
+		for _, reqID := range reqIDs {
+			request := s.QueryRequest(reqID)
+			if handler, ok := serviceRouter[request.ServiceName]; ok && provider.Equals(request.Provider) {
+				output, errMsg := handler(request.Input)
 				msg := MsgRespondService{
 					RequestID: reqID,
 					Provider:  provider,
 					Output:    output,
 					Error:     errMsg,
 				}
-				_, _ = s.Broadcast(baseTx, []sdk.Msg{msg})
+				go func() {
+					if _, err = s.Broadcast(baseTx, []sdk.Msg{msg}); err != nil {
+						panic(err)
+					}
+				}()
 			}
 		}
 	})
 	return err
 }
 
-func (s serviceClient) RegisterSingleInvocationListener(subscription sdk.ServiceRespSubscription, baseTx sdk.BaseTx) error {
+func (s serviceClient) RegisterSingleInvocationListener(serviceName string,
+	respondHandler sdk.ServiceRespondHandler,
+	baseTx sdk.BaseTx) error {
 	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return err
 	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
 	_, err = s.SubscribeNewBlock(func(block sdk.EventDataNewBlock) {
-		tags := block.ResultEndBlock.Tags.ToMap()
-		//TODO add ServiceName to Tags
-		reqID := tags[TagRequestID]
-		serviceName := tags[TagServiceName]
-		if tags[TagProvider] == provider.String() &&
-			reqID != "" {
-			if len(subscription.ServiceName) != 0 &&
-				subscription.ServiceName == serviceName {
-				input := s.QueryRequest(reqID)
-				output, errMsg := subscription.RespondHandler(input)
+		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
+		for _, reqID := range reqIDs {
+			request := s.QueryRequest(reqID)
+			if provider.Equals(request.Provider) && request.ServiceName == serviceName {
+				output, errMsg := respondHandler(request.Input)
 				msg := MsgRespondService{
 					RequestID: reqID,
 					Provider:  provider,
 					Output:    output,
 					Error:     errMsg,
 				}
-				_, _ = s.Broadcast(baseTx, []sdk.Msg{msg})
+				go func() {
+					if _, err = s.Broadcast(baseTx, []sdk.Msg{msg}); err != nil {
+						panic(err)
+					}
+				}()
 			}
 		}
 	})
@@ -200,8 +205,8 @@ func (s serviceClient) RegisterSingleInvocationListener(subscription sdk.Service
 }
 
 //TODO
-func (s serviceClient) QueryRequest(requestID string) string {
-	return ""
+func (s serviceClient) QueryRequest(requestID string) sdk.Request {
+	return sdk.Request{}
 }
 
 func New(ac sdk.AbstractClient) sdk.Service {
