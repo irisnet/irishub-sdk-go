@@ -8,8 +8,9 @@ package bank
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/irisnet/irishub-sdk-go/types"
 )

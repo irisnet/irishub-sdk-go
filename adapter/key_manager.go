@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/irisnet/irishub-sdk-go/crypto"
 	"github.com/irisnet/irishub-sdk-go/types"
@@ -65,51 +66,50 @@ func (adapter daoAdapter) QueryAddress(name, password string) (addr types.AccAdd
 	return addr, errors.New("invalid StoreType")
 }
 
-func (adapter daoAdapter) Insert(name, password string) (address, mnemonic string, err error) {
+func (adapter daoAdapter) Insert(name, password string) (string, string, error) {
 	km, err := crypto.NewKeyManager()
 	if err != nil {
-		return address, mnemonic, err
+		return "", "", err
 	}
-	var store types.Store
+	address, store, err := adapt(km, adapter.storeType, password)
+	if err != nil {
+		return "", "", err
+	}
 
-	address = types.AccAddress(km.GetPrivKey().PubKey().Address()).String()
-	switch adapter.storeType {
-	case types.Keystore:
-		store, err = km.ExportAsKeystore(password)
-		mnemonic, err = km.ExportAsMnemonic()
-		return
-	case types.Key:
-		privKey, err := km.ExportAsPrivateKey()
-		if err != nil {
-			return address, mnemonic, err
-		}
-		store = types.KeyInfo{
-			PrivKey:  privKey,
-			Address:  address,
-			Password: password,
-		}
+	mnemonic, err := km.ExportAsMnemonic()
+	if err != nil {
+		return "", "", err
 	}
+
 	err = adapter.keyDAO.Write(name, store)
-	return
+	return address, mnemonic, err
 }
 
-func (adapter daoAdapter) Recover(name, password, mnemonic string) (address string, err error) {
+func (adapter daoAdapter) Recover(name, password, mnemonic string) (string, error) {
 	km, err := crypto.NewMnemonicKeyManager(mnemonic)
+	if err != nil {
+		return "", err
+	}
+
+	address, store, err := adapt(km, adapter.storeType, password)
 	if err != nil {
 		return address, err
 	}
-	var store types.Store
 
+	err = adapter.keyDAO.Write(name, store)
+	return address, err
+}
+
+func adapt(km crypto.KeyManager, storeType types.StoreType, password string) (address string, store types.Store, err error) {
 	address = types.AccAddress(km.GetPrivKey().PubKey().Address()).String()
-	switch adapter.storeType {
+	switch storeType {
 	case types.Keystore:
 		store, err = km.ExportAsKeystore(password)
-		mnemonic, err = km.ExportAsMnemonic()
 		return
 	case types.Key:
 		privKey, err := km.ExportAsPrivateKey()
 		if err != nil {
-			return address, err
+			return address, store, err
 		}
 		store = types.KeyInfo{
 			PrivKey:  privKey,
@@ -117,6 +117,5 @@ func (adapter daoAdapter) Recover(name, password, mnemonic string) (address stri
 			Password: password,
 		}
 	}
-	err = adapter.keyDAO.Write(name, store)
-	return
+	return address, store, fmt.Errorf("invalid storeType:%d", storeType)
 }
