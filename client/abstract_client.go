@@ -18,6 +18,12 @@ type abstractClient struct {
 }
 
 func (ac abstractClient) Broadcast(baseTx types.BaseTx, msg []types.Msg) (types.Result, error) {
+	//check msg valide
+	for _, m := range msg {
+		if err := m.ValidateBasic(); err != nil {
+			return nil, err
+		}
+	}
 	err := ac.prepareTxContext(baseTx)
 	if err != nil {
 		return nil, err

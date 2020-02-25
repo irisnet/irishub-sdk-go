@@ -83,10 +83,10 @@ func (r RPCClient) SubscribeNewBlock(callback types.EventNewBlockCallback) (type
 					LastCommit: block.Block.LastCommit,
 				},
 				ResultBeginBlock: types.ResultBeginBlock{
-					Tags: parseTags(block.ResultBeginBlock.Tags),
+					Tags: types.ParseTags(block.ResultBeginBlock.Tags),
 				},
 				ResultEndBlock: types.ResultEndBlock{
-					Tags:             parseTags(block.ResultEndBlock.Tags),
+					Tags:             types.ParseTags(block.ResultEndBlock.Tags),
 					ValidatorUpdates: parseValidatorUpdate(block.ResultEndBlock.ValidatorUpdates),
 				},
 			})
@@ -119,7 +119,7 @@ func (r RPCClient) SubscribeTx(builder *types.EventQueryBuilder, callback types.
 				Log:       tx.Result.Log,
 				GasWanted: tx.Result.GasWanted,
 				GasUsed:   tx.Result.GasUsed,
-				Tags:      parseTags(tx.Result.Tags),
+				Tags:      types.ParseTags(tx.Result.Tags),
 			}
 			dataTx := types.EventDataTx{
 				Hash:   hash,
@@ -151,10 +151,10 @@ func (r RPCClient) SubscribeNewBlockHeader(callback types.EventNewBlockHeaderCal
 			callback(types.EventDataNewBlockHeader{
 				Header: blockHeader.Header,
 				ResultBeginBlock: types.ResultBeginBlock{
-					Tags: parseTags(blockHeader.ResultBeginBlock.Tags),
+					Tags: types.ParseTags(blockHeader.ResultBeginBlock.Tags),
 				},
 				ResultEndBlock: types.ResultEndBlock{
-					Tags:             parseTags(blockHeader.ResultEndBlock.Tags),
+					Tags:             types.ParseTags(blockHeader.ResultEndBlock.Tags),
 					ValidatorUpdates: parseValidatorUpdate(blockHeader.ResultEndBlock.ValidatorUpdates),
 				},
 			})
@@ -195,21 +195,6 @@ func getSubscriberID() string {
 		return "IRISHUB-SDK"
 	}
 	return fmt.Sprintf("subscriber-%s", u.Uid)
-}
-
-func parseTags(pairs []cmn.KVPair) (tags []types.Tag) {
-	if pairs == nil || len(pairs) == 0 {
-		return tags
-	}
-	for _, pair := range pairs {
-		key := string(pair.Key)
-		value := string(pair.Value)
-		tags = append(tags, types.Tag{
-			Key:   key,
-			Value: value,
-		})
-	}
-	return
 }
 
 func parseValidatorUpdate(vp abcitypes.ValidatorUpdates) (validatorUpdates []types.ValidatorUpdate) {

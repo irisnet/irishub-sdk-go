@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-
+	cmn "github.com/tendermint/tendermint/libs/common"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
@@ -49,13 +49,39 @@ type TxResult struct {
 	Log       string `json:"log,omitempty"`
 	GasWanted int64  `json:"gas_wanted"`
 	GasUsed   int64  `json:"gas_used"`
-	Tags      []Tag  `json:"tags"`
+	Tags      Tags   `json:"tags"`
 }
 
 type Tag struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
+
+func ParseTags(pairs []cmn.KVPair) (tags []Tag) {
+	if pairs == nil || len(pairs) == 0 {
+		return tags
+	}
+	for _, pair := range pairs {
+		key := string(pair.Key)
+		value := string(pair.Value)
+		tags = append(tags, Tag{
+			Key:   key,
+			Value: value,
+		})
+	}
+	return
+}
+
+type Tags []Tag
+
+func (t Tags) ToMap() map[string]string {
+	tags := make(map[string]string, len(t))
+	for _, tag := range t {
+		tags[tag.Key] = tag.Value
+	}
+	return tags
+}
+
 type EventTxCallback func(EventDataTx)
 
 //===============EventDataNewBlock for SubscribeNewBlock=================
@@ -77,11 +103,11 @@ type Data struct {
 }
 
 type ResultBeginBlock struct {
-	Tags []Tag `json:"tags"`
+	Tags Tags `json:"tags"`
 }
 
 type ResultEndBlock struct {
-	Tags             []Tag             `json:"tags"`
+	Tags             Tags              `json:"tags"`
 	ValidatorUpdates []ValidatorUpdate `json:"validator_updates"`
 }
 
