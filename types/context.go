@@ -2,8 +2,6 @@ package types
 
 import (
 	"github.com/pkg/errors"
-
-	"github.com/irisnet/irishub-sdk-go/crypto"
 )
 
 // TxContext implements a transaction context created in SDK modules.
@@ -15,12 +13,11 @@ type TxContext struct {
 	ChainID       string
 	Memo          string
 	Fee           Coins
-	KeyDAO        KeyDAO
 	Online        bool
 	Network       Network
 	Mode          BroadcastMode
-	RPC           RPC
 	Simulate      bool
+	KeyManager    KeyManager
 }
 
 // WithCodec returns a pointer of the context with an updated codec.
@@ -66,8 +63,8 @@ func (txCtx *TxContext) WithAccountNumber(accnum uint64) *TxContext {
 }
 
 // WithAccountNumber returns a pointer of the context with a keyDao.
-func (txCtx *TxContext) WithKeyDAO(keyDao KeyDAO) *TxContext {
-	txCtx.KeyDAO = keyDao
+func (txCtx *TxContext) WithKeyManager(keyManager KeyManager) *TxContext {
+	txCtx.KeyManager = keyManager
 	return txCtx
 }
 
@@ -86,12 +83,6 @@ func (txCtx *TxContext) WithNetwork(network Network) *TxContext {
 // WithMode returns a pointer of the context with a Mode.
 func (txCtx *TxContext) WithMode(mode BroadcastMode) *TxContext {
 	txCtx.Mode = mode
-	return txCtx
-}
-
-// WithRPC returns a pointer of the context with a rpc.
-func (txCtx *TxContext) WithRPC(rpc RPC) *TxContext {
-	txCtx.RPC = rpc
 	return txCtx
 }
 
@@ -142,17 +133,12 @@ func (txCtx TxContext) makeSignature(name string, msg StdSignMsg) (sig StdSignat
 		Sequence:      msg.Sequence,
 	}
 	if !txCtx.Simulate {
-		keystore := txCtx.KeyDAO.Read(name)
-		keyManager, err := crypto.NewPrivateKeyManager(keystore.GetPrivate())
+		signature, err := txCtx.KeyManager.Sign(name, "", msg.Bytes(txCtx.Codec))
 		if err != nil {
 			return sig, err
 		}
-		sigBytes, err := keyManager.Sign(msg.Bytes(txCtx.Codec))
-		if err != nil {
-			return sig, err
-		}
-		sig.PubKey = keyManager.GetPrivKey().PubKey()
-		sig.Signature = sigBytes
+		sig.PubKey = signature.PubKey
+		sig.Signature = signature.Signature
 	}
 	return sig, nil
 }

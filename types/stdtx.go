@@ -80,6 +80,11 @@ func (fee StdFee) Bytes() []byte {
 	return bz
 }
 
+type Signature struct {
+	crypto.PubKey `json:"pub_key"` // optional
+	Signature     []byte           `json:"signature"`
+}
+
 // Standard Signature
 type StdSignature struct {
 	crypto.PubKey `json:"pub_key"` // optional

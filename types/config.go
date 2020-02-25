@@ -24,29 +24,9 @@ type SDKConfig struct {
 
 	//
 	Online bool
-}
 
-type KeyDAO interface {
-	/**
-	 * Save the keystore to app, throws error if the save fails.
-	 *
-	 * @param keystore The keystore object
-	 */
-	Write(name string, keystore KeyStore) error
-
-	/**
-	 * Get the keystore by address
-	 *
-	 * @param name Name of the key
-	 * @returns The keystore object
-	 */
-	Read(name string) KeyStore
-
-	/**
-	 * Delete keystore by address
-	 * @param name Name of the key
-	 */
-	Delete(name string) error
+	//
+	StoreType StoreType
 }
 
 type KeyStore interface {

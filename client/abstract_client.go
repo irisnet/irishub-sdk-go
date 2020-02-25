@@ -14,6 +14,7 @@ import (
 
 type abstractClient struct {
 	*types.TxContext
+	types.RPC
 }
 
 func (ac abstractClient) Broadcast(baseTx types.BaseTx, msg []types.Msg) (types.Result, error) {
@@ -122,20 +123,18 @@ func (ac abstractClient) QueryAccount(address string) (baseAccount types.BaseAcc
 	return
 }
 
-func (ac abstractClient) QueryAddress(name string) types.AccAddress {
-	keyDAO := (*ac.TxContext).KeyDAO
-	keystore := keyDAO.Read(name)
-	return types.MustAccAddressFromBech32(keystore.GetAddress())
+func (ac abstractClient) QueryAddress(name, password string) (addr types.AccAddress, err error) {
+	return (*ac.TxContext).KeyManager.QueryAddress(name, password)
 }
 
 func (ac abstractClient) prepareTxContext(baseTx types.BaseTx) error {
 	ctx := ac.TxContext
 	if ctx.Online {
-		keyStore := ctx.KeyDAO.Read(baseTx.From)
-		account, err := ac.QueryAccount(keyStore.GetAddress())
+		addr, err := ac.QueryAddress(baseTx.From, baseTx.Password)
 		if err != nil {
 			return err
 		}
+		account, err := ac.QueryAccount(addr.String())
 		ctx = ctx.WithAccountNumber(account.AccountNumber).
 			WithSequence(account.Sequence)
 	}
@@ -227,8 +226,4 @@ func (ac abstractClient) broadcastTxAsync(tx []byte) (result types.ResultBroadca
 		Log:  res.Log,
 		Hash: res.Hash,
 	}, nil
-}
-
-func (ac abstractClient) EventListener() types.WSClient {
-	return ac.RPC
 }

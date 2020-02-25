@@ -20,23 +20,24 @@ const (
 
 func NewClient() client.Client {
 	return client.New(types.SDKConfig{
-		NodeURI: NodeURI,
-		Network: Network,
-		ChainID: ChainID,
-		Gas:     Gas,
-		Fee:     Fee,
-		KeyDAO:  createTestKeyDAO(),
-		Mode:    Mode,
-		Online:  Online,
+		NodeURI:   NodeURI,
+		Network:   Network,
+		ChainID:   ChainID,
+		Gas:       Gas,
+		Fee:       Fee,
+		KeyDAO:    createTestKeyDAO(),
+		Mode:      Mode,
+		Online:    Online,
+		StoreType: types.Keystore,
 	})
 }
 
 func createTestKeyDAO() TestKeyDAO {
 	dao := TestKeyDAO{
-		store: map[string]types.KeyStore{},
+		store: map[string]types.Store{},
 	}
-	keystore := TestKeystore{
-		Private: PrivKey,
+	keystore := types.KeyInfo{
+		PrivKey: PrivKey,
 		Address: Addr,
 	}
 	_ = dao.Write("test1", keystore)
@@ -44,30 +45,18 @@ func createTestKeyDAO() TestKeyDAO {
 }
 
 type TestKeyDAO struct {
-	store map[string]types.KeyStore
+	store map[string]types.Store
 }
 
-func (dao TestKeyDAO) Write(name string, keystore types.KeyStore) error {
-	dao.store[name] = keystore
+func (dao TestKeyDAO) Write(name string, store types.Store) error {
+	dao.store[name] = store
 	return nil
 }
 
-func (dao TestKeyDAO) Read(name string) types.KeyStore {
+func (dao TestKeyDAO) Read(name string) types.Store {
 	return dao.store[name]
 }
 
 func (dao TestKeyDAO) Delete(name string) error {
 	return nil
-}
-
-type TestKeystore struct {
-	Private string
-	Address string
-}
-
-func (t TestKeystore) GetPrivate() string {
-	return t.Private
-}
-func (t TestKeystore) GetAddress() string {
-	return t.Address
 }
