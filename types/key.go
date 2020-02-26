@@ -24,7 +24,7 @@ type KeystoreInfo struct {
 
 type KeyDAO interface {
 	Write(name string, keystore Store) error
-	Read(name string) Store
+	Read(name string) (Store, error)
 	Delete(name string) error
 }
 

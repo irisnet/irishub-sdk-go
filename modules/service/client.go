@@ -38,11 +38,6 @@ func (s serviceClient) BindService(request sdk.ServiceBindingRequest) (sdk.Resul
 		return nil, err
 	}
 
-	coins, err := sdk.ParseCoins(request.Deposit)
-	if err != nil {
-		return nil, err
-	}
-
 	var withdrawAddress sdk.AccAddress
 	if len(request.WithdrawAddr) > 0 {
 		withdrawAddress, err = sdk.AccAddressFromBech32(request.WithdrawAddr)
@@ -54,11 +49,53 @@ func (s serviceClient) BindService(request sdk.ServiceBindingRequest) (sdk.Resul
 	msg := MsgBindService{
 		ServiceName:     request.ServiceName,
 		Provider:        provider,
-		Deposit:         coins,
+		Deposit:         request.Deposit,
 		Pricing:         request.Pricing,
 		WithdrawAddress: withdrawAddress,
 	}
 	return s.Broadcast(request.BaseTx, []sdk.Msg{msg})
+}
+
+//UpdateServiceBinding updates the specified service binding
+func (s serviceClient) UpdateServiceBinding(request sdk.UpdateServiceBindingRequest) (sdk.Result, error) {
+	provider, err := s.QueryAddress(request.From, request.Password)
+	if err != nil {
+		return nil, err
+	}
+	msg := MsgUpdateServiceBinding{
+		ServiceName: request.ServiceName,
+		Provider:    provider,
+		Deposit:     request.Deposit,
+		Pricing:     request.Pricing,
+	}
+	return s.Broadcast(request.BaseTx, []sdk.Msg{msg})
+}
+
+// DisableService disables the specified service binding
+func (s serviceClient) DisableService(serviceName string, baseTx sdk.BaseTx) (sdk.Result, error) {
+	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return nil, err
+	}
+	msg := MsgDisableService{
+		ServiceName: serviceName,
+		Provider:    provider,
+	}
+	return s.Broadcast(baseTx, []sdk.Msg{msg})
+}
+
+// EnableService enables the specified service binding
+func (s serviceClient) EnableService(serviceName string, deposit sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, error) {
+	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return nil, err
+	}
+	msg := MsgEnableService{
+		ServiceName: serviceName,
+		Provider:    provider,
+		Deposit:     deposit,
+	}
+	return s.Broadcast(baseTx, []sdk.Msg{msg})
 }
 
 //InvokeService is responsible for invoke a new service and callback `callback`
@@ -69,26 +106,18 @@ func (s serviceClient) InvokeService(request sdk.ServiceInvocationRequest,
 		return "", err
 	}
 
-	var ps []sdk.AccAddress
-	for _, p := range request.Providers {
-		provider, err := sdk.AccAddressFromBech32(p)
-		if err != nil {
-			return "", err
-		}
-		ps = append(ps, provider)
-	}
-
-	coins, err := sdk.ParseCoins(request.ServiceFeeCap)
-	if err != nil {
-		return "", err
+	var providers []sdk.AccAddress
+	for _, provider := range request.Providers {
+		provider := sdk.MustAccAddressFromBech32(provider)
+		providers = append(providers, provider)
 	}
 
 	msg := MsgRequestService{
 		ServiceName:       request.ServiceName,
-		Providers:         ps,
+		Providers:         providers,
 		Consumer:          consumer,
 		Input:             request.Input,
-		ServiceFeeCap:     coins,
+		ServiceFeeCap:     request.ServiceFeeCap,
 		Timeout:           request.Timeout,
 		SuperMode:         request.SuperMode,
 		Repeated:          request.Repeated,
@@ -102,23 +131,16 @@ func (s serviceClient) InvokeService(request sdk.ServiceInvocationRequest,
 	}
 
 	requestContextID := result.GetTags().GetValue(TagRequestContextID)
-
 	builder := sdk.NewEventQueryBuilder().
 		AddCondition(sdk.ActionKey, sdk.EventValue(TagRespondService)).
-		AddCondition(sdk.EventKey(TagConsumer), sdk.EventValue(consumer.String()))
+		AddCondition(sdk.EventKey(TagConsumer), sdk.EventValue(consumer.String())).
+		AddCondition(sdk.EventKey(TagServiceName), sdk.EventValue(request.ServiceName))
 
 	var subscription sdk.Subscription
 	subscription, err = s.SubscribeTx(builder, func(tx sdk.EventDataTx) {
-		var responses []string
 		for _, msg := range tx.Tx.Msgs {
 			msg, ok := msg.(MsgRespondService)
-			request, err := s.QueryRequest(msg.RequestID)
-			if err != nil {
-				//TODO
-				continue
-			}
-			if ok && request.ServiceName == request.ServiceName {
-				responses = append(responses, msg.Output)
+			if ok {
 				callback(requestContextID, msg.Output)
 			}
 		}
@@ -132,6 +154,127 @@ func (s serviceClient) InvokeService(request sdk.ServiceInvocationRequest,
 	}
 
 	return requestContextID, nil
+}
+
+// SetWithdrawAddress sets a new withdrawal address for the specified service binding
+func (s serviceClient) SetWithdrawAddress(serviceName string, withdrawAddress string, baseTx sdk.BaseTx) (sdk.Result, error) {
+	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return nil, err
+	}
+	withdrawAddr := sdk.MustAccAddressFromBech32(withdrawAddress)
+	msg := MsgSetWithdrawAddress{
+		ServiceName:     serviceName,
+		Provider:        provider,
+		WithdrawAddress: withdrawAddr,
+	}
+	return s.Broadcast(baseTx, []sdk.Msg{msg})
+}
+
+// RefundServiceDeposit refunds the deposit from the specified service binding
+func (s serviceClient) RefundServiceDeposit(serviceName string, baseTx sdk.BaseTx) (sdk.Result, error) {
+	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return nil, err
+	}
+	msg := MsgRefundServiceDeposit{
+		ServiceName: serviceName,
+		Provider:    provider,
+	}
+	return s.Broadcast(baseTx, []sdk.Msg{msg})
+}
+
+// StartRequestContext starts the specified request context
+func (s serviceClient) StartRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.Result, error) {
+	consumer, err := s.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return nil, err
+	}
+	msg := MsgStartRequestContext{
+		RequestContextID: []byte(requestContextID),
+		Consumer:         consumer,
+	}
+	return s.Broadcast(baseTx, []sdk.Msg{msg})
+}
+
+// PauseRequestContext suspends the specified request context
+func (s serviceClient) PauseRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.Result, error) {
+	consumer, err := s.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return nil, err
+	}
+	msg := MsgPauseRequestContext{
+		RequestContextID: []byte(requestContextID),
+		Consumer:         consumer,
+	}
+	return s.Broadcast(baseTx, []sdk.Msg{msg})
+}
+
+// KillRequestContext terminates the specified request context
+func (s serviceClient) KillRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.Result, error) {
+	consumer, err := s.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return nil, err
+	}
+	msg := MsgKillRequestContext{
+		RequestContextID: []byte(requestContextID),
+		Consumer:         consumer,
+	}
+	return s.Broadcast(baseTx, []sdk.Msg{msg})
+}
+
+// UpdateRequestContext updates the specified request context
+func (s serviceClient) UpdateRequestContext(request sdk.UpdateContextRequest) (sdk.Result, error) {
+	consumer, err := s.QueryAddress(request.From, request.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	var providers []sdk.AccAddress
+	for _, p := range request.Providers {
+		provider := sdk.MustAccAddressFromBech32(p)
+		providers = append(providers, provider)
+	}
+
+	msg := MsgUpdateRequestContext{
+		RequestContextID:  []byte(request.RequestContextID),
+		Providers:         providers,
+		ServiceFeeCap:     request.ServiceFeeCap,
+		Timeout:           request.Timeout,
+		RepeatedFrequency: request.RepeatedFrequency,
+		RepeatedTotal:     request.RepeatedTotal,
+		Consumer:          consumer,
+	}
+	return s.Broadcast(request.BaseTx, []sdk.Msg{msg})
+}
+
+// WithdrawEarnedFees withdraws the earned fees to the specified provider
+func (s serviceClient) WithdrawEarnedFees(baseTx sdk.BaseTx) (sdk.Result, error) {
+	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	msg := MsgWithdrawEarnedFees{
+		Provider: provider,
+	}
+	return s.Broadcast(baseTx, []sdk.Msg{msg})
+}
+
+// WithdrawTax withdraws the service tax to the speicified destination address by the trustee
+func (s serviceClient) WithdrawTax(destAddress string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, error) {
+	trustee, err := s.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	receipt := sdk.MustAccAddressFromBech32(destAddress)
+	msg := MsgWithdrawTax{
+		Trustee:     trustee,
+		DestAddress: receipt,
+		Amount:      amount,
+	}
+	return s.Broadcast(baseTx, []sdk.Msg{msg})
 }
 
 //RegisterInvocationListener is responsible for registering a group of service handler

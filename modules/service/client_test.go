@@ -62,10 +62,11 @@ func (sts *ServiceTestSuite) TestService() {
 	require.Equal(sts.T(), definition.Schemas, defi.Schemas)
 	require.Equal(sts.T(), sts.Sender(), defi.Author)
 
+	deposit, _ := sdk.ParseCoins("20000000000000000000000iris-atto")
 	binding := sdk.ServiceBindingRequest{
 		BaseTx:       baseTx,
 		ServiceName:  definition.ServiceName,
-		Deposit:      "20000000000000000000000iris-atto",
+		Deposit:      deposit,
 		Pricing:      pricing,
 		WithdrawAddr: "",
 	}
@@ -90,12 +91,13 @@ func (sts *ServiceTestSuite) TestService() {
 		}, baseTx)
 	require.NoError(sts.T(), err)
 
+	serviceFeeCap, _ := sdk.ParseCoins("1000000000000000000iris-atto")
 	invocation := sdk.ServiceInvocationRequest{
 		BaseTx:            baseTx,
 		ServiceName:       definition.ServiceName,
 		Providers:         []string{sts.Sender().String()},
 		Input:             input,
-		ServiceFeeCap:     "1000000000000000000iris-atto",
+		ServiceFeeCap:     serviceFeeCap,
 		Timeout:           10,
 		SuperMode:         false,
 		Repeated:          false,

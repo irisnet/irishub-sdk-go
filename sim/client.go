@@ -81,8 +81,8 @@ func (dao TestKeyDAO) Write(name string, store types.Store) error {
 	return nil
 }
 
-func (dao TestKeyDAO) Read(name string) types.Store {
-	return dao.store[name]
+func (dao TestKeyDAO) Read(name string) (types.Store, error) {
+	return dao.store[name], nil
 }
 
 func (dao TestKeyDAO) Delete(name string) error {

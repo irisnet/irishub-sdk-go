@@ -21,7 +21,10 @@ func NewDAOAdapter(dao types.KeyDAO, storeType types.StoreType) types.KeyManager
 }
 
 func (adapter daoAdapter) Sign(name, password string, data []byte) (signature types.Signature, err error) {
-	store := adapter.keyDAO.Read(name)
+	store, err := adapter.keyDAO.Read(name)
+	if err != nil {
+		return signature, err
+	}
 
 	var mm crypto.KeyManager
 	switch store := store.(type) {
@@ -45,7 +48,10 @@ func (adapter daoAdapter) Sign(name, password string, data []byte) (signature ty
 }
 
 func (adapter daoAdapter) QueryAddress(name, password string) (addr types.AccAddress, err error) {
-	store := adapter.keyDAO.Read(name)
+	store, err := adapter.keyDAO.Read(name)
+	if err != nil {
+		return addr, err
+	}
 
 	var mm crypto.KeyManager
 	switch store := store.(type) {
