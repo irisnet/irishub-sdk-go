@@ -3,6 +3,8 @@ package client
 import (
 	"github.com/irisnet/irishub-sdk-go/adapter"
 	"github.com/irisnet/irishub-sdk-go/modules/service"
+	"github.com/tendermint/tendermint/libs/log"
+	"os"
 
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/net"
@@ -27,10 +29,12 @@ func New(cfg types.SDKConfig) Client {
 		Mode:       cfg.Mode,
 	}
 
+	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 	types.SetNetwork(ctx.Network)
 	abstClient := abstractClient{
 		TxContext: ctx,
 		RPC:       rpc,
+		logger:    logger,
 	}
 	return Client{
 		Bank:     bank.New(abstClient),

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
@@ -142,6 +141,7 @@ func (s serviceClient) InvokeService(request sdk.ServiceInvocationRequest,
 
 	var subscription sdk.Subscription
 	subscription, err = s.SubscribeTx(builder, func(tx sdk.EventDataTx) {
+		s.Logger().Info("Service InvokeService", "tx", tx.Tx)
 		for _, msg := range tx.Tx.Msgs {
 			msg, ok := msg.(MsgRespondService)
 			if ok {
@@ -290,15 +290,20 @@ func (s serviceClient) RegisterInvocationListener(serviceRouter sdk.ServiceRoute
 
 	defer func() {
 		if r := recover(); r != nil {
+			s.Logger().Error("Service RegisterInvocationListener failed", "err", r)
 			return
 		}
 	}()
 
 	_, err = s.SubscribeNewBlock(func(block sdk.EventDataNewBlock) {
+		s.Logger().Debug("Received Block",
+			"height", block.Block.Height,
+			"tags", block.ResultEndBlock.Tags)
 		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
 			if err != nil {
+				s.Logger().Error("Service RegisterInvocationListener failed", "requestID", reqID, "err", err)
 				continue
 			}
 			if handler, ok := serviceRouter[request.ServiceName]; ok && provider.Equals(request.Provider) {
@@ -336,11 +341,13 @@ func (s serviceClient) RegisterSingleInvocationListener(serviceName string,
 	}()
 	_, err = s.SubscribeNewBlock(func(block sdk.EventDataNewBlock) {
 		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
-		fmt.Println("block:", block.Block.Height, "tag:", block.ResultEndBlock.Tags)
+		s.Logger().Debug("Received Block",
+			"height", block.Block.Height,
+			"tags", block.ResultEndBlock.Tags)
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
 			if err != nil {
-				//TODO
+				s.Logger().Error("Service SubscribeNewBlock failed", "requestID", reqID, "err", err)
 				continue
 			}
 			if provider.Equals(request.Provider) && request.ServiceName == serviceName {
@@ -353,7 +360,7 @@ func (s serviceClient) RegisterSingleInvocationListener(serviceName string,
 				}
 				go func() {
 					if _, err = s.Broadcast(baseTx, []sdk.Msg{msg}); err != nil {
-						panic(err)
+						s.Logger().Error("Service RegisterSingleInvocationListener failed", "requestID", reqID, "err", err)
 					}
 				}()
 			}

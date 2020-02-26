@@ -2,6 +2,7 @@ package types
 
 import (
 	cmn "github.com/tendermint/tendermint/libs/common"
+	"github.com/tendermint/tendermint/libs/log"
 	tmclient "github.com/tendermint/tendermint/rpc/client"
 )
 
@@ -39,4 +40,5 @@ type AbstractClient interface {
 	TxManager
 	Query
 	WSClient
+	Logger() log.Logger
 }

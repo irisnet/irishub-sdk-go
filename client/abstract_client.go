@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/tendermint/tendermint/libs/log"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
@@ -14,6 +16,11 @@ import (
 type abstractClient struct {
 	*types.TxContext
 	types.RPC
+	logger log.Logger
+}
+
+func (ac abstractClient) Logger() log.Logger {
+	return ac.logger
 }
 
 func (ac abstractClient) Broadcast(baseTx types.BaseTx, msg []types.Msg) (types.Result, error) {
