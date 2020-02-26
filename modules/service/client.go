@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
@@ -125,6 +126,9 @@ func (s serviceClient) InvokeService(request sdk.ServiceInvocationRequest,
 		RepeatedTotal:     request.RepeatedTotal,
 	}
 
+	//mode must be set to commit
+	request.BaseTx.Mode = sdk.Commit
+
 	result, err := s.Broadcast(request.BaseTx, []sdk.Msg{msg})
 	if err != nil {
 		return "", err
@@ -191,7 +195,7 @@ func (s serviceClient) StartRequestContext(requestContextID string, baseTx sdk.B
 		return nil, err
 	}
 	msg := MsgStartRequestContext{
-		RequestContextID: []byte(requestContextID),
+		RequestContextID: RequestContextIDToByte(requestContextID),
 		Consumer:         consumer,
 	}
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
@@ -204,7 +208,7 @@ func (s serviceClient) PauseRequestContext(requestContextID string, baseTx sdk.B
 		return nil, err
 	}
 	msg := MsgPauseRequestContext{
-		RequestContextID: []byte(requestContextID),
+		RequestContextID: RequestContextIDToByte(requestContextID),
 		Consumer:         consumer,
 	}
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
@@ -217,7 +221,7 @@ func (s serviceClient) KillRequestContext(requestContextID string, baseTx sdk.Ba
 		return nil, err
 	}
 	msg := MsgKillRequestContext{
-		RequestContextID: []byte(requestContextID),
+		RequestContextID: RequestContextIDToByte(requestContextID),
 		Consumer:         consumer,
 	}
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
@@ -237,7 +241,7 @@ func (s serviceClient) UpdateRequestContext(request sdk.UpdateContextRequest) (s
 	}
 
 	msg := MsgUpdateRequestContext{
-		RequestContextID:  []byte(request.RequestContextID),
+		RequestContextID:  RequestContextIDToByte(request.RequestContextID),
 		Providers:         providers,
 		ServiceFeeCap:     request.ServiceFeeCap,
 		Timeout:           request.Timeout,
@@ -295,7 +299,6 @@ func (s serviceClient) RegisterInvocationListener(serviceRouter sdk.ServiceRoute
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
 			if err != nil {
-				//TODO
 				continue
 			}
 			if handler, ok := serviceRouter[request.ServiceName]; ok && provider.Equals(request.Provider) {
@@ -333,6 +336,7 @@ func (s serviceClient) RegisterSingleInvocationListener(serviceName string,
 	}()
 	_, err = s.SubscribeNewBlock(func(block sdk.EventDataNewBlock) {
 		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
+		fmt.Println("block:", block.Block.Height, "tag:", block.ResultEndBlock.Tags)
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
 			if err != nil {
@@ -365,11 +369,12 @@ func (s serviceClient) QueryDefinition(serviceName string) (result sdk.ServiceDe
 	}{
 		ServiceName: serviceName,
 	}
-	err = s.Query("custom/service/definition", param, &result)
+	var definition Definition
+	err = s.Query("custom/service/definition", param, &definition)
 	if err != nil {
 		return result, err
 	}
-	return
+	return definition.toSDKDefinition(), nil
 }
 
 // QueryBinding return the specified service binding
@@ -381,11 +386,13 @@ func (s serviceClient) QueryBinding(serviceName string, provider sdk.AccAddress)
 		ServiceName: serviceName,
 		Provider:    provider,
 	}
-	err = s.Query("custom/service/binding", param, &result)
+
+	var binding Binding
+	err = s.Query("custom/service/binding", param, &binding)
 	if err != nil {
 		return result, err
 	}
-	return
+	return binding.toSDKBinding(), nil
 }
 
 // QueryBindings returns all bindings of the specified service
@@ -395,29 +402,34 @@ func (s serviceClient) QueryBindings(serviceName string) (result []sdk.ServiceBi
 	}{
 		ServiceName: serviceName,
 	}
-	err = s.Query("custom/service/bindings", param, &result)
+
+	var bindings Bindings
+
+	err = s.Query("custom/service/bindings", param, &bindings)
 	if err != nil {
 		return result, err
 	}
-	return
+	return bindings.toSDKBindings(), nil
 }
 
 // QueryRequest returns  the active request of the specified requestID
-func (s serviceClient) QueryRequest(requestID string) (request sdk.Request, err error) {
+func (s serviceClient) QueryRequest(requestID string) (req sdk.Request, err error) {
 	param := struct {
 		RequestID string
 	}{
 		RequestID: requestID,
 	}
+
+	var request Request
 	err = s.Query("custom/service/request", param, &request)
 	if err != nil {
-		return request, err
+		return req, err
 	}
-	return
+	return request.toSDKRequest(), nil
 }
 
 // QueryRequest returns all the active requests of the specified service binding
-func (s serviceClient) QueryRequests(serviceName string, provider sdk.AccAddress) (result []sdk.Request, err error) {
+func (s serviceClient) QueryRequests(serviceName string, provider sdk.AccAddress) (reqs []sdk.Request, err error) {
 	param := struct {
 		ServiceName string
 		Provider    sdk.AccAddress
@@ -425,11 +437,12 @@ func (s serviceClient) QueryRequests(serviceName string, provider sdk.AccAddress
 		ServiceName: serviceName,
 		Provider:    provider,
 	}
-	err = s.Query("custom/service/requests", param, &result)
+	var requests Requests
+	err = s.Query("custom/service/requests", param, &requests)
 	if err != nil {
-		return result, err
+		return reqs, err
 	}
-	return
+	return requests.toSDKRequests(), nil
 }
 
 // QueryRequestsByReqCtx returns all requests of the specified request context ID and batch counter
@@ -438,14 +451,15 @@ func (s serviceClient) QueryRequestsByReqCtx(requestContextID string, batchCount
 		RequestContextID []byte
 		BatchCounter     uint64
 	}{
-		RequestContextID: []byte(requestContextID),
+		RequestContextID: RequestContextIDToByte(requestContextID),
 		BatchCounter:     batchCounter,
 	}
-	err = s.Query("custom/service/requests_by_ctx", param, &result)
+	var requests Requests
+	err = s.Query("custom/service/requests_by_ctx", param, &requests)
 	if err != nil {
 		return result, err
 	}
-	return
+	return requests.toSDKRequests(), nil
 }
 
 // QueryResponse returns a response with the speicified request ID
@@ -455,11 +469,12 @@ func (s serviceClient) QueryResponse(requestID string) (result sdk.Response, err
 	}{
 		RequestID: requestID,
 	}
-	err = s.Query("custom/service/response", param, &result)
+	var response Response
+	err = s.Query("custom/service/response", param, &response)
 	if err != nil {
 		return result, err
 	}
-	return
+	return response.toSDKResponse(), nil
 }
 
 // QueryResponses returns all responses of the specified request context and batch counter
@@ -468,14 +483,15 @@ func (s serviceClient) QueryResponses(requestContextID string, batchCounter uint
 		RequestContextID []byte
 		BatchCounter     uint64
 	}{
-		RequestContextID: []byte(requestContextID),
+		RequestContextID: RequestContextIDToByte(requestContextID),
 		BatchCounter:     batchCounter,
 	}
-	err = s.Query("custom/service/responses", param, &result)
+	var responses Responses
+	err = s.Query("custom/service/responses", param, &responses)
 	if err != nil {
 		return result, err
 	}
-	return
+	return responses.toSDKResponses(), nil
 }
 
 // QueryRequestContext return the specified request context
@@ -483,13 +499,15 @@ func (s serviceClient) QueryRequestContext(requestContextID string) (result sdk.
 	param := struct {
 		RequestContextID []byte
 	}{
-		RequestContextID: []byte(requestContextID),
+		RequestContextID: RequestContextIDToByte(requestContextID),
 	}
-	err = s.Query("custom/service/context", param, &result)
+
+	var reqCtx RequestContext
+	err = s.Query("custom/service/context", param, &reqCtx)
 	if err != nil {
 		return result, err
 	}
-	return
+	return reqCtx.toSDKRequestContext(), nil
 }
 
 //QueryFees return the earned fees for a provider
@@ -499,9 +517,11 @@ func (s serviceClient) QueryFees(provider sdk.AccAddress) (result sdk.EarnedFees
 	}{
 		Address: provider,
 	}
-	err = s.Query("custom/service/fees", param, &result)
+
+	var fee EarnedFees
+	err = s.Query("custom/service/fees", param, &fee)
 	if err != nil {
 		return result, err
 	}
-	return
+	return fee.toSDKEarnedFees(), nil
 }

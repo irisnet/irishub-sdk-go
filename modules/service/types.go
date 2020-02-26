@@ -1,8 +1,10 @@
 package service
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"time"
 
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/utils/json"
@@ -664,6 +666,198 @@ func (msg MsgWithdrawTax) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Trustee}
 }
 
+//==========================================for Query==========================================
+
+// Definition represents a service definition
+type Definition struct {
+	Name              string         `json:"name"`
+	Description       string         `json:"description"`
+	Tags              []string       `json:"tags"`
+	Author            sdk.AccAddress `json:"author"`
+	AuthorDescription string         `json:"author_description"`
+	Schemas           string         `json:"schemas"`
+}
+
+func (r Definition) toSDKDefinition() sdk.ServiceDefinition {
+	return sdk.ServiceDefinition{
+		Name:              r.Name,
+		Description:       r.Description,
+		Tags:              r.Tags,
+		Author:            r.Author,
+		AuthorDescription: r.AuthorDescription,
+		Schemas:           r.Schemas,
+	}
+}
+
+// Binding defines a struct for service binding
+type Binding struct {
+	ServiceName     string         `json:"service_name"`
+	Provider        sdk.AccAddress `json:"provider"`
+	Deposit         sdk.Coins      `json:"deposit"`
+	Pricing         string         `json:"pricing"`
+	WithdrawAddress sdk.AccAddress `json:"withdraw_address"`
+	Available       bool           `json:"available"`
+	DisabledTime    time.Time      `json:"disabled_time"`
+}
+
+func (r Binding) toSDKBinding() sdk.ServiceBinding {
+	return sdk.ServiceBinding{
+		ServiceName:     r.ServiceName,
+		Provider:        r.Provider,
+		Deposit:         r.Deposit,
+		Pricing:         r.Pricing,
+		WithdrawAddress: r.WithdrawAddress,
+		Available:       r.Available,
+		DisabledTime:    r.DisabledTime,
+	}
+
+}
+
+type Bindings []Binding
+
+func (rs Bindings) toSDKBindings() (bindings []sdk.ServiceBinding) {
+	for _, binding := range rs {
+		bindings = append(bindings, binding.toSDKBinding())
+	}
+	return
+}
+
+// Request defines a request which contains the detailed request data
+type Request struct {
+	ServiceName                string         `json:"service_name"`
+	Provider                   sdk.AccAddress `json:"provider"`
+	Consumer                   sdk.AccAddress `json:"consumer"`
+	Input                      string         `json:"input"`
+	ServiceFee                 sdk.Coins      `json:"service_fee"`
+	SuperMode                  bool           `json:"super_mode"`
+	RequestHeight              int64          `json:"request_height"`
+	ExpirationHeight           int64          `json:"expiration_height"`
+	RequestContextID           []byte         `json:"request_context_id"`
+	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
+}
+
+func (r Request) toSDKRequest() sdk.Request {
+	return sdk.Request{
+		ServiceName:                r.ServiceName,
+		Provider:                   r.Provider,
+		Consumer:                   r.Consumer,
+		Input:                      r.Input,
+		ServiceFee:                 r.ServiceFee,
+		SuperMode:                  r.SuperMode,
+		RequestHeight:              r.RequestHeight,
+		ExpirationHeight:           r.ExpirationHeight,
+		RequestContextID:           RequestContextIDToString(r.RequestContextID),
+		RequestContextBatchCounter: r.RequestContextBatchCounter,
+	}
+}
+
+type Requests []Request
+
+func (rs Requests) toSDKRequests() (requests []sdk.Request) {
+	for _, request := range rs {
+		requests = append(requests, request.toSDKRequest())
+	}
+	return
+}
+
+// Response defines a response
+type Response struct {
+	Provider                   sdk.AccAddress `json:"provider"`
+	Consumer                   sdk.AccAddress `json:"consumer"`
+	Output                     string         `json:"output"`
+	Error                      string         `json:"error"`
+	RequestContextID           []byte         `json:"request_context_id"`
+	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
+}
+
+func (r Response) toSDKResponse() sdk.Response {
+	return sdk.Response{
+		Provider:                   r.Provider,
+		Consumer:                   r.Consumer,
+		Output:                     r.Output,
+		Error:                      r.Error,
+		RequestContextID:           RequestContextIDToString(r.RequestContextID),
+		RequestContextBatchCounter: r.RequestContextBatchCounter,
+	}
+}
+
+type Responses []Response
+
+func (rs Responses) toSDKResponses() (responses []sdk.Response) {
+	for _, response := range rs {
+		responses = append(responses, response.toSDKResponse())
+	}
+	return
+}
+
+// RequestContext defines a context which holds request-related data
+type RequestContext struct {
+	ServiceName        string           `json:"service_name"`
+	Providers          []sdk.AccAddress `json:"providers"`
+	Consumer           sdk.AccAddress   `json:"consumer"`
+	Input              string           `json:"input"`
+	ServiceFeeCap      sdk.Coins        `json:"service_fee_cap"`
+	Timeout            int64            `json:"timeout"`
+	SuperMode          bool             `json:"super_mode"`
+	Repeated           bool             `json:"repeated"`
+	RepeatedFrequency  uint64           `json:"repeated_frequency"`
+	RepeatedTotal      int64            `json:"repeated_total"`
+	BatchCounter       uint64           `json:"batch_counter"`
+	BatchRequestCount  uint16           `json:"batch_request_count"`
+	BatchResponseCount uint16           `json:"batch_response_count"`
+	BatchState         string           `json:"batch_state"`
+	State              string           `json:"state"`
+	ResponseThreshold  uint16           `json:"response_threshold"`
+	ModuleName         string           `json:"module_name"`
+}
+
+func (r RequestContext) toSDKRequestContext() sdk.RequestContext {
+	return sdk.RequestContext{
+		ServiceName:        r.ServiceName,
+		Providers:          r.Providers,
+		Consumer:           r.Consumer,
+		Input:              r.Input,
+		ServiceFeeCap:      r.ServiceFeeCap,
+		Timeout:            r.Timeout,
+		SuperMode:          r.SuperMode,
+		Repeated:           r.Repeated,
+		RepeatedFrequency:  r.RepeatedFrequency,
+		RepeatedTotal:      r.RepeatedTotal,
+		BatchCounter:       r.BatchCounter,
+		BatchRequestCount:  r.BatchRequestCount,
+		BatchResponseCount: r.BatchResponseCount,
+		BatchState:         r.BatchState,
+		State:              r.State,
+		ResponseThreshold:  r.ResponseThreshold,
+		ModuleName:         r.ModuleName,
+	}
+}
+
+// EarnedFees defines a struct for the fees earned by the provider
+type EarnedFees struct {
+	Address sdk.AccAddress `json:"address"`
+	Coins   sdk.Coins      `json:"coins"`
+}
+
+func (e EarnedFees) toSDKEarnedFees() sdk.EarnedFees {
+	return sdk.EarnedFees{
+		Address: e.Address,
+		Coins:   e.Coins,
+	}
+}
+
+func RequestContextIDToString(reqCtxID []byte) string {
+	return hex.EncodeToString(reqCtxID)
+}
+
+func RequestContextIDToByte(reqCtxID string) []byte {
+	dst, err := hex.DecodeString(reqCtxID)
+	if err != nil {
+		panic(err)
+	}
+	return dst
+}
+
 func RegisterCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgDefineService{}, "irishub/service/MsgDefineService")
 	cdc.RegisterConcrete(MsgBindService{}, "irishub/service/MsgBindService")
@@ -680,4 +874,11 @@ func RegisterCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgUpdateRequestContext{}, "irishub/service/MsgUpdateRequestContext")
 	cdc.RegisterConcrete(MsgWithdrawEarnedFees{}, "irishub/service/MsgWithdrawEarnedFees")
 	cdc.RegisterConcrete(MsgWithdrawTax{}, "irishub/service/MsgWithdrawTax")
+
+	cdc.RegisterConcrete(Definition{}, "irishub/service/ServiceDefinition")
+	cdc.RegisterConcrete(Binding{}, "irishub/service/ServiceBinding")
+	cdc.RegisterConcrete(RequestContext{}, "irishub/service/RequestContext")
+	cdc.RegisterConcrete(Request{}, "irishub/service/Request")
+	cdc.RegisterConcrete(Response{}, "irishub/service/Response")
+	cdc.RegisterConcrete(EarnedFees{}, "irishub/service/EarnedFees")
 }

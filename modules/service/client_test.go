@@ -3,8 +3,7 @@ package service_test
 import (
 	"fmt"
 	"testing"
-
-	"github.com/irisnet/irishub-sdk-go/utils/uuid"
+	"time"
 
 	"github.com/irisnet/irishub-sdk-go/sim"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -29,9 +28,6 @@ func (sts *ServiceTestSuite) TestService() {
 	schemas := `{"input":{"type":"object"},"output":{"type":"object"},"error":{"type":"object"}}`
 	pricing := `{"price":[{"denom":"iris-atto","amount":"1000000000000000000"}]}`
 
-	id, err := uuid.NewV1()
-	require.NoError(sts.T(), err)
-
 	baseTx := sdk.BaseTx{
 		From: "test1",
 		Gas:  20000,
@@ -42,7 +38,7 @@ func (sts *ServiceTestSuite) TestService() {
 
 	definition := sdk.ServiceDefinitionRequest{
 		BaseTx:            baseTx,
-		ServiceName:       id.String(),
+		ServiceName:       generateServiceName(),
 		Description:       "this is a test service",
 		Tags:              nil,
 		AuthorDescription: "service provider",
@@ -78,7 +74,7 @@ func (sts *ServiceTestSuite) TestService() {
 	require.NoError(sts.T(), err)
 	require.Equal(sts.T(), binding.ServiceName, bindResp.ServiceName)
 	require.Equal(sts.T(), sts.Sender(), bindResp.Provider)
-	require.Equal(sts.T(), binding.Deposit, bindResp.Deposit.String())
+	require.Equal(sts.T(), binding.Deposit.String(), bindResp.Deposit.String())
 	require.Equal(sts.T(), binding.Pricing, bindResp.Pricing)
 
 	input := `{"pair":"iris-usdt"}`
@@ -108,11 +104,40 @@ func (sts *ServiceTestSuite) TestService() {
 	requestContextID, err = sts.InvokeService(invocation, func(reqCtxID string, response string) {
 		require.Equal(sts.T(), reqCtxID, requestContextID)
 		require.Equal(sts.T(), output, response)
+		fmt.Println(response)
 	})
+
+	fmt.Println(requestContextID)
 	require.NoError(sts.T(), err)
 
 	request, err := sts.QueryRequestContext(requestContextID)
 	require.NoError(sts.T(), err)
 	require.Equal(sts.T(), request.ServiceName, invocation.ServiceName)
 	require.Equal(sts.T(), request.Input, invocation.Input)
+
+	time.Sleep(10 * time.Minute)
+}
+
+func (sts *ServiceTestSuite) TestQueryDefinition() {
+	serviceName := "fbfbbc12-5872-11ea-a1dc-186590e06183"
+	definition, err := sts.QueryDefinition(serviceName)
+	require.NoError(sts.T(), err)
+	fmt.Println(definition)
+}
+
+func (sts *ServiceTestSuite) TestQueryRequestContext() {
+	reqCtxID := "0ef2acf4e1002f1e38c7f0df36be2ad11250aeb6343c6c7d9294f0424deecd96"
+	definition, err := sts.QueryRequestContext(reqCtxID)
+	require.NoError(sts.T(), err)
+	fmt.Println(definition)
+}
+
+func (sts *ServiceTestSuite) TestQueryRequest() {
+	request, err := sts.QueryRequests("service-949455000", sts.Sender())
+	require.NoError(sts.T(), err)
+	fmt.Println(request)
+}
+
+func generateServiceName() string {
+	return fmt.Sprintf("service-%d", time.Now().Nanosecond())
 }

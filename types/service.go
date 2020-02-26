@@ -78,7 +78,7 @@ type Request struct {
 	SuperMode                  bool       `json:"super_mode"`
 	RequestHeight              int64      `json:"request_height"`
 	ExpirationHeight           int64      `json:"expiration_height"`
-	RequestContextID           []byte     `json:"request_context_id"`
+	RequestContextID           string     `json:"request_context_id"`
 	RequestContextBatchCounter uint64     `json:"request_context_batch_counter"`
 }
 
@@ -88,7 +88,7 @@ type Response struct {
 	Consumer                   AccAddress `json:"consumer"`
 	Output                     string     `json:"output"`
 	Error                      string     `json:"error"`
-	RequestContextID           []byte     `json:"request_context_id"`
+	RequestContextID           string     `json:"request_context_id"`
 	RequestContextBatchCounter uint64     `json:"request_context_batch_counter"`
 }
 
@@ -177,8 +177,8 @@ type RequestContext struct {
 	BatchCounter       uint64       `json:"batch_counter"`
 	BatchRequestCount  uint16       `json:"batch_request_count"`
 	BatchResponseCount uint16       `json:"batch_response_count"`
-	BatchState         byte         `json:"batch_state"`
-	State              byte         `json:"state"`
+	BatchState         string       `json:"batch_state"`
+	State              string       `json:"state"`
 	ResponseThreshold  uint16       `json:"response_threshold"`
 	ModuleName         string       `json:"module_name"`
 }
