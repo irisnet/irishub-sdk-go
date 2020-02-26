@@ -8,63 +8,57 @@ type serviceClient struct {
 	sdk.AbstractClient
 }
 
-func (s serviceClient) DefineService(serviceName string,
-	description string,
-	tags []string,
-	authorDescription string,
-	schemas string,
-	baseTx sdk.BaseTx,
-) (sdk.Result, error) {
+func New(ac sdk.AbstractClient) sdk.Service {
+	return serviceClient{
+		AbstractClient: ac,
+	}
+}
+
+//DefineService is responsible for creating a new service definition
+func (s serviceClient) DefineService(definition sdk.ServiceDefinition, baseTx sdk.BaseTx) (sdk.Result, error) {
 	author, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return nil, err
 	}
 	msg := MsgDefineService{
-		Name:              serviceName,
-		Description:       description,
-		Tags:              tags,
+		Name:              definition.ServiceName,
+		Description:       definition.Description,
+		Tags:              definition.Tags,
 		Author:            author,
-		AuthorDescription: authorDescription,
-		Schemas:           schemas,
+		AuthorDescription: definition.AuthorDescription,
+		Schemas:           definition.Schemas,
 	}
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
 }
 
-func (s serviceClient) BindService(serviceName string, deposit string, pricing string,
-	withdrawAddr string, baseTx sdk.BaseTx) (sdk.Result, error) {
+//BindService is responsible for binding a new service definition
+func (s serviceClient) BindService(binding sdk.ServiceBinding, baseTx sdk.BaseTx) (sdk.Result, error) {
 	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	coins, err := sdk.ParseCoins(deposit)
+	coins, err := sdk.ParseCoins(binding.Deposit)
 	if err != nil {
 		return nil, err
 	}
 
-	withdrawAddress, err := sdk.AccAddressFromBech32(withdrawAddr)
+	withdrawAddress, err := sdk.AccAddressFromBech32(binding.WithdrawAddr)
 	if err != nil {
 		return nil, err
 	}
 	msg := MsgBindService{
-		ServiceName:     serviceName,
+		ServiceName:     binding.ServiceName,
 		Provider:        provider,
 		Deposit:         coins,
-		Pricing:         pricing,
+		Pricing:         binding.Pricing,
 		WithdrawAddress: withdrawAddress,
 	}
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
 }
 
-func (s serviceClient) InvokeService(serviceName string,
-	providers []string,
-	input string,
-	serviceFeeCap string,
-	timeout int64,
-	superMode bool,
-	repeated bool,
-	repeatedFrequency uint64,
-	repeatedTotal int64,
+//InvokeService is responsible for invoke a new service and callback `callback`
+func (s serviceClient) InvokeService(invocation sdk.ServiceInvocation,
 	baseTx sdk.BaseTx,
 	callback sdk.ServiceInvokeHandler) (string, error) {
 	consumer, err := s.QueryAddress(baseTx.From, baseTx.Password)
@@ -73,7 +67,7 @@ func (s serviceClient) InvokeService(serviceName string,
 	}
 
 	var ps []sdk.AccAddress
-	for _, p := range providers {
+	for _, p := range invocation.Providers {
 		provider, err := sdk.AccAddressFromBech32(p)
 		if err != nil {
 			return "", err
@@ -81,22 +75,22 @@ func (s serviceClient) InvokeService(serviceName string,
 		ps = append(ps, provider)
 	}
 
-	coins, err := sdk.ParseCoins(serviceFeeCap)
+	coins, err := sdk.ParseCoins(invocation.ServiceFeeCap)
 	if err != nil {
 		return "", err
 	}
 
 	msg := MsgRequestService{
-		ServiceName:       serviceName,
+		ServiceName:       invocation.ServiceName,
 		Providers:         ps,
 		Consumer:          consumer,
-		Input:             input,
+		Input:             invocation.Input,
 		ServiceFeeCap:     coins,
-		Timeout:           timeout,
-		SuperMode:         superMode,
-		Repeated:          repeated,
-		RepeatedFrequency: repeatedFrequency,
-		RepeatedTotal:     repeatedTotal,
+		Timeout:           invocation.Timeout,
+		SuperMode:         invocation.SuperMode,
+		Repeated:          invocation.Repeated,
+		RepeatedFrequency: invocation.RepeatedFrequency,
+		RepeatedTotal:     invocation.RepeatedTotal,
 	}
 
 	result, err := s.Broadcast(baseTx, []sdk.Msg{msg})
@@ -115,14 +109,18 @@ func (s serviceClient) InvokeService(serviceName string,
 		var responses []string
 		for _, msg := range tx.Tx.Msgs {
 			msg, ok := msg.(MsgRespondService)
-			request := s.QueryRequest(msg.RequestID)
-			if ok && request.ServiceName == serviceName {
+			request, err := s.QueryRequest(msg.RequestID)
+			if err != nil {
+				//TODO
+				continue
+			}
+			if ok && request.ServiceName == invocation.ServiceName {
 				responses = append(responses, msg.Output)
 				callback(requestContextID, msg.Output)
 			}
 		}
 		//cancel subscription
-		if !repeated {
+		if !invocation.Repeated {
 			_ = s.Unscribe(subscription)
 		}
 	})
@@ -133,6 +131,7 @@ func (s serviceClient) InvokeService(serviceName string,
 	return requestContextID, nil
 }
 
+//RegisterInvocationListener is responsible for registering a group of service handler
 func (s serviceClient) RegisterInvocationListener(serviceRouter sdk.ServiceRouter, baseTx sdk.BaseTx) error {
 	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
@@ -148,7 +147,11 @@ func (s serviceClient) RegisterInvocationListener(serviceRouter sdk.ServiceRoute
 	_, err = s.SubscribeNewBlock(func(block sdk.EventDataNewBlock) {
 		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
 		for _, reqID := range reqIDs {
-			request := s.QueryRequest(reqID)
+			request, err := s.QueryRequest(reqID)
+			if err != nil {
+				//TODO
+				continue
+			}
 			if handler, ok := serviceRouter[request.ServiceName]; ok && provider.Equals(request.Provider) {
 				output, errMsg := handler(request.Input)
 				msg := MsgRespondService{
@@ -168,6 +171,7 @@ func (s serviceClient) RegisterInvocationListener(serviceRouter sdk.ServiceRoute
 	return err
 }
 
+//RegisterSingleInvocationListener is responsible for registering a single service handler
 func (s serviceClient) RegisterSingleInvocationListener(serviceName string,
 	respondHandler sdk.ServiceRespondHandler,
 	baseTx sdk.BaseTx) error {
@@ -184,7 +188,11 @@ func (s serviceClient) RegisterSingleInvocationListener(serviceName string,
 	_, err = s.SubscribeNewBlock(func(block sdk.EventDataNewBlock) {
 		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
 		for _, reqID := range reqIDs {
-			request := s.QueryRequest(reqID)
+			request, err := s.QueryRequest(reqID)
+			if err != nil {
+				//TODO
+				continue
+			}
 			if provider.Equals(request.Provider) && request.ServiceName == serviceName {
 				output, errMsg := respondHandler(request.Input)
 				msg := MsgRespondService{
@@ -204,13 +212,12 @@ func (s serviceClient) RegisterSingleInvocationListener(serviceName string,
 	return err
 }
 
-//TODO
-func (s serviceClient) QueryRequest(requestID string) sdk.Request {
-	return sdk.Request{}
-}
-
-func New(ac sdk.AbstractClient) sdk.Service {
-	return serviceClient{
-		AbstractClient: ac,
+func (s serviceClient) QueryRequest(requestID string) (request sdk.Request, err error) {
+	param := QueryRequestParams{RequestID: requestID}
+	//TODO
+	err = s.Query("custom/service/request", param, &request)
+	if err != nil {
+		return request, err
 	}
+	return
 }

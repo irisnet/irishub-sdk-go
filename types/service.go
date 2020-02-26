@@ -1,33 +1,12 @@
 package types
 
 type Service interface {
-	DefineService(serviceName string,
-		description string,
-		tags []string,
-		authorDescription string,
-		schemas string,
-		baseTx BaseTx,
-	) (Result, error)
+	DefineService(definition ServiceDefinition, baseTx BaseTx) (Result, error)
 
-	BindService(serviceName string,
-		deposit string,
-		pricing string,
-		withdrawAddr string,
-		baseTx BaseTx,
-	) (Result, error)
+	BindService(binding ServiceBinding, baseTx BaseTx) (Result, error)
 
-	InvokeService(serviceName string,
-		providers []string,
-		input string,
-		serviceFeeCap string,
-		timeout int64,
-		superMode bool,
-		repeated bool,
-		repeatedFrequency uint64,
-		repeatedTotal int64,
-		baseTx BaseTx,
-		callback ServiceInvokeHandler,
-	) (requestContextID string, err error)
+	InvokeService(invocation ServiceInvocation, baseTx BaseTx,
+		callback ServiceInvokeHandler) (requestContextID string, err error)
 
 	RegisterInvocationListener(serviceRouter ServiceRouter,
 		baseTx BaseTx) error
@@ -53,4 +32,31 @@ type Request struct {
 	ExpirationHeight           int64      `json:"expiration_height"`
 	RequestContextID           []byte     `json:"request_context_id"`
 	RequestContextBatchCounter uint64     `json:"request_context_batch_counter"`
+}
+
+type ServiceDefinition struct {
+	ServiceName       string   `json:"service_name"`
+	Description       string   `json:"description"`
+	Tags              []string `json:"tags"`
+	AuthorDescription string   `json:"author_description"`
+	Schemas           string   `json:"schemas"`
+}
+
+type ServiceBinding struct {
+	ServiceName  string `json:"service_name"`
+	Deposit      string `json:"deposit"`
+	Pricing      string `json:"pricing"`
+	WithdrawAddr string `json:"withdraw_addr"`
+}
+
+type ServiceInvocation struct {
+	ServiceName       string   `json:"service_name"`
+	Providers         []string `json:"providers"`
+	Input             string   `json:"input"`
+	ServiceFeeCap     string   `json:"service_fee_cap"`
+	Timeout           int64    `json:"timeout"`
+	SuperMode         bool     `json:"super_mode"`
+	Repeated          bool     `json:"repeated"`
+	RepeatedFrequency uint64   `json:"repeated_frequency"`
+	RepeatedTotal     int64    `json:"repeated_total"`
 }
