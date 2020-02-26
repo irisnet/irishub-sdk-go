@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/irisnet/irishub-sdk-go/adapter"
+	"github.com/irisnet/irishub-sdk-go/modules/service"
 
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/net"
@@ -10,6 +11,7 @@ import (
 
 type Client struct {
 	types.Bank
+	types.Service
 	types.WSClient
 }
 
@@ -32,6 +34,7 @@ func New(cfg types.SDKConfig) Client {
 	}
 	return Client{
 		Bank:     bank.New(abstClient),
+		Service:  service.New(abstClient),
 		WSClient: rpc,
 	}
 }
@@ -42,6 +45,7 @@ func makeCodec() types.Codec {
 	types.RegisterCodec(cdc)
 	// register msg
 	bank.RegisterCodec(cdc)
+	service.RegisterCodec(cdc)
 
 	return cdc
 }

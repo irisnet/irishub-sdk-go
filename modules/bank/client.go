@@ -32,7 +32,11 @@ func (b bankClient) QueryAccount(address string) (types.BaseAccount, error) {
 
 // GetTokenStats return token statistic, including total loose tokens, total burned tokens and total bonded tokens.
 func (b bankClient) QueryTokenStats(tokenID string) (result types.TokenStats, err error) {
-	param := QueryTokenParams{TokenId: tokenID}
+	param := struct {
+		TokenId string
+	}{
+		TokenId: tokenID,
+	}
 	err = b.Query("custom/acc/tokenStats", param, &result)
 	if err != nil {
 		return result, err

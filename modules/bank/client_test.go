@@ -13,31 +13,31 @@ import (
 
 type BankTestSuite struct {
 	suite.Suite
-	types.Bank
+	sim.TestClient
 }
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(BankTestSuite))
 }
 
-func (tbs *BankTestSuite) SetupTest() {
+func (bts *BankTestSuite) SetupTest() {
 	tc := sim.NewClient()
-	tbs.Bank = tc.Bank
+	bts.TestClient = tc
 }
 
-func (tbs BankTestSuite) TestGetAccount() {
-	acc, err := tbs.QueryAccount("faa1d3mf696gvtwq2dfx03ghe64akf6t5vyz6pe3le")
-	require.NoError(tbs.T(), err)
+func (bts BankTestSuite) TestGetAccount() {
+	acc, err := bts.QueryAccount("faa1d3mf696gvtwq2dfx03ghe64akf6t5vyz6pe3le")
+	require.NoError(bts.T(), err)
 	fmt.Printf("%v", acc)
 }
 
-func (tbs BankTestSuite) TestGetTokenStats() {
-	acc, err := tbs.QueryTokenStats("iris")
-	require.NoError(tbs.T(), err)
+func (bts BankTestSuite) TestGetTokenStats() {
+	acc, err := bts.QueryTokenStats("iris")
+	require.NoError(bts.T(), err)
 	fmt.Printf("%v", acc)
 }
 
-func (tbs BankTestSuite) TestSend() {
+func (bts BankTestSuite) TestSend() {
 	amt := types.NewIntWithDecimal(1, 18)
 	coin := types.NewCoin("iris-atto", amt)
 	coins := types.NewCoins(coin)
@@ -50,22 +50,22 @@ func (tbs BankTestSuite) TestSend() {
 		Mode: types.Commit,
 	}
 
-	toAccBefore, err := tbs.QueryAccount(to)
-	require.NoError(tbs.T(), err)
+	toAccBefore, err := bts.QueryAccount(to)
+	require.NoError(bts.T(), err)
 
-	result, err := tbs.Send(to, coins, baseTx)
-	require.NoError(tbs.T(), err)
-	require.True(tbs.T(), result.IsSuccess())
+	result, err := bts.Send(to, coins, baseTx)
+	require.NoError(bts.T(), err)
+	require.True(bts.T(), result.IsSuccess())
 
-	toAccAfter, err := tbs.QueryAccount(to)
-	require.NoError(tbs.T(), err)
-	require.Equal(tbs.T(),
+	toAccAfter, err := bts.QueryAccount(to)
+	require.NoError(bts.T(), err)
+	require.Equal(bts.T(),
 		toAccBefore.Coins.Add(coins).String(),
 		toAccAfter.GetCoins().String(),
 	)
 }
 
-func (tbs BankTestSuite) TestBurn() {
+func (bts BankTestSuite) TestBurn() {
 	amt := types.NewIntWithDecimal(1, 18)
 	coin := types.NewCoin("iris-atto", amt)
 	coins := types.NewCoins(coin)
@@ -76,12 +76,12 @@ func (tbs BankTestSuite) TestBurn() {
 		Memo: "test",
 		Mode: types.Commit,
 	}
-	result, err := tbs.Burn(coins, baseTx)
-	require.NoError(tbs.T(), err)
-	require.True(tbs.T(), result.IsSuccess())
+	result, err := bts.Burn(coins, baseTx)
+	require.NoError(bts.T(), err)
+	require.True(bts.T(), result.IsSuccess())
 }
 
-func (tbs BankTestSuite) TestSetMemoRegexp() {
+func (bts BankTestSuite) TestSetMemoRegexp() {
 	baseTx := types.BaseTx{
 		From: "test1",
 		Gas:  20000,
@@ -89,11 +89,11 @@ func (tbs BankTestSuite) TestSetMemoRegexp() {
 		Memo: "test",
 		Mode: types.Commit,
 	}
-	result, err := tbs.SetMemoRegexp("testMemo", baseTx)
-	require.NoError(tbs.T(), err)
-	require.True(tbs.T(), result.IsSuccess())
+	result, err := bts.SetMemoRegexp("testMemo", baseTx)
+	require.NoError(bts.T(), err)
+	require.True(bts.T(), result.IsSuccess())
 
-	acc, err := tbs.QueryAccount(sim.Addr)
-	require.NoError(tbs.T(), err)
-	require.Equal(tbs.T(), "testMemo", acc.MemoRegexp)
+	acc, err := bts.QueryAccount(bts.Sender().String())
+	require.NoError(bts.T(), err)
+	require.Equal(bts.T(), "testMemo", acc.MemoRegexp)
 }

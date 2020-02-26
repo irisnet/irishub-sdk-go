@@ -215,12 +215,6 @@ func (msg MsgRespondService) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Provider}
 }
 
-//================================for ABCI query
-// QueryRequestParams defines the params to query a request for a service binding
-type QueryRequestParams struct {
-	RequestID string
-}
-
 func RegisterCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgDefineService{}, "irishub/service/MsgDefineService")
 	cdc.RegisterConcrete(MsgBindService{}, "irishub/service/MsgBindService")

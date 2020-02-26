@@ -8,7 +8,6 @@ import (
 	cmn "github.com/tendermint/tendermint/libs/common"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 
-	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/types"
 )
 
@@ -120,7 +119,9 @@ func (ac abstractClient) QueryAccount(address string) (baseAccount types.BaseAcc
 	if err != nil {
 		return baseAccount, err
 	}
-	param := bank.QueryAccountParams{
+	param := struct {
+		Address types.AccAddress
+	}{
 		Address: addr,
 	}
 	if err = ac.Query("custom/acc/account", param, &baseAccount); err != nil {

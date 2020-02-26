@@ -29,11 +29,6 @@ type QueryAccountParams struct {
 	Address types.AccAddress
 }
 
-// QueryTokenParams is the query parameters for 'custom/asset/tokens/{id}'
-type QueryTokenParams struct {
-	TokenId string
-}
-
 type MsgSend struct {
 	Inputs  []Input  `json:"inputs"`
 	Outputs []Output `json:"outputs"`
