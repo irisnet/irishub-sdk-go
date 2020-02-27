@@ -2,15 +2,17 @@ package service_test
 
 import (
 	"fmt"
-	"github.com/tendermint/tendermint/libs/log"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/irisnet/irishub-sdk-go/sim"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/tendermint/tendermint/libs/log"
+
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/irisnet/irishub-sdk-go/sim"
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type ServiceTestSuite struct {
