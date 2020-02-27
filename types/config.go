@@ -29,6 +29,13 @@ type SDKConfig struct {
 	StoreType StoreType
 }
 
+type SDKClient interface {
+	Bank
+	Service
+	Oracle
+	WSClient
+}
+
 type KeyStore interface {
 	GetPrivate() string
 	GetAddress() string

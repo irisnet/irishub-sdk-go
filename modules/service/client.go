@@ -345,10 +345,11 @@ func (s serviceClient) RegisterSingleInvocationListener(serviceName string,
 		}
 	}()
 
-	builder := sdk.NewEventQueryBuilder().
-		AddCondition(sdk.EventKey(TagProvider), sdk.EventValue(provider.String())).
-		AddCondition(sdk.EventKey(TagServiceName), sdk.EventValue(serviceName))
-	_, err = s.SubscribeNewBlockWithParams(builder, func(block sdk.EventDataNewBlock) {
+	// TODO user will don't received any event from tendermint when block_result has the same key in tag
+	//builder := sdk.NewEventQueryBuilder().
+	//	AddCondition(sdk.EventKey(TagProvider), sdk.EventValue(provider.String())).
+	//	AddCondition(sdk.EventKey(TagServiceName), sdk.EventValue(serviceName))
+	_, err = s.SubscribeNewBlockWithParams(nil, func(block sdk.EventDataNewBlock) {
 		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
 		s.Logger().Debug("Received Block",
 			"height", block.Block.Height,

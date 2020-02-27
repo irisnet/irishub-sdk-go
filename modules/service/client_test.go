@@ -1,6 +1,8 @@
 package service_test
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
@@ -139,9 +141,164 @@ func (sts *ServiceTestSuite) TestQueryRequestContext() {
 }
 
 func (sts *ServiceTestSuite) TestQueryRequest() {
-	request, err := sts.QueryRequests("service-949455000", sts.Sender())
-	require.NoError(sts.T(), err)
-	fmt.Println(request)
+	//request, err := sts.QueryRequests("service-949455000", sts.Sender())
+	//require.NoError(sts.T(), err)
+	//fmt.Println(request)
+
+	//str :="PehEueM827vYaZfPm7dodnz2/xv2cnNR1NavUkpX0bE="
+	//strByte,_ := base64.StdEncoding.DecodeString(str)
+	//fmt.Println(hex.EncodeToString(strByte))
+
+	type Tag struct {
+		Key   string `json:"key"`
+		Value string `json:"value"`
+	}
+	jsonStr := `[
+          {
+            "key": "aGVpZ2h0",
+            "value": "Mjk5Mw=="
+          },
+          {
+            "key": "cmVxdWVzdC1pZA==",
+            "value": "MDYxMjE0NThlNWNjODFkYWExMzBjMjEyNjNmNmVjMmNhODc5OWY2OGViNzA4MmJlZWFmMTQ1YWEwYzNkZGE5NzAwMDAwMDAwMDAwMDAwODkwMDAw"
+          },
+          {
+            "key": "cHJvdmlkZXI=",
+            "value": "ZmFhMWZ0YzBrc3lkdXljNXJ4YThmc2d5aHpodGxoNnYwajBnbjZ1aDA0"
+          },
+          {
+            "key": "Y29uc3VtZXI=",
+            "value": "ZmFhMWZ0YzBrc3lkdXljNXJ4YThmc2d5aHpodGxoNnYwajBnbjZ1aDA0"
+          },
+          {
+            "key": "c2xhc2hlZC1jb2lucw=="
+          },
+          {
+            "key": "cmVxdWVzdC1pZA==",
+            "value": "MTkxYjYxNGEyZDk2MzJjODY1MDM2YThkMDZmZjNkNjJlYjk3NWE4MGZmMWFlNWQzZWUwM2QzMDIzNmY1ZGQ0NjAwMDAwMDAwMDAwMDAwNGIwMDAw"
+          },
+          {
+            "key": "cHJvdmlkZXI=",
+            "value": "ZmFhMWZ0YzBrc3lkdXljNXJ4YThmc2d5aHpodGxoNnYwajBnbjZ1aDA0"
+          },
+          {
+            "key": "Y29uc3VtZXI=",
+            "value": "ZmFhMWZ0YzBrc3lkdXljNXJ4YThmc2d5aHpodGxoNnYwajBnbjZ1aDA0"
+          },
+          {
+            "key": "c2xhc2hlZC1jb2lucw=="
+          },
+          {
+            "key": "cmVxdWVzdC1pZA==",
+            "value": "NjM2ZjI1ZmRmZjUwZTFjY2MxNzA1OGIxNDMzNzdiOTFkYTQ2OTI1ZjJhNDExYTc3ZGUzZGJlNTQ1YzBjODliNzAwMDAwMDAwMDAwMDAwMjAwMDAw"
+          },
+          {
+            "key": "cHJvdmlkZXI=",
+            "value": "ZmFhMWZ0YzBrc3lkdXljNXJ4YThmc2d5aHpodGxoNnYwajBnbjZ1aDA0"
+          },
+          {
+            "key": "Y29uc3VtZXI=",
+            "value": "ZmFhMWZ0YzBrc3lkdXljNXJ4YThmc2d5aHpodGxoNnYwajBnbjZ1aDA0"
+          },
+          {
+            "key": "c2xhc2hlZC1jb2lucw=="
+          },
+          {
+            "key": "cmVxdWVzdC1pZA==",
+            "value": "MjlkOTYwZjNjZWM5NWZkZDFjMTM1YWJmMjUxZjQ1YmFiMzgwNTkwMDlhZDQxMDg4ZDJmYzYxNDZjNTQwNzczMzAwMDAwMDAwMDAwMDAwNWYwMDAw"
+          },
+          {
+            "key": "cHJvdmlkZXI=",
+            "value": "ZmFhMWZ0YzBrc3lkdXljNXJ4YThmc2d5aHpodGxoNnYwajBnbjZ1aDA0"
+          },
+          {
+            "key": "Y29uc3VtZXI=",
+            "value": "ZmFhMWZ0YzBrc3lkdXljNXJ4YThmc2d5aHpodGxoNnYwajBnbjZ1aDA0"
+          },
+          {
+            "key": "c2VydmljZS1uYW1l",
+            "value": "c2VydmljZS03Mzk1MTYwMDA="
+          },
+          {
+            "key": "c2VydmljZS1mZWU=",
+            "value": "MTAwMDAwMDAwMDAwMDAwMDAwMGlyaXMtYXR0bw=="
+          },
+          {
+            "key": "cmVxdWVzdC1oZWlnaHQ=",
+            "value": "Mjk5Mw=="
+          },
+          {
+            "key": "ZXhwaXJhdGlvbi1oZWlnaHQ=",
+            "value": "Mjk5Ng=="
+          },
+          {
+            "key": "cmVxdWVzdC1pZA==",
+            "value": "M2RlODQ0YjllMzNjZGJiYmQ4Njk5N2NmOWJiNzY4NzY3Y2Y2ZmYxYmY2NzI3MzUxZDRkNmFmNTI0YTU3ZDFiMTAwMDAwMDAwMDAwMDAwMzEwMDAw"
+          },
+          {
+            "key": "cHJvdmlkZXI=",
+            "value": "ZmFhMWZ0YzBrc3lkdXljNXJ4YThmc2d5aHpodGxoNnYwajBnbjZ1aDA0"
+          },
+          {
+            "key": "Y29uc3VtZXI=",
+            "value": "ZmFhMWZ0YzBrc3lkdXljNXJ4YThmc2d5aHpodGxoNnYwajBnbjZ1aDA0"
+          },
+          {
+            "key": "c2VydmljZS1uYW1l",
+            "value": "c2VydmljZS0zOTgxMjQwMDA="
+          },
+          {
+            "key": "c2VydmljZS1mZWU=",
+            "value": "MTAwMDAwMDAwMDAwMDAwMDAwMGlyaXMtYXR0bw=="
+          },
+          {
+            "key": "cmVxdWVzdC1oZWlnaHQ=",
+            "value": "Mjk5Mw=="
+          },
+          {
+            "key": "ZXhwaXJhdGlvbi1oZWlnaHQ=",
+            "value": "Mjk5Ng=="
+          },
+          {
+            "key": "cmVxdWVzdC1pZA==",
+            "value": "ZjgyZDc4Yzc2ODg4MmJkMGJkYjBiMjM0ZWM0OGQyZjJiOGNlNTcyZmJhYTczMjE4ZTMxYWQ5MDdmNDlkNzg0MTAwMDAwMDAwMDAwMDAwYjEwMDAw"
+          },
+          {
+            "key": "cHJvdmlkZXI=",
+            "value": "ZmFhMWZ0YzBrc3lkdXljNXJ4YThmc2d5aHpodGxoNnYwajBnbjZ1aDA0"
+          },
+          {
+            "key": "Y29uc3VtZXI=",
+            "value": "ZmFhMWZ0YzBrc3lkdXljNXJ4YThmc2d5aHpodGxoNnYwajBnbjZ1aDA0"
+          },
+          {
+            "key": "c2VydmljZS1uYW1l",
+            "value": "c2VydmljZS0yMzQ5NzEwMDA="
+          },
+          {
+            "key": "c2VydmljZS1mZWU=",
+            "value": "MTAwMDAwMDAwMDAwMDAwMDAwMGlyaXMtYXR0bw=="
+          },
+          {
+            "key": "cmVxdWVzdC1oZWlnaHQ=",
+            "value": "Mjk5Mw=="
+          },
+          {
+            "key": "ZXhwaXJhdGlvbi1oZWlnaHQ=",
+            "value": "Mjk5Ng=="
+          },
+          {
+            "key": "YXBwX3ZlcnNpb24=",
+            "value": "Mw=="
+          }
+        ]`
+	var tags []Tag
+	_ = json.Unmarshal([]byte(jsonStr), &tags)
+	for _, tag := range tags {
+		key, _ := base64.StdEncoding.DecodeString(tag.Key)
+		value, _ := base64.StdEncoding.DecodeString(tag.Value)
+		fmt.Println(fmt.Sprintf("key=%s value=%s", key, value))
+	}
 }
 
 func generateServiceName() string {
