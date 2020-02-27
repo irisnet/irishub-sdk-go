@@ -295,7 +295,9 @@ func (s serviceClient) RegisterInvocationListener(serviceRouter sdk.ServiceRoute
 		}
 	}()
 
-	_, err = s.SubscribeNewBlock(func(block sdk.EventDataNewBlock) {
+	builder := sdk.NewEventQueryBuilder().
+		AddCondition(sdk.EventKey(TagProvider), sdk.EventValue(provider.String()))
+	_, err = s.SubscribeNewBlockWithParams(builder, func(block sdk.EventDataNewBlock) {
 		s.Logger().Debug("Received Block",
 			"height", block.Block.Height,
 			"tags", block.ResultEndBlock.Tags)
@@ -339,7 +341,11 @@ func (s serviceClient) RegisterSingleInvocationListener(serviceName string,
 			return
 		}
 	}()
-	_, err = s.SubscribeNewBlock(func(block sdk.EventDataNewBlock) {
+
+	builder := sdk.NewEventQueryBuilder().
+		AddCondition(sdk.EventKey(TagProvider), sdk.EventValue(provider.String())).
+		AddCondition(sdk.EventKey(TagServiceName), sdk.EventValue(serviceName))
+	_, err = s.SubscribeNewBlockWithParams(builder, func(block sdk.EventDataNewBlock) {
 		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
 		s.Logger().Debug("Received Block",
 			"height", block.Block.Height,

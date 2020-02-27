@@ -2,6 +2,8 @@ package service_test
 
 import (
 	"fmt"
+	"github.com/tendermint/tendermint/libs/log"
+	"os"
 	"testing"
 	"time"
 
@@ -14,6 +16,7 @@ import (
 type ServiceTestSuite struct {
 	suite.Suite
 	sim.TestClient
+	log.Logger
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -22,6 +25,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (sts *ServiceTestSuite) SetupTest() {
 	sts.TestClient = sim.NewClient()
+	sts.Logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 }
 
 func (sts *ServiceTestSuite) TestService() {
@@ -82,7 +86,7 @@ func (sts *ServiceTestSuite) TestService() {
 
 	err = sts.RegisterSingleInvocationListener(definition.ServiceName,
 		func(input string) (string, string) {
-			fmt.Println(fmt.Sprintf("get request data: %s", input))
+			sts.Info("Provider received request", "input", input, "output", output)
 			return output, ""
 		}, baseTx)
 	require.NoError(sts.T(), err)
@@ -94,20 +98,20 @@ func (sts *ServiceTestSuite) TestService() {
 		Providers:         []string{sts.Sender().String()},
 		Input:             input,
 		ServiceFeeCap:     serviceFeeCap,
-		Timeout:           10,
+		Timeout:           3,
 		SuperMode:         false,
-		Repeated:          false,
-		RepeatedFrequency: 3,
+		Repeated:          true,
+		RepeatedFrequency: 5,
 		RepeatedTotal:     -1,
 	}
 	var requestContextID string
 	requestContextID, err = sts.InvokeService(invocation, func(reqCtxID string, response string) {
 		require.Equal(sts.T(), reqCtxID, requestContextID)
 		require.Equal(sts.T(), output, response)
-		fmt.Println(response)
+		sts.Info("Consumer received response", "RequestContextID", requestContextID, "response", response)
 	})
 
-	fmt.Println(requestContextID)
+	sts.Info("Request success", "RequestContextID", requestContextID)
 	require.NoError(sts.T(), err)
 
 	request, err := sts.QueryRequestContext(requestContextID)

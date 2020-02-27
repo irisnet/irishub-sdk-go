@@ -12,6 +12,7 @@ type Queries interface {
 
 type WSClient interface {
 	SubscribeNewBlock(callback EventNewBlockCallback) (Subscription, error)
+	SubscribeNewBlockWithParams(builder *EventQueryBuilder, callback EventNewBlockCallback) (Subscription, error)
 	SubscribeTx(builder *EventQueryBuilder, callback EventTxCallback) (Subscription, error)
 	SubscribeNewBlockHeader(callback EventNewBlockHeaderCallback) (Subscription, error)
 	SubscribeValidatorSetUpdates(callback EventValidatorSetUpdatesCallback) (Subscription, error)

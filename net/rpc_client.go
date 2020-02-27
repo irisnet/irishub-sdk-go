@@ -53,9 +53,18 @@ func (r RPCClient) start() {
 
 //SubscribeNewBlock implement WSClient interface
 func (r RPCClient) SubscribeNewBlock(callback types.EventNewBlockCallback) (types.Subscription, error) {
+	return r.SubscribeNewBlockWithParams(nil, callback)
+}
+
+//SubscribeNewBlock implement WSClient interface
+func (r RPCClient) SubscribeNewBlockWithParams(builder *types.EventQueryBuilder, callback types.EventNewBlockCallback) (types.Subscription, error) {
 	ctx := context.Background()
 	subscriber := getSubscriberID()
-	query := tmtypes.QueryForEvent(tmtypes.EventNewBlock).String()
+	if builder == nil {
+		builder = types.NewEventQueryBuilder()
+	}
+	builder.AddCondition(types.TypeKey, tmtypes.EventNewBlock)
+	query := builder.Build()
 	r.start()
 	ch, err := r.Subscribe(ctx, subscriber, query, 0)
 	if err != nil {
