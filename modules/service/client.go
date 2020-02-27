@@ -134,6 +134,9 @@ func (s serviceClient) InvokeService(request sdk.ServiceInvocationRequest,
 	}
 
 	requestContextID := result.GetTags().GetValue(TagRequestContextID)
+	if callback == nil {
+		return requestContextID, nil
+	}
 	builder := sdk.NewEventQueryBuilder().
 		AddCondition(sdk.ActionKey, sdk.EventValue(TagRespondService)).
 		AddCondition(sdk.EventKey(TagConsumer), sdk.EventValue(consumer.String())).
