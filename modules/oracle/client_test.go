@@ -6,11 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/irisnet/irishub-sdk-go/sim"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/libs/log"
+
+	"github.com/irisnet/irishub-sdk-go/sim"
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type OracleTestSuite struct {
