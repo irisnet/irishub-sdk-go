@@ -11,14 +11,14 @@ type Oracle interface {
 
 type OracleTx interface {
 	CreateFeed(request FeedCreateRequest) (result Result, err error)
-	StartFeed(feedName string) (result Result, err error)
-	PauseFeed(feedName string) (result Result, err error)
+	StartFeed(feedName string, baseTx BaseTx) (result Result, err error)
+	PauseFeed(feedName string, baseTx BaseTx) (result Result, err error)
 	EditFeed(request FeedEditRequest) (result Result, err error)
 }
 
 type OracleQuery interface {
 	QueryFeed(feedName string) (feed FeedContext, err error)
-	QueryFeeds(state string) (feed FeedContext, err error)
+	QueryFeeds(state string) (feed []FeedContext, err error)
 	QueryFeedValue(feedName string) (value []FeedValue, err error)
 }
 
@@ -44,6 +44,7 @@ type FeedCreateRequest struct {
 
 // FeedEditRequest - struct for edit a existed feed
 type FeedEditRequest struct {
+	BaseTx
 	FeedName          string   `json:"feed_name"`
 	Description       string   `json:"description"`
 	LatestHistory     uint64   `json:"latest_history"`

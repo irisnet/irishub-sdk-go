@@ -3,6 +3,8 @@ package client
 import (
 	"os"
 
+	"github.com/irisnet/irishub-sdk-go/modules/oracle"
+
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/irisnet/irishub-sdk-go/adapter"
@@ -16,6 +18,7 @@ import (
 type Client struct {
 	types.Bank
 	types.Service
+	types.Oracle
 	types.WSClient
 }
 
@@ -41,6 +44,7 @@ func New(cfg types.SDKConfig) Client {
 	return Client{
 		Bank:     bank.New(abstClient),
 		Service:  service.New(abstClient),
+		Oracle:   oracle.New(abstClient),
 		WSClient: rpc,
 	}
 }
@@ -52,6 +56,7 @@ func makeCodec() types.Codec {
 	// register msg
 	bank.RegisterCodec(cdc)
 	service.RegisterCodec(cdc)
+	oracle.RegisterCodec(cdc)
 
 	return cdc
 }

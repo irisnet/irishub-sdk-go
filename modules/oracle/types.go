@@ -259,7 +259,7 @@ func (ctx FeedContext) toSDKFeedContext() sdk.FeedContext {
 		},
 		ServiceName:       ctx.ServiceName,
 		Providers:         providers,
-		Input:             "",
+		Input:             ctx.Input,
 		Timeout:           ctx.Timeout,
 		ServiceFeeCap:     ctx.ServiceFeeCap,
 		RepeatedFrequency: ctx.RepeatedFrequency,
@@ -267,6 +267,15 @@ func (ctx FeedContext) toSDKFeedContext() sdk.FeedContext {
 		ResponseThreshold: ctx.ResponseThreshold,
 		State:             ctx.State,
 	}
+}
+
+type FeedContexts []FeedContext
+
+func (ctx FeedContexts) toSDKFeedContexts() (result []sdk.FeedContext) {
+	for _, feedCtx := range ctx {
+		result = append(result, feedCtx.toSDKFeedContext())
+	}
+	return
 }
 
 func RegisterCodec(cdc sdk.Codec) {
