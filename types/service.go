@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/hex"
 	"time"
 )
 
@@ -187,4 +188,16 @@ type RequestContext struct {
 type EarnedFees struct {
 	Address AccAddress `json:"address"`
 	Coins   Coins      `json:"coins"`
+}
+
+func RequestContextIDToString(reqCtxID []byte) string {
+	return hex.EncodeToString(reqCtxID)
+}
+
+func RequestContextIDToByte(reqCtxID string) []byte {
+	dst, err := hex.DecodeString(reqCtxID)
+	if err != nil {
+		panic(err)
+	}
+	return dst
 }

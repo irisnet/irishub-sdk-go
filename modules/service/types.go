@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"time"
@@ -746,7 +745,7 @@ func (r Request) toSDKRequest() sdk.Request {
 		SuperMode:                  r.SuperMode,
 		RequestHeight:              r.RequestHeight,
 		ExpirationHeight:           r.ExpirationHeight,
-		RequestContextID:           RequestContextIDToString(r.RequestContextID),
+		RequestContextID:           sdk.RequestContextIDToString(r.RequestContextID),
 		RequestContextBatchCounter: r.RequestContextBatchCounter,
 	}
 }
@@ -776,7 +775,7 @@ func (r Response) toSDKResponse() sdk.Response {
 		Consumer:                   r.Consumer,
 		Output:                     r.Output,
 		Error:                      r.Error,
-		RequestContextID:           RequestContextIDToString(r.RequestContextID),
+		RequestContextID:           sdk.RequestContextIDToString(r.RequestContextID),
 		RequestContextBatchCounter: r.RequestContextBatchCounter,
 	}
 }
@@ -844,18 +843,6 @@ func (e EarnedFees) toSDKEarnedFees() sdk.EarnedFees {
 		Address: e.Address,
 		Coins:   e.Coins,
 	}
-}
-
-func RequestContextIDToString(reqCtxID []byte) string {
-	return hex.EncodeToString(reqCtxID)
-}
-
-func RequestContextIDToByte(reqCtxID string) []byte {
-	dst, err := hex.DecodeString(reqCtxID)
-	if err != nil {
-		panic(err)
-	}
-	return dst
 }
 
 func RegisterCodec(cdc sdk.Codec) {

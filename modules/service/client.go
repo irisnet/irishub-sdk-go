@@ -195,7 +195,7 @@ func (s serviceClient) StartRequestContext(requestContextID string, baseTx sdk.B
 		return nil, err
 	}
 	msg := MsgStartRequestContext{
-		RequestContextID: RequestContextIDToByte(requestContextID),
+		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
 		Consumer:         consumer,
 	}
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
@@ -208,7 +208,7 @@ func (s serviceClient) PauseRequestContext(requestContextID string, baseTx sdk.B
 		return nil, err
 	}
 	msg := MsgPauseRequestContext{
-		RequestContextID: RequestContextIDToByte(requestContextID),
+		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
 		Consumer:         consumer,
 	}
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
@@ -221,7 +221,7 @@ func (s serviceClient) KillRequestContext(requestContextID string, baseTx sdk.Ba
 		return nil, err
 	}
 	msg := MsgKillRequestContext{
-		RequestContextID: RequestContextIDToByte(requestContextID),
+		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
 		Consumer:         consumer,
 	}
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
@@ -241,7 +241,7 @@ func (s serviceClient) UpdateRequestContext(request sdk.UpdateContextRequest) (s
 	}
 
 	msg := MsgUpdateRequestContext{
-		RequestContextID:  RequestContextIDToByte(request.RequestContextID),
+		RequestContextID:  sdk.RequestContextIDToByte(request.RequestContextID),
 		Providers:         providers,
 		ServiceFeeCap:     request.ServiceFeeCap,
 		Timeout:           request.Timeout,
@@ -464,7 +464,7 @@ func (s serviceClient) QueryRequestsByReqCtx(requestContextID string, batchCount
 		RequestContextID []byte
 		BatchCounter     uint64
 	}{
-		RequestContextID: RequestContextIDToByte(requestContextID),
+		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
 		BatchCounter:     batchCounter,
 	}
 	var requests Requests
@@ -496,7 +496,7 @@ func (s serviceClient) QueryResponses(requestContextID string, batchCounter uint
 		RequestContextID []byte
 		BatchCounter     uint64
 	}{
-		RequestContextID: RequestContextIDToByte(requestContextID),
+		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
 		BatchCounter:     batchCounter,
 	}
 	var responses Responses
@@ -512,7 +512,7 @@ func (s serviceClient) QueryRequestContext(requestContextID string) (result sdk.
 	param := struct {
 		RequestContextID []byte
 	}{
-		RequestContextID: RequestContextIDToByte(requestContextID),
+		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
 	}
 
 	var reqCtx RequestContext
