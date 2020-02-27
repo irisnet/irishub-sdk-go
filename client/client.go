@@ -1,7 +1,12 @@
 package client
 
 import (
+	"os"
+
+	"github.com/tendermint/tendermint/libs/log"
+
 	"github.com/irisnet/irishub-sdk-go/adapter"
+	"github.com/irisnet/irishub-sdk-go/modules/service"
 
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/net"
@@ -10,6 +15,7 @@ import (
 
 type Client struct {
 	types.Bank
+	types.Service
 	types.WSClient
 }
 
@@ -25,13 +31,16 @@ func New(cfg types.SDKConfig) Client {
 		Mode:       cfg.Mode,
 	}
 
+	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 	types.SetNetwork(ctx.Network)
 	abstClient := abstractClient{
 		TxContext: ctx,
 		RPC:       rpc,
+		logger:    logger,
 	}
 	return Client{
 		Bank:     bank.New(abstClient),
+		Service:  service.New(abstClient),
 		WSClient: rpc,
 	}
 }
@@ -42,6 +51,7 @@ func makeCodec() types.Codec {
 	types.RegisterCodec(cdc)
 	// register msg
 	bank.RegisterCodec(cdc)
+	service.RegisterCodec(cdc)
 
 	return cdc
 }

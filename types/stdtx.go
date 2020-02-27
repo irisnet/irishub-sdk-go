@@ -252,6 +252,7 @@ type Result interface {
 	GetHash() string
 	GetLog() string
 	GetHeight() int64
+	GetTags() Tags
 }
 
 // Result is the result of broadcast tx when BroadcastMode = commit
@@ -284,6 +285,12 @@ func (rbt ResultBroadcastTxCommit) GetHeight() int64 {
 	return rbt.Height
 }
 
+func (rbt ResultBroadcastTxCommit) GetTags() (tags Tags) {
+	tags = append(tags, ParseTags(rbt.CheckTx.Tags)...)
+	tags = append(tags, ParseTags(rbt.DeliverTx.Tags)...)
+	return tags
+}
+
 // Result is the result of broadcast tx when BroadcastMode = Sync/Async
 type ResultBroadcastTx struct {
 	Code uint32       `json:"code"`
@@ -309,6 +316,10 @@ func (rb ResultBroadcastTx) GetLog() string {
 
 func (rb ResultBroadcastTx) GetHeight() int64 {
 	return 0
+}
+
+func (rb ResultBroadcastTx) GetTags() (tags Tags) {
+	return tags
 }
 
 // defines the params for all list queries:

@@ -4,20 +4,32 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/tendermint/tendermint/libs/log"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 
-	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/types"
 )
 
 type abstractClient struct {
 	*types.TxContext
 	types.RPC
+	logger log.Logger
+}
+
+func (ac abstractClient) Logger() log.Logger {
+	return ac.logger
 }
 
 func (ac abstractClient) Broadcast(baseTx types.BaseTx, msg []types.Msg) (types.Result, error) {
+	//check msg valide
+	for _, m := range msg {
+		if err := m.ValidateBasic(); err != nil {
+			return nil, err
+		}
+	}
 	err := ac.prepareTxContext(baseTx)
 	if err != nil {
 		return nil, err
@@ -114,7 +126,9 @@ func (ac abstractClient) QueryAccount(address string) (baseAccount types.BaseAcc
 	if err != nil {
 		return baseAccount, err
 	}
-	param := bank.QueryAccountParams{
+	param := struct {
+		Address types.AccAddress
+	}{
 		Address: addr,
 	}
 	if err = ac.Query("custom/acc/account", param, &baseAccount); err != nil {

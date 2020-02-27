@@ -32,7 +32,11 @@ func (b bankClient) QueryAccount(address string) (types.BaseAccount, error) {
 
 // GetTokenStats return token statistic, including total loose tokens, total burned tokens and total bonded tokens.
 func (b bankClient) QueryTokenStats(tokenID string) (result types.TokenStats, err error) {
-	param := QueryTokenParams{TokenId: tokenID}
+	param := struct {
+		TokenId string
+	}{
+		TokenId: tokenID,
+	}
 	err = b.Query("custom/acc/tokenStats", param, &result)
 	if err != nil {
 		return result, err
@@ -56,9 +60,6 @@ func (b bankClient) Send(to string, amount types.Coins, baseTx types.BaseTx) (ty
 	}
 
 	msg := NewMsgSend(in, out)
-	if err := msg.ValidateBasic(); err != nil {
-		return nil, err
-	}
 	return b.Broadcast(baseTx, []types.Msg{msg})
 }
 
@@ -69,9 +70,6 @@ func (b bankClient) Burn(amount types.Coins, baseTx types.BaseTx) (types.Result,
 		return nil, errors.Wrap(err, fmt.Sprintf("%s not found", baseTx.From))
 	}
 	msg := NewMsgBurn(sender, amount)
-	if err := msg.ValidateBasic(); err != nil {
-		return nil, err
-	}
 	return b.Broadcast(baseTx, []types.Msg{msg})
 }
 
@@ -82,9 +80,6 @@ func (b bankClient) SetMemoRegexp(memoRegexp string, baseTx types.BaseTx) (types
 		return nil, errors.Wrap(err, fmt.Sprintf("%s not found", baseTx.From))
 	}
 	msg := NewMsgSetMemoRegexp(sender, memoRegexp)
-	if err := msg.ValidateBasic(); err != nil {
-		return nil, err
-	}
 	return b.Broadcast(baseTx, []types.Msg{msg})
 }
 

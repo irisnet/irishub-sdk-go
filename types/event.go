@@ -5,6 +5,8 @@ import (
 	"context"
 	"fmt"
 
+	cmn "github.com/tendermint/tendermint/libs/common"
+
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
@@ -16,6 +18,7 @@ const (
 	TxHashKeyKey   EventKey = "tx.hash"
 	TxHeightKeyKey EventKey = "tx.height"
 
+	TxValue            EventValue = "Tx"
 	SendValue          EventValue = "send"
 	BurnValue          EventValue = "burn"
 	SetMemoRegexpValue EventValue = "set-memo-regexp"
@@ -49,13 +52,47 @@ type TxResult struct {
 	Log       string `json:"log,omitempty"`
 	GasWanted int64  `json:"gas_wanted"`
 	GasUsed   int64  `json:"gas_used"`
-	Tags      []Tag  `json:"tags"`
+	Tags      Tags   `json:"tags"`
 }
 
 type Tag struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
+type Tags []Tag
+
+func ParseTags(pairs []cmn.KVPair) (tags []Tag) {
+	if pairs == nil || len(pairs) == 0 {
+		return tags
+	}
+	for _, pair := range pairs {
+		key := string(pair.Key)
+		value := string(pair.Value)
+		tags = append(tags, Tag{
+			Key:   key,
+			Value: value,
+		})
+	}
+	return
+}
+func (t Tags) GetValues(key string) (values []string) {
+	for _, tag := range t {
+		if tag.Key == key {
+			values = append(values, tag.Value)
+		}
+	}
+	return
+}
+
+func (t Tags) GetValue(key string) string {
+	for _, tag := range t {
+		if tag.Key == key {
+			return tag.Value
+		}
+	}
+	return ""
+}
+
 type EventTxCallback func(EventDataTx)
 
 //===============EventDataNewBlock for SubscribeNewBlock=================
@@ -77,11 +114,11 @@ type Data struct {
 }
 
 type ResultBeginBlock struct {
-	Tags []Tag `json:"tags"`
+	Tags Tags `json:"tags"`
 }
 
 type ResultEndBlock struct {
-	Tags             []Tag             `json:"tags"`
+	Tags             Tags              `json:"tags"`
 	ValidatorUpdates []ValidatorUpdate `json:"validator_updates"`
 }
 

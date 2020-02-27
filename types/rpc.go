@@ -2,6 +2,7 @@ package types
 
 import (
 	cmn "github.com/tendermint/tendermint/libs/common"
+	"github.com/tendermint/tendermint/libs/log"
 	tmclient "github.com/tendermint/tendermint/rpc/client"
 )
 
@@ -11,6 +12,7 @@ type Queries interface {
 
 type WSClient interface {
 	SubscribeNewBlock(callback EventNewBlockCallback) (Subscription, error)
+	SubscribeNewBlockWithParams(builder *EventQueryBuilder, callback EventNewBlockCallback) (Subscription, error)
 	SubscribeTx(builder *EventQueryBuilder, callback EventTxCallback) (Subscription, error)
 	SubscribeNewBlockHeader(callback EventNewBlockHeaderCallback) (Subscription, error)
 	SubscribeValidatorSetUpdates(callback EventValidatorSetUpdatesCallback) (Subscription, error)
@@ -39,4 +41,5 @@ type AbstractClient interface {
 	TxManager
 	Query
 	WSClient
+	Logger() log.Logger
 }

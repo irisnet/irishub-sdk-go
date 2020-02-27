@@ -1,25 +1,45 @@
 package sim
 
 import (
-	"github.com/irisnet/irishub-sdk-go/client"
+	sdk "github.com/irisnet/irishub-sdk-go/client"
+	"github.com/irisnet/irishub-sdk-go/crypto"
 	"github.com/irisnet/irishub-sdk-go/types"
 )
 
 const (
-	Addr    = "faa1d3mf696gvtwq2dfx03ghe64akf6t5vyz6pe3le"
-	ValAddr = "iva1x3f572u057lv88mva2q3z40ls8pup9hsg0lxcp"
-	PrivKey = "927be78a5f5b63bb95ff34ed9c6e4b39b6af6d2f9f59731452de659cac9b19db"
-	NodeURI = "localhost:26657"
-	ChainID = "irishub-test"
-	Online  = true
-	Network = types.Testnet
-	Mode    = types.Commit
-	Fee     = "600000000000000000iris-atto"
-	Gas     = 20000
+	NodeURI  = "localhost:26657"
+	ChainID  = "irishub-test"
+	Online   = true
+	Network  = types.Testnet
+	Mode     = types.Commit
+	Fee      = "600000000000000000iris-atto"
+	Gas      = 20000
+	mnemonic = "small culture theory rare offer polar seek mule planet fog garlic segment burger guard bar cool milk lion loyal head olympic impulse purpose forget"
 )
 
-func NewClient() client.Client {
-	return client.New(types.SDKConfig{
+var (
+	priKey string
+	addr   string
+)
+
+type TestClient struct {
+	sdk.Client
+	sender types.AccAddress
+}
+
+func NewClient() TestClient {
+	keyManager, err := crypto.NewMnemonicKeyManager(mnemonic)
+	if err != nil {
+		panic(err)
+	}
+
+	priKey, err = keyManager.ExportAsPrivateKey()
+	if err != nil {
+		panic(err)
+	}
+	addr = types.AccAddress(keyManager.GetPrivKey().PubKey().Address()).String()
+
+	client := sdk.New(types.SDKConfig{
 		NodeURI:   NodeURI,
 		Network:   Network,
 		ChainID:   ChainID,
@@ -30,6 +50,14 @@ func NewClient() client.Client {
 		Online:    Online,
 		StoreType: types.Keystore,
 	})
+	return TestClient{
+		Client: client,
+		sender: types.MustAccAddressFromBech32(addr),
+	}
+}
+
+func (tc TestClient) Sender() types.AccAddress {
+	return tc.sender
 }
 
 func createTestKeyDAO() TestKeyDAO {
@@ -37,8 +65,8 @@ func createTestKeyDAO() TestKeyDAO {
 		store: map[string]types.Store{},
 	}
 	keystore := types.KeyInfo{
-		PrivKey: PrivKey,
-		Address: Addr,
+		PrivKey: priKey,
+		Address: addr,
 	}
 	_ = dao.Write("test1", keystore)
 	return dao
@@ -53,8 +81,8 @@ func (dao TestKeyDAO) Write(name string, store types.Store) error {
 	return nil
 }
 
-func (dao TestKeyDAO) Read(name string) types.Store {
-	return dao.store[name]
+func (dao TestKeyDAO) Read(name string) (types.Store, error) {
+	return dao.store[name], nil
 }
 
 func (dao TestKeyDAO) Delete(name string) error {

@@ -53,9 +53,18 @@ func (r RPCClient) start() {
 
 //SubscribeNewBlock implement WSClient interface
 func (r RPCClient) SubscribeNewBlock(callback types.EventNewBlockCallback) (types.Subscription, error) {
+	return r.SubscribeNewBlockWithParams(nil, callback)
+}
+
+//SubscribeNewBlock implement WSClient interface
+func (r RPCClient) SubscribeNewBlockWithParams(builder *types.EventQueryBuilder, callback types.EventNewBlockCallback) (types.Subscription, error) {
 	ctx := context.Background()
 	subscriber := getSubscriberID()
-	query := tmtypes.QueryForEvent(tmtypes.EventNewBlock).String()
+	if builder == nil {
+		builder = types.NewEventQueryBuilder()
+	}
+	builder.AddCondition(types.TypeKey, tmtypes.EventNewBlock)
+	query := builder.Build()
 	r.start()
 	ch, err := r.Subscribe(ctx, subscriber, query, 0)
 	if err != nil {
@@ -83,10 +92,10 @@ func (r RPCClient) SubscribeNewBlock(callback types.EventNewBlockCallback) (type
 					LastCommit: block.Block.LastCommit,
 				},
 				ResultBeginBlock: types.ResultBeginBlock{
-					Tags: parseTags(block.ResultBeginBlock.Tags),
+					Tags: types.ParseTags(block.ResultBeginBlock.Tags),
 				},
 				ResultEndBlock: types.ResultEndBlock{
-					Tags:             parseTags(block.ResultEndBlock.Tags),
+					Tags:             types.ParseTags(block.ResultEndBlock.Tags),
 					ValidatorUpdates: parseValidatorUpdate(block.ResultEndBlock.ValidatorUpdates),
 				},
 			})
@@ -99,7 +108,7 @@ func (r RPCClient) SubscribeNewBlock(callback types.EventNewBlockCallback) (type
 func (r RPCClient) SubscribeTx(builder *types.EventQueryBuilder, callback types.EventTxCallback) (types.Subscription, error) {
 	ctx := context.Background()
 	subscriber := getSubscriberID()
-	query := builder.Build()
+	query := builder.AddCondition(types.TypeKey, types.TxValue).Build()
 	r.start()
 	ch, err := r.Subscribe(ctx, subscriber, query, 0)
 	if err != nil {
@@ -119,7 +128,7 @@ func (r RPCClient) SubscribeTx(builder *types.EventQueryBuilder, callback types.
 				Log:       tx.Result.Log,
 				GasWanted: tx.Result.GasWanted,
 				GasUsed:   tx.Result.GasUsed,
-				Tags:      parseTags(tx.Result.Tags),
+				Tags:      types.ParseTags(tx.Result.Tags),
 			}
 			dataTx := types.EventDataTx{
 				Hash:   hash,
@@ -151,10 +160,10 @@ func (r RPCClient) SubscribeNewBlockHeader(callback types.EventNewBlockHeaderCal
 			callback(types.EventDataNewBlockHeader{
 				Header: blockHeader.Header,
 				ResultBeginBlock: types.ResultBeginBlock{
-					Tags: parseTags(blockHeader.ResultBeginBlock.Tags),
+					Tags: types.ParseTags(blockHeader.ResultBeginBlock.Tags),
 				},
 				ResultEndBlock: types.ResultEndBlock{
-					Tags:             parseTags(blockHeader.ResultEndBlock.Tags),
+					Tags:             types.ParseTags(blockHeader.ResultEndBlock.Tags),
 					ValidatorUpdates: parseValidatorUpdate(blockHeader.ResultEndBlock.ValidatorUpdates),
 				},
 			})
@@ -195,21 +204,6 @@ func getSubscriberID() string {
 		return "IRISHUB-SDK"
 	}
 	return fmt.Sprintf("subscriber-%s", u.Uid)
-}
-
-func parseTags(pairs []cmn.KVPair) (tags []types.Tag) {
-	if pairs == nil || len(pairs) == 0 {
-		return tags
-	}
-	for _, pair := range pairs {
-		key := string(pair.Key)
-		value := string(pair.Value)
-		tags = append(tags, types.Tag{
-			Key:   key,
-			Value: value,
-		})
-	}
-	return
 }
 
 func parseValidatorUpdate(vp abcitypes.ValidatorUpdates) (validatorUpdates []types.ValidatorUpdate) {
