@@ -86,7 +86,7 @@ func (sts *ServiceTestSuite) TestService() {
 	input := `{"pair":"iris-usdt"}`
 	output := `{"last":"1:100"}`
 
-	err = sts.RegisterSingleInvocationListener(definition.ServiceName,
+	err = sts.RegisterSingleServiceListener(definition.ServiceName,
 		func(input string) (string, string) {
 			sts.Info("Provider received request", "input", input, "output", output)
 			return output, ""

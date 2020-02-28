@@ -70,7 +70,7 @@ func (ots *OracleTestSuite) SetupService() {
 	require.NoError(ots.T(), err)
 	require.True(ots.T(), result.IsSuccess())
 
-	err = ots.RegisterSingleInvocationListener(serviceName,
+	err = ots.RegisterSingleServiceListener(serviceName,
 		func(input string) (string, string) {
 			ots.Info("Service received request", "input", input, "output", output)
 			return output, ""

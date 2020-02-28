@@ -284,8 +284,8 @@ func (s serviceClient) WithdrawTax(destAddress string, amount sdk.Coins, baseTx 
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
 }
 
-//RegisterInvocationListener is responsible for registering a group of service handler
-func (s serviceClient) RegisterInvocationListener(serviceRouter sdk.ServiceRouter, baseTx sdk.BaseTx) error {
+//RegisterServiceListener is responsible for registering a group of service handler
+func (s serviceClient) RegisterServiceListener(serviceRouter sdk.ServiceRouter, baseTx sdk.BaseTx) error {
 	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return err
@@ -293,7 +293,7 @@ func (s serviceClient) RegisterInvocationListener(serviceRouter sdk.ServiceRoute
 
 	defer func() {
 		if r := recover(); r != nil {
-			s.Logger().Error("Service RegisterInvocationListener failed", "err", r)
+			s.Logger().Error("Service RegisterServiceListener failed", "err", r)
 			return
 		}
 	}()
@@ -308,7 +308,7 @@ func (s serviceClient) RegisterInvocationListener(serviceRouter sdk.ServiceRoute
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
 			if err != nil {
-				s.Logger().Error("Service RegisterInvocationListener failed", "requestID", reqID, "err", err)
+				s.Logger().Error("Service RegisterServiceListener failed", "requestID", reqID, "err", err)
 				continue
 			}
 			if handler, ok := serviceRouter[request.ServiceName]; ok && provider.Equals(request.Provider) {
@@ -330,8 +330,8 @@ func (s serviceClient) RegisterInvocationListener(serviceRouter sdk.ServiceRoute
 	return err
 }
 
-//RegisterSingleInvocationListener is responsible for registering a single service handler
-func (s serviceClient) RegisterSingleInvocationListener(serviceName string,
+//RegisterSingleServiceListener is responsible for registering a single service handler
+func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 	respondHandler sdk.ServiceRespondHandler,
 	baseTx sdk.BaseTx) error {
 	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
@@ -370,7 +370,7 @@ func (s serviceClient) RegisterSingleInvocationListener(serviceName string,
 				}
 				go func() {
 					if _, err = s.Broadcast(baseTx, []sdk.Msg{msg}); err != nil {
-						s.Logger().Error("Service RegisterSingleInvocationListener failed", "requestID", reqID, "err", err)
+						s.Logger().Error("Service RegisterSingleServiceListener failed", "requestID", reqID, "err", err)
 					}
 				}()
 			}

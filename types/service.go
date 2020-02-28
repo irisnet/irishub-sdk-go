@@ -35,10 +35,10 @@ type ServiceTx interface {
 
 	WithdrawTax(destAddress string, amount Coins, baseTx BaseTx) (Result, error)
 
-	RegisterInvocationListener(serviceRouter ServiceRouter,
+	RegisterServiceListener(serviceRouter ServiceRouter,
 		baseTx BaseTx) error
 
-	RegisterSingleInvocationListener(serviceName string,
+	RegisterSingleServiceListener(serviceName string,
 		respondHandler ServiceRespondHandler,
 		baseTx BaseTx) error
 }
