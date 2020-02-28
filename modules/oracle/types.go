@@ -285,4 +285,5 @@ func RegisterCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgEditFeed{}, "irishub/oracle/MsgEditFeed")
 
 	cdc.RegisterConcrete(Feed{}, "irishub/oracle/Feed")
+	cdc.RegisterConcrete(FeedContext{}, "irishub/oracle/FeedContext")
 }
