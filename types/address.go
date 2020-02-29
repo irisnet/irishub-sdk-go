@@ -9,7 +9,7 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/irisnet/irishub-sdk-go/utils/bech32"
+	"github.com/irisnet/irishub-sdk-go/tools/bech32"
 )
 
 const (

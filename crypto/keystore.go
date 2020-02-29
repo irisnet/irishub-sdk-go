@@ -15,8 +15,8 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/crypto/sha3"
 
-	"github.com/irisnet/irishub-sdk-go/utils"
-	"github.com/irisnet/irishub-sdk-go/utils/uuid"
+	"github.com/irisnet/irishub-sdk-go/tools"
+	"github.com/irisnet/irishub-sdk-go/tools/uuid"
 )
 
 func NewKeyStoreKeyManager(keystore string, auth string) (KeyManager, error) {
@@ -53,11 +53,11 @@ func (m *keyManager) recoveryFromKeyStore(keystore string, auth string) error {
 }
 
 func generateKeyStore(privateKey crypto.PrivKey, password string) (Keystore, error) {
-	salt, err := utils.GenerateRandomBytes(32)
+	salt, err := tools.GenerateRandomBytes(32)
 	if err != nil {
 		return Keystore{}, err
 	}
-	iv, err := utils.GenerateRandomBytes(16)
+	iv, err := tools.GenerateRandomBytes(16)
 	if err != nil {
 		return Keystore{}, err
 	}
