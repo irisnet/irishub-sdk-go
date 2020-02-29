@@ -1,6 +1,8 @@
 package keys
 
-import "github.com/irisnet/irishub-sdk-go/types"
+import (
+	"github.com/irisnet/irishub-sdk-go/types"
+)
 
 var (
 	_ types.Keys = keysClient{}

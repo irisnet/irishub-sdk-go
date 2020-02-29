@@ -191,6 +191,11 @@ type Keystore struct {
 	Crypto  Crypto `json:"crypto"`
 }
 
+func (k Keystore) String() string {
+	bz, _ := json.Marshal(k)
+	return string(bz)
+}
+
 type Crypto struct {
 	CipherText   string       `json:"cipher_text"`
 	CipherParams CipherParams `json:"cipher_params"`
