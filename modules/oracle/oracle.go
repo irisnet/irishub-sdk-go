@@ -1,16 +1,19 @@
 package oracle
 
 import (
+	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type oracleClient struct {
 	sdk.AbstractClient
+	*log.Logger
 }
 
 func New(ac sdk.AbstractClient) sdk.Oracle {
 	return oracleClient{
 		AbstractClient: ac,
+		Logger:         ac.Logger(),
 	}
 }
 

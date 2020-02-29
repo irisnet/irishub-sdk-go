@@ -26,7 +26,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (sts *ServiceTestSuite) SetupTest() {
 	sts.TestClient = sim.NewClient()
-	sts.Logger = log.NewLogger()
+	sts.Logger = log.NewLogger("info")
 }
 
 func (sts *ServiceTestSuite) TestService() {

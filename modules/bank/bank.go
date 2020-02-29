@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/irisnet/irishub-sdk-go/tools/log"
+
 	"github.com/pkg/errors"
 
 	"github.com/irisnet/irishub-sdk-go/types"
@@ -17,11 +19,13 @@ import (
 
 type bankClient struct {
 	types.AbstractClient
+	*log.Logger
 }
 
 func New(ac types.AbstractClient) types.Bank {
 	return bankClient{
 		AbstractClient: ac,
+		Logger:         ac.Logger(),
 	}
 }
 

@@ -1,16 +1,19 @@
 package service
 
 import (
+	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type serviceClient struct {
 	sdk.AbstractClient
+	*log.Logger
 }
 
 func New(ac sdk.AbstractClient) sdk.Service {
 	return serviceClient{
 		AbstractClient: ac,
+		Logger:         ac.Logger(),
 	}
 }
 
@@ -144,9 +147,7 @@ func (s serviceClient) InvokeService(request sdk.ServiceInvocationRequest,
 
 	var subscription sdk.Subscription
 	subscription, err = s.SubscribeTx(builder, func(tx sdk.EventDataTx) {
-		s.Logger().Info().
-			Str("tx_hash", tx.Hash).
-			Int64("height", tx.Height).
+		s.Debug().Str("tx_hash", tx.Hash).Int64("height", tx.Height).
 			Msg("consumer received response transaction sent by provider")
 		for _, msg := range tx.Tx.Msgs {
 			msg, ok := msg.(MsgRespondService)
@@ -303,18 +304,12 @@ func (s serviceClient) RegisterServiceListener(serviceRouter sdk.ServiceRouter, 
 	builder := sdk.NewEventQueryBuilder().
 		AddCondition(sdk.EventKey(TagProvider), sdk.EventValue(provider.String()))
 	_, err = s.SubscribeNewBlockWithParams(builder, func(block sdk.EventDataNewBlock) {
-		s.Logger().Info().
-			Int64("height", block.Block.Height).
-			Msg("received Block")
+		s.Debug().Int64("height", block.Block.Height).Msg("received block")
 		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
 			if err != nil {
-				logger := s.Logger()
-				logger.Error().
-					Str("requestID", reqID).
-					Err(err).
-					Msg("service SubscribeNewBlock failed")
+				s.Err(err).Str("requestID", reqID).Msg("service request don't exist")
 				continue
 			}
 			if handler, ok := serviceRouter[request.ServiceName]; ok && provider.Equals(request.Provider) {
@@ -357,16 +352,11 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 	//	AddCondition(sdk.EventKey(TagServiceName), sdk.EventValue(serviceName))
 	_, err = s.SubscribeNewBlockWithParams(nil, func(block sdk.EventDataNewBlock) {
 		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
-		s.Logger().Info().
-			Int64("height", block.Block.Height).
-			Msg("received Block")
+		s.Debug().Int64("height", block.Block.Height).Msg("received block")
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
 			if err != nil {
-				s.Logger().Error().
-					Str("requestID", reqID).
-					Err(err).
-					Msg("service SubscribeNewBlock failed")
+				s.Err(err).Str("requestID", reqID).Msg("service request don't exist")
 				continue
 			}
 			if provider.Equals(request.Provider) && request.ServiceName == serviceName {
@@ -379,10 +369,7 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 				}
 				go func() {
 					if _, err = s.Broadcast(baseTx, []sdk.Msg{msg}); err != nil {
-						s.Logger().Error().
-							Err(err).
-							Str("requestID", reqID).
-							Msg("service RegisterSingleServiceListener failed")
+						s.Err(err).Str("requestID", reqID).Msg("provider respond failed")
 					}
 				}()
 			}

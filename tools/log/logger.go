@@ -18,9 +18,16 @@ type Logger struct {
 //	e.Str("method", f.Name())
 //}
 
-func NewLogger() *Logger {
+func NewLogger(level string) *Logger {
+	l, err := zerolog.ParseLevel(level)
+	if err != nil {
+		l = zerolog.InfoLevel
+	}
+
 	output := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: "2006-01-02 15:04:05.000"}
-	log := zerolog.New(output).With().
+	log := zerolog.New(output).
+		Level(l).
+		With().
 		Caller().
 		Timestamp().Logger()
 	//Hook(CallerHook{})

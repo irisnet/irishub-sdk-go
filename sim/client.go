@@ -49,6 +49,7 @@ func NewClient() TestClient {
 		Mode:      Mode,
 		Online:    Online,
 		StoreType: types.Keystore,
+		Level:     "debug",
 	})
 	return TestClient{
 		SDKClient: client,
