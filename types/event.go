@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -48,6 +49,12 @@ type EventDataTx struct {
 	Tx     StdTx    `json:"tx"`
 	Result TxResult `json:"result"`
 }
+
+func (tx EventDataTx) MarshalJson() []byte {
+	bz, _ := json.Marshal(tx)
+	return bz
+}
+
 type TxResult struct {
 	Log       string `json:"log,omitempty"`
 	GasWanted int64  `json:"gas_wanted"`

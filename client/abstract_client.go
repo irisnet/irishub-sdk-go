@@ -3,8 +3,7 @@ package client
 import (
 	"errors"
 	"fmt"
-
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/irisnet/irishub-sdk-go/tools/log"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -16,10 +15,10 @@ import (
 type abstractClient struct {
 	*types.TxContext
 	types.RPC
-	logger log.Logger
+	logger *log.Logger
 }
 
-func (ac abstractClient) Logger() log.Logger {
+func (ac abstractClient) Logger() *log.Logger {
 	return ac.logger
 }
 

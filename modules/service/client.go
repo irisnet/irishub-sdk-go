@@ -144,7 +144,10 @@ func (s serviceClient) InvokeService(request sdk.ServiceInvocationRequest,
 
 	var subscription sdk.Subscription
 	subscription, err = s.SubscribeTx(builder, func(tx sdk.EventDataTx) {
-		s.Logger().Info("Service InvokeService", "tx", tx.Tx)
+		s.Logger().Info().
+			Str("tx_hash", tx.Hash).
+			Int64("height", tx.Height).
+			Msg("consumer received response transaction sent by provider")
 		for _, msg := range tx.Tx.Msgs {
 			msg, ok := msg.(MsgRespondService)
 			if ok {
@@ -293,7 +296,6 @@ func (s serviceClient) RegisterServiceListener(serviceRouter sdk.ServiceRouter, 
 
 	defer func() {
 		if r := recover(); r != nil {
-			s.Logger().Error("Service RegisterServiceListener failed", "err", r)
 			return
 		}
 	}()
@@ -301,14 +303,18 @@ func (s serviceClient) RegisterServiceListener(serviceRouter sdk.ServiceRouter, 
 	builder := sdk.NewEventQueryBuilder().
 		AddCondition(sdk.EventKey(TagProvider), sdk.EventValue(provider.String()))
 	_, err = s.SubscribeNewBlockWithParams(builder, func(block sdk.EventDataNewBlock) {
-		s.Logger().Debug("Received Block",
-			"height", block.Block.Height,
-			"tags", block.ResultEndBlock.Tags)
+		s.Logger().Info().
+			Int64("height", block.Block.Height).
+			Msg("received Block")
 		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
 			if err != nil {
-				s.Logger().Error("Service RegisterServiceListener failed", "requestID", reqID, "err", err)
+				logger := s.Logger()
+				logger.Error().
+					Str("requestID", reqID).
+					Err(err).
+					Msg("service SubscribeNewBlock failed")
 				continue
 			}
 			if handler, ok := serviceRouter[request.ServiceName]; ok && provider.Equals(request.Provider) {
@@ -351,13 +357,16 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 	//	AddCondition(sdk.EventKey(TagServiceName), sdk.EventValue(serviceName))
 	_, err = s.SubscribeNewBlockWithParams(nil, func(block sdk.EventDataNewBlock) {
 		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
-		s.Logger().Debug("Received Block",
-			"height", block.Block.Height,
-			"tags", block.ResultEndBlock.Tags)
+		s.Logger().Info().
+			Int64("height", block.Block.Height).
+			Msg("received Block")
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
 			if err != nil {
-				s.Logger().Error("Service SubscribeNewBlock failed", "requestID", reqID, "err", err)
+				s.Logger().Error().
+					Str("requestID", reqID).
+					Err(err).
+					Msg("service SubscribeNewBlock failed")
 				continue
 			}
 			if provider.Equals(request.Provider) && request.ServiceName == serviceName {
@@ -370,7 +379,10 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 				}
 				go func() {
 					if _, err = s.Broadcast(baseTx, []sdk.Msg{msg}); err != nil {
-						s.Logger().Error("Service RegisterSingleServiceListener failed", "requestID", reqID, "err", err)
+						s.Logger().Error().
+							Err(err).
+							Str("requestID", reqID).
+							Msg("service RegisterSingleServiceListener failed")
 					}
 				}()
 			}

@@ -2,11 +2,10 @@ package service_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/irisnet/irishub-sdk-go/tools/log"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -18,7 +17,7 @@ import (
 type ServiceTestSuite struct {
 	suite.Suite
 	sim.TestClient
-	log.Logger
+	*log.Logger
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -27,7 +26,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (sts *ServiceTestSuite) SetupTest() {
 	sts.TestClient = sim.NewClient()
-	sts.Logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
+	sts.Logger = log.NewLogger()
 }
 
 func (sts *ServiceTestSuite) TestService() {
@@ -88,7 +87,10 @@ func (sts *ServiceTestSuite) TestService() {
 
 	err = sts.RegisterSingleServiceListener(definition.ServiceName,
 		func(input string) (string, string) {
-			sts.Info("Provider received request", "input", input, "output", output)
+			sts.Info().
+				Str("input", input).
+				Str("output", output).
+				Msg("provider received request")
 			return output, ""
 		}, baseTx)
 	require.NoError(sts.T(), err)
@@ -110,10 +112,15 @@ func (sts *ServiceTestSuite) TestService() {
 	requestContextID, err = sts.InvokeService(invocation, func(reqCtxID string, response string) {
 		require.Equal(sts.T(), reqCtxID, requestContextID)
 		require.Equal(sts.T(), output, response)
-		sts.Info("Consumer received response", "RequestContextID", requestContextID, "response", response)
+		sts.Info().
+			Str("requestContextID", requestContextID).
+			Str("response", response).
+			Msg("consumer received response")
 	})
 
-	sts.Info("Request success", "RequestContextID", requestContextID)
+	sts.Info().
+		Str("requestContextID", requestContextID).
+		Msg("Request service success")
 	require.NoError(sts.T(), err)
 
 	request, err := sts.QueryRequestContext(requestContextID)
