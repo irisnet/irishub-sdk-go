@@ -220,11 +220,11 @@ func parseValidatorUpdate(vp abcitypes.ValidatorUpdates) (validatorUpdates []typ
 	return
 }
 
-func parseValidators(valSet []*tmtypes.Validator) (validators []types.Validator) {
+func parseValidators(valSet []*tmtypes.Validator) (validators []types.TmValidator) {
 	for _, v := range valSet {
 		valAddr, _ := types.ConsAddressFromHex(v.Address.String())
 		pubKey, _ := types.Bech32ifyConsPub(v.PubKey)
-		validators = append(validators, types.Validator{
+		validators = append(validators, types.TmValidator{
 			Address:          valAddr.String(),
 			PubKey:           pubKey,
 			VotingPower:      v.VotingPower,
