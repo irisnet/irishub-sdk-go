@@ -13,7 +13,7 @@ type serviceClient struct {
 func New(ac sdk.AbstractClient) sdk.Service {
 	return serviceClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger(),
+		Logger:         ac.Logger().With("service"),
 	}
 }
 

@@ -1,8 +1,9 @@
 package log
 
 import (
-	"github.com/rs/zerolog"
 	"os"
+
+	"github.com/rs/zerolog"
 )
 
 type Logger struct {
@@ -23,7 +24,6 @@ func NewLogger(level string) *Logger {
 	if err != nil {
 		l = zerolog.InfoLevel
 	}
-
 	output := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: "2006-01-02 15:04:05.000"}
 	log := zerolog.New(output).
 		Level(l).
@@ -34,4 +34,10 @@ func NewLogger(level string) *Logger {
 	return &Logger{
 		log,
 	}
+}
+
+func (l *Logger) With(component string) *Logger {
+	logger := *l
+	logger.Logger = logger.Logger.With().Str("component", component).Logger()
+	return &logger
 }
