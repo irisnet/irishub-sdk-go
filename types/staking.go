@@ -30,6 +30,8 @@ type StakingQuery interface {
 type Staking interface {
 	StakingTx
 	StakingQuery
+	SubscribeValidatorInfoUpdates(validator string,
+		callback func(data EventDataMsgEditValidator)) Subscription
 }
 
 type Delegation struct {
@@ -126,4 +128,12 @@ type StakePool struct {
 type StakeParams struct {
 	UnbondingTime string `json:"unbonding_time"`
 	MaxValidators int    `json:"max_validators"`
+}
+
+type EventDataMsgEditValidator struct {
+	Height         int64       `json:"height"`
+	Hash           string      `json:"hash"`
+	Description    Description `json:"description"`
+	Address        string      `json:"address"`
+	CommissionRate string      `json:"commission_rate"`
 }

@@ -2,6 +2,7 @@ package staking
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -383,4 +384,39 @@ func (s stakingClient) QueryParams() (sdk.StakeParams, error) {
 		return sdk.StakeParams{}, err
 	}
 	return params.ToSDKResponse(), nil
+}
+
+//
+func (s stakingClient) SubscribeValidatorInfoUpdates(validator string,
+	callback func(data sdk.EventDataMsgEditValidator)) sdk.Subscription {
+	var builder = sdk.NewEventQueryBuilder().AddCondition(sdk.ActionKey,
+		"edit_validator")
+
+	validator = strings.TrimSpace(validator)
+	if len(validator) != 0 {
+		builder.AddCondition("destination-validator",
+			sdk.EventValue(validator))
+	}
+	subscription, err := s.SubscribeTx(builder, func(tx sdk.EventDataTx) {
+		for _, msg := range tx.Tx.Msgs {
+			msg, ok := msg.(MsgEditValidator)
+			if ok && validator == msg.ValidatorAddr.String() {
+				data := sdk.EventDataMsgEditValidator{
+					Height: tx.Height,
+					Hash:   tx.Hash,
+					Description: sdk.Description{
+						Moniker:  msg.Moniker,
+						Identity: msg.Identity,
+						Website:  msg.Website,
+						Details:  msg.Details,
+					},
+					Address:        msg.ValidatorAddr.String(),
+					CommissionRate: msg.CommissionRate.String(),
+				}
+				callback(data)
+			}
+		}
+	})
+	s.Err(err).Msg("subscribe validator update event failed")
+	return subscription
 }

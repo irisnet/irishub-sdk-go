@@ -166,6 +166,54 @@ func (msg MsgBeginRedelegate) ValidateBasic() error {
 	return nil
 }
 
+//______________________________________________________________________
+
+// MsgEditValidator - struct for editing a validator
+type MsgEditValidator struct {
+	Description
+	ValidatorAddr sdk.ValAddress `json:"address"`
+
+	// We pass a reference to the new commission rate as it's not mandatory to
+	// update. If not updated, the deserialized rate will be zero with no way to
+	// distinguish if an update was intended.
+	//
+	// REF: #2373
+	CommissionRate *sdk.Dec `json:"commission_rate"`
+}
+
+//nolint
+func (msg MsgEditValidator) Type() string { return "edit_validator" }
+func (msg MsgEditValidator) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.AccAddress(msg.ValidatorAddr)}
+}
+
+// get the bytes for the message signer to sign on
+func (msg MsgEditValidator) GetSignBytes() []byte {
+	b, err := cdc.MarshalJSON(struct {
+		Description
+		ValidatorAddr sdk.ValAddress `json:"address"`
+	}{
+		Description:   msg.Description,
+		ValidatorAddr: msg.ValidatorAddr,
+	})
+	if err != nil {
+		panic(err)
+	}
+	return json.MustSort(b)
+}
+
+// quick validity check
+func (msg MsgEditValidator) ValidateBasic() error {
+	if msg.ValidatorAddr == nil {
+		return errors.New("nil validator address")
+	}
+
+	if msg.Description == (Description{}) {
+		return errors.New("transaction must include some information to modify")
+	}
+	return nil
+}
+
 //===============================for query===============================
 // Delegation represents the bond with tokens held by an account.  It is
 // owned by one delegator, and is associated with the voting power of one
@@ -382,11 +430,14 @@ func (p Params) ToSDKResponse() sdk.StakeParams {
 }
 
 func RegisterCodec(cdc sdk.Codec) {
+	cdc.RegisterConcrete(Pool{}, "irishub/stake/Pool")
+	cdc.RegisterConcrete(&Params{}, "irishub/stake/Params")
 	cdc.RegisterConcrete(Validator{}, "irishub/stake/Validator")
 	cdc.RegisterConcrete(Delegation{}, "irishub/stake/Delegation")
 	cdc.RegisterConcrete(UnbondingDelegation{}, "irishub/stake/UnbondingDelegation")
 	cdc.RegisterConcrete(Redelegation{}, "irishub/stake/Redelegation")
 
+	cdc.RegisterConcrete(MsgEditValidator{}, "irishub/stake/MsgEditValidator")
 	cdc.RegisterConcrete(MsgDelegate{}, "irishub/stake/MsgDelegate")
 	cdc.RegisterConcrete(MsgUndelegate{}, "irishub/stake/BeginUnbonding") //TODO
 	cdc.RegisterConcrete(MsgBeginRedelegate{}, "irishub/stake/BeginRedelegate")
