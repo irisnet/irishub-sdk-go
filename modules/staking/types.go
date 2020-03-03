@@ -4,8 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/tendermint/tendermint/crypto"
-
 	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
@@ -312,13 +310,13 @@ func (ds Redelegations) ToSDKResponse() (delegations sdk.Redelegations) {
 }
 
 type Validator struct {
-	OperatorAddr sdk.ValAddress `json:"operator_address"` // address of the validator's operator; bech encoded in JSON
-	ConsPubKey   crypto.PubKey  `json:"consensus_pubkey"` // the consensus public key of the validator; bech encoded in JSON
-	Jailed       bool           `json:"jailed"`           // has the validator been jailed from bonded status?
+	OperatorAddr string `json:"operator_address"` // address of the validator's operator; bech encoded in JSON
+	ConsPubKey   string `json:"consensus_pubkey"` // the consensus public key of the validator; bech encoded in JSON
+	Jailed       bool   `json:"jailed"`           // has the validator been jailed from bonded status?
 
 	Status          BondStatus `json:"status"`           // validator status (bonded/unbonding/unbonded)
-	Tokens          sdk.Dec    `json:"tokens"`           // delegated tokens (incl. self-delegation)
-	DelegatorShares sdk.Dec    `json:"delegator_shares"` // total shares issued to a validator's delegators
+	Tokens          string     `json:"tokens"`           // delegated tokens (incl. self-delegation)
+	DelegatorShares string     `json:"delegator_shares"` // total shares issued to a validator's delegators
 
 	Description Description `json:"description"` // description terms for the validator
 	BondHeight  int64       `json:"bond_height"` // earliest height as a bonded validator
@@ -330,14 +328,13 @@ type Validator struct {
 }
 
 func (v Validator) ToSDKResponse() sdk.Validator {
-	conPubkey, _ := sdk.Bech32ifyConsPub(v.ConsPubKey)
 	return sdk.Validator{
-		OperatorAddress: v.OperatorAddr.String(),
-		ConsensusPubkey: conPubkey,
+		OperatorAddress: v.OperatorAddr,
+		ConsensusPubkey: v.ConsPubKey,
 		Jailed:          v.Jailed,
 		Status:          v.Status.String(),
-		Tokens:          v.Tokens.String(),
-		DelegatorShares: v.DelegatorShares.String(),
+		Tokens:          v.Tokens,
+		DelegatorShares: v.DelegatorShares,
 		Description: sdk.Description{
 			Moniker:  v.Description.Moniker,
 			Identity: v.Description.Identity,
@@ -430,7 +427,7 @@ func (p Params) ToSDKResponse() sdk.StakeParams {
 }
 
 func RegisterCodec(cdc sdk.Codec) {
-	cdc.RegisterConcrete(Pool{}, "irishub/stake/Pool")
+	//cdc.RegisterConcrete(Pool{}, "irishub/stake/Pool")
 	cdc.RegisterConcrete(&Params{}, "irishub/stake/Params")
 	cdc.RegisterConcrete(Validator{}, "irishub/stake/Validator")
 	cdc.RegisterConcrete(Delegation{}, "irishub/stake/Delegation")

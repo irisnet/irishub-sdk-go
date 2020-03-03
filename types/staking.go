@@ -7,24 +7,24 @@ type StakingTx interface {
 }
 
 type StakingQuery interface {
-	QueryDelegation(delAddr, valAddr string) (delegation Delegation, err error)
-	QueryDelegations(delAddr string) (delegations Delegations, err error)
+	QueryDelegation(delAddr, valAddr string) (Delegation, error)
+	QueryDelegations(delAddr string) (Delegations, error)
 
-	QueryUnbondingDelegation(delAddr, valAddr string) (ubd UnbondingDelegation, err error)
-	QueryUnbondingDelegations(delAddr string) (ubds UnbondingDelegations, err error)
+	QueryUnbondingDelegation(delAddr, valAddr string) (UnbondingDelegation, error)
+	QueryUnbondingDelegations(delAddr string) (UnbondingDelegations, error)
 
-	QueryRedelegation(delAddr, srcValAddr, dstValAddr string) (rd Redelegation, err error)
-	QueryRedelegations(delAddr string) (rds Redelegations, err error)
+	QueryRedelegation(delAddr, srcValAddr, dstValAddr string) (Redelegation, error)
+	QueryRedelegations(delAddr string) (Redelegations, error)
 
-	QueryDelegationsTo(valAddr string) (delegations Delegations, err error)
-	QueryUnbondingDelegationsFrom(valAddr string) (ubds UnbondingDelegations, err error)
-	QueryRedelegationsFrom(valAddr string) (rds Redelegations, err error)
+	QueryDelegationsTo(valAddr string) (Delegations, error)
+	QueryUnbondingDelegationsFrom(valAddr string) (UnbondingDelegations, error)
+	QueryRedelegationsFrom(valAddr string) (Redelegations, error)
 
-	QueryValidator(address string) (validator Validator, err error)
-	QueryValidators(page uint64, size uint16) (validators Validators, err error)
+	QueryValidator(address string) (Validator, error)
+	QueryValidators(page uint64, size uint16) (Validators, error)
 
-	QueryPool() (pool StakePool, err error)
-	QueryParams() (params StakeParams, err error)
+	QueryPool() (StakePool, error)
+	QueryParams() (StakeParams, error)
 }
 
 type Staking interface {

@@ -27,19 +27,21 @@ func (s stakingClient) Delegate(valAddr string, amount sdk.Coin, baseTx sdk.Base
 		return nil, err
 	}
 
-	varAddr, err := sdk.ValAddressFromBech32(valAddr)
+	validator, err := sdk.ValAddressFromBech32(valAddr)
 	if err != nil {
 		return nil, err
 	}
 
 	msg := MsgDelegate{
 		DelegatorAddr: delegator,
-		ValidatorAddr: varAddr,
+		ValidatorAddr: validator,
 		Delegation:    amount,
 	}
-	if err := msg.ValidateBasic(); err != nil {
-		return nil, err
-	}
+
+	s.Info().Str("delegator", delegator.String()).
+		Str("validator", validator.String()).
+		Str("amount", amount.String()).
+		Msg("execute delegate transaction")
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
 }
 
@@ -54,6 +56,7 @@ func (s stakingClient) Undelegate(valAddr string, amount sdk.Coin, baseTx sdk.Ba
 	if err != nil {
 		return nil, err
 	}
+
 	exRate := val.DelegatorShareExRate()
 	if exRate.IsZero() {
 		return nil, errors.New("zero exRate should not happen")
@@ -71,9 +74,11 @@ func (s stakingClient) Undelegate(valAddr string, amount sdk.Coin, baseTx sdk.Ba
 		ValidatorAddr: varAddr,
 		SharesAmount:  share,
 	}
-	if err := msg.ValidateBasic(); err != nil {
-		return nil, err
-	}
+
+	s.Info().Str("delegator", delegator.String()).
+		Str("validator", valAddr).
+		Str("amount", amount.String()).
+		Msg("execute undelegate transaction")
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
 }
 
@@ -113,22 +118,25 @@ func (s stakingClient) Redelegate(srcValidatorAddr,
 		ValidatorDstAddr: dstValAddr,
 		SharesAmount:     share,
 	}
-	if err := msg.ValidateBasic(); err != nil {
-		return nil, err
-	}
+
+	s.Info().Str("delegator", delAddr.String()).
+		Str("srcValidatorAddr", srcValidatorAddr).
+		Str("dstValidatorAddr", dstValidatorAddr).
+		Str("amount", amount.String()).
+		Msg("execute redelegate transaction")
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
 }
 
 // QueryDelegation return the specified delegation by delegatorAddr and validatorAddr
-func (s stakingClient) QueryDelegation(delegatorAddr, validatorAddr string) (delegation sdk.Delegation, err error) {
+func (s stakingClient) QueryDelegation(delegatorAddr, validatorAddr string) (sdk.Delegation, error) {
 	delAddr, err := sdk.AccAddressFromBech32(delegatorAddr)
 	if err != nil {
-		return delegation, err
+		return sdk.Delegation{}, err
 	}
 
 	varAddr, err := sdk.ValAddressFromBech32(validatorAddr)
 	if err != nil {
-		return delegation, err
+		return sdk.Delegation{}, err
 	}
 
 	param := struct {
@@ -139,19 +147,19 @@ func (s stakingClient) QueryDelegation(delegatorAddr, validatorAddr string) (del
 		ValidatorAddr: varAddr,
 	}
 
-	var del Delegation
-	err = s.Query("custom/stake/delegation", param, &del)
+	var delegation Delegation
+	err = s.Query("custom/stake/delegation", param, &delegation)
 	if err != nil {
-		return delegation, err
+		return sdk.Delegation{}, err
 	}
-	return del.ToSDKResponse(), err
+	return delegation.ToSDKResponse(), err
 }
 
 // QueryDelegations return the specified delegations by delegatorAddr
-func (s stakingClient) QueryDelegations(delegatorAddr string) (delegations sdk.Delegations, err error) {
+func (s stakingClient) QueryDelegations(delegatorAddr string) (sdk.Delegations, error) {
 	delAddr, err := sdk.AccAddressFromBech32(delegatorAddr)
 	if err != nil {
-		return delegations, err
+		return sdk.Delegations{}, err
 	}
 	param := struct {
 		DelegatorAddr sdk.AccAddress
@@ -159,12 +167,12 @@ func (s stakingClient) QueryDelegations(delegatorAddr string) (delegations sdk.D
 		DelegatorAddr: delAddr,
 	}
 
-	var del Delegations
-	err = s.Query("custom/stake/delegatorDelegations", param, &del)
+	var delegations Delegations
+	err = s.Query("custom/stake/delegatorDelegations", param, &delegations)
 	if err != nil {
-		return delegations, err
+		return sdk.Delegations{}, err
 	}
-	return del.ToSDKResponse(), err
+	return delegations.ToSDKResponse(), err
 }
 
 // QueryUnbondingDelegation return the specified unbonding delegation by delegatorAddr and validatorAddr
@@ -173,10 +181,12 @@ func (s stakingClient) QueryUnbondingDelegation(delegatorAddr, validatorAddr str
 	if err != nil {
 		return ubd, err
 	}
+
 	varAddr, err := sdk.ValAddressFromBech32(validatorAddr)
 	if err != nil {
 		return ubd, err
 	}
+
 	param := struct {
 		DelegatorAddr sdk.AccAddress
 		ValidatorAddr sdk.ValAddress
@@ -194,10 +204,10 @@ func (s stakingClient) QueryUnbondingDelegation(delegatorAddr, validatorAddr str
 }
 
 // QueryUnbondingDelegations return the specified unbonding delegations by delegatorAddr
-func (s stakingClient) QueryUnbondingDelegations(delegatorAddr string) (ubds sdk.UnbondingDelegations, err error) {
+func (s stakingClient) QueryUnbondingDelegations(delegatorAddr string) (sdk.UnbondingDelegations, error) {
 	delAddr, err := sdk.AccAddressFromBech32(delegatorAddr)
 	if err != nil {
-		return ubds, err
+		return sdk.UnbondingDelegations{}, err
 	}
 	param := struct {
 		DelegatorAddr sdk.AccAddress
@@ -208,25 +218,26 @@ func (s stakingClient) QueryUnbondingDelegations(delegatorAddr string) (ubds sdk
 	var unbondings UnbondingDelegations
 	err = s.Query("custom/stake/delegatorUnbondingDelegations", param, &unbondings)
 	if err != nil {
-		return ubds, err
+		return sdk.UnbondingDelegations{}, err
 	}
 	return unbondings.ToSDKResponse(), err
 }
 
 // QueryRedelegation return the specified redelegation by delegatorAddr,srcValidatorAddr,dstValidatorAddr
-func (s stakingClient) QueryRedelegation(delegatorAddr, srcValidatorAddr, dstValidatorAddr string) (rd sdk.Redelegation, err error) {
+func (s stakingClient) QueryRedelegation(delegatorAddr, srcValidatorAddr, dstValidatorAddr string) (sdk.Redelegation, error) {
 	delAddr, err := sdk.AccAddressFromBech32(delegatorAddr)
 	if err != nil {
-		return rd, err
+		return sdk.Redelegation{}, err
 	}
+
 	srcVarAddr, err := sdk.ValAddressFromBech32(srcValidatorAddr)
 	if err != nil {
-		return rd, err
+		return sdk.Redelegation{}, err
 	}
 
 	dstVarAddr, err := sdk.ValAddressFromBech32(dstValidatorAddr)
 	if err != nil {
-		return rd, err
+		return sdk.Redelegation{}, err
 	}
 
 	param := struct {
@@ -242,7 +253,7 @@ func (s stakingClient) QueryRedelegation(delegatorAddr, srcValidatorAddr, dstVal
 	var redelegation Redelegation
 	err = s.Query("custom/stake/redelegation", param, &redelegation)
 	if err != nil {
-		return rd, err
+		return sdk.Redelegation{}, err
 	}
 	return redelegation.ToSDKResponse(), nil
 }
@@ -268,23 +279,24 @@ func (s stakingClient) QueryRedelegations(delegatorAddr string) (sdk.Redelegatio
 }
 
 // QueryDelegationsTo return the specified delegations by validatorAddr
-func (s stakingClient) QueryDelegationsTo(validatorAddr string) (delegations sdk.Delegations, err error) {
+func (s stakingClient) QueryDelegationsTo(validatorAddr string) (sdk.Delegations, error) {
 	varAddr, err := sdk.ValAddressFromBech32(validatorAddr)
 	if err != nil {
-		return delegations, err
+		return sdk.Delegations{}, err
 	}
+
 	param := struct {
 		ValidatorAddr sdk.ValAddress
 	}{
 		ValidatorAddr: varAddr,
 	}
 
-	var ds Delegations
-	err = s.Query("custom/stake/validatorDelegations", param, &ds)
+	var delegations Delegations
+	err = s.Query("custom/stake/validatorDelegations", param, &delegations)
 	if err != nil {
-		return delegations, err
+		return sdk.Delegations{}, err
 	}
-	return ds.ToSDKResponse(), nil
+	return delegations.ToSDKResponse(), nil
 }
 
 // QueryUnbondingDelegationsFrom return the specified unbonding delegations by validatorAddr
@@ -392,6 +404,7 @@ func (s stakingClient) SubscribeValidatorInfoUpdates(validator string,
 	var builder = sdk.NewEventQueryBuilder().AddCondition(sdk.ActionKey,
 		"edit_validator")
 
+	s.Info().Str("validator", validator).Msg("subscribe validator update event")
 	validator = strings.TrimSpace(validator)
 	if len(validator) != 0 {
 		builder.AddCondition("destination-validator",
