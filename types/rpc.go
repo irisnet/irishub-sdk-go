@@ -1,9 +1,10 @@
 package types
 
 import (
-	"github.com/irisnet/irishub-sdk-go/tools/log"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	tmclient "github.com/tendermint/tendermint/rpc/client"
+
+	"github.com/irisnet/irishub-sdk-go/tools/log"
 )
 
 type Queries interface {

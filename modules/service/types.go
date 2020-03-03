@@ -9,6 +9,19 @@ import (
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
+const (
+	ModuleName = "service"
+
+	TagServiceName      = "service-name"
+	TagProvider         = "provider"
+	TagConsumer         = "consumer"
+	TagRequestID        = "request-id"
+	TagRespondService   = "respond_service"
+	TagRequestContextID = "request-context-id"
+
+	RequestContextIDLen = 32 // length of the request context ID in bytes
+)
+
 var (
 	_ sdk.Msg = MsgDefineService{}
 	_ sdk.Msg = MsgBindService{}
@@ -26,20 +39,11 @@ var (
 	_ sdk.Msg = MsgWithdrawEarnedFees{}
 	_ sdk.Msg = MsgWithdrawTax{}
 
-	TagServiceName      = "service-name"
-	TagProvider         = "provider"
-	TagConsumer         = "consumer"
-	TagRequestID        = "request-id"
-	TagRespondService   = "respond_service"
-	TagRequestContextID = "request-context-id"
-
-	RequestContextIDLen = 32 // length of the request context ID in bytes
-
 	cdc = sdk.NewAminoCodec()
 )
 
 func init() {
-	RegisterCodec(cdc)
+	registerCodec(cdc)
 }
 
 // MsgDefineService defines a message to define a service
@@ -91,11 +95,10 @@ func (msg MsgDefineService) GetSigners() []sdk.AccAddress {
 
 // MsgBindService defines a message to bind a service
 type MsgBindService struct {
-	ServiceName     string         `json:"service_name"`
-	Provider        sdk.AccAddress `json:"provider"`
-	Deposit         sdk.Coins      `json:"deposit"`
-	Pricing         string         `json:"pricing"`
-	WithdrawAddress sdk.AccAddress `json:"withdraw_address"`
+	ServiceName string         `json:"service_name"`
+	Provider    sdk.AccAddress `json:"provider"`
+	Deposit     sdk.Coins      `json:"deposit"`
+	Pricing     string         `json:"pricing"`
 }
 
 func (msg MsgBindService) Type() string {
@@ -845,7 +848,7 @@ func (e EarnedFees) toSDKEarnedFees() sdk.EarnedFees {
 	}
 }
 
-func RegisterCodec(cdc sdk.Codec) {
+func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgDefineService{}, "irishub/service/MsgDefineService")
 	cdc.RegisterConcrete(MsgBindService{}, "irishub/service/MsgBindService")
 	cdc.RegisterConcrete(MsgUpdateServiceBinding{}, "irishub/service/MsgUpdateServiceBinding")

@@ -8,6 +8,10 @@ import (
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
+const (
+	ModuleName = "staking"
+)
+
 var (
 	_ sdk.Msg = MsgDelegate{}
 	_ sdk.Msg = MsgUndelegate{}
@@ -17,7 +21,7 @@ var (
 )
 
 func init() {
-	RegisterCodec(cdc)
+	registerCodec(cdc)
 }
 
 //______________________________________________________________________
@@ -426,7 +430,7 @@ func (p Params) ToSDKResponse() sdk.StakeParams {
 	}
 }
 
-func RegisterCodec(cdc sdk.Codec) {
+func registerCodec(cdc sdk.Codec) {
 	//cdc.RegisterConcrete(Pool{}, "irishub/stake/Pool")
 	cdc.RegisterConcrete(&Params{}, "irishub/stake/Params")
 	cdc.RegisterConcrete(Validator{}, "irishub/stake/Validator")

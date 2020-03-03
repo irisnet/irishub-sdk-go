@@ -1,6 +1,7 @@
 package types
 
 type Distribution interface {
+	Module
 	QueryRewards(delegator string) (Rewards, error)
 	SetWithdrawAddr(withdrawAddr string, baseTx BaseTx) (Result, error)
 	WithdrawRewards(isValidator bool, onlyFromValidator string, baseTx BaseTx) (Result, error)

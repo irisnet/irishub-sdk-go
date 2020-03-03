@@ -2,6 +2,7 @@ package types
 
 // expose bank module api for user
 type Bank interface {
+	Module
 	QueryAccount(address string) (BaseAccount, error)
 	QueryTokenStats(tokenID string) (TokenStats, error)
 	Send(to string, amount Coins, baseTx BaseTx) (Result, error)

@@ -50,11 +50,11 @@ func (sts *ServiceTestSuite) TestService() {
 		Schemas:           schemas,
 	}
 
-	result, err := sts.DefineService(definition)
+	result, err := sts.Service().DefineService(definition)
 	require.NoError(sts.T(), err)
 	require.True(sts.T(), result.IsSuccess())
 
-	defi, err := sts.QueryDefinition(definition.ServiceName)
+	defi, err := sts.Service().QueryDefinition(definition.ServiceName)
 	require.NoError(sts.T(), err)
 	require.Equal(sts.T(), definition.ServiceName, defi.Name)
 	require.Equal(sts.T(), definition.Description, defi.Description)
@@ -65,17 +65,16 @@ func (sts *ServiceTestSuite) TestService() {
 
 	deposit, _ := sdk.ParseCoins("20000000000000000000000iris-atto")
 	binding := sdk.ServiceBindingRequest{
-		BaseTx:       baseTx,
-		ServiceName:  definition.ServiceName,
-		Deposit:      deposit,
-		Pricing:      pricing,
-		WithdrawAddr: "",
+		BaseTx:      baseTx,
+		ServiceName: definition.ServiceName,
+		Deposit:     deposit,
+		Pricing:     pricing,
 	}
-	result, err = sts.BindService(binding)
+	result, err = sts.Service().BindService(binding)
 	require.NoError(sts.T(), err)
 	require.True(sts.T(), result.IsSuccess())
 
-	bindResp, err := sts.QueryBinding(definition.ServiceName, sts.Sender())
+	bindResp, err := sts.Service().QueryBinding(definition.ServiceName, sts.Sender())
 	require.NoError(sts.T(), err)
 	require.Equal(sts.T(), binding.ServiceName, bindResp.ServiceName)
 	require.Equal(sts.T(), sts.Sender(), bindResp.Provider)
@@ -85,7 +84,7 @@ func (sts *ServiceTestSuite) TestService() {
 	input := `{"pair":"iris-usdt"}`
 	output := `{"last":"1:100"}`
 
-	err = sts.RegisterSingleServiceListener(definition.ServiceName,
+	err = sts.Service().RegisterSingleServiceListener(definition.ServiceName,
 		func(input string) (string, string) {
 			sts.Info().
 				Str("input", input).
@@ -109,7 +108,7 @@ func (sts *ServiceTestSuite) TestService() {
 		RepeatedTotal:     -1,
 	}
 	var requestContextID string
-	requestContextID, err = sts.InvokeService(invocation, func(reqCtxID string, response string) {
+	requestContextID, err = sts.Service().InvokeService(invocation, func(reqCtxID string, response string) {
 		require.Equal(sts.T(), reqCtxID, requestContextID)
 		require.Equal(sts.T(), output, response)
 		sts.Info().
@@ -123,7 +122,7 @@ func (sts *ServiceTestSuite) TestService() {
 		Msg("Request service success")
 	require.NoError(sts.T(), err)
 
-	request, err := sts.QueryRequestContext(requestContextID)
+	request, err := sts.Service().QueryRequestContext(requestContextID)
 	require.NoError(sts.T(), err)
 	require.Equal(sts.T(), request.ServiceName, invocation.ServiceName)
 	require.Equal(sts.T(), request.Input, invocation.Input)
@@ -133,14 +132,14 @@ func (sts *ServiceTestSuite) TestService() {
 
 func (sts *ServiceTestSuite) TestQueryDefinition() {
 	serviceName := "fbfbbc12-5872-11ea-a1dc-186590e06183"
-	definition, err := sts.QueryDefinition(serviceName)
+	definition, err := sts.Service().QueryDefinition(serviceName)
 	require.NoError(sts.T(), err)
 	fmt.Println(definition)
 }
 
 func (sts *ServiceTestSuite) TestQueryRequestContext() {
 	reqCtxID := "0ef2acf4e1002f1e38c7f0df36be2ad11250aeb6343c6c7d9294f0424deecd96"
-	definition, err := sts.QueryRequestContext(reqCtxID)
+	definition, err := sts.Service().QueryRequestContext(reqCtxID)
 	require.NoError(sts.T(), err)
 	fmt.Println(definition)
 }

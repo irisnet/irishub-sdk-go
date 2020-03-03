@@ -8,6 +8,10 @@ import (
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
+const (
+	ModuleName = "oracle"
+)
+
 var (
 	_ sdk.Msg = MsgCreateFeed{}
 	_ sdk.Msg = MsgStartFeed{}
@@ -18,7 +22,7 @@ var (
 )
 
 func init() {
-	RegisterCodec(cdc)
+	registerCodec(cdc)
 }
 
 //______________________________________________________________________
@@ -278,7 +282,7 @@ func (ctx FeedContexts) toSDKFeedContexts() (result []sdk.FeedContext) {
 	return
 }
 
-func RegisterCodec(cdc sdk.Codec) {
+func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgCreateFeed{}, "irishub/oracle/MsgCreateFeed")
 	cdc.RegisterConcrete(MsgStartFeed{}, "irishub/oracle/MsgStartFeed")
 	cdc.RegisterConcrete(MsgPauseFeed{}, "irishub/oracle/MsgPauseFeed")

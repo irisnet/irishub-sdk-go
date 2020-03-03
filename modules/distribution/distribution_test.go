@@ -1,11 +1,13 @@
 package distribution_test
 
 import (
-	"github.com/irisnet/irishub-sdk-go/sim"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"testing"
+
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"testing"
+
+	"github.com/irisnet/irishub-sdk-go/sim"
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type DistrTestSuite struct {
@@ -23,7 +25,7 @@ func (dts *DistrTestSuite) SetupTest() {
 }
 
 func (dts *DistrTestSuite) TestQueryRewards() {
-	r, err := dts.QueryRewards(dts.Sender().String())
+	r, err := dts.Distr().QueryRewards(dts.Sender().String())
 	require.NoError(dts.T(), err)
 	require.NotEmpty(dts.T(), r)
 }
@@ -37,7 +39,7 @@ func (dts *DistrTestSuite) TestSetWithdrawAddr() {
 		Mode: sdk.Commit,
 	}
 
-	rs, err := dts.SetWithdrawAddr(dts.Sender().String(), baseTx)
+	rs, err := dts.Distr().SetWithdrawAddr(dts.Sender().String(), baseTx)
 	require.NoError(dts.T(), err)
 	require.True(dts.T(), rs.IsSuccess())
 }
@@ -51,7 +53,7 @@ func (dts *DistrTestSuite) TestWithdrawRewards() {
 		Mode: sdk.Commit,
 	}
 
-	rs, err := dts.WithdrawRewards(true, "", baseTx)
+	rs, err := dts.Distr().WithdrawRewards(true, "", baseTx)
 	require.NoError(dts.T(), err)
 	require.True(dts.T(), rs.IsSuccess())
 }

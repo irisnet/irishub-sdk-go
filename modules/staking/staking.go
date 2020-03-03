@@ -13,10 +13,18 @@ type stakingClient struct {
 	*log.Logger
 }
 
+func (s stakingClient) RegisterCodec(cdc sdk.Codec) {
+	registerCodec(cdc)
+}
+
+func (s stakingClient) Name() string {
+	return ModuleName
+}
+
 func New(ac sdk.AbstractClient) sdk.Staking {
 	return stakingClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger().With("staking"),
+		Logger:         ac.Logger().With(ModuleName),
 	}
 }
 

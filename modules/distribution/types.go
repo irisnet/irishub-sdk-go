@@ -7,6 +7,10 @@ import (
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
+const (
+	ModuleName = "distr"
+)
+
 var (
 	_ sdk.Msg = MsgSetWithdrawAddress{}
 	_ sdk.Msg = MsgWithdrawDelegatorReward{}
@@ -17,7 +21,7 @@ var (
 )
 
 func init() {
-	RegisterCodec(cdc)
+	registerCodec(cdc)
 }
 
 //______________________________________________________________________
@@ -184,7 +188,7 @@ type DelegationsRewards struct {
 	Reward    sdk.Coins      `json:"reward"`
 }
 
-func RegisterCodec(cdc sdk.Codec) {
+func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgWithdrawDelegatorRewardsAll{}, "irishub/distr/MsgWithdrawDelegationRewardsAll")
 	cdc.RegisterConcrete(MsgWithdrawDelegatorReward{}, "irishub/distr/MsgWithdrawDelegationReward")
 	cdc.RegisterConcrete(MsgWithdrawValidatorRewardsAll{}, "irishub/distr/MsgWithdrawValidatorRewardsAll")

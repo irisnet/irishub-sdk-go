@@ -10,10 +10,18 @@ type distributionClient struct {
 	*log.Logger
 }
 
+func (d distributionClient) RegisterCodec(cdc sdk.Codec) {
+	registerCodec(cdc)
+}
+
+func (d distributionClient) Name() string {
+	return ModuleName
+}
+
 func New(ac sdk.AbstractClient) sdk.Distribution {
 	return distributionClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger().With("distr"),
+		Logger:         ac.Logger().With(ModuleName),
 	}
 }
 
