@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/hex"
 	"time"
 )
 
@@ -34,10 +35,10 @@ type ServiceTx interface {
 
 	WithdrawTax(destAddress string, amount Coins, baseTx BaseTx) (Result, error)
 
-	RegisterInvocationListener(serviceRouter ServiceRouter,
+	RegisterServiceListener(serviceRouter ServiceRouter,
 		baseTx BaseTx) error
 
-	RegisterSingleInvocationListener(serviceName string,
+	RegisterSingleServiceListener(serviceName string,
 		respondHandler ServiceRespondHandler,
 		baseTx BaseTx) error
 }
@@ -187,4 +188,16 @@ type RequestContext struct {
 type EarnedFees struct {
 	Address AccAddress `json:"address"`
 	Coins   Coins      `json:"coins"`
+}
+
+func RequestContextIDToString(reqCtxID []byte) string {
+	return hex.EncodeToString(reqCtxID)
+}
+
+func RequestContextIDToByte(reqCtxID string) []byte {
+	dst, err := hex.DecodeString(reqCtxID)
+	if err != nil {
+		panic(err)
+	}
+	return dst
 }

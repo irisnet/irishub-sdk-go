@@ -23,7 +23,7 @@ var (
 )
 
 type TestClient struct {
-	sdk.Client
+	types.SDKClient
 	sender types.AccAddress
 }
 
@@ -39,7 +39,7 @@ func NewClient() TestClient {
 	}
 	addr = types.AccAddress(keyManager.GetPrivKey().PubKey().Address()).String()
 
-	client := sdk.New(types.SDKConfig{
+	client := sdk.NewSDKClient(types.SDKConfig{
 		NodeURI:   NodeURI,
 		Network:   Network,
 		ChainID:   ChainID,
@@ -49,10 +49,11 @@ func NewClient() TestClient {
 		Mode:      Mode,
 		Online:    Online,
 		StoreType: types.Keystore,
+		Level:     "debug",
 	})
 	return TestClient{
-		Client: client,
-		sender: types.MustAccAddressFromBech32(addr),
+		SDKClient: client,
+		sender:    types.MustAccAddressFromBech32(addr),
 	}
 }
 

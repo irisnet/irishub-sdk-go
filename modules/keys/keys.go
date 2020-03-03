@@ -12,12 +12,12 @@ type keysClient struct {
 
 //TODO
 func (k keysClient) Add(name, password string) (address string, mnemonic string, err error) {
-	panic("implement me")
+	return k.Insert(name, password)
 }
 
 //TODO
-func (k keysClient) Recover(name, password, mnemonic string, derive bool, index int, salt string) (address string, err error) {
-	panic("implement me")
+func (k keysClient) Recover(name, password, mnemonic string) (address string, err error) {
+	return k.KeyManager.Recover(name, password, mnemonic)
 }
 
 //TODO

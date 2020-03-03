@@ -31,14 +31,13 @@ type KeyDAO interface {
 type KeyManager interface {
 	Sign(name, password string, data []byte) (Signature, error)
 	QueryAddress(name, password string) (addr AccAddress, err error)
+	Insert(name, password string) (string, string, error)
+	Recover(name, password, mnemonic string) (string, error)
 }
 
 type Keys interface {
 	Add(name, password string) (address string, mnemonic string, err error)
-	Recover(name, password, mnemonic string,
-		derive bool,
-		index int,
-		salt string) (address string, err error)
+	Recover(name, password, mnemonic string) (address string, err error)
 	Import(name, password, keystore string) (address string, err error)
 	Export(name, password, encryptKeystorePwd string) (keystore string, err error)
 	Delete(name, password string) error

@@ -27,6 +27,16 @@ type SDKConfig struct {
 
 	//
 	StoreType StoreType
+
+	//log level(trace|debug|info|warn|error|fatal|panic)
+	Level string
+}
+
+type SDKClient interface {
+	Bank
+	Service
+	Oracle
+	WSClient
 }
 
 type KeyStore interface {

@@ -10,7 +10,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/multisig"
 	cmn "github.com/tendermint/tendermint/libs/common"
 
-	json2 "github.com/irisnet/irishub-sdk-go/utils/json"
+	json2 "github.com/irisnet/irishub-sdk-go/tools/json"
 )
 
 const (

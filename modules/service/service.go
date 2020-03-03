@@ -1,16 +1,19 @@
 package service
 
 import (
+	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type serviceClient struct {
 	sdk.AbstractClient
+	*log.Logger
 }
 
 func New(ac sdk.AbstractClient) sdk.Service {
 	return serviceClient{
 		AbstractClient: ac,
+		Logger:         ac.Logger().With("service"),
 	}
 }
 
@@ -144,7 +147,8 @@ func (s serviceClient) InvokeService(request sdk.ServiceInvocationRequest,
 
 	var subscription sdk.Subscription
 	subscription, err = s.SubscribeTx(builder, func(tx sdk.EventDataTx) {
-		s.Logger().Info("Service InvokeService", "tx", tx.Tx)
+		s.Debug().Str("tx_hash", tx.Hash).Int64("height", tx.Height).
+			Msg("consumer received response transaction sent by provider")
 		for _, msg := range tx.Tx.Msgs {
 			msg, ok := msg.(MsgRespondService)
 			if ok {
@@ -198,7 +202,7 @@ func (s serviceClient) StartRequestContext(requestContextID string, baseTx sdk.B
 		return nil, err
 	}
 	msg := MsgStartRequestContext{
-		RequestContextID: RequestContextIDToByte(requestContextID),
+		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
 		Consumer:         consumer,
 	}
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
@@ -211,7 +215,7 @@ func (s serviceClient) PauseRequestContext(requestContextID string, baseTx sdk.B
 		return nil, err
 	}
 	msg := MsgPauseRequestContext{
-		RequestContextID: RequestContextIDToByte(requestContextID),
+		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
 		Consumer:         consumer,
 	}
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
@@ -224,7 +228,7 @@ func (s serviceClient) KillRequestContext(requestContextID string, baseTx sdk.Ba
 		return nil, err
 	}
 	msg := MsgKillRequestContext{
-		RequestContextID: RequestContextIDToByte(requestContextID),
+		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
 		Consumer:         consumer,
 	}
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
@@ -244,7 +248,7 @@ func (s serviceClient) UpdateRequestContext(request sdk.UpdateContextRequest) (s
 	}
 
 	msg := MsgUpdateRequestContext{
-		RequestContextID:  RequestContextIDToByte(request.RequestContextID),
+		RequestContextID:  sdk.RequestContextIDToByte(request.RequestContextID),
 		Providers:         providers,
 		ServiceFeeCap:     request.ServiceFeeCap,
 		Timeout:           request.Timeout,
@@ -284,8 +288,8 @@ func (s serviceClient) WithdrawTax(destAddress string, amount sdk.Coins, baseTx 
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
 }
 
-//RegisterInvocationListener is responsible for registering a group of service handler
-func (s serviceClient) RegisterInvocationListener(serviceRouter sdk.ServiceRouter, baseTx sdk.BaseTx) error {
+//RegisterServiceListener is responsible for registering a group of service handler
+func (s serviceClient) RegisterServiceListener(serviceRouter sdk.ServiceRouter, baseTx sdk.BaseTx) error {
 	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return err
@@ -293,7 +297,6 @@ func (s serviceClient) RegisterInvocationListener(serviceRouter sdk.ServiceRoute
 
 	defer func() {
 		if r := recover(); r != nil {
-			s.Logger().Error("Service RegisterInvocationListener failed", "err", r)
 			return
 		}
 	}()
@@ -301,14 +304,12 @@ func (s serviceClient) RegisterInvocationListener(serviceRouter sdk.ServiceRoute
 	builder := sdk.NewEventQueryBuilder().
 		AddCondition(sdk.EventKey(TagProvider), sdk.EventValue(provider.String()))
 	_, err = s.SubscribeNewBlockWithParams(builder, func(block sdk.EventDataNewBlock) {
-		s.Logger().Debug("Received Block",
-			"height", block.Block.Height,
-			"tags", block.ResultEndBlock.Tags)
+		s.Debug().Int64("height", block.Block.Height).Msg("received block")
 		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
 			if err != nil {
-				s.Logger().Error("Service RegisterInvocationListener failed", "requestID", reqID, "err", err)
+				s.Err(err).Str("requestID", reqID).Msg("service request don't exist")
 				continue
 			}
 			if handler, ok := serviceRouter[request.ServiceName]; ok && provider.Equals(request.Provider) {
@@ -330,8 +331,8 @@ func (s serviceClient) RegisterInvocationListener(serviceRouter sdk.ServiceRoute
 	return err
 }
 
-//RegisterSingleInvocationListener is responsible for registering a single service handler
-func (s serviceClient) RegisterSingleInvocationListener(serviceName string,
+//RegisterSingleServiceListener is responsible for registering a single service handler
+func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 	respondHandler sdk.ServiceRespondHandler,
 	baseTx sdk.BaseTx) error {
 	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
@@ -345,18 +346,17 @@ func (s serviceClient) RegisterSingleInvocationListener(serviceName string,
 		}
 	}()
 
-	builder := sdk.NewEventQueryBuilder().
-		AddCondition(sdk.EventKey(TagProvider), sdk.EventValue(provider.String())).
-		AddCondition(sdk.EventKey(TagServiceName), sdk.EventValue(serviceName))
-	_, err = s.SubscribeNewBlockWithParams(builder, func(block sdk.EventDataNewBlock) {
+	// TODO user will don't received any event from tendermint when block_result has the same key in tag
+	//builder := sdk.NewEventQueryBuilder().
+	//	AddCondition(sdk.EventKey(TagProvider), sdk.EventValue(provider.String())).
+	//	AddCondition(sdk.EventKey(TagServiceName), sdk.EventValue(serviceName))
+	_, err = s.SubscribeNewBlockWithParams(nil, func(block sdk.EventDataNewBlock) {
 		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
-		s.Logger().Debug("Received Block",
-			"height", block.Block.Height,
-			"tags", block.ResultEndBlock.Tags)
+		s.Debug().Int64("height", block.Block.Height).Msg("received block")
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
 			if err != nil {
-				s.Logger().Error("Service SubscribeNewBlock failed", "requestID", reqID, "err", err)
+				s.Err(err).Str("requestID", reqID).Msg("service request don't exist")
 				continue
 			}
 			if provider.Equals(request.Provider) && request.ServiceName == serviceName {
@@ -369,7 +369,7 @@ func (s serviceClient) RegisterSingleInvocationListener(serviceName string,
 				}
 				go func() {
 					if _, err = s.Broadcast(baseTx, []sdk.Msg{msg}); err != nil {
-						s.Logger().Error("Service RegisterSingleInvocationListener failed", "requestID", reqID, "err", err)
+						s.Err(err).Str("requestID", reqID).Msg("provider respond failed")
 					}
 				}()
 			}
@@ -467,7 +467,7 @@ func (s serviceClient) QueryRequestsByReqCtx(requestContextID string, batchCount
 		RequestContextID []byte
 		BatchCounter     uint64
 	}{
-		RequestContextID: RequestContextIDToByte(requestContextID),
+		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
 		BatchCounter:     batchCounter,
 	}
 	var requests Requests
@@ -499,7 +499,7 @@ func (s serviceClient) QueryResponses(requestContextID string, batchCounter uint
 		RequestContextID []byte
 		BatchCounter     uint64
 	}{
-		RequestContextID: RequestContextIDToByte(requestContextID),
+		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
 		BatchCounter:     batchCounter,
 	}
 	var responses Responses
@@ -515,7 +515,7 @@ func (s serviceClient) QueryRequestContext(requestContextID string) (result sdk.
 	param := struct {
 		RequestContextID []byte
 	}{
-		RequestContextID: RequestContextIDToByte(requestContextID),
+		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
 	}
 
 	var reqCtx RequestContext

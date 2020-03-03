@@ -1,8 +1,8 @@
 package types
 
 import (
+	"github.com/irisnet/irishub-sdk-go/tools/log"
 	cmn "github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/libs/log"
 	tmclient "github.com/tendermint/tendermint/rpc/client"
 )
 
@@ -37,9 +37,13 @@ type Query interface {
 	QueryAddress(name, password string) (addr AccAddress, err error)
 }
 
+type Logger interface {
+	Logger() *log.Logger
+}
+
 type AbstractClient interface {
 	TxManager
 	Query
 	WSClient
-	Logger() log.Logger
+	Logger
 }
