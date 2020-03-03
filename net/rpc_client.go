@@ -53,11 +53,11 @@ func (r RPCClient) start() {
 
 //SubscribeNewBlock implement WSClient interface
 func (r RPCClient) SubscribeNewBlock(callback types.EventNewBlockCallback) (types.Subscription, error) {
-	return r.SubscribeNewBlockWithParams(nil, callback)
+	return r.SubscribeNewBlockWithQuery(nil, callback)
 }
 
 //SubscribeNewBlock implement WSClient interface
-func (r RPCClient) SubscribeNewBlockWithParams(builder *types.EventQueryBuilder, callback types.EventNewBlockCallback) (types.Subscription, error) {
+func (r RPCClient) SubscribeNewBlockWithQuery(builder *types.EventQueryBuilder, callback types.EventNewBlockCallback) (types.Subscription, error) {
 	ctx := context.Background()
 	subscriber := getSubscriberID()
 	if builder == nil {

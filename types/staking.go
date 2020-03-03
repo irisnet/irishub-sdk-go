@@ -6,7 +6,7 @@ type StakingTx interface {
 	Redelegate(srcValAddr, dstValAddr string, amount Coin, baseTx BaseTx) (Result, error)
 }
 
-type StakingQuery interface {
+type StakingQueries interface {
 	QueryDelegation(delAddr, valAddr string) (Delegation, error)
 	QueryDelegations(delAddr string) (Delegations, error)
 
@@ -27,11 +27,15 @@ type StakingQuery interface {
 	QueryParams() (StakeParams, error)
 }
 
-type Staking interface {
-	StakingTx
-	StakingQuery
+type StakingSubscriber interface {
 	SubscribeValidatorInfoUpdates(validator string,
 		callback func(data EventDataMsgEditValidator)) Subscription
+}
+
+type Staking interface {
+	StakingTx
+	StakingQueries
+	StakingSubscriber
 }
 
 type Delegation struct {

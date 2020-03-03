@@ -37,7 +37,7 @@ func NewSDKClient(cfg types.SDKConfig) types.SDKClient {
 	abstClient := abstractClient{
 		TxContext: ctx,
 		RPC:       rpc,
-		logger:    log.NewLogger(cfg.Level),
+		logger:    log.NewLogger(cfg.Level).With("AbstractClient"),
 	}
 	return client{
 		Bank:     bank.New(abstClient),
