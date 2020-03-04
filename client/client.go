@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/irisnet/irishub-sdk-go/modules/oracle"
+	"github.com/irisnet/irishub-sdk-go/modules/staking"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 
 	"github.com/irisnet/irishub-sdk-go/adapter"
@@ -16,6 +17,7 @@ type client struct {
 	types.Bank
 	types.Service
 	types.Oracle
+	types.Staking
 	types.WSClient
 }
 
@@ -35,12 +37,13 @@ func NewSDKClient(cfg types.SDKConfig) types.SDKClient {
 	abstClient := abstractClient{
 		TxContext: ctx,
 		RPC:       rpc,
-		logger:    log.NewLogger(cfg.Level),
+		logger:    log.NewLogger(cfg.Level).With("AbstractClient"),
 	}
 	return client{
 		Bank:     bank.New(abstClient),
 		Service:  service.New(abstClient),
 		Oracle:   oracle.New(abstClient),
+		Staking:  staking.New(abstClient),
 		WSClient: rpc,
 	}
 }
@@ -53,6 +56,7 @@ func makeCodec() types.Codec {
 	bank.RegisterCodec(cdc)
 	service.RegisterCodec(cdc)
 	oracle.RegisterCodec(cdc)
+	staking.RegisterCodec(cdc)
 
 	return cdc
 }

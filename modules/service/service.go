@@ -303,7 +303,7 @@ func (s serviceClient) RegisterServiceListener(serviceRouter sdk.ServiceRouter, 
 
 	builder := sdk.NewEventQueryBuilder().
 		AddCondition(sdk.EventKey(TagProvider), sdk.EventValue(provider.String()))
-	_, err = s.SubscribeNewBlockWithParams(builder, func(block sdk.EventDataNewBlock) {
+	_, err = s.SubscribeNewBlockWithQuery(builder, func(block sdk.EventDataNewBlock) {
 		s.Debug().Int64("height", block.Block.Height).Msg("received block")
 		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
 		for _, reqID := range reqIDs {
@@ -350,7 +350,7 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 	//builder := sdk.NewEventQueryBuilder().
 	//	AddCondition(sdk.EventKey(TagProvider), sdk.EventValue(provider.String())).
 	//	AddCondition(sdk.EventKey(TagServiceName), sdk.EventValue(serviceName))
-	_, err = s.SubscribeNewBlockWithParams(nil, func(block sdk.EventDataNewBlock) {
+	_, err = s.SubscribeNewBlockWithQuery(nil, func(block sdk.EventDataNewBlock) {
 		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
 		s.Debug().Int64("height", block.Block.Height).Msg("received block")
 		for _, reqID := range reqIDs {

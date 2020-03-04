@@ -153,7 +153,7 @@ type EventNewBlockHeaderCallback func(EventDataNewBlockHeader)
 
 //===============EventDataValidatorSetUpdates for SubscribeValidatorSetUpdates=================
 type EventDataValidatorSetUpdates struct {
-	ValidatorUpdates []Validator `json:"validator_updates"`
+	ValidatorUpdates []TmValidator `json:"validator_updates"`
 }
 
 type EventValidatorSetUpdatesCallback func(EventDataValidatorSetUpdates)

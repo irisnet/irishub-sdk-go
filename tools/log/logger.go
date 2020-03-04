@@ -2,6 +2,8 @@ package log
 
 import (
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/rs/zerolog"
 )
@@ -24,6 +26,15 @@ func NewLogger(level string) *Logger {
 	if err != nil {
 		l = zerolog.InfoLevel
 	}
+
+	//override default CallerMarshalFunc
+	zerolog.CallerMarshalFunc = func(file string, line int) string {
+		index := strings.LastIndex(file, string(os.PathSeparator))
+		rs := []rune(file)
+		fileName := string(rs[index+1:])
+		return fileName + ":" + strconv.Itoa(line)
+	}
+
 	output := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: "2006-01-02 15:04:05.000"}
 	log := zerolog.New(output).
 		Level(l).

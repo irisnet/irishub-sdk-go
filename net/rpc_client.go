@@ -53,11 +53,11 @@ func (r RPCClient) start() {
 
 //SubscribeNewBlock implement WSClient interface
 func (r RPCClient) SubscribeNewBlock(callback types.EventNewBlockCallback) (types.Subscription, error) {
-	return r.SubscribeNewBlockWithParams(nil, callback)
+	return r.SubscribeNewBlockWithQuery(nil, callback)
 }
 
 //SubscribeNewBlock implement WSClient interface
-func (r RPCClient) SubscribeNewBlockWithParams(builder *types.EventQueryBuilder, callback types.EventNewBlockCallback) (types.Subscription, error) {
+func (r RPCClient) SubscribeNewBlockWithQuery(builder *types.EventQueryBuilder, callback types.EventNewBlockCallback) (types.Subscription, error) {
 	ctx := context.Background()
 	subscriber := getSubscriberID()
 	if builder == nil {
@@ -220,11 +220,11 @@ func parseValidatorUpdate(vp abcitypes.ValidatorUpdates) (validatorUpdates []typ
 	return
 }
 
-func parseValidators(valSet []*tmtypes.Validator) (validators []types.Validator) {
+func parseValidators(valSet []*tmtypes.Validator) (validators []types.TmValidator) {
 	for _, v := range valSet {
 		valAddr, _ := types.ConsAddressFromHex(v.Address.String())
 		pubKey, _ := types.Bech32ifyConsPub(v.PubKey)
-		validators = append(validators, types.Validator{
+		validators = append(validators, types.TmValidator{
 			Address:          valAddr.String(),
 			PubKey:           pubKey,
 			VotingPower:      v.VotingPower,

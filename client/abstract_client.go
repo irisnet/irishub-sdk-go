@@ -3,6 +3,7 @@ package client
 import (
 	"errors"
 	"fmt"
+
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -23,12 +24,14 @@ func (ac abstractClient) Logger() *log.Logger {
 }
 
 func (ac abstractClient) Broadcast(baseTx types.BaseTx, msg []types.Msg) (types.Result, error) {
-	//check msg valide
+	//validate msg
 	for _, m := range msg {
 		if err := m.ValidateBasic(); err != nil {
 			return nil, err
 		}
 	}
+	ac.Logger().Info().Msg("validate msg success")
+
 	err := ac.prepareTxContext(baseTx)
 	if err != nil {
 		return nil, err
@@ -38,13 +41,21 @@ func (ac abstractClient) Broadcast(baseTx types.BaseTx, msg []types.Msg) (types.
 	if err != nil {
 		return nil, err
 	}
+	ac.Logger().Info().Msg("sign transaction success")
 
 	txByte, err := ac.Codec.MarshalBinaryLengthPrefixed(tx)
 	if err != nil {
 		return nil, err
 	}
 
-	return ac.broadcastTx(txByte)
+	rs, err := ac.broadcastTx(txByte)
+	if err == nil {
+		ac.Logger().Info().
+			Str("mode", string(ac.Mode)).
+			Str("hash", rs.GetHash()).
+			Msg("broadcast transaction success")
+	}
+	return rs, err
 }
 
 func (ac abstractClient) BroadcastTx(signedTx types.StdTx, mode types.BroadcastMode) (types.Result, error) {

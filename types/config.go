@@ -37,6 +37,7 @@ type SDKClient interface {
 	Service
 	Oracle
 	WSClient
+	Staking
 }
 
 type KeyStore interface {
