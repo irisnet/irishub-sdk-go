@@ -1,9 +1,9 @@
 package gov
 
 import (
+	json2 "encoding/json"
 	"errors"
 	"fmt"
-
 	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
@@ -85,15 +85,6 @@ func (msg MsgVote) ValidateBasic() error {
 	return nil
 }
 
-func (msg MsgVote) String() string {
-	return fmt.Sprintf("MsgVote{%v - %s}", msg.ProposalID, msg.Option)
-}
-
-// Implements Msg.
-func (msg MsgVote) Get(key interface{}) (value interface{}) {
-	return nil
-}
-
 // Implements Msg.
 func (msg MsgVote) GetSignBytes() []byte {
 	b, err := cdc.MarshalJSON(msg)
@@ -132,11 +123,116 @@ func VoteOptionFromString(option sdk.VoteOption) (VoteOption, error) {
 	case sdk.NoWithVeto:
 		return OptionNoWithVeto, nil
 	default:
-		return OptionEmpty, errors.New(fmt.Sprintf("'%s' is not a valid vote option", str))
+		return OptionEmpty, errors.New(fmt.Sprintf("'%s' is not a valid vote option", option))
 	}
+}
+
+// Marshals to JSON using string
+func (vo VoteOption) MarshalJSON() ([]byte, error) {
+	return json2.Marshal(vo.String())
+}
+
+// Turns VoteOption byte to String
+func (vo VoteOption) String() string {
+	switch vo {
+	case OptionYes:
+		return "Yes"
+	case OptionAbstain:
+		return "Abstain"
+	case OptionNo:
+		return "No"
+	case OptionNoWithVeto:
+		return "NoWithVeto"
+	default:
+		return ""
+	}
+}
+
+// Tally Results
+type TallyResult struct {
+	Yes               string `json:"yes"`
+	Abstain           string `json:"abstain"`
+	No                string `json:"no"`
+	NoWithVeto        string `json:"no_with_veto"`
+	SystemVotingPower string `json:"system_voting_power"`
+}
+
+func (t TallyResult) ToSDKResponse() sdk.TallyResult {
+	return sdk.TallyResult{
+		Yes:               t.Yes,
+		Abstain:           t.Abstain,
+		No:                t.No,
+		NoWithVeto:        t.NoWithVeto,
+		SystemVotingPower: t.SystemVotingPower,
+	}
+}
+
+//for query
+type Vote struct {
+	Voter      sdk.AccAddress `json:"voter"`       //  address of the voter
+	ProposalID uint64         `json:"proposal_id"` //  proposalID of the proposal
+	Option     string         `json:"option"`      //  option from OptionSet chosen by the voter
+}
+
+func (v Vote) ToSDKResponse() sdk.Vote {
+	return sdk.Vote{
+		Voter:      v.Voter.String(),
+		ProposalID: v.ProposalID,
+		Option:     v.Option,
+	}
+}
+
+type Votes []Vote
+
+func (vs Votes) ToSDKResponse() (votes []sdk.Vote) {
+	for _, v := range vs {
+		votes = append(votes, sdk.Vote{
+			Voter:      v.Voter.String(),
+			ProposalID: v.ProposalID,
+			Option:     v.Option,
+		})
+	}
+	return votes
+}
+
+// Deposit
+type Deposit struct {
+	Depositor  sdk.AccAddress `json:"depositor"`   //  Address of the depositor
+	ProposalID uint64         `json:"proposal_id"` //  proposalID of the proposal
+	Amount     sdk.Coins      `json:"amount"`      //  Deposit amount
+}
+
+func (d Deposit) ToSDKResponse() sdk.Deposit {
+	return sdk.Deposit{
+		Depositor:  d.Depositor.String(),
+		ProposalID: d.ProposalID,
+		Amount:     d.Amount,
+	}
+}
+
+type Deposits []Deposit
+
+func (ds Deposits) ToSDKResponse() (deposits []sdk.Deposit) {
+	for _, d := range ds {
+		deposits = append(deposits, sdk.Deposit{
+			Depositor:  d.Depositor.String(),
+			ProposalID: d.ProposalID,
+			Amount:     d.Amount,
+		})
+	}
+	return deposits
 }
 
 func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgDeposit{}, "irishub/gov/MsgDeposit")
 	cdc.RegisterConcrete(MsgVote{}, "irishub/gov/MsgVote")
+
+	cdc.RegisterInterface((*Proposal)(nil))
+	cdc.RegisterConcrete(&BasicProposal{}, "irishub/gov/BasicProposal")
+	cdc.RegisterConcrete(&ParameterProposal{}, "irishub/gov/ParameterProposal")
+	cdc.RegisterConcrete(&PlainTextProposal{}, "irishub/gov/PlainTextProposal")
+	cdc.RegisterConcrete(&SoftwareUpgradeProposal{}, "irishub/gov/SoftwareUpgradeProposal")
+	cdc.RegisterConcrete(&CommunityTaxUsageProposal{}, "irishub/gov/CommunityTaxUsageProposal")
+
+	cdc.RegisterConcrete(&Vote{}, "irishub/gov/Vote")
 }
