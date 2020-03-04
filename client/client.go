@@ -1,9 +1,11 @@
 package client
 
 import (
+	"fmt"
 	"github.com/irisnet/irishub-sdk-go/adapter"
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/distribution"
+	"github.com/irisnet/irishub-sdk-go/modules/gov"
 	"github.com/irisnet/irishub-sdk-go/modules/oracle"
 	"github.com/irisnet/irishub-sdk-go/modules/service"
 	"github.com/irisnet/irishub-sdk-go/modules/staking"
@@ -48,6 +50,7 @@ func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
 		oracle.New(abstClient),
 		staking.New(abstClient),
 		distribution.New(abstClient),
+		gov.New(abstClient),
 	)
 
 	return *client
@@ -56,6 +59,9 @@ func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
 func (s *SDKClient) registerModule(modules ...sdk.Module) {
 	s.modules = make(map[string]sdk.Module, len(modules))
 	for _, m := range modules {
+		if _, existed := s.modules[m.Name()]; existed {
+			panic(fmt.Sprintf("module[%s] has existed", m.Name()))
+		}
 		m.RegisterCodec(s.cdc)
 		s.modules[m.Name()] = m
 	}
@@ -80,4 +86,8 @@ func (s *SDKClient) Oracle() sdk.Oracle {
 
 func (s *SDKClient) Staking() sdk.Staking {
 	return s.modules[staking.ModuleName].(sdk.Staking)
+}
+
+func (s *SDKClient) Gov() sdk.Gov {
+	return s.modules[gov.ModuleName].(sdk.Gov)
 }
