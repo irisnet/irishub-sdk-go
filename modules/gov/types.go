@@ -4,6 +4,7 @@ import (
 	json2 "encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )

@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/irisnet/irishub-sdk-go/adapter"
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/distribution"
