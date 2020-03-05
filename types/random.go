@@ -10,10 +10,10 @@ type Random interface {
 type RandomRequest struct {
 	BaseTx
 	BlockInterval uint64
-	Callback      EventRequestRandomCallback
+	Callback      EventGenerateRandomCallback
 }
 
-type EventRequestRandomCallback func(reqID, randomNum string, err error)
+type EventGenerateRandomCallback func(reqID, randomNum string, err error)
 
 // Rand represents a random number with related data
 type RandomInfo struct {
