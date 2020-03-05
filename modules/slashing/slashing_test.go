@@ -1,10 +1,12 @@
 package slashing_test
 
 import (
-	"github.com/irisnet/irishub-sdk-go/sim"
+	"testing"
+
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"testing"
+
+	"github.com/irisnet/irishub-sdk-go/sim"
 )
 
 type SlashingTestSuite struct {

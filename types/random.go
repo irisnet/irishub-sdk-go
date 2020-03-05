@@ -4,7 +4,7 @@ type Random interface {
 	Module
 	Generate(request RandomRequest) (reqID string, err error)
 	QueryRandom(reqID string) (RandomInfo, error)
-	QueryRequests(height int64) (RequestRandom, error)
+	QueryRequests(height int64) ([]RequestRandom, error)
 }
 
 type RandomRequest struct {

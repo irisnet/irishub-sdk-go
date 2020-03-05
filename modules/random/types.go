@@ -2,9 +2,11 @@ package random
 
 import (
 	"errors"
+
+	cmn "github.com/tendermint/tendermint/libs/common"
+
 	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 const (
@@ -84,6 +86,19 @@ func (r Request) toSDKRequest() sdk.RequestRandom {
 		Consumer: r.Consumer.String(),
 		TxHash:   cmn.HexBytes(r.TxHash).String(),
 	}
+}
+
+type Requests []Request
+
+func (rs Requests) toSDKRequest() (requests []sdk.RequestRandom) {
+	for _, r := range rs {
+		requests = append(requests, sdk.RequestRandom{
+			Height:   r.Height,
+			Consumer: r.Consumer.String(),
+			TxHash:   cmn.HexBytes(r.TxHash).String(),
+		})
+	}
+	return requests
 }
 
 func registerCodec(cdc sdk.Codec) {

@@ -98,16 +98,16 @@ func (r randomClient) QueryRandom(reqID string) (sdk.RandomInfo, error) {
 }
 
 // QueryRequests returns the list of request by the specified block height
-func (r randomClient) QueryRequests(height int64) (sdk.RequestRandom, error) {
+func (r randomClient) QueryRequests(height int64) ([]sdk.RequestRandom, error) {
 	param := struct {
 		Height int64
 	}{
 		Height: height,
 	}
 
-	var request Request
-	if err := r.Query("custom/rand/queue", param, &request); err != nil {
-		return sdk.RequestRandom{}, err
+	var rs Requests
+	if err := r.Query("custom/rand/queue", param, &rs); err != nil {
+		return nil, err
 	}
-	return request.toSDKRequest(), nil
+	return rs.toSDKRequest(), nil
 }

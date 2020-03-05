@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/irisnet/irishub-sdk-go/modules/random"
 	"github.com/irisnet/irishub-sdk-go/modules/slashing"
 

@@ -11,9 +11,10 @@ package slashing
 import (
 	"fmt"
 
+	"github.com/tendermint/tendermint/crypto"
+
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
-	"github.com/tendermint/tendermint/crypto"
 )
 
 type slashingClient struct {
