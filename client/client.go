@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"github.com/irisnet/irishub-sdk-go/modules/slashing"
 
 	"github.com/irisnet/irishub-sdk-go/adapter"
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
@@ -52,6 +53,7 @@ func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
 		staking.New(abstClient),
 		distribution.New(abstClient),
 		gov.New(abstClient),
+		slashing.New(abstClient),
 	)
 
 	return *client
@@ -91,4 +93,8 @@ func (s *SDKClient) Staking() sdk.Staking {
 
 func (s *SDKClient) Gov() sdk.Gov {
 	return s.modules[gov.ModuleName].(sdk.Gov)
+}
+
+func (s *SDKClient) Slashing() sdk.Slashing {
+	return s.modules[slashing.ModuleName].(sdk.Slashing)
 }
