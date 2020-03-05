@@ -15,10 +15,8 @@ type SlashingParams struct {
 	MinSignedPerWindow      string `json:"min_signed_per_window"`
 	DoubleSignJailDuration  string `json:"double_sign_jail_duration"`
 	DowntimeJailDuration    string `json:"downtime_jail_duration"`
-	CensorshipJailDuration  string `json:"censorship_jail_duration"` // delete by v1.0.0
 	SlashFractionDoubleSign string `json:"slash_fraction_double_sign"`
 	SlashFractionDowntime   string `json:"slash_fraction_downtime"`
-	SlashFractionCensorship string `json:"slash_fraction_censorship"` // delete by v1.0.0
 }
 
 // ValidatorSigningInfo defines the signing info for a validator

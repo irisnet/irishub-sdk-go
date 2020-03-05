@@ -82,10 +82,8 @@ func (s slashingClient) queryParamsV017() (sdk.SlashingParams, error) {
 		MinSignedPerWindow:      params.MinSignedPerWindow.String(),
 		DoubleSignJailDuration:  params.DoubleSignJailDuration.String(),
 		DowntimeJailDuration:    params.DowntimeJailDuration.String(),
-		CensorshipJailDuration:  params.CensorshipJailDuration.String(),
 		SlashFractionDoubleSign: params.SlashFractionDoubleSign.String(),
 		SlashFractionDowntime:   params.SlashFractionDowntime.String(),
-		SlashFractionCensorship: params.SlashFractionCensorship.String(),
 	}, nil
 }
 
