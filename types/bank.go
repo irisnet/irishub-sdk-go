@@ -8,6 +8,7 @@ type Bank interface {
 	Send(to string, amount Coins, baseTx BaseTx) (Result, error)
 	Burn(amount Coins, baseTx BaseTx) (Result, error)
 	SetMemoRegexp(memoRegexp string, baseTx BaseTx) (Result, error)
+	SubscribeSendTx(from, to string, callback EventMsgSendCallback) Subscription
 }
 
 type TokenStats struct {

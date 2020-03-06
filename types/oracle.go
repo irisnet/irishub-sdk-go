@@ -13,6 +13,7 @@ type Oracle interface {
 type OracleTx interface {
 	CreateFeed(request FeedCreateRequest) (result Result, err error)
 	StartFeed(feedName string, baseTx BaseTx) (result Result, err error)
+	CreateAndStartFeed(request FeedCreateRequest) (result Result, err error)
 	PauseFeed(feedName string, baseTx BaseTx) (result Result, err error)
 	EditFeed(request FeedEditRequest) (result Result, err error)
 }

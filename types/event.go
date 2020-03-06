@@ -100,6 +100,14 @@ func (t Tags) GetValue(key string) string {
 	return ""
 }
 
+func (t Tags) String() string {
+	var buf bytes.Buffer
+	for _, tag := range t {
+		buf.WriteString(fmt.Sprintf("%s=%s ", tag.Key, tag.Value))
+	}
+	return buf.String()
+}
+
 type EventTxCallback func(EventDataTx)
 
 //===============EventDataNewBlock for SubscribeNewBlock=================
