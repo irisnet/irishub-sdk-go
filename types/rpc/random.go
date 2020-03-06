@@ -1,14 +1,16 @@
-package types
+package rpc
+
+import "github.com/irisnet/irishub-sdk-go/types"
 
 type Random interface {
-	Module
+	types.Module
 	Generate(request RandomRequest) (reqID string, err error)
 	QueryRandom(reqID string) (RandomInfo, error)
 	QueryRequests(height int64) ([]RequestRandom, error)
 }
 
 type RandomRequest struct {
-	BaseTx
+	types.BaseTx
 	BlockInterval uint64
 	Callback      EventGenerateRandomCallback
 }

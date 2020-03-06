@@ -3,6 +3,7 @@ package oracle
 import (
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/types/rpc"
 )
 
 type oracleClient struct {
@@ -18,7 +19,7 @@ func (o oracleClient) Name() string {
 	return ModuleName
 }
 
-func New(ac sdk.AbstractClient) sdk.Oracle {
+func New(ac sdk.AbstractClient) rpc.Oracle {
 	return oracleClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
@@ -26,7 +27,7 @@ func New(ac sdk.AbstractClient) sdk.Oracle {
 }
 
 //CreateFeed create a stopped feed
-func (o oracleClient) CreateFeed(request sdk.FeedCreateRequest) (result sdk.Result, err error) {
+func (o oracleClient) CreateFeed(request rpc.FeedCreateRequest) (result sdk.Result, err error) {
 	creator, err := o.QueryAddress(request.From, request.Password)
 	if err != nil {
 		return nil, err
@@ -71,7 +72,7 @@ func (o oracleClient) StartFeed(feedName string, baseTx sdk.BaseTx) (result sdk.
 }
 
 //CreateAndStartFeed create and start a stopped feed
-func (o oracleClient) CreateAndStartFeed(request sdk.FeedCreateRequest) (result sdk.Result, err error) {
+func (o oracleClient) CreateAndStartFeed(request rpc.FeedCreateRequest) (result sdk.Result, err error) {
 	creator, err := o.QueryAddress(request.From, request.Password)
 	if err != nil {
 		return nil, err
@@ -121,7 +122,7 @@ func (o oracleClient) PauseFeed(feedName string, baseTx sdk.BaseTx) (result sdk.
 }
 
 //EditFeed edit a feed
-func (o oracleClient) EditFeed(request sdk.FeedEditRequest) (result sdk.Result, err error) {
+func (o oracleClient) EditFeed(request rpc.FeedEditRequest) (result sdk.Result, err error) {
 	creator, err := o.QueryAddress(request.From, request.Password)
 	if err != nil {
 		return nil, err
@@ -148,45 +149,46 @@ func (o oracleClient) EditFeed(request sdk.FeedEditRequest) (result sdk.Result, 
 }
 
 //QueryFeed return the feed by feedName
-func (o oracleClient) QueryFeed(feedName string) (feed sdk.FeedContext, err error) {
+func (o oracleClient) QueryFeed(feedName string) (rpc.FeedContext, error) {
 	param := struct {
 		FeedName string
 	}{
 		FeedName: feedName,
 	}
+
 	var ctx FeedContext
-	err = o.Query("custom/oracle/feed", param, &ctx)
-	if err != nil {
-		return feed, err
+	if err := o.Query("custom/oracle/feed", param, &ctx); err != nil {
+		return rpc.FeedContext{}, err
 	}
-	return ctx.toSDKFeedContext(), nil
+	return ctx.Convert().(rpc.FeedContext), nil
 }
 
 //QueryFeeds return all feeds by state
-func (o oracleClient) QueryFeeds(state string) (feed []sdk.FeedContext, err error) {
+func (o oracleClient) QueryFeeds(state string) ([]rpc.FeedContext, error) {
 	param := struct {
 		State string
 	}{
 		State: state,
 	}
-	var ctx FeedContexts
-	err = o.Query("custom/oracle/feeds", param, &ctx)
-	if err != nil {
-		return feed, err
+
+	var fcs FeedContexts
+	if err := o.Query("custom/oracle/feeds", param, &fcs); err != nil {
+		return nil, err
 	}
-	return ctx.toSDKFeedContexts(), nil
+	return fcs.Convert().([]rpc.FeedContext), nil
 }
 
 //QueryFeedValue return all feed values by feedName
-func (o oracleClient) QueryFeedValue(feedName string) (value []sdk.FeedValue, err error) {
+func (o oracleClient) QueryFeedValue(feedName string) ([]rpc.FeedValue, error) {
 	param := struct {
 		FeedName string
 	}{
 		FeedName: feedName,
 	}
-	err = o.Query("custom/oracle/feedValue", param, &value)
-	if err != nil {
-		return value, err
+
+	var fvs FeedValues
+	if err := o.Query("custom/oracle/feedValue", param, &fvs); err != nil {
+		return nil, err
 	}
-	return value, nil
+	return fvs.Convert().([]rpc.FeedValue), nil
 }

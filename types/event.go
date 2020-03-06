@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	cmn "github.com/tendermint/tendermint/libs/common"
-
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
@@ -160,8 +159,14 @@ type EventDataNewBlockHeader struct {
 type EventNewBlockHeaderCallback func(EventDataNewBlockHeader)
 
 //===============EventDataValidatorSetUpdates for SubscribeValidatorSetUpdates=================
+type Validator struct {
+	Address          string `json:"address"`
+	PubKey           string `json:"pub_key"`
+	VotingPower      int64  `json:"voting_power"`
+	ProposerPriority int64  `json:"proposer_priority"`
+}
 type EventDataValidatorSetUpdates struct {
-	ValidatorUpdates []TmValidator `json:"validator_updates"`
+	ValidatorUpdates []Validator `json:"validator_updates"`
 }
 
 type EventValidatorSetUpdatesCallback func(EventDataValidatorSetUpdates)

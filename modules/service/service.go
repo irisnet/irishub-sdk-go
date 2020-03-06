@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/types/rpc"
 )
 
 type serviceClient struct {
@@ -18,7 +19,7 @@ func (s serviceClient) Name() string {
 	return ModuleName
 }
 
-func New(ac sdk.AbstractClient) sdk.Service {
+func New(ac sdk.AbstractClient) rpc.Service {
 	return serviceClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
@@ -26,7 +27,7 @@ func New(ac sdk.AbstractClient) sdk.Service {
 }
 
 //DefineService is responsible for creating a new service definition
-func (s serviceClient) DefineService(request sdk.ServiceDefinitionRequest) (sdk.Result, error) {
+func (s serviceClient) DefineService(request rpc.ServiceDefinitionRequest) (sdk.Result, error) {
 	author, err := s.QueryAddress(request.From, request.Password)
 	if err != nil {
 		return nil, err
@@ -43,7 +44,7 @@ func (s serviceClient) DefineService(request sdk.ServiceDefinitionRequest) (sdk.
 }
 
 //BindService is responsible for binding a new service definition
-func (s serviceClient) BindService(request sdk.ServiceBindingRequest) (sdk.Result, error) {
+func (s serviceClient) BindService(request rpc.ServiceBindingRequest) (sdk.Result, error) {
 	provider, err := s.QueryAddress(request.From, request.Password)
 	if err != nil {
 		return nil, err
@@ -59,7 +60,7 @@ func (s serviceClient) BindService(request sdk.ServiceBindingRequest) (sdk.Resul
 }
 
 //UpdateServiceBinding updates the specified service binding
-func (s serviceClient) UpdateServiceBinding(request sdk.UpdateServiceBindingRequest) (sdk.Result, error) {
+func (s serviceClient) UpdateServiceBinding(request rpc.UpdateServiceBindingRequest) (sdk.Result, error) {
 	provider, err := s.QueryAddress(request.From, request.Password)
 	if err != nil {
 		return nil, err
@@ -101,8 +102,8 @@ func (s serviceClient) EnableService(serviceName string, deposit sdk.Coins, base
 }
 
 //InvokeService is responsible for invoke a new service and callback `callback`
-func (s serviceClient) InvokeService(request sdk.ServiceInvocationRequest,
-	callback sdk.ServiceInvokeHandler) (string, error) {
+func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest,
+	callback rpc.ServiceInvokeHandler) (string, error) {
 	consumer, err := s.QueryAddress(request.From, request.Password)
 	if err != nil {
 		return "", err
@@ -201,7 +202,7 @@ func (s serviceClient) StartRequestContext(requestContextID string, baseTx sdk.B
 		return nil, err
 	}
 	msg := MsgStartRequestContext{
-		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
+		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
 		Consumer:         consumer,
 	}
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
@@ -214,7 +215,7 @@ func (s serviceClient) PauseRequestContext(requestContextID string, baseTx sdk.B
 		return nil, err
 	}
 	msg := MsgPauseRequestContext{
-		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
+		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
 		Consumer:         consumer,
 	}
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
@@ -227,14 +228,14 @@ func (s serviceClient) KillRequestContext(requestContextID string, baseTx sdk.Ba
 		return nil, err
 	}
 	msg := MsgKillRequestContext{
-		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
+		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
 		Consumer:         consumer,
 	}
 	return s.Broadcast(baseTx, []sdk.Msg{msg})
 }
 
 // UpdateRequestContext updates the specified request context
-func (s serviceClient) UpdateRequestContext(request sdk.UpdateContextRequest) (sdk.Result, error) {
+func (s serviceClient) UpdateRequestContext(request rpc.UpdateContextRequest) (sdk.Result, error) {
 	consumer, err := s.QueryAddress(request.From, request.Password)
 	if err != nil {
 		return nil, err
@@ -247,7 +248,7 @@ func (s serviceClient) UpdateRequestContext(request sdk.UpdateContextRequest) (s
 	}
 
 	msg := MsgUpdateRequestContext{
-		RequestContextID:  sdk.RequestContextIDToByte(request.RequestContextID),
+		RequestContextID:  rpc.RequestContextIDToByte(request.RequestContextID),
 		Providers:         providers,
 		ServiceFeeCap:     request.ServiceFeeCap,
 		Timeout:           request.Timeout,
@@ -288,7 +289,7 @@ func (s serviceClient) WithdrawTax(destAddress string, amount sdk.Coins, baseTx 
 }
 
 //RegisterServiceListener is responsible for registering a group of service handler
-func (s serviceClient) RegisterServiceListener(serviceRouter sdk.ServiceRouter, baseTx sdk.BaseTx) error {
+func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter, baseTx sdk.BaseTx) error {
 	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return err
@@ -332,7 +333,7 @@ func (s serviceClient) RegisterServiceListener(serviceRouter sdk.ServiceRouter, 
 
 //RegisterSingleServiceListener is responsible for registering a single service handler
 func (s serviceClient) RegisterSingleServiceListener(serviceName string,
-	respondHandler sdk.ServiceRespondHandler,
+	respondHandler rpc.ServiceRespondHandler,
 	baseTx sdk.BaseTx) error {
 	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
@@ -378,22 +379,22 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 }
 
 // QueryDefinition return a service definition of the specified name
-func (s serviceClient) QueryDefinition(serviceName string) (result sdk.ServiceDefinition, err error) {
+func (s serviceClient) QueryDefinition(serviceName string) (rpc.ServiceDefinition, error) {
 	param := struct {
 		ServiceName string
 	}{
 		ServiceName: serviceName,
 	}
+
 	var definition Definition
-	err = s.Query("custom/service/definition", param, &definition)
-	if err != nil {
-		return result, err
+	if err := s.Query("custom/service/definition", param, &definition); err != nil {
+		return rpc.ServiceDefinition{}, err
 	}
-	return definition.toSDKDefinition(), nil
+	return definition.Convert().(rpc.ServiceDefinition), nil
 }
 
 // QueryBinding return the specified service binding
-func (s serviceClient) QueryBinding(serviceName string, provider sdk.AccAddress) (result sdk.ServiceBinding, err error) {
+func (s serviceClient) QueryBinding(serviceName string, provider sdk.AccAddress) (rpc.ServiceBinding, error) {
 	param := struct {
 		ServiceName string
 		Provider    sdk.AccAddress
@@ -403,15 +404,14 @@ func (s serviceClient) QueryBinding(serviceName string, provider sdk.AccAddress)
 	}
 
 	var binding Binding
-	err = s.Query("custom/service/binding", param, &binding)
-	if err != nil {
-		return result, err
+	if err := s.Query("custom/service/binding", param, &binding); err != nil {
+		return rpc.ServiceBinding{}, err
 	}
-	return binding.toSDKBinding(), nil
+	return binding.Convert().(rpc.ServiceBinding), nil
 }
 
 // QueryBindings returns all bindings of the specified service
-func (s serviceClient) QueryBindings(serviceName string) (result []sdk.ServiceBinding, err error) {
+func (s serviceClient) QueryBindings(serviceName string) ([]rpc.ServiceBinding, error) {
 	param := struct {
 		ServiceName string
 	}{
@@ -419,16 +419,14 @@ func (s serviceClient) QueryBindings(serviceName string) (result []sdk.ServiceBi
 	}
 
 	var bindings Bindings
-
-	err = s.Query("custom/service/bindings", param, &bindings)
-	if err != nil {
-		return result, err
+	if err := s.Query("custom/service/bindings", param, &bindings); err != nil {
+		return nil, err
 	}
-	return bindings.toSDKBindings(), nil
+	return bindings.Convert().([]rpc.ServiceBinding), nil
 }
 
 // QueryRequest returns  the active request of the specified requestID
-func (s serviceClient) QueryRequest(requestID string) (req sdk.Request, err error) {
+func (s serviceClient) QueryRequest(requestID string) (rpc.RequestService, error) {
 	param := struct {
 		RequestID string
 	}{
@@ -436,15 +434,14 @@ func (s serviceClient) QueryRequest(requestID string) (req sdk.Request, err erro
 	}
 
 	var request Request
-	err = s.Query("custom/service/request", param, &request)
-	if err != nil {
-		return req, err
+	if err := s.Query("custom/service/request", param, &request); err != nil {
+		return rpc.RequestService{}, err
 	}
-	return request.toSDKRequest(), nil
+	return request.Convert().(rpc.RequestService), nil
 }
 
 // QueryRequest returns all the active requests of the specified service binding
-func (s serviceClient) QueryRequests(serviceName string, provider sdk.AccAddress) (reqs []sdk.Request, err error) {
+func (s serviceClient) QueryRequests(serviceName string, provider sdk.AccAddress) ([]rpc.RequestService, error) {
 	param := struct {
 		ServiceName string
 		Provider    sdk.AccAddress
@@ -452,85 +449,84 @@ func (s serviceClient) QueryRequests(serviceName string, provider sdk.AccAddress
 		ServiceName: serviceName,
 		Provider:    provider,
 	}
-	var requests Requests
-	err = s.Query("custom/service/requests", param, &requests)
-	if err != nil {
-		return reqs, err
+
+	var rs Requests
+	if err := s.Query("custom/service/requests", param, &rs); err != nil {
+		return nil, err
 	}
-	return requests.toSDKRequests(), nil
+	return rs.Convert().([]rpc.RequestService), nil
 }
 
 // QueryRequestsByReqCtx returns all requests of the specified request context ID and batch counter
-func (s serviceClient) QueryRequestsByReqCtx(requestContextID string, batchCounter uint64) (result []sdk.Request, err error) {
+func (s serviceClient) QueryRequestsByReqCtx(requestContextID string, batchCounter uint64) ([]rpc.RequestService, error) {
 	param := struct {
 		RequestContextID []byte
 		BatchCounter     uint64
 	}{
-		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
+		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
 		BatchCounter:     batchCounter,
 	}
-	var requests Requests
-	err = s.Query("custom/service/requests_by_ctx", param, &requests)
-	if err != nil {
-		return result, err
+
+	var rs Requests
+	if err := s.Query("custom/service/requests_by_ctx", param, &rs); err != nil {
+		return nil, err
 	}
-	return requests.toSDKRequests(), nil
+	return rs.Convert().([]rpc.RequestService), nil
 }
 
 // QueryResponse returns a response with the speicified request ID
-func (s serviceClient) QueryResponse(requestID string) (result sdk.Response, err error) {
+func (s serviceClient) QueryResponse(requestID string) (rpc.ServiceResponse, error) {
 	param := struct {
 		RequestID string
 	}{
 		RequestID: requestID,
 	}
+
 	var response Response
-	err = s.Query("custom/service/response", param, &response)
-	if err != nil {
-		return result, err
+	if err := s.Query("custom/service/response", param, &response); err != nil {
+		return rpc.ServiceResponse{}, err
 	}
-	return response.toSDKResponse(), nil
+	return response.Convert().(rpc.ServiceResponse), nil
 }
 
 // QueryResponses returns all responses of the specified request context and batch counter
-func (s serviceClient) QueryResponses(requestContextID string, batchCounter uint64) (result []sdk.Response, err error) {
+func (s serviceClient) QueryResponses(requestContextID string, batchCounter uint64) ([]rpc.ServiceResponse, error) {
 	param := struct {
 		RequestContextID []byte
 		BatchCounter     uint64
 	}{
-		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
+		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
 		BatchCounter:     batchCounter,
 	}
-	var responses Responses
-	err = s.Query("custom/service/responses", param, &responses)
-	if err != nil {
-		return result, err
+	var rs Responses
+	if err := s.Query("custom/service/responses", param, &rs); err != nil {
+		return nil, err
 	}
-	return responses.toSDKResponses(), nil
+	return rs.Convert().([]rpc.ServiceResponse), nil
 }
 
 // QueryRequestContext return the specified request context
-func (s serviceClient) QueryRequestContext(requestContextID string) (result sdk.RequestContext, err error) {
+func (s serviceClient) QueryRequestContext(requestContextID string) (rpc.RequestContext, error) {
 	param := struct {
 		RequestContextID []byte
 	}{
-		RequestContextID: sdk.RequestContextIDToByte(requestContextID),
+		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
 	}
 
 	var reqCtx RequestContext
-	err = s.Query("custom/service/context", param, &reqCtx)
-	if err != nil {
-		return result, err
+	if err := s.Query("custom/service/context", param, &reqCtx); err != nil {
+		return rpc.RequestContext{}, err
 	}
-	return reqCtx.toSDKRequestContext(), nil
+	return reqCtx.Convert().(rpc.RequestContext), nil
 }
 
 //QueryFees return the earned fees for a provider
-func (s serviceClient) QueryFees(provider string) (result sdk.EarnedFees, err error) {
+func (s serviceClient) QueryFees(provider string) (rpc.EarnedFees, error) {
 	address, err := sdk.AccAddressFromBech32(provider)
 	if err != nil {
-		return result, err
+		return rpc.EarnedFees{}, err
 	}
+
 	param := struct {
 		Address sdk.AccAddress
 	}{
@@ -538,9 +534,9 @@ func (s serviceClient) QueryFees(provider string) (result sdk.EarnedFees, err er
 	}
 
 	var fee EarnedFees
-	err = s.Query("custom/service/fees", param, &fee)
-	if err != nil {
-		return result, err
+
+	if err := s.Query("custom/service/fees", param, &fee); err != nil {
+		return rpc.EarnedFees{}, err
 	}
-	return fee.toSDKEarnedFees(), nil
+	return fee.Convert().(rpc.EarnedFees), nil
 }

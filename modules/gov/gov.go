@@ -3,6 +3,7 @@ package gov
 import (
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/types/rpc"
 )
 
 type govClient struct {
@@ -10,7 +11,7 @@ type govClient struct {
 	*log.Logger
 }
 
-func New(ac sdk.AbstractClient) sdk.Gov {
+func New(ac sdk.AbstractClient) rpc.Gov {
 	return govClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
@@ -38,7 +39,7 @@ func (g govClient) Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseT
 }
 
 //Vote is responsible for voting for proposal
-func (g govClient) Vote(proposalID uint64, option sdk.VoteOption, baseTx sdk.BaseTx) (sdk.Result, error) {
+func (g govClient) Vote(proposalID uint64, option rpc.VoteOption, baseTx sdk.BaseTx) (sdk.Result, error) {
 	voter, err := g.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return nil, err
@@ -63,7 +64,7 @@ func (g govClient) Vote(proposalID uint64, option sdk.VoteOption, baseTx sdk.Bas
 }
 
 // QueryProposal returns the proposal of the specified proposalID
-func (g govClient) QueryProposal(proposalID uint64) (sdk.Proposal, error) {
+func (g govClient) QueryProposal(proposalID uint64) (rpc.Proposal, error) {
 	param := struct {
 		ProposalID uint64
 	}{
@@ -79,7 +80,7 @@ func (g govClient) QueryProposal(proposalID uint64) (sdk.Proposal, error) {
 }
 
 // QueryProposals returns all proposals of the specified params
-func (g govClient) QueryProposals(request sdk.ProposalRequest) (ps []sdk.Proposal, err error) {
+func (g govClient) QueryProposals(request rpc.ProposalRequest) (ps []rpc.Proposal, err error) {
 	var voter, depositor sdk.AccAddress
 	if len(request.Voter) != 0 {
 		voter, err = sdk.AccAddressFromBech32(request.Voter)
@@ -120,10 +121,10 @@ func (g govClient) QueryProposals(request sdk.ProposalRequest) (ps []sdk.Proposa
 }
 
 // QueryVote returns the vote of the specified proposalID and voter
-func (g govClient) QueryVote(proposalID uint64, voter string) (sdk.Vote, error) {
+func (g govClient) QueryVote(proposalID uint64, voter string) (rpc.Vote, error) {
 	v, err := sdk.AccAddressFromBech32(voter)
 	if err != nil {
-		return sdk.Vote{}, err
+		return rpc.Vote{}, err
 	}
 
 	param := struct {
@@ -137,13 +138,13 @@ func (g govClient) QueryVote(proposalID uint64, voter string) (sdk.Vote, error) 
 	var vote Vote
 	err = g.Query("custom/gov/vote", param, &vote)
 	if err != nil {
-		return sdk.Vote{}, err
+		return rpc.Vote{}, err
 	}
-	return vote.ToSDKResponse(), nil
+	return vote.Convert().(rpc.Vote), nil
 }
 
 // QueryVotes returns all votes of the specified proposalID
-func (g govClient) QueryVotes(proposalID uint64) ([]sdk.Vote, error) {
+func (g govClient) QueryVotes(proposalID uint64) ([]rpc.Vote, error) {
 	param := struct {
 		ProposalID uint64
 	}{
@@ -155,14 +156,14 @@ func (g govClient) QueryVotes(proposalID uint64) ([]sdk.Vote, error) {
 	if err != nil {
 		return nil, err
 	}
-	return vs.ToSDKResponse(), nil
+	return vs.Convert().([]rpc.Vote), nil
 }
 
 // QueryDeposit returns the deposit of the specified proposalID and depositor
-func (g govClient) QueryDeposit(proposalID uint64, depositor string) (sdk.Deposit, error) {
+func (g govClient) QueryDeposit(proposalID uint64, depositor string) (rpc.Deposit, error) {
 	d, err := sdk.AccAddressFromBech32(depositor)
 	if err != nil {
-		return sdk.Deposit{}, err
+		return rpc.Deposit{}, err
 	}
 
 	param := struct {
@@ -176,13 +177,13 @@ func (g govClient) QueryDeposit(proposalID uint64, depositor string) (sdk.Deposi
 	var deposit Deposit
 	err = g.Query("custom/gov/deposit", param, &deposit)
 	if err != nil {
-		return sdk.Deposit{}, err
+		return rpc.Deposit{}, err
 	}
-	return deposit.ToSDKResponse(), nil
+	return deposit.Convert().(rpc.Deposit), nil
 }
 
 // QueryDeposits returns all deposits of the specified proposalID
-func (g govClient) QueryDeposits(proposalID uint64) ([]sdk.Deposit, error) {
+func (g govClient) QueryDeposits(proposalID uint64) ([]rpc.Deposit, error) {
 	param := struct {
 		ProposalID uint64
 	}{
@@ -194,11 +195,11 @@ func (g govClient) QueryDeposits(proposalID uint64) ([]sdk.Deposit, error) {
 	if err != nil {
 		return nil, err
 	}
-	return deposits.ToSDKResponse(), nil
+	return deposits.Convert().([]rpc.Deposit), nil
 }
 
 // QueryTally returns the result of proposal by the specified proposalID
-func (g govClient) QueryTally(proposalID uint64) (sdk.TallyResult, error) {
+func (g govClient) QueryTally(proposalID uint64) (rpc.TallyResult, error) {
 	param := struct {
 		ProposalID uint64
 	}{
@@ -208,9 +209,9 @@ func (g govClient) QueryTally(proposalID uint64) (sdk.TallyResult, error) {
 	var tally TallyResult
 	err := g.Query("custom/gov/tally", param, &tally)
 	if err != nil {
-		return sdk.TallyResult{}, err
+		return rpc.TallyResult{}, err
 	}
-	return tally.ToSDKResponse(), nil
+	return tally.Convert().(rpc.TallyResult), nil
 }
 
 func (g govClient) RegisterCodec(cdc sdk.Codec) {

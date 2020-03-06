@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/irisnet/irishub-sdk-go/types/rpc"
+
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
@@ -21,7 +23,7 @@ func (s stakingClient) Name() string {
 	return ModuleName
 }
 
-func New(ac sdk.AbstractClient) sdk.Staking {
+func New(ac sdk.AbstractClient) rpc.Staking {
 	return stakingClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
@@ -136,15 +138,15 @@ func (s stakingClient) Redelegate(srcValidatorAddr,
 }
 
 // QueryDelegation return the specified delegation by delegatorAddr and validatorAddr
-func (s stakingClient) QueryDelegation(delegatorAddr, validatorAddr string) (sdk.Delegation, error) {
+func (s stakingClient) QueryDelegation(delegatorAddr, validatorAddr string) (rpc.Delegation, error) {
 	delAddr, err := sdk.AccAddressFromBech32(delegatorAddr)
 	if err != nil {
-		return sdk.Delegation{}, err
+		return rpc.Delegation{}, err
 	}
 
 	varAddr, err := sdk.ValAddressFromBech32(validatorAddr)
 	if err != nil {
-		return sdk.Delegation{}, err
+		return rpc.Delegation{}, err
 	}
 
 	param := struct {
@@ -156,43 +158,42 @@ func (s stakingClient) QueryDelegation(delegatorAddr, validatorAddr string) (sdk
 	}
 
 	var delegation Delegation
-	err = s.Query("custom/stake/delegation", param, &delegation)
-	if err != nil {
-		return sdk.Delegation{}, err
+	if err = s.Query("custom/stake/delegation", param, &delegation); err != nil {
+		return rpc.Delegation{}, err
 	}
-	return delegation.ToSDKResponse(), err
+	return delegation.Convert().(rpc.Delegation), err
 }
 
 // QueryDelegations return the specified delegations by delegatorAddr
-func (s stakingClient) QueryDelegations(delegatorAddr string) (sdk.Delegations, error) {
+func (s stakingClient) QueryDelegations(delegatorAddr string) (rpc.Delegations, error) {
 	delAddr, err := sdk.AccAddressFromBech32(delegatorAddr)
 	if err != nil {
-		return sdk.Delegations{}, err
+		return rpc.Delegations{}, err
 	}
+
 	param := struct {
 		DelegatorAddr sdk.AccAddress
 	}{
 		DelegatorAddr: delAddr,
 	}
 
-	var delegations Delegations
-	err = s.Query("custom/stake/delegatorDelegations", param, &delegations)
-	if err != nil {
-		return sdk.Delegations{}, err
+	var ds Delegations
+	if err = s.Query("custom/stake/delegatorDelegations", param, &ds); err != nil {
+		return rpc.Delegations{}, err
 	}
-	return delegations.ToSDKResponse(), err
+	return ds.Convert().(rpc.Delegations), err
 }
 
 // QueryUnbondingDelegation return the specified unbonding delegation by delegatorAddr and validatorAddr
-func (s stakingClient) QueryUnbondingDelegation(delegatorAddr, validatorAddr string) (ubd sdk.UnbondingDelegation, err error) {
+func (s stakingClient) QueryUnbondingDelegation(delegatorAddr, validatorAddr string) (rpc.UnbondingDelegation, error) {
 	delAddr, err := sdk.AccAddressFromBech32(delegatorAddr)
 	if err != nil {
-		return ubd, err
+		return rpc.UnbondingDelegation{}, err
 	}
 
 	varAddr, err := sdk.ValAddressFromBech32(validatorAddr)
 	if err != nil {
-		return ubd, err
+		return rpc.UnbondingDelegation{}, err
 	}
 
 	param := struct {
@@ -203,49 +204,49 @@ func (s stakingClient) QueryUnbondingDelegation(delegatorAddr, validatorAddr str
 		ValidatorAddr: varAddr,
 	}
 
-	var unbonding UnbondingDelegation
-	err = s.Query("custom/stake/unbondingDelegation", param, &unbonding)
-	if err != nil {
-		return ubd, err
+	var ubd UnbondingDelegation
+	if err = s.Query("custom/stake/unbondingDelegation", param, &ubd); err != nil {
+		return rpc.UnbondingDelegation{}, err
 	}
-	return unbonding.ToSDKResponse(), err
+	return ubd.Convert().(rpc.UnbondingDelegation), err
 }
 
 // QueryUnbondingDelegations return the specified unbonding delegations by delegatorAddr
-func (s stakingClient) QueryUnbondingDelegations(delegatorAddr string) (sdk.UnbondingDelegations, error) {
+func (s stakingClient) QueryUnbondingDelegations(delegatorAddr string) (rpc.UnbondingDelegations, error) {
 	delAddr, err := sdk.AccAddressFromBech32(delegatorAddr)
 	if err != nil {
-		return sdk.UnbondingDelegations{}, err
+		return rpc.UnbondingDelegations{}, err
 	}
+
 	param := struct {
 		DelegatorAddr sdk.AccAddress
 	}{
 		DelegatorAddr: delAddr,
 	}
 
-	var unbondings UnbondingDelegations
-	err = s.Query("custom/stake/delegatorUnbondingDelegations", param, &unbondings)
+	var unds UnbondingDelegations
+	err = s.Query("custom/stake/delegatorUnbondingDelegations", param, &unds)
 	if err != nil {
-		return sdk.UnbondingDelegations{}, err
+		return rpc.UnbondingDelegations{}, err
 	}
-	return unbondings.ToSDKResponse(), err
+	return unds.Convert().(rpc.UnbondingDelegations), err
 }
 
 // QueryRedelegation return the specified redelegation by delegatorAddr,srcValidatorAddr,dstValidatorAddr
-func (s stakingClient) QueryRedelegation(delegatorAddr, srcValidatorAddr, dstValidatorAddr string) (sdk.Redelegation, error) {
+func (s stakingClient) QueryRedelegation(delegatorAddr, srcValidatorAddr, dstValidatorAddr string) (rpc.Redelegation, error) {
 	delAddr, err := sdk.AccAddressFromBech32(delegatorAddr)
 	if err != nil {
-		return sdk.Redelegation{}, err
+		return rpc.Redelegation{}, err
 	}
 
 	srcVarAddr, err := sdk.ValAddressFromBech32(srcValidatorAddr)
 	if err != nil {
-		return sdk.Redelegation{}, err
+		return rpc.Redelegation{}, err
 	}
 
 	dstVarAddr, err := sdk.ValAddressFromBech32(dstValidatorAddr)
 	if err != nil {
-		return sdk.Redelegation{}, err
+		return rpc.Redelegation{}, err
 	}
 
 	param := struct {
@@ -258,19 +259,18 @@ func (s stakingClient) QueryRedelegation(delegatorAddr, srcValidatorAddr, dstVal
 		ValDstAddr:    dstVarAddr,
 	}
 
-	var redelegation Redelegation
-	err = s.Query("custom/stake/redelegation", param, &redelegation)
-	if err != nil {
-		return sdk.Redelegation{}, err
+	var rd Redelegation
+	if err = s.Query("custom/stake/redelegation", param, &rd); err != nil {
+		return rpc.Redelegation{}, err
 	}
-	return redelegation.ToSDKResponse(), nil
+	return rd.Convert().(rpc.Redelegation), nil
 }
 
 // QueryRedelegations return the specified redelegations by delegatorAddr
-func (s stakingClient) QueryRedelegations(delegatorAddr string) (sdk.Redelegations, error) {
+func (s stakingClient) QueryRedelegations(delegatorAddr string) (rpc.Redelegations, error) {
 	delAddr, err := sdk.AccAddressFromBech32(delegatorAddr)
 	if err != nil {
-		return sdk.Redelegations{}, err
+		return rpc.Redelegations{}, err
 	}
 	param := struct {
 		DelegatorAddr sdk.AccAddress
@@ -279,18 +279,17 @@ func (s stakingClient) QueryRedelegations(delegatorAddr string) (sdk.Redelegatio
 	}
 
 	var rds Redelegations
-	err = s.Query("custom/stake/delegatorRedelegations", param, &rds)
-	if err != nil {
-		return sdk.Redelegations{}, err
+	if err = s.Query("custom/stake/delegatorRedelegations", param, &rds); err != nil {
+		return rpc.Redelegations{}, err
 	}
-	return rds.ToSDKResponse(), nil
+	return rds.Convert().(rpc.Redelegations), nil
 }
 
 // QueryDelegationsTo return the specified delegations by validatorAddr
-func (s stakingClient) QueryDelegationsTo(validatorAddr string) (sdk.Delegations, error) {
+func (s stakingClient) QueryDelegationsTo(validatorAddr string) (rpc.Delegations, error) {
 	varAddr, err := sdk.ValAddressFromBech32(validatorAddr)
 	if err != nil {
-		return sdk.Delegations{}, err
+		return rpc.Delegations{}, err
 	}
 
 	param := struct {
@@ -299,20 +298,20 @@ func (s stakingClient) QueryDelegationsTo(validatorAddr string) (sdk.Delegations
 		ValidatorAddr: varAddr,
 	}
 
-	var delegations Delegations
-	err = s.Query("custom/stake/validatorDelegations", param, &delegations)
-	if err != nil {
-		return sdk.Delegations{}, err
+	var ds Delegations
+	if err = s.Query("custom/stake/validatorDelegations", param, &ds); err != nil {
+		return rpc.Delegations{}, err
 	}
-	return delegations.ToSDKResponse(), nil
+	return ds.Convert().(rpc.Delegations), nil
 }
 
 // QueryUnbondingDelegationsFrom return the specified unbonding delegations by validatorAddr
-func (s stakingClient) QueryUnbondingDelegationsFrom(validatorAddr string) (sdk.UnbondingDelegations, error) {
+func (s stakingClient) QueryUnbondingDelegationsFrom(validatorAddr string) (rpc.UnbondingDelegations, error) {
 	varAddr, err := sdk.ValAddressFromBech32(validatorAddr)
 	if err != nil {
-		return sdk.UnbondingDelegations{}, err
+		return rpc.UnbondingDelegations{}, err
 	}
+
 	param := struct {
 		ValidatorAddr sdk.ValAddress
 	}{
@@ -320,18 +319,17 @@ func (s stakingClient) QueryUnbondingDelegationsFrom(validatorAddr string) (sdk.
 	}
 
 	var ubds UnbondingDelegations
-	err = s.Query("custom/stake/validatorUnbondingDelegations", param, &ubds)
-	if err != nil {
-		return sdk.UnbondingDelegations{}, err
+	if err = s.Query("custom/stake/validatorUnbondingDelegations", param, &ubds); err != nil {
+		return rpc.UnbondingDelegations{}, err
 	}
-	return ubds.ToSDKResponse(), nil
+	return ubds.Convert().(rpc.UnbondingDelegations), nil
 }
 
 // QueryRedelegationsFrom return the specified redelegations by validatorAddr
-func (s stakingClient) QueryRedelegationsFrom(validatorAddr string) (sdk.Redelegations, error) {
+func (s stakingClient) QueryRedelegationsFrom(validatorAddr string) (rpc.Redelegations, error) {
 	varAddr, err := sdk.ValAddressFromBech32(validatorAddr)
 	if err != nil {
-		return sdk.Redelegations{}, err
+		return rpc.Redelegations{}, err
 	}
 
 	param := struct {
@@ -341,19 +339,19 @@ func (s stakingClient) QueryRedelegationsFrom(validatorAddr string) (sdk.Redeleg
 	}
 
 	var rds Redelegations
-	err = s.Query("custom/stake/validatorRedelegations", param, &rds)
-	if err != nil {
-		return sdk.Redelegations{}, err
+	if err = s.Query("custom/stake/validatorRedelegations", param, &rds); err != nil {
+		return rpc.Redelegations{}, err
 	}
-	return rds.ToSDKResponse(), nil
+	return rds.Convert().(rpc.Redelegations), nil
 }
 
 // QueryValidator return the specified validator by validator address
-func (s stakingClient) QueryValidator(address string) (sdk.Validator, error) {
+func (s stakingClient) QueryValidator(address string) (rpc.Validator, error) {
 	varAddr, err := sdk.ValAddressFromBech32(address)
 	if err != nil {
-		return sdk.Validator{}, err
+		return rpc.Validator{}, err
 	}
+
 	param := struct {
 		ValidatorAddr sdk.ValAddress
 	}{
@@ -361,15 +359,14 @@ func (s stakingClient) QueryValidator(address string) (sdk.Validator, error) {
 	}
 
 	var validator Validator
-	err = s.Query("custom/stake/validator", param, &validator)
-	if err != nil {
-		return sdk.Validator{}, err
+	if err = s.Query("custom/stake/validator", param, &validator); err != nil {
+		return rpc.Validator{}, err
 	}
-	return validator.ToSDKResponse(), nil
+	return validator.Convert().(rpc.Validator), nil
 }
 
 // QueryValidators return the specified validators by page and size
-func (s stakingClient) QueryValidators(page uint64, size uint16) (sdk.Validators, error) {
+func (s stakingClient) QueryValidators(page uint64, size uint16) (rpc.Validators, error) {
 	param := struct {
 		Page uint64
 		Size uint16
@@ -379,36 +376,33 @@ func (s stakingClient) QueryValidators(page uint64, size uint16) (sdk.Validators
 	}
 
 	var validators Validators
-	err := s.Query("custom/stake/validators", param, &validators)
-	if err != nil {
-		return sdk.Validators{}, err
+	if err := s.Query("custom/stake/validators", param, &validators); err != nil {
+		return rpc.Validators{}, err
 	}
-	return validators.ToSDKResponse(), nil
+	return validators.Convert().(rpc.Validators), nil
 }
 
 // QueryValidators return the staking pool status
-func (s stakingClient) QueryPool() (sdk.StakePool, error) {
+func (s stakingClient) QueryPool() (rpc.StakePool, error) {
 	var pool Pool
-	err := s.Query("custom/stake/pool", nil, &pool)
-	if err != nil {
-		return sdk.StakePool{}, err
+	if err := s.Query("custom/stake/pool", nil, &pool); err != nil {
+		return rpc.StakePool{}, err
 	}
-	return pool.ToSDKResponse(), nil
+	return pool.Convert().(rpc.StakePool), nil
 }
 
 // QueryValidators return the staking gov params
-func (s stakingClient) QueryParams() (sdk.StakeParams, error) {
+func (s stakingClient) QueryParams() (rpc.StakeParams, error) {
 	var params Params
-	err := s.Query("custom/stake/parameters", nil, &params)
-	if err != nil {
-		return sdk.StakeParams{}, err
+	if err := s.Query("custom/stake/parameters", nil, &params); err != nil {
+		return rpc.StakeParams{}, err
 	}
-	return params.ToSDKResponse(), nil
+	return params.Convert().(rpc.StakeParams), nil
 }
 
 //
 func (s stakingClient) SubscribeValidatorInfoUpdates(validator string,
-	callback func(data sdk.EventDataMsgEditValidator)) sdk.Subscription {
+	callback func(data rpc.EventDataMsgEditValidator)) sdk.Subscription {
 	var builder = sdk.NewEventQueryBuilder().AddCondition(sdk.ActionKey,
 		"edit_validator")
 
@@ -422,10 +416,10 @@ func (s stakingClient) SubscribeValidatorInfoUpdates(validator string,
 		for _, msg := range tx.Tx.Msgs {
 			msg, ok := msg.(MsgEditValidator)
 			if ok && validator == msg.ValidatorAddr.String() {
-				data := sdk.EventDataMsgEditValidator{
+				data := rpc.EventDataMsgEditValidator{
 					Height: tx.Height,
 					Hash:   tx.Hash,
-					Description: sdk.Description{
+					Description: rpc.Description{
 						Moniker:  msg.Moniker,
 						Identity: msg.Identity,
 						Website:  msg.Website,

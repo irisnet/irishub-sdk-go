@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/irisnet/irishub-sdk-go/types/rpc"
+
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 
 	"github.com/stretchr/testify/require"
@@ -41,7 +43,7 @@ func (sts *ServiceTestSuite) TestService() {
 		Mode: sdk.Commit,
 	}
 
-	definition := sdk.ServiceDefinitionRequest{
+	definition := rpc.ServiceDefinitionRequest{
 		BaseTx:            baseTx,
 		ServiceName:       generateServiceName(),
 		Description:       "this is a test service",
@@ -64,7 +66,7 @@ func (sts *ServiceTestSuite) TestService() {
 	require.Equal(sts.T(), sts.Sender(), defi.Author)
 
 	deposit, _ := sdk.ParseCoins("20000000000000000000000iris-atto")
-	binding := sdk.ServiceBindingRequest{
+	binding := rpc.ServiceBindingRequest{
 		BaseTx:      baseTx,
 		ServiceName: definition.ServiceName,
 		Deposit:     deposit,
@@ -95,7 +97,7 @@ func (sts *ServiceTestSuite) TestService() {
 	require.NoError(sts.T(), err)
 
 	serviceFeeCap, _ := sdk.ParseCoins("1000000000000000000iris-atto")
-	invocation := sdk.ServiceInvocationRequest{
+	invocation := rpc.ServiceInvocationRequest{
 		BaseTx:            baseTx,
 		ServiceName:       definition.ServiceName,
 		Providers:         []string{sts.Sender().String()},
@@ -119,7 +121,7 @@ func (sts *ServiceTestSuite) TestService() {
 
 	sts.Info().
 		Str("requestContextID", requestContextID).
-		Msg("Request service success")
+		Msg("RequestService service success")
 	require.NoError(sts.T(), err)
 
 	request, err := sts.Service().QueryRequestContext(requestContextID)

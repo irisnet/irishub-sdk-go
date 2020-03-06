@@ -3,6 +3,8 @@ package gov
 import (
 	"time"
 
+	"github.com/irisnet/irishub-sdk-go/types/rpc"
+
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
@@ -28,7 +30,7 @@ type Proposal interface {
 	GetVotingStartTime() time.Time
 	GetVotingEndTime() time.Time
 	GetProposer() sdk.AccAddress
-	ToSDKResponse() sdk.Proposal
+	ToSDKResponse() rpc.Proposal
 }
 
 // Basic Proposals
@@ -91,14 +93,14 @@ func (b BasicProposal) GetProposer() sdk.AccAddress {
 	return b.Proposer
 }
 
-func (b BasicProposal) ToSDKResponse() sdk.Proposal {
-	return sdk.BasicProposal{
+func (b BasicProposal) ToSDKResponse() rpc.Proposal {
+	return rpc.BasicProposal{
 		Title:          b.Title,
 		Description:    b.Description,
 		ProposalID:     b.ProposalID,
 		ProposalStatus: b.Status,
 		ProposalType:   b.ProposalType,
-		TallyResult: sdk.TallyResult{
+		TallyResult: rpc.TallyResult{
 			Yes:               b.TallyResult.Yes,
 			Abstain:           b.TallyResult.Abstain,
 			No:                b.TallyResult.No,
@@ -122,8 +124,8 @@ type PlainTextProposal struct {
 	BasicProposal
 }
 
-func (b PlainTextProposal) ToSDKResponse() sdk.Proposal {
-	return sdk.PlainTextProposal{
+func (b PlainTextProposal) ToSDKResponse() rpc.Proposal {
+	return rpc.PlainTextProposal{
 		Proposal: b.BasicProposal.ToSDKResponse(),
 	}
 }
@@ -142,17 +144,17 @@ type ParameterProposal struct {
 	Params Params `json:"params"`
 }
 
-func (b ParameterProposal) ToSDKResponse() sdk.Proposal {
-	var params []sdk.Param
+func (b ParameterProposal) ToSDKResponse() rpc.Proposal {
+	var params []rpc.Param
 	for _, p := range b.Params {
-		params = append(params, sdk.Param{
+		params = append(params, rpc.Param{
 			Subspace: "", //TODO
 			Key:      p.Key,
 			SubKey:   "", //TODO
 			Value:    p.Value,
 		})
 	}
-	return sdk.ParameterProposal{
+	return rpc.ParameterProposal{
 		Proposal: b.BasicProposal.ToSDKResponse(),
 		Params:   params,
 	}
@@ -171,10 +173,10 @@ type CommunityTaxUsageProposal struct {
 	TaxUsage TaxUsage `json:"tax_usage"`
 }
 
-func (b CommunityTaxUsageProposal) ToSDKResponse() sdk.Proposal {
-	return sdk.CommunityTaxUsageProposal{
+func (b CommunityTaxUsageProposal) ToSDKResponse() rpc.Proposal {
+	return rpc.CommunityTaxUsageProposal{
 		Proposal: b.BasicProposal.ToSDKResponse(),
-		TaxUsage: sdk.TaxUsage{
+		TaxUsage: rpc.TaxUsage{
 			Usage:       b.TaxUsage.Usage,
 			DestAddress: b.TaxUsage.DestAddress.String(),
 			Percent:     b.TaxUsage.Percent,
@@ -194,10 +196,10 @@ type ProtocolDefinition struct {
 	Threshold string `json:"threshold"`
 }
 
-func (b SoftwareUpgradeProposal) ToSDKResponse() sdk.Proposal {
-	return sdk.SoftwareUpgradeProposal{
+func (b SoftwareUpgradeProposal) ToSDKResponse() rpc.Proposal {
+	return rpc.SoftwareUpgradeProposal{
 		Proposal: b.BasicProposal.ToSDKResponse(),
-		ProtocolDefinition: sdk.ProtocolDefinition{
+		ProtocolDefinition: rpc.ProtocolDefinition{
 			Version:   b.ProtocolDefinition.Version,
 			Software:  b.ProtocolDefinition.Software,
 			Height:    b.ProtocolDefinition.Height,

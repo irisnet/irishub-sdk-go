@@ -4,6 +4,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/irisnet/irishub-sdk-go/types/rpc"
+
 	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
@@ -227,8 +229,8 @@ type Delegation struct {
 	Height        int64          `json:"height"` // Last height bond updated
 }
 
-func (d Delegation) ToSDKResponse() sdk.Delegation {
-	return sdk.Delegation{
+func (d Delegation) Convert() interface{} {
+	return rpc.Delegation{
 		DelegatorAddr: d.DelegatorAddr.String(),
 		ValidatorAddr: d.ValidatorAddr.String(),
 		Shares:        d.Shares.String(),
@@ -238,9 +240,10 @@ func (d Delegation) ToSDKResponse() sdk.Delegation {
 
 type Delegations []Delegation
 
-func (ds Delegations) ToSDKResponse() (delegations sdk.Delegations) {
+func (ds Delegations) Convert() interface{} {
+	delegations := make(rpc.Delegations, len(ds))
 	for _, d := range ds {
-		delegations = append(delegations, d.ToSDKResponse())
+		delegations = append(delegations, d.Convert().(rpc.Delegation))
 	}
 	return delegations
 }
@@ -256,8 +259,8 @@ type UnbondingDelegation struct {
 	Balance        sdk.Coin       `json:"balance"`         // atoms to receive at completion
 }
 
-func (ubd UnbondingDelegation) ToSDKResponse() (delegations sdk.UnbondingDelegation) {
-	return sdk.UnbondingDelegation{
+func (ubd UnbondingDelegation) Convert() interface{} {
+	return rpc.UnbondingDelegation{
 		TxHash:         ubd.TxHash,
 		DelegatorAddr:  ubd.DelegatorAddr.String(),
 		ValidatorAddr:  ubd.ValidatorAddr.String(),
@@ -270,11 +273,12 @@ func (ubd UnbondingDelegation) ToSDKResponse() (delegations sdk.UnbondingDelegat
 
 type UnbondingDelegations []UnbondingDelegation
 
-func (ds UnbondingDelegations) ToSDKResponse() (delegations sdk.UnbondingDelegations) {
-	for _, d := range ds {
-		delegations = append(delegations, d.ToSDKResponse())
+func (ubds UnbondingDelegations) Convert() interface{} {
+	uds := make(rpc.UnbondingDelegations, len(ubds))
+	for _, d := range ubds {
+		uds = append(uds, d.Convert().(rpc.UnbondingDelegation))
 	}
-	return delegations
+	return uds
 }
 
 // Redelegation reflects a delegation's passive re-delegation queue.
@@ -290,27 +294,28 @@ type Redelegation struct {
 	SharesDst        sdk.Dec        `json:"shares_dst"`         // amount of destination shares redelegating
 }
 
-func (d Redelegation) ToSDKResponse() sdk.Redelegation {
-	return sdk.Redelegation{
+func (d Redelegation) Convert() interface{} {
+	return rpc.Redelegation{
 		DelegatorAddr:    d.DelegatorAddr.String(),
 		ValidatorSrcAddr: d.ValidatorDstAddr.String(),
 		ValidatorDstAddr: d.ValidatorDstAddr.String(),
 		CreationHeight:   d.CreationHeight,
 		MinTime:          d.MinTime.String(),
-		InitialBalance:   sdk.Coin{},
-		Balance:          sdk.Coin{},
-		SharesSrc:        "",
-		SharesDst:        "",
+		InitialBalance:   d.InitialBalance,
+		Balance:          d.Balance,
+		SharesSrc:        d.SharesSrc.String(),
+		SharesDst:        d.SharesDst.String(),
 	}
 }
 
 type Redelegations []Redelegation
 
-func (ds Redelegations) ToSDKResponse() (delegations sdk.Redelegations) {
+func (ds Redelegations) Convert() interface{} {
+	rds := make(rpc.Redelegations, len(ds))
 	for _, d := range ds {
-		delegations = append(delegations, d.ToSDKResponse())
+		rds = append(rds, d.Convert().(rpc.Redelegation))
 	}
-	return delegations
+	return rds
 }
 
 type Validator struct {
@@ -331,15 +336,15 @@ type Validator struct {
 	Commission Commission `json:"commission"` // commission parameters
 }
 
-func (v Validator) ToSDKResponse() sdk.Validator {
-	return sdk.Validator{
+func (v Validator) Convert() interface{} {
+	return rpc.Validator{
 		OperatorAddress: v.OperatorAddr,
 		ConsensusPubkey: v.ConsPubKey,
 		Jailed:          v.Jailed,
 		Status:          v.Status.String(),
 		Tokens:          v.Tokens,
 		DelegatorShares: v.DelegatorShares,
-		Description: sdk.Description{
+		Description: rpc.Description{
 			Moniker:  v.Description.Moniker,
 			Identity: v.Description.Identity,
 			Website:  v.Description.Website,
@@ -348,7 +353,7 @@ func (v Validator) ToSDKResponse() sdk.Validator {
 		BondHeight:      v.BondHeight,
 		UnbondingHeight: v.UnbondingHeight,
 		UnbondingTime:   v.UnbondingMinTime.String(),
-		Commission: sdk.Commission{
+		Commission: rpc.Commission{
 			Rate:          v.Commission.Rate.String(),
 			MaxRate:       v.Commission.MaxRate.String(),
 			MaxChangeRate: v.Commission.MaxChangeRate.String(),
@@ -359,9 +364,10 @@ func (v Validator) ToSDKResponse() sdk.Validator {
 
 type Validators []Validator
 
-func (vs Validators) ToSDKResponse() (validators sdk.Validators) {
+func (vs Validators) Convert() interface{} {
+	validators := make(rpc.Validators, len(vs))
 	for _, v := range vs {
-		validators = append(validators, v.ToSDKResponse())
+		validators = append(validators, v.Convert().(rpc.Validator))
 	}
 	return validators
 }
@@ -410,8 +416,8 @@ type Pool struct {
 	BondedTokens sdk.Dec `json:"bonded_tokens"` // reserve of bonded tokens
 }
 
-func (p Pool) ToSDKResponse() sdk.StakePool {
-	return sdk.StakePool{
+func (p Pool) Convert() interface{} {
+	return rpc.StakePool{
 		LooseTokens:  p.LooseTokens.String(),
 		BondedTokens: p.BondedTokens.String(),
 	}
@@ -423,8 +429,8 @@ type Params struct {
 	MaxValidators uint16        `json:"max_validators"` // maximum number of validators
 }
 
-func (p Params) ToSDKResponse() sdk.StakeParams {
-	return sdk.StakeParams{
+func (p Params) Convert() interface{} {
+	return rpc.StakeParams{
 		UnbondingTime: p.UnbondingTime.String(),
 		MaxValidators: int(p.MaxValidators),
 	}

@@ -1,10 +1,14 @@
-package types
+package rpc
 
-import "time"
+import (
+	"time"
+
+	"github.com/irisnet/irishub-sdk-go/types"
+)
 
 type Slashing interface {
-	Module
-	Unjail(baseTx BaseTx) (Result, error)
+	types.Module
+	Unjail(baseTx types.BaseTx) (types.Result, error)
 	QueryParams() (SlashingParams, error)
 	QueryValidatorSigningInfo(validatorConPubKey string) (ValidatorSigningInfo, error)
 }

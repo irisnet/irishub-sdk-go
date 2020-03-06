@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/irisnet/irishub-sdk-go/types/rpc"
+
 	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
@@ -113,15 +115,15 @@ const (
 )
 
 // String to proposalType byte.  Returns ff if invalid.
-func VoteOptionFromString(option sdk.VoteOption) (VoteOption, error) {
+func VoteOptionFromString(option rpc.VoteOption) (VoteOption, error) {
 	switch option {
-	case sdk.Yes:
+	case rpc.Yes:
 		return OptionYes, nil
-	case sdk.Abstain:
+	case rpc.Abstain:
 		return OptionAbstain, nil
-	case sdk.No:
+	case rpc.No:
 		return OptionNo, nil
-	case sdk.NoWithVeto:
+	case rpc.NoWithVeto:
 		return OptionNoWithVeto, nil
 	default:
 		return OptionEmpty, errors.New(fmt.Sprintf("'%s' is not a valid vote option", option))
@@ -158,8 +160,8 @@ type TallyResult struct {
 	SystemVotingPower string `json:"system_voting_power"`
 }
 
-func (t TallyResult) ToSDKResponse() sdk.TallyResult {
-	return sdk.TallyResult{
+func (t TallyResult) Convert() interface{} {
+	return rpc.TallyResult{
 		Yes:               t.Yes,
 		Abstain:           t.Abstain,
 		No:                t.No,
@@ -175,8 +177,8 @@ type Vote struct {
 	Option     string         `json:"option"`      //  option from OptionSet chosen by the voter
 }
 
-func (v Vote) ToSDKResponse() sdk.Vote {
-	return sdk.Vote{
+func (v Vote) Convert() interface{} {
+	return rpc.Vote{
 		Voter:      v.Voter.String(),
 		ProposalID: v.ProposalID,
 		Option:     v.Option,
@@ -185,13 +187,10 @@ func (v Vote) ToSDKResponse() sdk.Vote {
 
 type Votes []Vote
 
-func (vs Votes) ToSDKResponse() (votes []sdk.Vote) {
+func (vs Votes) Convert() interface{} {
+	votes := make([]rpc.Vote, len(vs))
 	for _, v := range vs {
-		votes = append(votes, sdk.Vote{
-			Voter:      v.Voter.String(),
-			ProposalID: v.ProposalID,
-			Option:     v.Option,
-		})
+		votes = append(votes, v.Convert().(rpc.Vote))
 	}
 	return votes
 }
@@ -203,8 +202,8 @@ type Deposit struct {
 	Amount     sdk.Coins      `json:"amount"`      //  Deposit amount
 }
 
-func (d Deposit) ToSDKResponse() sdk.Deposit {
-	return sdk.Deposit{
+func (d Deposit) Convert() interface{} {
+	return rpc.Deposit{
 		Depositor:  d.Depositor.String(),
 		ProposalID: d.ProposalID,
 		Amount:     d.Amount,
@@ -213,13 +212,10 @@ func (d Deposit) ToSDKResponse() sdk.Deposit {
 
 type Deposits []Deposit
 
-func (ds Deposits) ToSDKResponse() (deposits []sdk.Deposit) {
+func (ds Deposits) Convert() interface{} {
+	deposits := make([]rpc.Deposit, len(ds))
 	for _, d := range ds {
-		deposits = append(deposits, sdk.Deposit{
-			Depositor:  d.Depositor.String(),
-			ProposalID: d.ProposalID,
-			Amount:     d.Amount,
-		})
+		deposits = append(deposits, d.Convert().(rpc.Deposit))
 	}
 	return deposits
 }

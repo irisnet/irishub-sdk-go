@@ -9,9 +9,9 @@
 package slashing
 
 import (
-	"fmt"
-
 	"github.com/tendermint/tendermint/crypto"
+
+	"github.com/irisnet/irishub-sdk-go/types/rpc"
 
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -22,7 +22,7 @@ type slashingClient struct {
 	*log.Logger
 }
 
-func New(ac sdk.AbstractClient) sdk.Slashing {
+func New(ac sdk.AbstractClient) rpc.Slashing {
 	return slashingClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
@@ -44,15 +44,15 @@ func (s slashingClient) Unjail(baseTx sdk.BaseTx) (sdk.Result, error) {
 }
 
 //QueryParams return parameter for slashing at genesis
-func (s slashingClient) QueryParams() (sdk.SlashingParams, error) {
+func (s slashingClient) QueryParams() (rpc.SlashingParams, error) {
 	return s.queryParamsV017()
 }
 
 //QueryValidatorSigningInfo return the specified validator sign information
-func (s slashingClient) QueryValidatorSigningInfo(validatorConPubKey string) (sdk.ValidatorSigningInfo, error) {
+func (s slashingClient) QueryValidatorSigningInfo(validatorConPubKey string) (rpc.ValidatorSigningInfo, error) {
 	pk, err := sdk.GetConsPubKeyBech32(validatorConPubKey)
 	if err != nil {
-		return sdk.ValidatorSigningInfo{}, err
+		return rpc.ValidatorSigningInfo{}, err
 	}
 	return s.querySigningInfoV017(pk)
 }
@@ -65,7 +65,7 @@ func (s slashingClient) Name() string {
 	return ModuleName
 }
 
-func (s slashingClient) queryParamsV017() (sdk.SlashingParams, error) {
+func (s slashingClient) queryParamsV017() (rpc.SlashingParams, error) {
 	param := struct {
 		Module string
 	}{
@@ -73,45 +73,36 @@ func (s slashingClient) queryParamsV017() (sdk.SlashingParams, error) {
 	}
 
 	var params ParamsV017
-	err := s.Query("custom/params/module", param, &params)
-	if err != nil {
-		return sdk.SlashingParams{}, err
+	if err := s.Query("custom/params/module", param, &params); err != nil {
+		return rpc.SlashingParams{}, err
 	}
-	return sdk.SlashingParams{
-		MaxEvidenceAge:          fmt.Sprintf("%d", params.MaxEvidenceAge),
-		SignedBlocksWindow:      params.SignedBlocksWindow,
-		MinSignedPerWindow:      params.MinSignedPerWindow.String(),
-		DoubleSignJailDuration:  params.DoubleSignJailDuration.String(),
-		DowntimeJailDuration:    params.DowntimeJailDuration.String(),
-		SlashFractionDoubleSign: params.SlashFractionDoubleSign.String(),
-		SlashFractionDowntime:   params.SlashFractionDowntime.String(),
-	}, nil
+	return params.Convert().(rpc.SlashingParams), nil
 }
 
-func (s slashingClient) queryParamsV100() (sdk.SlashingParams, error) {
+func (s slashingClient) queryParamsV100() (rpc.SlashingParams, error) {
 	var params Params
 	err := s.Query("custom/%s/parameters", s.Name(), &params)
 	if err != nil {
-		return sdk.SlashingParams{}, err
+		return rpc.SlashingParams{}, err
 	}
-	return params.ToSDKResponse(), nil
+	return params.Convert().(rpc.SlashingParams), nil
 }
 
-func (s slashingClient) querySigningInfoV017(pk crypto.PubKey) (sdk.ValidatorSigningInfo, error) {
+func (s slashingClient) querySigningInfoV017(pk crypto.PubKey) (rpc.ValidatorSigningInfo, error) {
 	key := append([]byte{0x01}, pk.Bytes()...)
 	res, err := s.QueryStore(key, s.Name())
 	if err != nil {
-		return sdk.ValidatorSigningInfo{}, err
+		return rpc.ValidatorSigningInfo{}, err
 	}
 
 	var signingInfo ValidatorSigningInfoV017
 	err = cdc.UnmarshalBinaryLengthPrefixed(res, &signingInfo)
 	if err != nil {
-		return sdk.ValidatorSigningInfo{}, err
+		return rpc.ValidatorSigningInfo{}, err
 	}
 
 	consAddr := sdk.ConsAddress(pk.Address())
-	return sdk.ValidatorSigningInfo{
+	return rpc.ValidatorSigningInfo{
 		Address:             consAddr.String(),
 		StartHeight:         signingInfo.StartHeight,
 		IndexOffset:         signingInfo.IndexOffset,
@@ -121,7 +112,7 @@ func (s slashingClient) querySigningInfoV017(pk crypto.PubKey) (sdk.ValidatorSig
 	}, nil
 }
 
-func (s slashingClient) querySigningInfoV100(pk crypto.PubKey) (sdk.ValidatorSigningInfo, error) {
+func (s slashingClient) querySigningInfoV100(pk crypto.PubKey) (rpc.ValidatorSigningInfo, error) {
 	consAddr := sdk.ConsAddress(pk.Address())
 	param := struct {
 		ConsAddress sdk.ConsAddress
@@ -132,7 +123,7 @@ func (s slashingClient) querySigningInfoV100(pk crypto.PubKey) (sdk.ValidatorSig
 	var signingInfo ValidatorSigningInfo
 	err := s.Query("custom/slashing/signingInfo", param, &signingInfo)
 	if err != nil {
-		return sdk.ValidatorSigningInfo{}, err
+		return rpc.ValidatorSigningInfo{}, err
 	}
-	return signingInfo.ToSDKResponse(), err
+	return signingInfo.Convert().(rpc.ValidatorSigningInfo), err
 }

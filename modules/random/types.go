@@ -3,6 +3,8 @@ package random
 import (
 	"errors"
 
+	"github.com/irisnet/irishub-sdk-go/types/rpc"
+
 	cmn "github.com/tendermint/tendermint/libs/common"
 
 	"github.com/irisnet/irishub-sdk-go/tools/json"
@@ -65,23 +67,23 @@ type Rand struct {
 	Value         string `json:"value"`           // the actual random number
 }
 
-func (r Rand) toSDKRequest() sdk.RandomInfo {
-	return sdk.RandomInfo{
+func (r Rand) Convert() interface{} {
+	return rpc.RandomInfo{
 		RequestTxHash: cmn.HexBytes(r.RequestTxHash).String(),
 		Height:        r.Height,
 		RandomNum:     r.Value,
 	}
 }
 
-// Request represents a request for a random number
+// RequestService represents a request for a random number
 type Request struct {
 	Height   int64          `json:"height"`   // the height of the block in which the request tx is included
 	Consumer sdk.AccAddress `json:"consumer"` // the request address
 	TxHash   []byte         `json:"txhash"`   // the request tx hash
 }
 
-func (r Request) toSDKRequest() sdk.RequestRandom {
-	return sdk.RequestRandom{
+func (r Request) Convert() interface{} {
+	return rpc.RequestRandom{
 		Height:   r.Height,
 		Consumer: r.Consumer.String(),
 		TxHash:   cmn.HexBytes(r.TxHash).String(),
@@ -90,13 +92,10 @@ func (r Request) toSDKRequest() sdk.RequestRandom {
 
 type Requests []Request
 
-func (rs Requests) toSDKRequest() (requests []sdk.RequestRandom) {
+func (rs Requests) Convert() interface{} {
+	var requests = make([]rpc.RequestRandom, len(rs))
 	for _, r := range rs {
-		requests = append(requests, sdk.RequestRandom{
-			Height:   r.Height,
-			Consumer: r.Consumer.String(),
-			TxHash:   cmn.HexBytes(r.TxHash).String(),
-		})
+		requests = append(requests, r.Convert().(rpc.RequestRandom))
 	}
 	return requests
 }
@@ -105,5 +104,5 @@ func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgRequestRand{}, "irishub/rand/MsgRequestRand")
 
 	cdc.RegisterConcrete(&Rand{}, "irishub/rand/Rand")
-	cdc.RegisterConcrete(&Request{}, "irishub/rand/Request")
+	cdc.RegisterConcrete(&Request{}, "irishub/rand/RequestService")
 }

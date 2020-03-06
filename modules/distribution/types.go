@@ -3,6 +3,8 @@ package distribution
 import (
 	"errors"
 
+	"github.com/irisnet/irishub-sdk-go/types/rpc"
+
 	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
@@ -168,19 +170,20 @@ type Rewards struct {
 	Commission  sdk.Coins            `json:"commission"`
 }
 
-func (r Rewards) toSDKResponse() (rewards sdk.Rewards) {
-	rewards.Total = r.Total
-	rewards.Commission = r.Commission
+func (r Rewards) Convert() interface{} {
 
-	var delegations []sdk.DelegationRewards
+	var delegations []rpc.DelegationRewards
 	for _, d := range r.Delegations {
-		delegations = append(delegations, sdk.DelegationRewards{
+		delegations = append(delegations, rpc.DelegationRewards{
 			Validator: d.Validator.String(),
 			Reward:    d.Reward,
 		})
 	}
-	rewards.Delegations = delegations
-	return
+	return rpc.Rewards{
+		Total:       r.Total,
+		Commission:  r.Commission,
+		Delegations: delegations,
+	}
 }
 
 type DelegationsRewards struct {

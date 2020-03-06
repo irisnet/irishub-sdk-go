@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/irisnet/irishub-sdk-go/types/rpc"
+
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 
 	"github.com/pkg/errors"
@@ -22,7 +24,7 @@ type bankClient struct {
 	*log.Logger
 }
 
-func New(ac types.AbstractClient) types.Bank {
+func New(ac types.AbstractClient) rpc.Bank {
 	return bankClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
@@ -43,7 +45,7 @@ func (b bankClient) QueryAccount(address string) (types.BaseAccount, error) {
 }
 
 // GetTokenStats return token statistic, including total loose tokens, total burned tokens and total bonded tokens.
-func (b bankClient) QueryTokenStats(tokenID string) (result types.TokenStats, err error) {
+func (b bankClient) QueryTokenStats(tokenID string) (result rpc.TokenStats, err error) {
 	param := struct {
 		TokenId string
 	}{
@@ -96,7 +98,7 @@ func (b bankClient) SetMemoRegexp(memoRegexp string, baseTx types.BaseTx) (types
 }
 
 //SubscribeSendTx Subscribe MsgSend event and return subscription
-func (b bankClient) SubscribeSendTx(from, to string, callback types.EventMsgSendCallback) types.Subscription {
+func (b bankClient) SubscribeSendTx(from, to string, callback rpc.EventMsgSendCallback) types.Subscription {
 	var builder = types.NewEventQueryBuilder()
 
 	from = strings.TrimSpace(from)
@@ -113,7 +115,7 @@ func (b bankClient) SubscribeSendTx(from, to string, callback types.EventMsgSend
 		for _, msg := range data.Tx.Msgs {
 			if value, ok := msg.(MsgSend); ok {
 				for i, m := range value.Inputs {
-					callback(types.EventDataMsgSend{
+					callback(rpc.EventDataMsgSend{
 						Height: data.Height,
 						Hash:   data.Hash,
 						From:   m.Address.String(),

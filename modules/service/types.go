@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/irisnet/irishub-sdk-go/types/rpc"
+
 	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
@@ -680,8 +682,8 @@ type Definition struct {
 	Schemas           string         `json:"schemas"`
 }
 
-func (r Definition) toSDKDefinition() sdk.ServiceDefinition {
-	return sdk.ServiceDefinition{
+func (r Definition) Convert() interface{} {
+	return rpc.ServiceDefinition{
 		Name:              r.Name,
 		Description:       r.Description,
 		Tags:              r.Tags,
@@ -702,29 +704,30 @@ type Binding struct {
 	DisabledTime    time.Time      `json:"disabled_time"`
 }
 
-func (r Binding) toSDKBinding() sdk.ServiceBinding {
-	return sdk.ServiceBinding{
-		ServiceName:     r.ServiceName,
-		Provider:        r.Provider,
-		Deposit:         r.Deposit,
-		Pricing:         r.Pricing,
-		WithdrawAddress: r.WithdrawAddress,
-		Available:       r.Available,
-		DisabledTime:    r.DisabledTime,
+func (b Binding) Convert() interface{} {
+	return rpc.ServiceBinding{
+		ServiceName:     b.ServiceName,
+		Provider:        b.Provider,
+		Deposit:         b.Deposit,
+		Pricing:         b.Pricing,
+		WithdrawAddress: b.WithdrawAddress,
+		Available:       b.Available,
+		DisabledTime:    b.DisabledTime,
 	}
 
 }
 
 type Bindings []Binding
 
-func (rs Bindings) toSDKBindings() (bindings []sdk.ServiceBinding) {
-	for _, binding := range rs {
-		bindings = append(bindings, binding.toSDKBinding())
+func (bs Bindings) Convert() interface{} {
+	bindings := make([]rpc.ServiceBinding, len(bs))
+	for _, binding := range bs {
+		bindings = append(bindings, binding.Convert().(rpc.ServiceBinding))
 	}
-	return
+	return bindings
 }
 
-// Request defines a request which contains the detailed request data
+// RequestService defines a request which contains the detailed request data
 type Request struct {
 	ServiceName                string         `json:"service_name"`
 	Provider                   sdk.AccAddress `json:"provider"`
@@ -738,8 +741,8 @@ type Request struct {
 	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
 }
 
-func (r Request) toSDKRequest() sdk.Request {
-	return sdk.Request{
+func (r Request) Convert() interface{} {
+	return rpc.RequestService{
 		ServiceName:                r.ServiceName,
 		Provider:                   r.Provider,
 		Consumer:                   r.Consumer,
@@ -748,21 +751,22 @@ func (r Request) toSDKRequest() sdk.Request {
 		SuperMode:                  r.SuperMode,
 		RequestHeight:              r.RequestHeight,
 		ExpirationHeight:           r.ExpirationHeight,
-		RequestContextID:           sdk.RequestContextIDToString(r.RequestContextID),
+		RequestContextID:           rpc.RequestContextIDToString(r.RequestContextID),
 		RequestContextBatchCounter: r.RequestContextBatchCounter,
 	}
 }
 
 type Requests []Request
 
-func (rs Requests) toSDKRequests() (requests []sdk.Request) {
+func (rs Requests) Convert() interface{} {
+	requests := make([]rpc.RequestService, len(rs))
 	for _, request := range rs {
-		requests = append(requests, request.toSDKRequest())
+		requests = append(requests, request.Convert().(rpc.RequestService))
 	}
-	return
+	return requests
 }
 
-// Response defines a response
+// ServiceResponse defines a response
 type Response struct {
 	Provider                   sdk.AccAddress `json:"provider"`
 	Consumer                   sdk.AccAddress `json:"consumer"`
@@ -772,24 +776,25 @@ type Response struct {
 	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
 }
 
-func (r Response) toSDKResponse() sdk.Response {
-	return sdk.Response{
+func (r Response) Convert() interface{} {
+	return rpc.ServiceResponse{
 		Provider:                   r.Provider,
 		Consumer:                   r.Consumer,
 		Output:                     r.Output,
 		Error:                      r.Error,
-		RequestContextID:           sdk.RequestContextIDToString(r.RequestContextID),
+		RequestContextID:           rpc.RequestContextIDToString(r.RequestContextID),
 		RequestContextBatchCounter: r.RequestContextBatchCounter,
 	}
 }
 
 type Responses []Response
 
-func (rs Responses) toSDKResponses() (responses []sdk.Response) {
+func (rs Responses) Convert() interface{} {
+	responses := make([]rpc.ServiceResponse, len(rs))
 	for _, response := range rs {
-		responses = append(responses, response.toSDKResponse())
+		responses = append(responses, response.Convert().(rpc.ServiceResponse))
 	}
-	return
+	return responses
 }
 
 // RequestContext defines a context which holds request-related data
@@ -813,8 +818,8 @@ type RequestContext struct {
 	ModuleName         string           `json:"module_name"`
 }
 
-func (r RequestContext) toSDKRequestContext() sdk.RequestContext {
-	return sdk.RequestContext{
+func (r RequestContext) Convert() interface{} {
+	return rpc.RequestContext{
 		ServiceName:        r.ServiceName,
 		Providers:          r.Providers,
 		Consumer:           r.Consumer,
@@ -841,8 +846,8 @@ type EarnedFees struct {
 	Coins   sdk.Coins      `json:"coins"`
 }
 
-func (e EarnedFees) toSDKEarnedFees() sdk.EarnedFees {
-	return sdk.EarnedFees{
+func (e EarnedFees) Convert() interface{} {
+	return rpc.EarnedFees{
 		Address: e.Address,
 		Coins:   e.Coins,
 	}
@@ -868,7 +873,7 @@ func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(Definition{}, "irishub/service/ServiceDefinition")
 	cdc.RegisterConcrete(Binding{}, "irishub/service/ServiceBinding")
 	cdc.RegisterConcrete(RequestContext{}, "irishub/service/RequestContext")
-	cdc.RegisterConcrete(Request{}, "irishub/service/Request")
-	cdc.RegisterConcrete(Response{}, "irishub/service/Response")
+	cdc.RegisterConcrete(Request{}, "irishub/service/RequestService")
+	cdc.RegisterConcrete(Response{}, "irishub/service/ServiceResponse")
 	cdc.RegisterConcrete(EarnedFees{}, "irishub/service/EarnedFees")
 }

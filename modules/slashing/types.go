@@ -2,7 +2,10 @@ package slashing
 
 import (
 	"errors"
+	"fmt"
 	"time"
+
+	"github.com/irisnet/irishub-sdk-go/types/rpc"
 
 	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -62,6 +65,18 @@ type ParamsV017 struct {
 	SlashFractionCensorship sdk.Dec       `json:"slash_fraction_censorship"`
 }
 
+func (p ParamsV017) Convert() interface{} {
+	return rpc.SlashingParams{
+		MaxEvidenceAge:          fmt.Sprintf("%d", p.MaxEvidenceAge),
+		SignedBlocksWindow:      p.SignedBlocksWindow,
+		MinSignedPerWindow:      p.MinSignedPerWindow.String(),
+		DoubleSignJailDuration:  p.DoubleSignJailDuration.String(),
+		DowntimeJailDuration:    p.DowntimeJailDuration.String(),
+		SlashFractionDoubleSign: p.SlashFractionDoubleSign.String(),
+		SlashFractionDowntime:   p.SlashFractionDowntime.String(),
+	}
+}
+
 // Params - used for initializing default parameter for slashing at genesis
 type Params struct {
 	MaxEvidenceAge          time.Duration `json:"max_evidence_age"`
@@ -72,8 +87,8 @@ type Params struct {
 	SlashFractionDowntime   sdk.Dec       `json:"slash_fraction_downtime"`
 }
 
-func (params Params) ToSDKResponse() sdk.SlashingParams {
-	return sdk.SlashingParams{
+func (params Params) Convert() interface{} {
+	return rpc.SlashingParams{
 		MaxEvidenceAge:          params.MaxEvidenceAge.String(),
 		SignedBlocksWindow:      params.SignedBlocksWindow,
 		MinSignedPerWindow:      params.MinSignedPerWindow.String(),
@@ -101,14 +116,14 @@ type ValidatorSigningInfo struct {
 	MissedBlocksCounter int64           `json:"missed_blocks_counter"` // missed blocks counter (to avoid scanning the array every time)
 }
 
-func (signingInfo ValidatorSigningInfo) ToSDKResponse() sdk.ValidatorSigningInfo {
-	return sdk.ValidatorSigningInfo{
-		Address:             signingInfo.Address.String(),
-		StartHeight:         signingInfo.StartHeight,
-		IndexOffset:         signingInfo.IndexOffset,
-		JailedUntil:         signingInfo.JailedUntil,
-		Tombstoned:          signingInfo.Tombstoned,
-		MissedBlocksCounter: signingInfo.MissedBlocksCounter,
+func (vsi ValidatorSigningInfo) Convert() interface{} {
+	return rpc.ValidatorSigningInfo{
+		Address:             vsi.Address.String(),
+		StartHeight:         vsi.StartHeight,
+		IndexOffset:         vsi.IndexOffset,
+		JailedUntil:         vsi.JailedUntil,
+		Tombstoned:          vsi.Tombstoned,
+		MissedBlocksCounter: vsi.MissedBlocksCounter,
 	}
 }
 

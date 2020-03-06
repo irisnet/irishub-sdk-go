@@ -3,6 +3,8 @@ package gov_test
 import (
 	"testing"
 
+	"github.com/irisnet/irishub-sdk-go/types/rpc"
+
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -40,7 +42,7 @@ func (gts *GovTestSuite) TestDeposit() {
 	require.NoError(gts.T(), err)
 	require.Equal(gts.T(), proposalID, proposal.GetProposalID())
 
-	proposals, err := gts.Gov().QueryProposals(sdk.ProposalRequest{
+	proposals, err := gts.Gov().QueryProposals(rpc.ProposalRequest{
 		Depositor: gts.Sender().String(),
 	})
 	require.NoError(gts.T(), err)
@@ -58,7 +60,7 @@ func (gts *GovTestSuite) TestDeposit() {
 	require.NoError(gts.T(), err)
 	require.NotEmpty(gts.T(), ds)
 
-	rs, err = gts.Gov().Vote(proposalID, sdk.Yes, baseTx)
+	rs, err = gts.Gov().Vote(proposalID, rpc.Yes, baseTx)
 	require.NoError(gts.T(), err)
 	require.True(gts.T(), rs.IsSuccess())
 

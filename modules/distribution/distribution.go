@@ -3,6 +3,7 @@ package distribution
 import (
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/types/rpc"
 )
 
 type distributionClient struct {
@@ -18,17 +19,17 @@ func (d distributionClient) Name() string {
 	return ModuleName
 }
 
-func New(ac sdk.AbstractClient) sdk.Distribution {
+func New(ac sdk.AbstractClient) rpc.Distribution {
 	return distributionClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
 	}
 }
 
-func (d distributionClient) QueryRewards(delegator string) (sdk.Rewards, error) {
+func (d distributionClient) QueryRewards(delegator string) (rpc.Rewards, error) {
 	address, err := sdk.AccAddressFromBech32(delegator)
 	if err != nil {
-		return sdk.Rewards{}, err
+		return rpc.Rewards{}, err
 	}
 
 	param := struct {
@@ -38,11 +39,10 @@ func (d distributionClient) QueryRewards(delegator string) (sdk.Rewards, error) 
 	}
 
 	var rewards Rewards
-	err = d.Query("custom/distr/rewards", param, &rewards)
-	if err != nil {
-		return sdk.Rewards{}, err
+	if err = d.Query("custom/distr/rewards", param, &rewards); err != nil {
+		return rpc.Rewards{}, err
 	}
-	return rewards.toSDKResponse(), nil
+	return rewards.Convert().(rpc.Rewards), nil
 }
 
 func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.BaseTx) (sdk.Result, error) {
