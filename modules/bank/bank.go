@@ -25,8 +25,16 @@ type bankClient struct {
 func New(ac types.AbstractClient) types.Bank {
 	return bankClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger(),
+		Logger:         ac.Logger().With(ModuleName),
 	}
+}
+
+func (b bankClient) RegisterCodec(cdc types.Codec) {
+	registerCodec(cdc)
+}
+
+func (b bankClient) Name() string {
+	return ModuleName
 }
 
 // QueryAccount return account information specified address

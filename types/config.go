@@ -32,13 +32,14 @@ type SDKConfig struct {
 	Level string
 }
 
-type SDKClient interface {
-	Bank
-	Service
-	Oracle
-	WSClient
-	Staking
-}
+//type SDKClient interface {
+//	Bank
+//	Service
+//	Oracle
+//	WSClient
+//	Staking
+//	Distribution
+//}
 
 type KeyStore interface {
 	GetPrivate() string

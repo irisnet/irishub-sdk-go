@@ -5,6 +5,7 @@ import (
 )
 
 type Oracle interface {
+	Module
 	OracleTx
 	OracleQuery
 }

@@ -1,7 +1,7 @@
 package sim
 
 import (
-	sdk "github.com/irisnet/irishub-sdk-go/client"
+	"github.com/irisnet/irishub-sdk-go/client"
 	"github.com/irisnet/irishub-sdk-go/crypto"
 	"github.com/irisnet/irishub-sdk-go/types"
 )
@@ -23,8 +23,8 @@ var (
 )
 
 type TestClient struct {
-	types.SDKClient
 	sender types.AccAddress
+	client.SDKClient
 }
 
 func NewClient() TestClient {
@@ -39,7 +39,7 @@ func NewClient() TestClient {
 	}
 	addr = types.AccAddress(keyManager.GetPrivKey().PubKey().Address()).String()
 
-	client := sdk.NewSDKClient(types.SDKConfig{
+	client := client.NewSDKClient(types.SDKConfig{
 		NodeURI:   NodeURI,
 		Network:   Network,
 		ChainID:   ChainID,

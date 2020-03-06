@@ -33,6 +33,7 @@ type StakingSubscriber interface {
 }
 
 type Staking interface {
+	Module
 	StakingTx
 	StakingQueries
 	StakingSubscriber

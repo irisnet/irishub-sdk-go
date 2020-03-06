@@ -2,22 +2,21 @@ package oracle_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/irisnet/irishub-sdk-go/sim"
+	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type OracleTestSuite struct {
 	suite.Suite
 	sim.TestClient
-	log.Logger
+	*log.Logger
 	serviceName string
 	baseTx      sdk.BaseTx
 }
@@ -28,7 +27,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (ots *OracleTestSuite) SetupTest() {
 	ots.TestClient = sim.NewClient()
-	ots.Logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
+	ots.Logger = log.NewLogger("info")
 }
 
 func (ots *OracleTestSuite) SetupService() {
@@ -54,25 +53,26 @@ func (ots *OracleTestSuite) SetupService() {
 		Schemas:           schemas,
 	}
 
-	result, err := ots.DefineService(definition)
+	result, err := ots.Service().DefineService(definition)
 	require.NoError(ots.T(), err)
 	require.True(ots.T(), result.IsSuccess())
 
 	deposit, _ := sdk.ParseCoins("20000000000000000000000iris-atto")
 	binding := sdk.ServiceBindingRequest{
-		BaseTx:       baseTx,
-		ServiceName:  definition.ServiceName,
-		Deposit:      deposit,
-		Pricing:      pricing,
-		WithdrawAddr: "",
+		BaseTx:      baseTx,
+		ServiceName: definition.ServiceName,
+		Deposit:     deposit,
+		Pricing:     pricing,
 	}
-	result, err = ots.BindService(binding)
+	result, err = ots.Service().BindService(binding)
 	require.NoError(ots.T(), err)
 	require.True(ots.T(), result.IsSuccess())
 
-	err = ots.RegisterSingleServiceListener(serviceName,
+	err = ots.Service().RegisterSingleServiceListener(serviceName,
 		func(input string) (string, string) {
-			ots.Info("Service received request", "input", input, "output", output)
+			ots.Info().Str("input", input).
+				Str("output", output).
+				Msg("Service received request")
 			return output, ""
 		}, baseTx)
 
@@ -101,27 +101,31 @@ func (ots *OracleTestSuite) TestFeed() {
 		Timeout:           3,
 		ServiceFeeCap:     serviceFeeCap,
 		RepeatedFrequency: 5,
-		RepeatedTotal:     -1,
+		RepeatedTotal:     2,
 		AggregateFunc:     "avg",
 		ValueJsonPath:     "last",
 		ResponseThreshold: 1,
 	}
-	result, err := ots.CreateFeed(createFeedReq)
+	result, err := ots.Oracle().CreateFeed(createFeedReq)
 	require.NoError(ots.T(), err)
 	require.True(ots.T(), result.IsSuccess())
 
-	_, err = ots.QueryFeed(feedName)
+	_, err = ots.Oracle().QueryFeed(feedName)
 	require.NoError(ots.T(), err)
 
-	result, err = ots.StartFeed(feedName, ots.baseTx)
+	result, err = ots.Oracle().StartFeed(feedName, ots.baseTx)
 	require.NoError(ots.T(), err)
 	require.True(ots.T(), result.IsSuccess())
 
-	execTimer(func() {
-		result, err := ots.QueryFeedValue(feedName)
+	for {
+		result, err := ots.Oracle().QueryFeedValue(feedName)
 		require.NoError(ots.T(), err)
-		ots.Info("Query feed value", "feedName", feedName, "result", result)
-	})
+		if len(result) == int(createFeedReq.RepeatedTotal) {
+			goto stop
+		}
+	}
+stop:
+	ots.Info().Msg("test feed success")
 }
 
 func generateServiceName() string {
@@ -132,10 +136,11 @@ func generateFeedName(serviceName string) string {
 	return fmt.Sprintf("feed-%s", serviceName)
 }
 
-func execTimer(call func()) {
+func execTimer(call func()) *time.Ticker {
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
 	for range ticker.C {
 		call()
 	}
+	return ticker
 }

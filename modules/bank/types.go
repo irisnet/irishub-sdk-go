@@ -10,7 +10,10 @@ import (
 	"github.com/irisnet/irishub-sdk-go/types"
 )
 
-const memoRegexpLengthLimit = 50
+const (
+	memoRegexpLengthLimit = 50
+	ModuleName            = "bank"
+)
 
 var (
 	_ types.Msg = MsgSend{}
@@ -21,7 +24,7 @@ var (
 )
 
 func init() {
-	RegisterCodec(cdc)
+	registerCodec(cdc)
 }
 
 // defines the params for query: "custom/acc/account"
@@ -273,7 +276,7 @@ func (msg MsgSetMemoRegexp) GetSigners() []types.AccAddress {
 	return []types.AccAddress{msg.Owner}
 }
 
-func RegisterCodec(cdc types.Codec) {
+func registerCodec(cdc types.Codec) {
 	cdc.RegisterConcrete(MsgSend{}, "irishub/bank/Send")
 	cdc.RegisterConcrete(MsgBurn{}, "irishub/bank/Burn")
 	cdc.RegisterConcrete(MsgSetMemoRegexp{}, "irishub/bank/SetMemoRegexp")

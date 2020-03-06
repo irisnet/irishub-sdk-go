@@ -10,10 +10,18 @@ type serviceClient struct {
 	*log.Logger
 }
 
+func (s serviceClient) RegisterCodec(cdc sdk.Codec) {
+	registerCodec(cdc)
+}
+
+func (s serviceClient) Name() string {
+	return ModuleName
+}
+
 func New(ac sdk.AbstractClient) sdk.Service {
 	return serviceClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger().With("service"),
+		Logger:         ac.Logger().With(ModuleName),
 	}
 }
 
@@ -41,20 +49,11 @@ func (s serviceClient) BindService(request sdk.ServiceBindingRequest) (sdk.Resul
 		return nil, err
 	}
 
-	var withdrawAddress sdk.AccAddress
-	if len(request.WithdrawAddr) > 0 {
-		withdrawAddress, err = sdk.AccAddressFromBech32(request.WithdrawAddr)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	msg := MsgBindService{
-		ServiceName:     request.ServiceName,
-		Provider:        provider,
-		Deposit:         request.Deposit,
-		Pricing:         request.Pricing,
-		WithdrawAddress: withdrawAddress,
+		ServiceName: request.ServiceName,
+		Provider:    provider,
+		Deposit:     request.Deposit,
+		Pricing:     request.Pricing,
 	}
 	return s.Broadcast(request.BaseTx, []sdk.Msg{msg})
 }
@@ -527,11 +526,15 @@ func (s serviceClient) QueryRequestContext(requestContextID string) (result sdk.
 }
 
 //QueryFees return the earned fees for a provider
-func (s serviceClient) QueryFees(provider sdk.AccAddress) (result sdk.EarnedFees, err error) {
+func (s serviceClient) QueryFees(provider string) (result sdk.EarnedFees, err error) {
+	address, err := sdk.AccAddressFromBech32(provider)
+	if err != nil {
+		return result, err
+	}
 	param := struct {
 		Address sdk.AccAddress
 	}{
-		Address: provider,
+		Address: address,
 	}
 
 	var fee EarnedFees

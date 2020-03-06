@@ -57,10 +57,11 @@ type ServiceQuery interface {
 	QueryResponses(requestContextID string, batchCounter uint64) ([]Response, error)
 
 	QueryRequestContext(requestContextID string) (RequestContext, error)
-	QueryFees(provider AccAddress) (EarnedFees, error)
+	QueryFees(provider string) (EarnedFees, error)
 }
 
 type Service interface {
+	Module
 	ServiceTx
 	ServiceQuery
 }
@@ -114,10 +115,9 @@ type ServiceDefinition struct {
 
 type ServiceBindingRequest struct {
 	BaseTx
-	ServiceName  string `json:"service_name"`
-	Deposit      Coins  `json:"deposit"`
-	Pricing      string `json:"pricing"`
-	WithdrawAddr string `json:"withdraw_addr"`
+	ServiceName string `json:"service_name"`
+	Deposit     Coins  `json:"deposit"`
+	Pricing     string `json:"pricing"`
 }
 
 // UpdateServiceBindingRequest defines a message to update a service binding

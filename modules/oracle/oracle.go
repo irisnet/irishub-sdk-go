@@ -10,10 +10,18 @@ type oracleClient struct {
 	*log.Logger
 }
 
+func (o oracleClient) RegisterCodec(cdc sdk.Codec) {
+	registerCodec(cdc)
+}
+
+func (o oracleClient) Name() string {
+	return ModuleName
+}
+
 func New(ac sdk.AbstractClient) sdk.Oracle {
 	return oracleClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger(),
+		Logger:         ac.Logger().With(ModuleName),
 	}
 }
 
