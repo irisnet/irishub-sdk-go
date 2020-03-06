@@ -70,6 +70,42 @@ func (o oracleClient) StartFeed(feedName string, baseTx sdk.BaseTx) (result sdk.
 	return o.Broadcast(baseTx, []sdk.Msg{msg})
 }
 
+//CreateAndStartFeed create and start a stopped feed
+func (o oracleClient) CreateAndStartFeed(request sdk.FeedCreateRequest) (result sdk.Result, err error) {
+	creator, err := o.QueryAddress(request.From, request.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	var providers []sdk.AccAddress
+	for _, provider := range request.Providers {
+		providers = append(providers, sdk.MustAccAddressFromBech32(provider))
+	}
+
+	msgCreateFeed := MsgCreateFeed{
+		FeedName:          request.FeedName,
+		LatestHistory:     request.LatestHistory,
+		Description:       request.Description,
+		Creator:           creator,
+		ServiceName:       request.ServiceName,
+		Providers:         providers,
+		Input:             request.Input,
+		Timeout:           request.Timeout,
+		ServiceFeeCap:     request.ServiceFeeCap,
+		RepeatedFrequency: request.RepeatedFrequency,
+		RepeatedTotal:     request.RepeatedTotal,
+		AggregateFunc:     request.AggregateFunc,
+		ValueJsonPath:     request.ValueJsonPath,
+		ResponseThreshold: request.ResponseThreshold,
+	}
+
+	msgStartFeed := MsgStartFeed{
+		FeedName: request.FeedName,
+		Creator:  creator,
+	}
+	return o.Broadcast(request.BaseTx, []sdk.Msg{msgCreateFeed, msgStartFeed})
+}
+
 //PauseFeed pause a running feed
 func (o oracleClient) PauseFeed(feedName string, baseTx sdk.BaseTx) (result sdk.Result, err error) {
 	creator, err := o.QueryAddress(baseTx.From, baseTx.Password)
