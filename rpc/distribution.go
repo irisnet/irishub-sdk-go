@@ -1,23 +1,23 @@
 package rpc
 
 import (
-	"github.com/irisnet/irishub-sdk-go/types"
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type Distribution interface {
-	types.Module
+	sdk.Module
 	QueryRewards(delegator string) (Rewards, error)
-	SetWithdrawAddr(withdrawAddr string, baseTx types.BaseTx) (types.Result, error)
-	WithdrawRewards(isValidator bool, onlyFromValidator string, baseTx types.BaseTx) (types.Result, error)
+	SetWithdrawAddr(withdrawAddr string, baseTx sdk.BaseTx) (sdk.Result, error)
+	WithdrawRewards(isValidator bool, onlyFromValidator string, baseTx sdk.BaseTx) (sdk.Result, error)
 }
 
 type Rewards struct {
-	Total       types.Coins         `json:"total"`
+	Total       sdk.Coins           `json:"total"`
 	Delegations []DelegationRewards `json:"delegations"`
-	Commission  types.Coins         `json:"commission"`
+	Commission  sdk.Coins           `json:"commission"`
 }
 
 type DelegationRewards struct {
-	Validator string      `json:"validator"`
-	Reward    types.Coins `json:"reward"`
+	Validator string    `json:"validator"`
+	Reward    sdk.Coins `json:"reward"`
 }

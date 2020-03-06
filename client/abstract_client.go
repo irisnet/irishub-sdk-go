@@ -10,12 +10,12 @@ import (
 	cmn "github.com/tendermint/tendermint/libs/common"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 
-	"github.com/irisnet/irishub-sdk-go/types"
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type abstractClient struct {
-	*types.TxContext
-	types.RPC
+	*sdk.TxContext
+	sdk.RPC
 	logger *log.Logger
 }
 
@@ -23,7 +23,7 @@ func (ac abstractClient) Logger() *log.Logger {
 	return ac.logger
 }
 
-func (ac abstractClient) Broadcast(baseTx types.BaseTx, msg []types.Msg) (types.Result, error) {
+func (ac abstractClient) Broadcast(baseTx sdk.BaseTx, msg []sdk.Msg) (sdk.Result, error) {
 	//validate msg
 	for _, m := range msg {
 		if err := m.ValidateBasic(); err != nil {
@@ -58,7 +58,7 @@ func (ac abstractClient) Broadcast(baseTx types.BaseTx, msg []types.Msg) (types.
 	return rs, err
 }
 
-func (ac abstractClient) BroadcastTx(signedTx types.StdTx, mode types.BroadcastMode) (types.Result, error) {
+func (ac abstractClient) BroadcastTx(signedTx sdk.StdTx, mode sdk.BroadcastMode) (sdk.Result, error) {
 	ac.Mode = mode
 	txByte, err := ac.Codec.MarshalBinaryLengthPrefixed(signedTx)
 	if err != nil {
@@ -68,8 +68,8 @@ func (ac abstractClient) BroadcastTx(signedTx types.StdTx, mode types.BroadcastM
 	return ac.broadcastTx(txByte)
 }
 
-func (ac abstractClient) Sign(stdTx types.StdTx, name string, password string, online bool) (types.StdTx, error) {
-	baseTx := types.BaseTx{
+func (ac abstractClient) Sign(stdTx sdk.StdTx, name string, password string, online bool) (sdk.StdTx, error) {
+	baseTx := sdk.BaseTx{
 		From:     name,
 		Password: password,
 		Gas:      stdTx.Fee.Gas,
@@ -90,7 +90,7 @@ func (ac abstractClient) Sign(stdTx types.StdTx, name string, password string, o
 	return tx, nil
 }
 
-func (ac abstractClient) QueryWithResponse(path string, data interface{}, result types.Response) error {
+func (ac abstractClient) QueryWithResponse(path string, data interface{}, result sdk.Response) error {
 	var bz []byte
 	var err error
 	if data != nil {
@@ -148,13 +148,13 @@ func (ac abstractClient) QueryStore(key cmn.HexBytes, storeName string) (res []b
 	return resp.Value, nil
 }
 
-func (ac abstractClient) QueryAccount(address string) (baseAccount types.BaseAccount, err error) {
-	addr, err := types.AccAddressFromBech32(address)
+func (ac abstractClient) QueryAccount(address string) (baseAccount sdk.BaseAccount, err error) {
+	addr, err := sdk.AccAddressFromBech32(address)
 	if err != nil {
 		return baseAccount, err
 	}
 	param := struct {
-		Address types.AccAddress
+		Address sdk.AccAddress
 	}{
 		Address: addr,
 	}
@@ -164,11 +164,11 @@ func (ac abstractClient) QueryAccount(address string) (baseAccount types.BaseAcc
 	return
 }
 
-func (ac abstractClient) QueryAddress(name, password string) (addr types.AccAddress, err error) {
+func (ac abstractClient) QueryAddress(name, password string) (addr sdk.AccAddress, err error) {
 	return (*ac.TxContext).KeyManager.QueryAddress(name, password)
 }
 
-func (ac abstractClient) prepareTxContext(baseTx types.BaseTx) error {
+func (ac abstractClient) prepareTxContext(baseTx sdk.BaseTx) error {
 	ctx := ac.TxContext
 	if ctx.Online {
 		addr, err := ac.QueryAddress(baseTx.From, baseTx.Password)
@@ -180,7 +180,7 @@ func (ac abstractClient) prepareTxContext(baseTx types.BaseTx) error {
 			WithSequence(account.Sequence)
 	}
 	if len(baseTx.Fee) > 0 {
-		fee, err := types.ParseCoins(baseTx.Fee)
+		fee, err := sdk.ParseCoins(baseTx.Fee)
 		if err != nil {
 			return err
 		}
@@ -199,13 +199,13 @@ func (ac abstractClient) prepareTxContext(baseTx types.BaseTx) error {
 	ctx = ctx.WithMemo(baseTx.Memo)
 	return nil
 }
-func (ac abstractClient) broadcastTx(txBytes []byte) (types.Result, error) {
+func (ac abstractClient) broadcastTx(txBytes []byte) (sdk.Result, error) {
 	switch ac.Mode {
-	case types.Commit:
+	case sdk.Commit:
 		return ac.broadcastTxCommit(txBytes)
-	case types.Async:
+	case sdk.Async:
 		return ac.broadcastTxAsync(txBytes)
-	case types.Sync:
+	case sdk.Sync:
 		return ac.broadcastTxSync(txBytes)
 
 	}
@@ -214,7 +214,7 @@ func (ac abstractClient) broadcastTx(txBytes []byte) (types.Result, error) {
 
 // broadcastTxCommit broadcasts transaction bytes to a Tendermint node
 // and waits for a commit.
-func (ac abstractClient) broadcastTxCommit(tx []byte) (result types.ResultBroadcastTxCommit, err error) {
+func (ac abstractClient) broadcastTxCommit(tx []byte) (result sdk.ResultBroadcastTxCommit, err error) {
 	res, err := ac.RPC.BroadcastTxCommit(tx)
 	if err != nil {
 		return result, err
@@ -227,7 +227,7 @@ func (ac abstractClient) broadcastTxCommit(tx []byte) (result types.ResultBroadc
 	if !res.DeliverTx.IsOK() {
 		return result, errors.New(res.DeliverTx.Log)
 	}
-	return types.ResultBroadcastTxCommit{
+	return sdk.ResultBroadcastTxCommit{
 		CheckTx:   res.CheckTx,
 		DeliverTx: res.DeliverTx,
 		Hash:      res.Hash,
@@ -237,13 +237,13 @@ func (ac abstractClient) broadcastTxCommit(tx []byte) (result types.ResultBroadc
 
 // BroadcastTxSync broadcasts transaction bytes to a Tendermint node
 // synchronously.
-func (ac abstractClient) broadcastTxSync(tx []byte) (result types.ResultBroadcastTxCommit, err error) {
+func (ac abstractClient) broadcastTxSync(tx []byte) (result sdk.ResultBroadcastTxCommit, err error) {
 	res, err := ac.RPC.BroadcastTxSync(tx)
 	if err != nil {
 		return result, err
 	}
 
-	return types.ResultBroadcastTxCommit{
+	return sdk.ResultBroadcastTxCommit{
 		Hash: res.Hash,
 		CheckTx: abci.ResponseCheckTx{
 			Code: res.Code,
@@ -255,13 +255,13 @@ func (ac abstractClient) broadcastTxSync(tx []byte) (result types.ResultBroadcas
 
 // BroadcastTxAsync broadcasts transaction bytes to a Tendermint node
 // asynchronously.
-func (ac abstractClient) broadcastTxAsync(tx []byte) (result types.ResultBroadcastTx, err error) {
+func (ac abstractClient) broadcastTxAsync(tx []byte) (result sdk.ResultBroadcastTx, err error) {
 	res, err := ac.RPC.BroadcastTxAsync(tx)
 	if err != nil {
 		return result, err
 	}
 
-	return types.ResultBroadcastTx{
+	return sdk.ResultBroadcastTx{
 		Code: res.Code,
 		Data: res.Data,
 		Log:  res.Log,

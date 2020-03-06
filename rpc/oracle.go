@@ -3,21 +3,21 @@ package rpc
 import (
 	"time"
 
-	"github.com/irisnet/irishub-sdk-go/types"
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type Oracle interface {
-	types.Module
+	sdk.Module
 	OracleTx
 	OracleQuery
 }
 
 type OracleTx interface {
-	CreateFeed(request FeedCreateRequest) (result types.Result, err error)
-	StartFeed(feedName string, baseTx types.BaseTx) (result types.Result, err error)
-	CreateAndStartFeed(request FeedCreateRequest) (result types.Result, err error)
-	PauseFeed(feedName string, baseTx types.BaseTx) (result types.Result, err error)
-	EditFeed(request FeedEditRequest) (result types.Result, err error)
+	CreateFeed(request FeedCreateRequest) (result sdk.Result, err error)
+	StartFeed(feedName string, baseTx sdk.BaseTx) (result sdk.Result, err error)
+	CreateAndStartFeed(request FeedCreateRequest) (result sdk.Result, err error)
+	PauseFeed(feedName string, baseTx sdk.BaseTx) (result sdk.Result, err error)
+	EditFeed(request FeedEditRequest) (result sdk.Result, err error)
 }
 
 type OracleQuery interface {
@@ -28,36 +28,36 @@ type OracleQuery interface {
 
 // FeedCreateRequest - struct for create a feed
 type FeedCreateRequest struct {
-	types.BaseTx
-	FeedName          string      `json:"feed_name"`
-	LatestHistory     uint64      `json:"latest_history"`
-	Description       string      `json:"description"`
-	ServiceName       string      `json:"service_name"`
-	Providers         []string    `json:"providers"`
-	Input             string      `json:"input"`
-	Timeout           int64       `json:"timeout"`
-	ServiceFeeCap     types.Coins `json:"service_fee_cap"`
-	RepeatedFrequency uint64      `json:"repeated_frequency"`
-	RepeatedTotal     int64       `json:"repeated_total"`
-	AggregateFunc     string      `json:"aggregate_func"`
-	ValueJsonPath     string      `json:"value_json_path"`
-	ResponseThreshold uint16      `json:"response_threshold"`
+	sdk.BaseTx
+	FeedName          string    `json:"feed_name"`
+	LatestHistory     uint64    `json:"latest_history"`
+	Description       string    `json:"description"`
+	ServiceName       string    `json:"service_name"`
+	Providers         []string  `json:"providers"`
+	Input             string    `json:"input"`
+	Timeout           int64     `json:"timeout"`
+	ServiceFeeCap     sdk.Coins `json:"service_fee_cap"`
+	RepeatedFrequency uint64    `json:"repeated_frequency"`
+	RepeatedTotal     int64     `json:"repeated_total"`
+	AggregateFunc     string    `json:"aggregate_func"`
+	ValueJsonPath     string    `json:"value_json_path"`
+	ResponseThreshold uint16    `json:"response_threshold"`
 }
 
 //______________________________________________________________________
 
 // FeedEditRequest - struct for edit a existed feed
 type FeedEditRequest struct {
-	types.BaseTx
-	FeedName          string      `json:"feed_name"`
-	Description       string      `json:"description"`
-	LatestHistory     uint64      `json:"latest_history"`
-	Providers         []string    `json:"providers"`
-	Timeout           int64       `json:"timeout"`
-	ServiceFeeCap     types.Coins `json:"service_fee_cap"`
-	RepeatedFrequency uint64      `json:"repeated_frequency"`
-	RepeatedTotal     int64       `json:"repeated_total"`
-	ResponseThreshold uint16      `json:"response_threshold"`
+	sdk.BaseTx
+	FeedName          string    `json:"feed_name"`
+	Description       string    `json:"description"`
+	LatestHistory     uint64    `json:"latest_history"`
+	Providers         []string  `json:"providers"`
+	Timeout           int64     `json:"timeout"`
+	ServiceFeeCap     sdk.Coins `json:"service_fee_cap"`
+	RepeatedFrequency uint64    `json:"repeated_frequency"`
+	RepeatedTotal     int64     `json:"repeated_total"`
+	ResponseThreshold uint16    `json:"response_threshold"`
 }
 
 //-----------------------------for query-----------------------------
@@ -72,16 +72,16 @@ type Feed struct {
 	Creator          string `json:"creator"`
 }
 type FeedContext struct {
-	Feed              Feed        `json:"feed"`
-	ServiceName       string      `json:"service_name"`
-	Providers         []string    `json:"providers"`
-	Input             string      `json:"input"`
-	Timeout           int64       `json:"timeout"`
-	ServiceFeeCap     types.Coins `json:"service_fee_cap"`
-	RepeatedFrequency uint64      `json:"repeated_frequency"`
-	RepeatedTotal     int64       `json:"repeated_total"`
-	ResponseThreshold uint16      `json:"response_threshold"`
-	State             string      `json:"state"`
+	Feed              Feed      `json:"feed"`
+	ServiceName       string    `json:"service_name"`
+	Providers         []string  `json:"providers"`
+	Input             string    `json:"input"`
+	Timeout           int64     `json:"timeout"`
+	ServiceFeeCap     sdk.Coins `json:"service_fee_cap"`
+	RepeatedFrequency uint64    `json:"repeated_frequency"`
+	RepeatedTotal     int64     `json:"repeated_total"`
+	ResponseThreshold uint16    `json:"response_threshold"`
+	State             string    `json:"state"`
 }
 
 type FeedValue struct {

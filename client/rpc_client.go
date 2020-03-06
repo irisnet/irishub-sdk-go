@@ -13,15 +13,15 @@ import (
 	rpc "github.com/tendermint/tendermint/rpc/client"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	"github.com/irisnet/irishub-sdk-go/types"
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type RPCClient struct {
 	rpc.Client
-	cdc types.Codec
+	cdc sdk.Codec
 }
 
-func NewRPCClient(remote string, cdc types.Codec) RPCClient {
+func NewRPCClient(remote string, cdc sdk.Codec) RPCClient {
 	client := rpc.NewHTTP(remote, "/websocket")
 	return RPCClient{
 		Client: client,
@@ -52,85 +52,85 @@ func (r RPCClient) start() {
 //=============================================================================
 
 //SubscribeNewBlock implement WSClient interface
-func (r RPCClient) SubscribeNewBlock(callback types.EventNewBlockCallback) (types.Subscription, error) {
+func (r RPCClient) SubscribeNewBlock(callback sdk.EventNewBlockCallback) (sdk.Subscription, error) {
 	return r.SubscribeNewBlockWithQuery(nil, callback)
 }
 
 //SubscribeNewBlock implement WSClient interface
-func (r RPCClient) SubscribeNewBlockWithQuery(builder *types.EventQueryBuilder, callback types.EventNewBlockCallback) (types.Subscription, error) {
+func (r RPCClient) SubscribeNewBlockWithQuery(builder *sdk.EventQueryBuilder, callback sdk.EventNewBlockCallback) (sdk.Subscription, error) {
 	ctx := context.Background()
 	subscriber := getSubscriberID()
 	if builder == nil {
-		builder = types.NewEventQueryBuilder()
+		builder = sdk.NewEventQueryBuilder()
 	}
-	builder.AddCondition(types.TypeKey, tmtypes.EventNewBlock)
+	builder.AddCondition(sdk.TypeKey, tmtypes.EventNewBlock)
 	query := builder.Build()
 	r.start()
 	ch, err := r.Subscribe(ctx, subscriber, query, 0)
 	if err != nil {
-		return types.Subscription{}, nil
+		return sdk.Subscription{}, nil
 	}
 	go func() {
 		for {
 			data := <-ch
 			block := data.Data.(tmtypes.EventDataNewBlock)
-			var txs []types.StdTx
+			var txs []sdk.StdTx
 			for _, tx := range block.Block.Data.Txs {
-				var stdTx types.StdTx
+				var stdTx sdk.StdTx
 				if err := r.cdc.UnmarshalBinaryLengthPrefixed(tx, &stdTx); err == nil {
 					txs = append(txs, stdTx)
 				}
 			}
 
-			callback(types.EventDataNewBlock{
-				Block: types.Block{
+			callback(sdk.EventDataNewBlock{
+				Block: sdk.Block{
 					Header: block.Block.Header,
-					Data: types.Data{
+					Data: sdk.Data{
 						Txs: txs,
 					},
 					Evidence:   block.Block.Evidence,
 					LastCommit: block.Block.LastCommit,
 				},
-				ResultBeginBlock: types.ResultBeginBlock{
-					Tags: types.ParseTags(block.ResultBeginBlock.Tags),
+				ResultBeginBlock: sdk.ResultBeginBlock{
+					Tags: sdk.ParseTags(block.ResultBeginBlock.Tags),
 				},
-				ResultEndBlock: types.ResultEndBlock{
-					Tags:             types.ParseTags(block.ResultEndBlock.Tags),
+				ResultEndBlock: sdk.ResultEndBlock{
+					Tags:             sdk.ParseTags(block.ResultEndBlock.Tags),
 					ValidatorUpdates: parseValidatorUpdate(block.ResultEndBlock.ValidatorUpdates),
 				},
 			})
 		}
 	}()
-	return types.NewSubscription(ctx, query, subscriber), nil
+	return sdk.NewSubscription(ctx, query, subscriber), nil
 }
 
 //SubscribeTx implement WSClient interface
-func (r RPCClient) SubscribeTx(builder *types.EventQueryBuilder, callback types.EventTxCallback) (types.Subscription, error) {
+func (r RPCClient) SubscribeTx(builder *sdk.EventQueryBuilder, callback sdk.EventTxCallback) (sdk.Subscription, error) {
 	ctx := context.Background()
 	subscriber := getSubscriberID()
-	query := builder.AddCondition(types.TypeKey, types.TxValue).Build()
+	query := builder.AddCondition(sdk.TypeKey, sdk.TxValue).Build()
 	r.start()
 	ch, err := r.Subscribe(ctx, subscriber, query, 0)
 	if err != nil {
-		return types.Subscription{}, err
+		return sdk.Subscription{}, err
 	}
 
 	go func() {
 		for {
 			data := <-ch
 			tx := data.Data.(tmtypes.EventDataTx)
-			var stdTx types.StdTx
+			var stdTx sdk.StdTx
 			if err := r.cdc.UnmarshalBinaryLengthPrefixed(tx.Tx, &stdTx); err != nil {
 				return
 			}
 			hash := cmn.HexBytes(tx.Tx.Hash()).String()
-			result := types.TxResult{
+			result := sdk.TxResult{
 				Log:       tx.Result.Log,
 				GasWanted: tx.Result.GasWanted,
 				GasUsed:   tx.Result.GasUsed,
-				Tags:      types.ParseTags(tx.Result.Tags),
+				Tags:      sdk.ParseTags(tx.Result.Tags),
 			}
-			dataTx := types.EventDataTx{
+			dataTx := sdk.EventDataTx{
 				Hash:   hash,
 				Height: tx.Height,
 				Index:  tx.Index,
@@ -140,61 +140,61 @@ func (r RPCClient) SubscribeTx(builder *types.EventQueryBuilder, callback types.
 			callback(dataTx)
 		}
 	}()
-	return types.NewSubscription(ctx, query, subscriber), nil
+	return sdk.NewSubscription(ctx, query, subscriber), nil
 }
 
-func (r RPCClient) SubscribeNewBlockHeader(callback types.EventNewBlockHeaderCallback) (types.Subscription, error) {
+func (r RPCClient) SubscribeNewBlockHeader(callback sdk.EventNewBlockHeaderCallback) (sdk.Subscription, error) {
 	ctx := context.Background()
 	subscriber := getSubscriberID()
 	query := tmtypes.QueryForEvent(tmtypes.EventNewBlockHeader).String()
 	r.start()
 	ch, err := r.Subscribe(ctx, subscriber, query, 0)
 	if err != nil {
-		return types.Subscription{}, nil
+		return sdk.Subscription{}, nil
 	}
 
 	go func() {
 		for {
 			data := <-ch
 			blockHeader := data.Data.(tmtypes.EventDataNewBlockHeader)
-			callback(types.EventDataNewBlockHeader{
+			callback(sdk.EventDataNewBlockHeader{
 				Header: blockHeader.Header,
-				ResultBeginBlock: types.ResultBeginBlock{
-					Tags: types.ParseTags(blockHeader.ResultBeginBlock.Tags),
+				ResultBeginBlock: sdk.ResultBeginBlock{
+					Tags: sdk.ParseTags(blockHeader.ResultBeginBlock.Tags),
 				},
-				ResultEndBlock: types.ResultEndBlock{
-					Tags:             types.ParseTags(blockHeader.ResultEndBlock.Tags),
+				ResultEndBlock: sdk.ResultEndBlock{
+					Tags:             sdk.ParseTags(blockHeader.ResultEndBlock.Tags),
 					ValidatorUpdates: parseValidatorUpdate(blockHeader.ResultEndBlock.ValidatorUpdates),
 				},
 			})
 		}
 	}()
-	return types.NewSubscription(ctx, query, subscriber), nil
+	return sdk.NewSubscription(ctx, query, subscriber), nil
 }
 
-func (r RPCClient) SubscribeValidatorSetUpdates(callback types.EventValidatorSetUpdatesCallback) (types.Subscription, error) {
+func (r RPCClient) SubscribeValidatorSetUpdates(callback sdk.EventValidatorSetUpdatesCallback) (sdk.Subscription, error) {
 	ctx := context.Background()
 	subscriber := getSubscriberID()
 	query := tmtypes.QueryForEvent(tmtypes.EventValidatorSetUpdates).String()
 	r.start()
 	ch, err := r.Subscribe(ctx, subscriber, query, 0)
 	if err != nil {
-		return types.Subscription{}, nil
+		return sdk.Subscription{}, nil
 	}
 
 	go func() {
 		for {
 			data := <-ch
 			validatorSet := data.Data.(tmtypes.EventDataValidatorSetUpdates)
-			callback(types.EventDataValidatorSetUpdates{
+			callback(sdk.EventDataValidatorSetUpdates{
 				ValidatorUpdates: parseValidators(validatorSet.ValidatorUpdates),
 			})
 		}
 	}()
-	return types.NewSubscription(ctx, query, subscriber), nil
+	return sdk.NewSubscription(ctx, query, subscriber), nil
 }
 
-func (r RPCClient) Unscribe(subscription types.Subscription) error {
+func (r RPCClient) Unscribe(subscription sdk.Subscription) error {
 	return r.Client.Unsubscribe(subscription.Ctx, subscription.ID, subscription.Query)
 }
 
@@ -206,13 +206,13 @@ func getSubscriberID() string {
 	return fmt.Sprintf("subscriber-%s", u.Uid)
 }
 
-func parseValidatorUpdate(vp abcitypes.ValidatorUpdates) (validatorUpdates []types.ValidatorUpdate) {
+func parseValidatorUpdate(vp abcitypes.ValidatorUpdates) (validatorUpdates []sdk.ValidatorUpdate) {
 	for _, validator := range vp {
-		var pubKey = types.EventPubKey{
+		var pubKey = sdk.EventPubKey{
 			Type:  validator.PubKey.Type,
 			Value: base64.StdEncoding.EncodeToString(validator.PubKey.Data),
 		}
-		validatorUpdates = append(validatorUpdates, types.ValidatorUpdate{
+		validatorUpdates = append(validatorUpdates, sdk.ValidatorUpdate{
 			PubKey: pubKey,
 			Power:  validator.Power,
 		})
@@ -220,11 +220,11 @@ func parseValidatorUpdate(vp abcitypes.ValidatorUpdates) (validatorUpdates []typ
 	return
 }
 
-func parseValidators(valSet []*tmtypes.Validator) (validators []types.Validator) {
+func parseValidators(valSet []*tmtypes.Validator) (validators []sdk.Validator) {
 	for _, v := range valSet {
-		valAddr, _ := types.ConsAddressFromHex(v.Address.String())
-		pubKey, _ := types.Bech32ifyConsPub(v.PubKey)
-		validators = append(validators, types.Validator{
+		valAddr, _ := sdk.ConsAddressFromHex(v.Address.String())
+		pubKey, _ := sdk.Bech32ifyConsPub(v.PubKey)
+		validators = append(validators, sdk.Validator{
 			Address:          valAddr.String(),
 			PubKey:           pubKey,
 			VotingPower:      v.VotingPower,

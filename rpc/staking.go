@@ -1,13 +1,13 @@
 package rpc
 
 import (
-	"github.com/irisnet/irishub-sdk-go/types"
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type StakingTx interface {
-	Delegate(valAddr string, amount types.Coin, baseTx types.BaseTx) (types.Result, error)
-	Undelegate(valAddr string, amount types.Coin, baseTx types.BaseTx) (types.Result, error)
-	Redelegate(srcValAddr, dstValAddr string, amount types.Coin, baseTx types.BaseTx) (types.Result, error)
+	Delegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.Result, error)
+	Undelegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.Result, error)
+	Redelegate(srcValAddr, dstValAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.Result, error)
 }
 
 type StakingQueries interface {
@@ -33,11 +33,11 @@ type StakingQueries interface {
 
 type StakingSubscriber interface {
 	SubscribeValidatorInfoUpdates(validator string,
-		callback func(data EventDataMsgEditValidator)) types.Subscription
+		callback func(data EventDataMsgEditValidator)) sdk.Subscription
 }
 
 type Staking interface {
-	types.Module
+	sdk.Module
 	StakingTx
 	StakingQueries
 	StakingSubscriber
@@ -53,26 +53,26 @@ type Delegations []Delegation
 
 type UnbondingDelegations []UnbondingDelegation
 type UnbondingDelegation struct {
-	TxHash         string     `json:"tx_hash"`
-	DelegatorAddr  string     `json:"delegator_addr"`
-	ValidatorAddr  string     `json:"validator_addr"`
-	CreationHeight int64      `json:"creation_height"`
-	MinTime        string     `json:"min_time"`
-	InitialBalance types.Coin `json:"initial_balance"`
-	Balance        types.Coin `json:"balance"`
+	TxHash         string   `json:"tx_hash"`
+	DelegatorAddr  string   `json:"delegator_addr"`
+	ValidatorAddr  string   `json:"validator_addr"`
+	CreationHeight int64    `json:"creation_height"`
+	MinTime        string   `json:"min_time"`
+	InitialBalance sdk.Coin `json:"initial_balance"`
+	Balance        sdk.Coin `json:"balance"`
 }
 
 type Redelegations []Redelegation
 type Redelegation struct {
-	DelegatorAddr    string     `json:"delegator_addr"`
-	ValidatorSrcAddr string     `json:"validator_src_addr"`
-	ValidatorDstAddr string     `json:"validator_dst_addr"`
-	CreationHeight   int64      `json:"creation_height"`
-	MinTime          string     `json:"min_time"`
-	InitialBalance   types.Coin `json:"initial_balance"`
-	Balance          types.Coin `json:"balance"`
-	SharesSrc        string     `json:"shares_src"`
-	SharesDst        string     `json:"shares_dst"`
+	DelegatorAddr    string   `json:"delegator_addr"`
+	ValidatorSrcAddr string   `json:"validator_src_addr"`
+	ValidatorDstAddr string   `json:"validator_dst_addr"`
+	CreationHeight   int64    `json:"creation_height"`
+	MinTime          string   `json:"min_time"`
+	InitialBalance   sdk.Coin `json:"initial_balance"`
+	Balance          sdk.Coin `json:"balance"`
+	SharesSrc        string   `json:"shares_src"`
+	SharesDst        string   `json:"shares_dst"`
 }
 
 type Validators []Validator
@@ -92,18 +92,18 @@ type Validator struct {
 
 // DelegatorShareExRate gets the exchange rate of tokens over delegator shares.
 // UNITS: tokens/delegator-shares
-func (v Validator) DelegatorShareExRate() types.Dec {
-	delegatorShares, err := types.NewDecFromStr(v.DelegatorShares)
+func (v Validator) DelegatorShareExRate() sdk.Dec {
+	delegatorShares, err := sdk.NewDecFromStr(v.DelegatorShares)
 	if err != nil {
-		return types.ZeroDec()
+		return sdk.ZeroDec()
 	}
 
-	tokens, err := types.NewDecFromStr(v.Tokens)
+	tokens, err := sdk.NewDecFromStr(v.Tokens)
 	if err != nil {
-		return types.ZeroDec()
+		return sdk.ZeroDec()
 	}
 	if delegatorShares.IsZero() {
-		return types.OneDec()
+		return sdk.OneDec()
 	}
 	return tokens.Quo(delegatorShares)
 }
