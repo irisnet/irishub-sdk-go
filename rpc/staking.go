@@ -1,6 +1,8 @@
 package rpc
 
-import "github.com/irisnet/irishub-sdk-go/types"
+import (
+	"github.com/irisnet/irishub-sdk-go/types"
+)
 
 type StakingTx interface {
 	Delegate(valAddr string, amount types.Coin, baseTx types.BaseTx) (types.Result, error)

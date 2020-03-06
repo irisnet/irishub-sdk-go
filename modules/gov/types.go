@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/irisnet/irishub-sdk-go/types/rpc"
+	"github.com/irisnet/irishub-sdk-go/rpc"
 
 	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -21,6 +21,10 @@ var (
 
 	cdc = sdk.NewAminoCodec()
 )
+
+func init() {
+	registerCodecForProposal(cdc)
+}
 
 //-----------------------------------------------------------
 // MsgDeposit
@@ -224,12 +228,15 @@ func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgDeposit{}, "irishub/gov/MsgDeposit")
 	cdc.RegisterConcrete(MsgVote{}, "irishub/gov/MsgVote")
 
+	registerCodecForProposal(cdc)
+	cdc.RegisterConcrete(&Vote{}, "irishub/gov/Vote")
+}
+
+func registerCodecForProposal(cdc sdk.Codec) {
 	cdc.RegisterInterface((*Proposal)(nil))
 	cdc.RegisterConcrete(&BasicProposal{}, "irishub/gov/BasicProposal")
 	cdc.RegisterConcrete(&ParameterProposal{}, "irishub/gov/ParameterProposal")
 	cdc.RegisterConcrete(&PlainTextProposal{}, "irishub/gov/PlainTextProposal")
 	cdc.RegisterConcrete(&SoftwareUpgradeProposal{}, "irishub/gov/SoftwareUpgradeProposal")
 	cdc.RegisterConcrete(&CommunityTaxUsageProposal{}, "irishub/gov/CommunityTaxUsageProposal")
-
-	cdc.RegisterConcrete(&Vote{}, "irishub/gov/Vote")
 }

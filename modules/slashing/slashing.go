@@ -11,7 +11,7 @@ package slashing
 import (
 	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/irisnet/irishub-sdk-go/types/rpc"
+	"github.com/irisnet/irishub-sdk-go/rpc"
 
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -73,7 +73,7 @@ func (s slashingClient) queryParamsV017() (rpc.SlashingParams, error) {
 	}
 
 	var params ParamsV017
-	if err := s.Query("custom/params/module", param, &params); err != nil {
+	if err := s.QueryWithResponse("custom/params/module", param, &params); err != nil {
 		return rpc.SlashingParams{}, err
 	}
 	return params.Convert().(rpc.SlashingParams), nil
@@ -81,7 +81,7 @@ func (s slashingClient) queryParamsV017() (rpc.SlashingParams, error) {
 
 func (s slashingClient) queryParamsV100() (rpc.SlashingParams, error) {
 	var params Params
-	err := s.Query("custom/%s/parameters", s.Name(), &params)
+	err := s.QueryWithResponse("custom/%s/parameters", s.Name(), &params)
 	if err != nil {
 		return rpc.SlashingParams{}, err
 	}
@@ -121,7 +121,7 @@ func (s slashingClient) querySigningInfoV100(pk crypto.PubKey) (rpc.ValidatorSig
 	}
 
 	var signingInfo ValidatorSigningInfo
-	err := s.Query("custom/slashing/signingInfo", param, &signingInfo)
+	err := s.QueryWithResponse("custom/slashing/signingInfo", param, &signingInfo)
 	if err != nil {
 		return rpc.ValidatorSigningInfo{}, err
 	}

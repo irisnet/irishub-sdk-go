@@ -3,7 +3,7 @@ package random
 import (
 	"errors"
 
-	"github.com/irisnet/irishub-sdk-go/types/rpc"
+	"github.com/irisnet/irishub-sdk-go/rpc"
 
 	cmn "github.com/tendermint/tendermint/libs/common"
 

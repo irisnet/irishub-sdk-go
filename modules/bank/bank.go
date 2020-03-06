@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/irisnet/irishub-sdk-go/types/rpc"
+	"github.com/irisnet/irishub-sdk-go/rpc"
 
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 
@@ -45,17 +45,18 @@ func (b bankClient) QueryAccount(address string) (types.BaseAccount, error) {
 }
 
 // GetTokenStats return token statistic, including total loose tokens, total burned tokens and total bonded tokens.
-func (b bankClient) QueryTokenStats(tokenID string) (result rpc.TokenStats, err error) {
+func (b bankClient) QueryTokenStats(tokenID string) (rpc.TokenStats, error) {
 	param := struct {
 		TokenId string
 	}{
 		TokenId: tokenID,
 	}
-	err = b.Query("custom/acc/tokenStats", param, &result)
-	if err != nil {
-		return result, err
+
+	var ts TokenStats
+	if err := b.QueryWithResponse("custom/acc/tokenStats", param, &ts); err != nil {
+		return rpc.TokenStats{}, err
 	}
-	return
+	return ts.Convert().(rpc.TokenStats), nil
 }
 
 //Send is responsible for transferring tokens from `From` to `to` account

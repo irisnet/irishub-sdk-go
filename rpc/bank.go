@@ -1,6 +1,8 @@
 package rpc
 
-import "github.com/irisnet/irishub-sdk-go/types"
+import (
+	"github.com/irisnet/irishub-sdk-go/types"
+)
 
 // expose bank module api for user
 type Bank interface {

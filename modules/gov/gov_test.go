@@ -3,7 +3,7 @@ package gov_test
 import (
 	"testing"
 
-	"github.com/irisnet/irishub-sdk-go/types/rpc"
+	"github.com/irisnet/irishub-sdk-go/rpc"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -36,7 +36,7 @@ func (gts *GovTestSuite) TestDeposit() {
 
 	amt, _ := sdk.NewIntFromString("10000000000000000000000")
 	amount := sdk.NewCoins(sdk.NewCoin("iris-atto", amt))
-	proposalID := uint64(6)
+	proposalID := uint64(8)
 
 	proposal, err := gts.Gov().QueryProposal(proposalID)
 	require.NoError(gts.T(), err)
@@ -75,4 +75,19 @@ func (gts *GovTestSuite) TestDeposit() {
 	tally, err := gts.Gov().QueryTally(proposalID)
 	require.NoError(gts.T(), err)
 	require.NotEmpty(gts.T(), tally.Yes)
+}
+
+func (gts *GovTestSuite) TestQueryProposal() {
+	proposal, err := gts.Gov().QueryProposal(uint64(5))
+	require.NoError(gts.T(), err)
+	require.Equal(gts.T(), 5, proposal.GetProposalID())
+}
+
+func (gts *GovTestSuite) TestQueryProposals() {
+	proposals, err := gts.Gov().QueryProposals(rpc.ProposalRequest{
+		Voter: gts.Sender().String(),
+		Limit: 0,
+	})
+	require.NoError(gts.T(), err)
+	require.NotEmpty(gts.T(), proposals)
 }

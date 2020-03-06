@@ -33,7 +33,8 @@ type TxManager interface {
 }
 
 type Query interface {
-	Query(path string, data interface{}, result interface{}) error
+	QueryWithResponse(path string, data interface{}, result Response) error
+	Query(path string, data interface{}) ([]byte, error)
 	QueryStore(key cmn.HexBytes, storeName string) (res []byte, err error)
 	QueryAccount(address string) (BaseAccount, error)
 	QueryAddress(name, password string) (addr AccAddress, err error)

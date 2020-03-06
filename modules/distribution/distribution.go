@@ -1,9 +1,9 @@
 package distribution
 
 import (
+	"github.com/irisnet/irishub-sdk-go/rpc"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
-	"github.com/irisnet/irishub-sdk-go/types/rpc"
 )
 
 type distributionClient struct {
@@ -39,7 +39,7 @@ func (d distributionClient) QueryRewards(delegator string) (rpc.Rewards, error) 
 	}
 
 	var rewards Rewards
-	if err = d.Query("custom/distr/rewards", param, &rewards); err != nil {
+	if err = d.QueryWithResponse("custom/distr/rewards", param, &rewards); err != nil {
 		return rpc.Rewards{}, err
 	}
 	return rewards.Convert().(rpc.Rewards), nil

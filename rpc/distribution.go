@@ -1,6 +1,8 @@
 package rpc
 
-import "github.com/irisnet/irishub-sdk-go/types"
+import (
+	"github.com/irisnet/irishub-sdk-go/types"
+)
 
 type Distribution interface {
 	types.Module

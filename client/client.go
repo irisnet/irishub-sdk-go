@@ -12,10 +12,9 @@ import (
 	"github.com/irisnet/irishub-sdk-go/modules/service"
 	"github.com/irisnet/irishub-sdk-go/modules/slashing"
 	"github.com/irisnet/irishub-sdk-go/modules/staking"
-	"github.com/irisnet/irishub-sdk-go/net"
+	"github.com/irisnet/irishub-sdk-go/rpc"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
-	"github.com/irisnet/irishub-sdk-go/types/rpc"
 )
 
 type SDKClient struct {
@@ -31,7 +30,7 @@ func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
 		modules: make(map[string]sdk.Module),
 	}
 
-	rpc := net.NewRPCClient(cfg.NodeURI, client.cdc)
+	rpc := NewRPCClient(cfg.NodeURI, client.cdc)
 	ctx := &sdk.TxContext{
 		Codec:      client.cdc,
 		ChainID:    cfg.ChainID,

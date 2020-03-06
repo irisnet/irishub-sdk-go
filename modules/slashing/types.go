@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/irisnet/irishub-sdk-go/types/rpc"
+	"github.com/irisnet/irishub-sdk-go/rpc"
 
 	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"

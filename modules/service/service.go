@@ -1,9 +1,9 @@
 package service
 
 import (
+	"github.com/irisnet/irishub-sdk-go/rpc"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
-	"github.com/irisnet/irishub-sdk-go/types/rpc"
 )
 
 type serviceClient struct {
@@ -387,7 +387,7 @@ func (s serviceClient) QueryDefinition(serviceName string) (rpc.ServiceDefinitio
 	}
 
 	var definition Definition
-	if err := s.Query("custom/service/definition", param, &definition); err != nil {
+	if err := s.QueryWithResponse("custom/service/definition", param, &definition); err != nil {
 		return rpc.ServiceDefinition{}, err
 	}
 	return definition.Convert().(rpc.ServiceDefinition), nil
@@ -404,7 +404,7 @@ func (s serviceClient) QueryBinding(serviceName string, provider sdk.AccAddress)
 	}
 
 	var binding Binding
-	if err := s.Query("custom/service/binding", param, &binding); err != nil {
+	if err := s.QueryWithResponse("custom/service/binding", param, &binding); err != nil {
 		return rpc.ServiceBinding{}, err
 	}
 	return binding.Convert().(rpc.ServiceBinding), nil
@@ -419,7 +419,7 @@ func (s serviceClient) QueryBindings(serviceName string) ([]rpc.ServiceBinding, 
 	}
 
 	var bindings Bindings
-	if err := s.Query("custom/service/bindings", param, &bindings); err != nil {
+	if err := s.QueryWithResponse("custom/service/bindings", param, &bindings); err != nil {
 		return nil, err
 	}
 	return bindings.Convert().([]rpc.ServiceBinding), nil
@@ -434,7 +434,7 @@ func (s serviceClient) QueryRequest(requestID string) (rpc.RequestService, error
 	}
 
 	var request Request
-	if err := s.Query("custom/service/request", param, &request); err != nil {
+	if err := s.QueryWithResponse("custom/service/request", param, &request); err != nil {
 		return rpc.RequestService{}, err
 	}
 	return request.Convert().(rpc.RequestService), nil
@@ -451,7 +451,7 @@ func (s serviceClient) QueryRequests(serviceName string, provider sdk.AccAddress
 	}
 
 	var rs Requests
-	if err := s.Query("custom/service/requests", param, &rs); err != nil {
+	if err := s.QueryWithResponse("custom/service/requests", param, &rs); err != nil {
 		return nil, err
 	}
 	return rs.Convert().([]rpc.RequestService), nil
@@ -468,7 +468,7 @@ func (s serviceClient) QueryRequestsByReqCtx(requestContextID string, batchCount
 	}
 
 	var rs Requests
-	if err := s.Query("custom/service/requests_by_ctx", param, &rs); err != nil {
+	if err := s.QueryWithResponse("custom/service/requests_by_ctx", param, &rs); err != nil {
 		return nil, err
 	}
 	return rs.Convert().([]rpc.RequestService), nil
@@ -483,7 +483,7 @@ func (s serviceClient) QueryResponse(requestID string) (rpc.ServiceResponse, err
 	}
 
 	var response Response
-	if err := s.Query("custom/service/response", param, &response); err != nil {
+	if err := s.QueryWithResponse("custom/service/response", param, &response); err != nil {
 		return rpc.ServiceResponse{}, err
 	}
 	return response.Convert().(rpc.ServiceResponse), nil
@@ -499,7 +499,7 @@ func (s serviceClient) QueryResponses(requestContextID string, batchCounter uint
 		BatchCounter:     batchCounter,
 	}
 	var rs Responses
-	if err := s.Query("custom/service/responses", param, &rs); err != nil {
+	if err := s.QueryWithResponse("custom/service/responses", param, &rs); err != nil {
 		return nil, err
 	}
 	return rs.Convert().([]rpc.ServiceResponse), nil
@@ -514,7 +514,7 @@ func (s serviceClient) QueryRequestContext(requestContextID string) (rpc.Request
 	}
 
 	var reqCtx RequestContext
-	if err := s.Query("custom/service/context", param, &reqCtx); err != nil {
+	if err := s.QueryWithResponse("custom/service/context", param, &reqCtx); err != nil {
 		return rpc.RequestContext{}, err
 	}
 	return reqCtx.Convert().(rpc.RequestContext), nil
@@ -535,7 +535,7 @@ func (s serviceClient) QueryFees(provider string) (rpc.EarnedFees, error) {
 
 	var fee EarnedFees
 
-	if err := s.Query("custom/service/fees", param, &fee); err != nil {
+	if err := s.QueryWithResponse("custom/service/fees", param, &fee); err != nil {
 		return rpc.EarnedFees{}, err
 	}
 	return fee.Convert().(rpc.EarnedFees), nil

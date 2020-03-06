@@ -90,7 +90,7 @@ func (ac abstractClient) Sign(stdTx types.StdTx, name string, password string, o
 	return tx, nil
 }
 
-func (ac abstractClient) Query(path string, data interface{}, result interface{}) error {
+func (ac abstractClient) QueryWithResponse(path string, data interface{}, result types.Response) error {
 	var bz []byte
 	var err error
 	if data != nil {
@@ -110,6 +110,23 @@ func (ac abstractClient) Query(path string, data interface{}, result interface{}
 	}
 
 	return nil
+}
+
+func (ac abstractClient) Query(path string, data interface{}) ([]byte, error) {
+	var bz []byte
+	var err error
+	if data != nil {
+		bz, err = ac.Codec.MarshalJSON(data)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	res, err := ac.RPC.Query(path, bz)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (ac abstractClient) QueryStore(key cmn.HexBytes, storeName string) (res []byte, err error) {
@@ -141,7 +158,7 @@ func (ac abstractClient) QueryAccount(address string) (baseAccount types.BaseAcc
 	}{
 		Address: addr,
 	}
-	if err = ac.Query("custom/acc/account", param, &baseAccount); err != nil {
+	if err = ac.QueryWithResponse("custom/acc/account", param, &baseAccount); err != nil {
 		return baseAccount, err
 	}
 	return

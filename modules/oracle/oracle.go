@@ -1,9 +1,9 @@
 package oracle
 
 import (
+	"github.com/irisnet/irishub-sdk-go/rpc"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
-	"github.com/irisnet/irishub-sdk-go/types/rpc"
 )
 
 type oracleClient struct {
@@ -157,7 +157,7 @@ func (o oracleClient) QueryFeed(feedName string) (rpc.FeedContext, error) {
 	}
 
 	var ctx FeedContext
-	if err := o.Query("custom/oracle/feed", param, &ctx); err != nil {
+	if err := o.QueryWithResponse("custom/oracle/feed", param, &ctx); err != nil {
 		return rpc.FeedContext{}, err
 	}
 	return ctx.Convert().(rpc.FeedContext), nil
@@ -172,7 +172,7 @@ func (o oracleClient) QueryFeeds(state string) ([]rpc.FeedContext, error) {
 	}
 
 	var fcs FeedContexts
-	if err := o.Query("custom/oracle/feeds", param, &fcs); err != nil {
+	if err := o.QueryWithResponse("custom/oracle/feeds", param, &fcs); err != nil {
 		return nil, err
 	}
 	return fcs.Convert().([]rpc.FeedContext), nil
@@ -187,7 +187,7 @@ func (o oracleClient) QueryFeedValue(feedName string) ([]rpc.FeedValue, error) {
 	}
 
 	var fvs FeedValues
-	if err := o.Query("custom/oracle/feedValue", param, &fvs); err != nil {
+	if err := o.QueryWithResponse("custom/oracle/feedValue", param, &fvs); err != nil {
 		return nil, err
 	}
 	return fvs.Convert().([]rpc.FeedValue), nil

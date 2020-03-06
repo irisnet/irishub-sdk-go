@@ -3,7 +3,7 @@ package random
 import (
 	"errors"
 
-	"github.com/irisnet/irishub-sdk-go/types/rpc"
+	"github.com/irisnet/irishub-sdk-go/rpc"
 
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -93,7 +93,7 @@ func (r randomClient) QueryRandom(reqID string) (rpc.RandomInfo, error) {
 	}
 
 	var rand Rand
-	if err := r.Query("custom/rand/rand", param, &rand); err != nil {
+	if err := r.QueryWithResponse("custom/rand/rand", param, &rand); err != nil {
 		return rpc.RandomInfo{}, err
 	}
 	return rand.Convert().(rpc.RandomInfo), nil
@@ -108,7 +108,7 @@ func (r randomClient) QueryRequests(height int64) ([]rpc.RequestRandom, error) {
 	}
 
 	var rs Requests
-	if err := r.Query("custom/rand/queue", param, &rs); err != nil {
+	if err := r.QueryWithResponse("custom/rand/queue", param, &rs); err != nil {
 		return nil, err
 	}
 	return rs.Convert().([]rpc.RequestRandom), nil

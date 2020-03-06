@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/irisnet/irishub-sdk-go/types/rpc"
+	"github.com/irisnet/irishub-sdk-go/rpc"
 
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -158,7 +158,7 @@ func (s stakingClient) QueryDelegation(delegatorAddr, validatorAddr string) (rpc
 	}
 
 	var delegation Delegation
-	if err = s.Query("custom/stake/delegation", param, &delegation); err != nil {
+	if err = s.QueryWithResponse("custom/stake/delegation", param, &delegation); err != nil {
 		return rpc.Delegation{}, err
 	}
 	return delegation.Convert().(rpc.Delegation), err
@@ -178,7 +178,7 @@ func (s stakingClient) QueryDelegations(delegatorAddr string) (rpc.Delegations, 
 	}
 
 	var ds Delegations
-	if err = s.Query("custom/stake/delegatorDelegations", param, &ds); err != nil {
+	if err = s.QueryWithResponse("custom/stake/delegatorDelegations", param, &ds); err != nil {
 		return rpc.Delegations{}, err
 	}
 	return ds.Convert().(rpc.Delegations), err
@@ -205,7 +205,7 @@ func (s stakingClient) QueryUnbondingDelegation(delegatorAddr, validatorAddr str
 	}
 
 	var ubd UnbondingDelegation
-	if err = s.Query("custom/stake/unbondingDelegation", param, &ubd); err != nil {
+	if err = s.QueryWithResponse("custom/stake/unbondingDelegation", param, &ubd); err != nil {
 		return rpc.UnbondingDelegation{}, err
 	}
 	return ubd.Convert().(rpc.UnbondingDelegation), err
@@ -225,7 +225,7 @@ func (s stakingClient) QueryUnbondingDelegations(delegatorAddr string) (rpc.Unbo
 	}
 
 	var unds UnbondingDelegations
-	err = s.Query("custom/stake/delegatorUnbondingDelegations", param, &unds)
+	err = s.QueryWithResponse("custom/stake/delegatorUnbondingDelegations", param, &unds)
 	if err != nil {
 		return rpc.UnbondingDelegations{}, err
 	}
@@ -260,7 +260,7 @@ func (s stakingClient) QueryRedelegation(delegatorAddr, srcValidatorAddr, dstVal
 	}
 
 	var rd Redelegation
-	if err = s.Query("custom/stake/redelegation", param, &rd); err != nil {
+	if err = s.QueryWithResponse("custom/stake/redelegation", param, &rd); err != nil {
 		return rpc.Redelegation{}, err
 	}
 	return rd.Convert().(rpc.Redelegation), nil
@@ -279,7 +279,7 @@ func (s stakingClient) QueryRedelegations(delegatorAddr string) (rpc.Redelegatio
 	}
 
 	var rds Redelegations
-	if err = s.Query("custom/stake/delegatorRedelegations", param, &rds); err != nil {
+	if err = s.QueryWithResponse("custom/stake/delegatorRedelegations", param, &rds); err != nil {
 		return rpc.Redelegations{}, err
 	}
 	return rds.Convert().(rpc.Redelegations), nil
@@ -299,7 +299,7 @@ func (s stakingClient) QueryDelegationsTo(validatorAddr string) (rpc.Delegations
 	}
 
 	var ds Delegations
-	if err = s.Query("custom/stake/validatorDelegations", param, &ds); err != nil {
+	if err = s.QueryWithResponse("custom/stake/validatorDelegations", param, &ds); err != nil {
 		return rpc.Delegations{}, err
 	}
 	return ds.Convert().(rpc.Delegations), nil
@@ -319,7 +319,7 @@ func (s stakingClient) QueryUnbondingDelegationsFrom(validatorAddr string) (rpc.
 	}
 
 	var ubds UnbondingDelegations
-	if err = s.Query("custom/stake/validatorUnbondingDelegations", param, &ubds); err != nil {
+	if err = s.QueryWithResponse("custom/stake/validatorUnbondingDelegations", param, &ubds); err != nil {
 		return rpc.UnbondingDelegations{}, err
 	}
 	return ubds.Convert().(rpc.UnbondingDelegations), nil
@@ -339,7 +339,7 @@ func (s stakingClient) QueryRedelegationsFrom(validatorAddr string) (rpc.Redeleg
 	}
 
 	var rds Redelegations
-	if err = s.Query("custom/stake/validatorRedelegations", param, &rds); err != nil {
+	if err = s.QueryWithResponse("custom/stake/validatorRedelegations", param, &rds); err != nil {
 		return rpc.Redelegations{}, err
 	}
 	return rds.Convert().(rpc.Redelegations), nil
@@ -359,7 +359,7 @@ func (s stakingClient) QueryValidator(address string) (rpc.Validator, error) {
 	}
 
 	var validator Validator
-	if err = s.Query("custom/stake/validator", param, &validator); err != nil {
+	if err = s.QueryWithResponse("custom/stake/validator", param, &validator); err != nil {
 		return rpc.Validator{}, err
 	}
 	return validator.Convert().(rpc.Validator), nil
@@ -376,7 +376,7 @@ func (s stakingClient) QueryValidators(page uint64, size uint16) (rpc.Validators
 	}
 
 	var validators Validators
-	if err := s.Query("custom/stake/validators", param, &validators); err != nil {
+	if err := s.QueryWithResponse("custom/stake/validators", param, &validators); err != nil {
 		return rpc.Validators{}, err
 	}
 	return validators.Convert().(rpc.Validators), nil
@@ -385,7 +385,7 @@ func (s stakingClient) QueryValidators(page uint64, size uint16) (rpc.Validators
 // QueryValidators return the staking pool status
 func (s stakingClient) QueryPool() (rpc.StakePool, error) {
 	var pool Pool
-	if err := s.Query("custom/stake/pool", nil, &pool); err != nil {
+	if err := s.QueryWithResponse("custom/stake/pool", nil, &pool); err != nil {
 		return rpc.StakePool{}, err
 	}
 	return pool.Convert().(rpc.StakePool), nil
@@ -394,7 +394,7 @@ func (s stakingClient) QueryPool() (rpc.StakePool, error) {
 // QueryValidators return the staking gov params
 func (s stakingClient) QueryParams() (rpc.StakeParams, error) {
 	var params Params
-	if err := s.Query("custom/stake/parameters", nil, &params); err != nil {
+	if err := s.QueryWithResponse("custom/stake/parameters", nil, &params); err != nil {
 		return rpc.StakeParams{}, err
 	}
 	return params.Convert().(rpc.StakeParams), nil

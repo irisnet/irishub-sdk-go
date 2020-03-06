@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/irisnet/irishub-sdk-go/types/rpc"
+	"github.com/irisnet/irishub-sdk-go/rpc"
 
 	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -670,7 +670,7 @@ func (msg MsgWithdrawTax) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Trustee}
 }
 
-//==========================================for Query==========================================
+//==========================================for QueryWithResponse==========================================
 
 // Definition represents a service definition
 type Definition struct {

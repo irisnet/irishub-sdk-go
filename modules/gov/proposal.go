@@ -3,7 +3,7 @@ package gov
 import (
 	"time"
 
-	"github.com/irisnet/irishub-sdk-go/types/rpc"
+	"github.com/irisnet/irishub-sdk-go/rpc"
 
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
@@ -30,7 +30,14 @@ type Proposal interface {
 	GetVotingStartTime() time.Time
 	GetVotingEndTime() time.Time
 	GetProposer() sdk.AccAddress
-	ToSDKResponse() rpc.Proposal
+	sdk.Response
+}
+
+type Proposals []Proposal
+
+func (ps Proposals) Convert() interface{} {
+	//should not implement
+	return nil
 }
 
 // Basic Proposals
@@ -93,7 +100,7 @@ func (b BasicProposal) GetProposer() sdk.AccAddress {
 	return b.Proposer
 }
 
-func (b BasicProposal) ToSDKResponse() rpc.Proposal {
+func (b BasicProposal) Convert() interface{} {
 	return rpc.BasicProposal{
 		Title:          b.Title,
 		Description:    b.Description,
@@ -124,9 +131,9 @@ type PlainTextProposal struct {
 	BasicProposal
 }
 
-func (b PlainTextProposal) ToSDKResponse() rpc.Proposal {
+func (b PlainTextProposal) Convert() interface{} {
 	return rpc.PlainTextProposal{
-		Proposal: b.BasicProposal.ToSDKResponse(),
+		Proposal: b.BasicProposal.Convert().(rpc.BasicProposal),
 	}
 }
 
@@ -144,7 +151,7 @@ type ParameterProposal struct {
 	Params Params `json:"params"`
 }
 
-func (b ParameterProposal) ToSDKResponse() rpc.Proposal {
+func (b ParameterProposal) Convert() interface{} {
 	var params []rpc.Param
 	for _, p := range b.Params {
 		params = append(params, rpc.Param{
@@ -155,7 +162,7 @@ func (b ParameterProposal) ToSDKResponse() rpc.Proposal {
 		})
 	}
 	return rpc.ParameterProposal{
-		Proposal: b.BasicProposal.ToSDKResponse(),
+		Proposal: b.BasicProposal.Convert().(rpc.BasicProposal),
 		Params:   params,
 	}
 }
@@ -173,9 +180,9 @@ type CommunityTaxUsageProposal struct {
 	TaxUsage TaxUsage `json:"tax_usage"`
 }
 
-func (b CommunityTaxUsageProposal) ToSDKResponse() rpc.Proposal {
+func (b CommunityTaxUsageProposal) Convert() interface{} {
 	return rpc.CommunityTaxUsageProposal{
-		Proposal: b.BasicProposal.ToSDKResponse(),
+		Proposal: b.BasicProposal.Convert().(rpc.BasicProposal),
 		TaxUsage: rpc.TaxUsage{
 			Usage:       b.TaxUsage.Usage,
 			DestAddress: b.TaxUsage.DestAddress.String(),
@@ -196,9 +203,9 @@ type ProtocolDefinition struct {
 	Threshold string `json:"threshold"`
 }
 
-func (b SoftwareUpgradeProposal) ToSDKResponse() rpc.Proposal {
+func (b SoftwareUpgradeProposal) Convert() interface{} {
 	return rpc.SoftwareUpgradeProposal{
-		Proposal: b.BasicProposal.ToSDKResponse(),
+		Proposal: b.BasicProposal.Convert().(rpc.BasicProposal),
 		ProtocolDefinition: rpc.ProtocolDefinition{
 			Version:   b.ProtocolDefinition.Version,
 			Software:  b.ProtocolDefinition.Software,

@@ -1,14 +1,15 @@
 package gov
 
 import (
+	"github.com/irisnet/irishub-sdk-go/rpc"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
-	"github.com/irisnet/irishub-sdk-go/types/rpc"
 )
 
 type govClient struct {
 	sdk.AbstractClient
 	*log.Logger
+	cdc *sdk.Codec
 }
 
 func New(ac sdk.AbstractClient) rpc.Gov {
@@ -71,12 +72,17 @@ func (g govClient) QueryProposal(proposalID uint64) (rpc.Proposal, error) {
 		ProposalID: proposalID,
 	}
 
-	var proposal Proposal
-	err := g.Query("custom/gov/proposal", param, &proposal)
+	res, err := g.Query("custom/gov/proposal", param)
 	if err != nil {
 		return nil, err
 	}
-	return proposal.ToSDKResponse(), nil
+
+	var proposal Proposal
+	if err = cdc.UnmarshalJSON(res, &proposal); err != nil {
+		return nil, err
+	}
+
+	return proposal.Convert().(rpc.Proposal), nil
 }
 
 // QueryProposals returns all proposals of the specified params
@@ -108,14 +114,17 @@ func (g govClient) QueryProposals(request rpc.ProposalRequest) (ps []rpc.Proposa
 		Limit:          request.Limit,
 	}
 
-	var proposals []Proposal
-	err = g.Query("custom/gov/proposals", param, &proposals)
+	res, err := g.Query("custom/gov/proposals", param)
 	if err != nil {
 		return nil, err
 	}
 
+	var proposals Proposals
+	if err = cdc.UnmarshalJSON(res, &proposals); err != nil {
+		return nil, err
+	}
 	for _, p := range proposals {
-		ps = append(ps, p.ToSDKResponse())
+		ps = append(ps, p.Convert().(rpc.Proposal))
 	}
 	return ps, nil
 }
@@ -136,7 +145,7 @@ func (g govClient) QueryVote(proposalID uint64, voter string) (rpc.Vote, error) 
 	}
 
 	var vote Vote
-	err = g.Query("custom/gov/vote", param, &vote)
+	err = g.QueryWithResponse("custom/gov/vote", param, &vote)
 	if err != nil {
 		return rpc.Vote{}, err
 	}
@@ -152,7 +161,7 @@ func (g govClient) QueryVotes(proposalID uint64) ([]rpc.Vote, error) {
 	}
 
 	var vs Votes
-	err := g.Query("custom/gov/votes", param, &vs)
+	err := g.QueryWithResponse("custom/gov/votes", param, &vs)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +184,7 @@ func (g govClient) QueryDeposit(proposalID uint64, depositor string) (rpc.Deposi
 	}
 
 	var deposit Deposit
-	err = g.Query("custom/gov/deposit", param, &deposit)
+	err = g.QueryWithResponse("custom/gov/deposit", param, &deposit)
 	if err != nil {
 		return rpc.Deposit{}, err
 	}
@@ -191,7 +200,7 @@ func (g govClient) QueryDeposits(proposalID uint64) ([]rpc.Deposit, error) {
 	}
 
 	var deposits Deposits
-	err := g.Query("custom/gov/deposits", param, &deposits)
+	err := g.QueryWithResponse("custom/gov/deposits", param, &deposits)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +216,7 @@ func (g govClient) QueryTally(proposalID uint64) (rpc.TallyResult, error) {
 	}
 
 	var tally TallyResult
-	err := g.Query("custom/gov/tally", param, &tally)
+	err := g.QueryWithResponse("custom/gov/tally", param, &tally)
 	if err != nil {
 		return rpc.TallyResult{}, err
 	}
@@ -216,6 +225,7 @@ func (g govClient) QueryTally(proposalID uint64) (rpc.TallyResult, error) {
 
 func (g govClient) RegisterCodec(cdc sdk.Codec) {
 	registerCodec(cdc)
+	g.cdc = &cdc
 }
 
 func (g govClient) Name() string {
