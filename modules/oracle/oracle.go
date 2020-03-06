@@ -156,7 +156,7 @@ func (o oracleClient) QueryFeed(feedName string) (rpc.FeedContext, error) {
 		FeedName: feedName,
 	}
 
-	var ctx FeedContext
+	var ctx feedContext
 	if err := o.QueryWithResponse("custom/oracle/feed", param, &ctx); err != nil {
 		return rpc.FeedContext{}, err
 	}
@@ -171,7 +171,7 @@ func (o oracleClient) QueryFeeds(state string) ([]rpc.FeedContext, error) {
 		State: state,
 	}
 
-	var fcs FeedContexts
+	var fcs feedContexts
 	if err := o.QueryWithResponse("custom/oracle/feeds", param, &fcs); err != nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (o oracleClient) QueryFeedValue(feedName string) ([]rpc.FeedValue, error) {
 		FeedName: feedName,
 	}
 
-	var fvs FeedValues
+	var fvs feedValues
 	if err := o.QueryWithResponse("custom/oracle/feedValue", param, &fvs); err != nil {
 		return nil, err
 	}

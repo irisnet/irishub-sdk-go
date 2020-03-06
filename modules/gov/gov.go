@@ -19,7 +19,7 @@ func New(ac sdk.AbstractClient) rpc.Gov {
 	}
 }
 
-//Deposit is responsible for depositing some tokens for proposal
+//deposit is responsible for depositing some tokens for proposal
 func (g govClient) Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, error) {
 	depositor, err := g.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
@@ -39,7 +39,7 @@ func (g govClient) Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseT
 	return g.Broadcast(baseTx, []sdk.Msg{msg})
 }
 
-//Vote is responsible for voting for proposal
+//vote is responsible for voting for proposal
 func (g govClient) Vote(proposalID uint64, option rpc.VoteOption, baseTx sdk.BaseTx) (sdk.Result, error) {
 	voter, err := g.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
@@ -77,7 +77,7 @@ func (g govClient) QueryProposal(proposalID uint64) (rpc.Proposal, error) {
 		return nil, err
 	}
 
-	var proposal Proposal
+	var proposal proposal
 	if err = cdc.UnmarshalJSON(res, &proposal); err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func (g govClient) QueryProposals(request rpc.ProposalRequest) (ps []rpc.Proposa
 		return nil, err
 	}
 
-	var proposals Proposals
+	var proposals proposals
 	if err = cdc.UnmarshalJSON(res, &proposals); err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (g govClient) QueryVote(proposalID uint64, voter string) (rpc.Vote, error) 
 		Voter:      v,
 	}
 
-	var vote Vote
+	var vote vote
 	err = g.QueryWithResponse("custom/gov/vote", param, &vote)
 	if err != nil {
 		return rpc.Vote{}, err
@@ -160,7 +160,7 @@ func (g govClient) QueryVotes(proposalID uint64) ([]rpc.Vote, error) {
 		ProposalID: proposalID,
 	}
 
-	var vs Votes
+	var vs votes
 	err := g.QueryWithResponse("custom/gov/votes", param, &vs)
 	if err != nil {
 		return nil, err
@@ -183,7 +183,7 @@ func (g govClient) QueryDeposit(proposalID uint64, depositor string) (rpc.Deposi
 		Depositor:  d,
 	}
 
-	var deposit Deposit
+	var deposit deposit
 	err = g.QueryWithResponse("custom/gov/deposit", param, &deposit)
 	if err != nil {
 		return rpc.Deposit{}, err
@@ -199,7 +199,7 @@ func (g govClient) QueryDeposits(proposalID uint64) ([]rpc.Deposit, error) {
 		ProposalID: proposalID,
 	}
 
-	var deposits Deposits
+	var deposits deposits
 	err := g.QueryWithResponse("custom/gov/deposits", param, &deposits)
 	if err != nil {
 		return nil, err
@@ -215,7 +215,7 @@ func (g govClient) QueryTally(proposalID uint64) (rpc.TallyResult, error) {
 		ProposalID: proposalID,
 	}
 
-	var tally TallyResult
+	var tally tallyResult
 	err := g.QueryWithResponse("custom/gov/tally", param, &tally)
 	if err != nil {
 		return rpc.TallyResult{}, err

@@ -1,3 +1,4 @@
+// Package slashing provides the ability to access the interface of the IRISHUB slashing module
 //
 // In Proof-of-Stake blockchain, validators will get block provisions by staking their token.
 // But if they failed to keep online, they will be punished by slashing a small portion of their staked tokens.
@@ -72,7 +73,7 @@ func (s slashingClient) queryParamsV017() (rpc.SlashingParams, error) {
 		Module: s.Name(),
 	}
 
-	var params ParamsV017
+	var params paramsV017
 	if err := s.QueryWithResponse("custom/params/module", param, &params); err != nil {
 		return rpc.SlashingParams{}, err
 	}
@@ -80,7 +81,7 @@ func (s slashingClient) queryParamsV017() (rpc.SlashingParams, error) {
 }
 
 func (s slashingClient) queryParamsV100() (rpc.SlashingParams, error) {
-	var params Params
+	var params params
 	err := s.QueryWithResponse("custom/%s/parameters", s.Name(), &params)
 	if err != nil {
 		return rpc.SlashingParams{}, err
@@ -95,7 +96,7 @@ func (s slashingClient) querySigningInfoV017(pk crypto.PubKey) (rpc.ValidatorSig
 		return rpc.ValidatorSigningInfo{}, err
 	}
 
-	var signingInfo ValidatorSigningInfoV017
+	var signingInfo validatorSigningInfoV017
 	err = cdc.UnmarshalBinaryLengthPrefixed(res, &signingInfo)
 	if err != nil {
 		return rpc.ValidatorSigningInfo{}, err
@@ -120,7 +121,7 @@ func (s slashingClient) querySigningInfoV100(pk crypto.PubKey) (rpc.ValidatorSig
 		ConsAddress: consAddr,
 	}
 
-	var signingInfo ValidatorSigningInfo
+	var signingInfo validatorSigningInfo
 	err := s.QueryWithResponse("custom/slashing/signingInfo", param, &signingInfo)
 	if err != nil {
 		return rpc.ValidatorSigningInfo{}, err

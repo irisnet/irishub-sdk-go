@@ -164,14 +164,13 @@ func (msg MsgWithdrawValidatorRewardsAll) ValidateBasic() error {
 	return nil
 }
 
-type Rewards struct {
+type rewards struct {
 	Total       sdk.Coins            `json:"total"`
-	Delegations []DelegationsRewards `json:"delegations"`
+	Delegations []delegationsRewards `json:"delegations"`
 	Commission  sdk.Coins            `json:"commission"`
 }
 
-func (r Rewards) Convert() interface{} {
-
+func (r rewards) Convert() interface{} {
 	var delegations []rpc.DelegationRewards
 	for _, d := range r.Delegations {
 		delegations = append(delegations, rpc.DelegationRewards{
@@ -186,7 +185,7 @@ func (r Rewards) Convert() interface{} {
 	}
 }
 
-type DelegationsRewards struct {
+type delegationsRewards struct {
 	Validator sdk.ValAddress `json:"validator"`
 	Reward    sdk.Coins      `json:"reward"`
 }

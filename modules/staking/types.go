@@ -219,17 +219,17 @@ func (msg MsgEditValidator) ValidateBasic() error {
 }
 
 //===============================for query===============================
-// Delegation represents the bond with tokens held by an account.  It is
+// delegation represents the bond with tokens held by an account.  It is
 // owned by one delegator, and is associated with the voting power of one
 // pubKey.
-type Delegation struct {
+type delegation struct {
 	DelegatorAddr sdk.AccAddress `json:"delegator_addr"`
 	ValidatorAddr sdk.ValAddress `json:"validator_addr"`
 	Shares        sdk.Dec        `json:"shares"`
 	Height        int64          `json:"height"` // Last height bond updated
 }
 
-func (d Delegation) Convert() interface{} {
+func (d delegation) Convert() interface{} {
 	return rpc.Delegation{
 		DelegatorAddr: d.DelegatorAddr.String(),
 		ValidatorAddr: d.ValidatorAddr.String(),
@@ -238,7 +238,7 @@ func (d Delegation) Convert() interface{} {
 	}
 }
 
-type Delegations []Delegation
+type Delegations []delegation
 
 func (ds Delegations) Convert() interface{} {
 	delegations := make(rpc.Delegations, len(ds))
@@ -248,8 +248,8 @@ func (ds Delegations) Convert() interface{} {
 	return delegations
 }
 
-// UnbondingDelegation reflects a delegation's passive unbonding queue.
-type UnbondingDelegation struct {
+// unbondingDelegation reflects a delegation's passive unbonding queue.
+type unbondingDelegation struct {
 	TxHash         string         `json:"tx_hash"`
 	DelegatorAddr  sdk.AccAddress `json:"delegator_addr"`  // delegator
 	ValidatorAddr  sdk.ValAddress `json:"validator_addr"`  // validator unbonding from operator addr
@@ -259,7 +259,7 @@ type UnbondingDelegation struct {
 	Balance        sdk.Coin       `json:"balance"`         // atoms to receive at completion
 }
 
-func (ubd UnbondingDelegation) Convert() interface{} {
+func (ubd unbondingDelegation) Convert() interface{} {
 	return rpc.UnbondingDelegation{
 		TxHash:         ubd.TxHash,
 		DelegatorAddr:  ubd.DelegatorAddr.String(),
@@ -271,7 +271,7 @@ func (ubd UnbondingDelegation) Convert() interface{} {
 	}
 }
 
-type UnbondingDelegations []UnbondingDelegation
+type UnbondingDelegations []unbondingDelegation
 
 func (ubds UnbondingDelegations) Convert() interface{} {
 	uds := make(rpc.UnbondingDelegations, len(ubds))
@@ -281,8 +281,8 @@ func (ubds UnbondingDelegations) Convert() interface{} {
 	return uds
 }
 
-// Redelegation reflects a delegation's passive re-delegation queue.
-type Redelegation struct {
+// redelegation reflects a delegation's passive re-delegation queue.
+type redelegation struct {
 	DelegatorAddr    sdk.AccAddress `json:"delegator_addr"`     // delegator
 	ValidatorSrcAddr sdk.ValAddress `json:"validator_src_addr"` // validator redelegation source operator addr
 	ValidatorDstAddr sdk.ValAddress `json:"validator_dst_addr"` // validator redelegation destination operator addr
@@ -294,7 +294,7 @@ type Redelegation struct {
 	SharesDst        sdk.Dec        `json:"shares_dst"`         // amount of destination shares redelegating
 }
 
-func (d Redelegation) Convert() interface{} {
+func (d redelegation) Convert() interface{} {
 	return rpc.Redelegation{
 		DelegatorAddr:    d.DelegatorAddr.String(),
 		ValidatorSrcAddr: d.ValidatorDstAddr.String(),
@@ -308,7 +308,7 @@ func (d Redelegation) Convert() interface{} {
 	}
 }
 
-type Redelegations []Redelegation
+type Redelegations []redelegation
 
 func (ds Redelegations) Convert() interface{} {
 	rds := make(rpc.Redelegations, len(ds))
@@ -318,7 +318,7 @@ func (ds Redelegations) Convert() interface{} {
 	return rds
 }
 
-type Validator struct {
+type validator struct {
 	OperatorAddr string `json:"operator_address"` // address of the validator's operator; bech encoded in JSON
 	ConsPubKey   string `json:"consensus_pubkey"` // the consensus public key of the validator; bech encoded in JSON
 	Jailed       bool   `json:"jailed"`           // has the validator been jailed from bonded status?
@@ -336,7 +336,7 @@ type Validator struct {
 	Commission Commission `json:"commission"` // commission parameters
 }
 
-func (v Validator) Convert() interface{} {
+func (v validator) Convert() interface{} {
 	return rpc.Validator{
 		OperatorAddress: v.OperatorAddr,
 		ConsensusPubkey: v.ConsPubKey,
@@ -362,12 +362,12 @@ func (v Validator) Convert() interface{} {
 	}
 }
 
-type Validators []Validator
+type Validators []validator
 
 func (vs Validators) Convert() interface{} {
 	validators := make(rpc.Validators, len(vs))
-	for _, v := range vs {
-		validators = append(validators, v.Convert().(rpc.Validator))
+	for i, v := range vs {
+		validators[i] = v.Convert().(rpc.Validator)
 	}
 	return validators
 }
@@ -423,13 +423,13 @@ func (p Pool) Convert() interface{} {
 	}
 }
 
-// Params defines the high level settings for staking
-type Params struct {
+// params defines the high level settings for staking
+type params struct {
 	UnbondingTime time.Duration `json:"unbonding_time"`
 	MaxValidators uint16        `json:"max_validators"` // maximum number of validators
 }
 
-func (p Params) Convert() interface{} {
+func (p params) Convert() interface{} {
 	return rpc.StakeParams{
 		UnbondingTime: p.UnbondingTime.String(),
 		MaxValidators: int(p.MaxValidators),
@@ -438,11 +438,11 @@ func (p Params) Convert() interface{} {
 
 func registerCodec(cdc sdk.Codec) {
 	//cdc.RegisterConcrete(Pool{}, "irishub/stake/Pool")
-	cdc.RegisterConcrete(&Params{}, "irishub/stake/Params")
-	cdc.RegisterConcrete(Validator{}, "irishub/stake/Validator")
-	cdc.RegisterConcrete(Delegation{}, "irishub/stake/Delegation")
-	cdc.RegisterConcrete(UnbondingDelegation{}, "irishub/stake/UnbondingDelegation")
-	cdc.RegisterConcrete(Redelegation{}, "irishub/stake/Redelegation")
+	cdc.RegisterConcrete(&params{}, "irishub/stake/Params")
+	cdc.RegisterConcrete(validator{}, "irishub/stake/Validator")
+	cdc.RegisterConcrete(delegation{}, "irishub/stake/Delegation")
+	cdc.RegisterConcrete(unbondingDelegation{}, "irishub/stake/UnbondingDelegation")
+	cdc.RegisterConcrete(redelegation{}, "irishub/stake/Redelegation")
 
 	cdc.RegisterConcrete(MsgEditValidator{}, "irishub/stake/MsgEditValidator")
 	cdc.RegisterConcrete(MsgDelegate{}, "irishub/stake/MsgDelegate")

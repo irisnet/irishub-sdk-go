@@ -157,7 +157,7 @@ func (s stakingClient) QueryDelegation(delegatorAddr, validatorAddr string) (rpc
 		ValidatorAddr: varAddr,
 	}
 
-	var delegation Delegation
+	var delegation delegation
 	if err = s.QueryWithResponse("custom/stake/delegation", param, &delegation); err != nil {
 		return rpc.Delegation{}, err
 	}
@@ -204,7 +204,7 @@ func (s stakingClient) QueryUnbondingDelegation(delegatorAddr, validatorAddr str
 		ValidatorAddr: varAddr,
 	}
 
-	var ubd UnbondingDelegation
+	var ubd unbondingDelegation
 	if err = s.QueryWithResponse("custom/stake/unbondingDelegation", param, &ubd); err != nil {
 		return rpc.UnbondingDelegation{}, err
 	}
@@ -259,7 +259,7 @@ func (s stakingClient) QueryRedelegation(delegatorAddr, srcValidatorAddr, dstVal
 		ValDstAddr:    dstVarAddr,
 	}
 
-	var rd Redelegation
+	var rd redelegation
 	if err = s.QueryWithResponse("custom/stake/redelegation", param, &rd); err != nil {
 		return rpc.Redelegation{}, err
 	}
@@ -358,7 +358,7 @@ func (s stakingClient) QueryValidator(address string) (rpc.Validator, error) {
 		ValidatorAddr: varAddr,
 	}
 
-	var validator Validator
+	var validator validator
 	if err = s.QueryWithResponse("custom/stake/validator", param, &validator); err != nil {
 		return rpc.Validator{}, err
 	}
@@ -393,7 +393,7 @@ func (s stakingClient) QueryPool() (rpc.StakePool, error) {
 
 // QueryValidators return the staking gov params
 func (s stakingClient) QueryParams() (rpc.StakeParams, error) {
-	var params Params
+	var params params
 	if err := s.QueryWithResponse("custom/stake/parameters", nil, &params); err != nil {
 		return rpc.StakeParams{}, err
 	}

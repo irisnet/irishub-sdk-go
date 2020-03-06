@@ -386,7 +386,7 @@ func (s serviceClient) QueryDefinition(serviceName string) (rpc.ServiceDefinitio
 		ServiceName: serviceName,
 	}
 
-	var definition Definition
+	var definition serviceDefinition
 	if err := s.QueryWithResponse("custom/service/definition", param, &definition); err != nil {
 		return rpc.ServiceDefinition{}, err
 	}
@@ -403,7 +403,7 @@ func (s serviceClient) QueryBinding(serviceName string, provider sdk.AccAddress)
 		Provider:    provider,
 	}
 
-	var binding Binding
+	var binding serviceBinding
 	if err := s.QueryWithResponse("custom/service/binding", param, &binding); err != nil {
 		return rpc.ServiceBinding{}, err
 	}
@@ -418,7 +418,7 @@ func (s serviceClient) QueryBindings(serviceName string) ([]rpc.ServiceBinding, 
 		ServiceName: serviceName,
 	}
 
-	var bindings Bindings
+	var bindings serviceBindings
 	if err := s.QueryWithResponse("custom/service/bindings", param, &bindings); err != nil {
 		return nil, err
 	}
@@ -433,7 +433,7 @@ func (s serviceClient) QueryRequest(requestID string) (rpc.RequestService, error
 		RequestID: requestID,
 	}
 
-	var request Request
+	var request request
 	if err := s.QueryWithResponse("custom/service/request", param, &request); err != nil {
 		return rpc.RequestService{}, err
 	}
@@ -450,7 +450,7 @@ func (s serviceClient) QueryRequests(serviceName string, provider sdk.AccAddress
 		Provider:    provider,
 	}
 
-	var rs Requests
+	var rs requests
 	if err := s.QueryWithResponse("custom/service/requests", param, &rs); err != nil {
 		return nil, err
 	}
@@ -467,7 +467,7 @@ func (s serviceClient) QueryRequestsByReqCtx(requestContextID string, batchCount
 		BatchCounter:     batchCounter,
 	}
 
-	var rs Requests
+	var rs requests
 	if err := s.QueryWithResponse("custom/service/requests_by_ctx", param, &rs); err != nil {
 		return nil, err
 	}
@@ -482,7 +482,7 @@ func (s serviceClient) QueryResponse(requestID string) (rpc.ServiceResponse, err
 		RequestID: requestID,
 	}
 
-	var response Response
+	var response response
 	if err := s.QueryWithResponse("custom/service/response", param, &response); err != nil {
 		return rpc.ServiceResponse{}, err
 	}
@@ -498,7 +498,7 @@ func (s serviceClient) QueryResponses(requestContextID string, batchCounter uint
 		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
 		BatchCounter:     batchCounter,
 	}
-	var rs Responses
+	var rs responses
 	if err := s.QueryWithResponse("custom/service/responses", param, &rs); err != nil {
 		return nil, err
 	}
@@ -513,7 +513,7 @@ func (s serviceClient) QueryRequestContext(requestContextID string) (rpc.Request
 		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
 	}
 
-	var reqCtx RequestContext
+	var reqCtx requestContext
 	if err := s.QueryWithResponse("custom/service/context", param, &reqCtx); err != nil {
 		return rpc.RequestContext{}, err
 	}
@@ -533,7 +533,7 @@ func (s serviceClient) QueryFees(provider string) (rpc.EarnedFees, error) {
 		Address: address,
 	}
 
-	var fee EarnedFees
+	var fee earnedFees
 
 	if err := s.QueryWithResponse("custom/service/fees", param, &fee); err != nil {
 		return rpc.EarnedFees{}, err

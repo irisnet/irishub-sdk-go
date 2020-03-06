@@ -277,15 +277,14 @@ func (msg MsgSetMemoRegexp) GetSigners() []types.AccAddress {
 	return []types.AccAddress{msg.Owner}
 }
 
-//==================for query================================
-type TokenStats struct {
+type tokenStats struct {
 	LooseTokens  types.Coins `json:"loose_tokens"`
 	BondedTokens types.Coins `json:"bonded_tokens"`
 	BurnedTokens types.Coins `json:"burned_tokens"`
 	TotalSupply  types.Coins `json:"total_supply"`
 }
 
-func (ts TokenStats) Convert() interface{} {
+func (ts tokenStats) Convert() interface{} {
 	return rpc.TokenStats{
 		LooseTokens:  ts.LooseTokens,
 		BondedTokens: ts.BondedTokens,

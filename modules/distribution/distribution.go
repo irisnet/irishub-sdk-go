@@ -38,7 +38,7 @@ func (d distributionClient) QueryRewards(delegator string) (rpc.Rewards, error) 
 		Address: address,
 	}
 
-	var rewards Rewards
+	var rewards rewards
 	if err = d.QueryWithResponse("custom/distr/rewards", param, &rewards); err != nil {
 		return rpc.Rewards{}, err
 	}

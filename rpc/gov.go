@@ -32,7 +32,7 @@ const (
 	Abstain    VoteOption = "Abstain"
 )
 
-//=========================BasicProposal========================================================
+//=========================basicProposal========================================================
 type Proposal interface {
 	GetProposalID() uint64
 	GetTitle() string

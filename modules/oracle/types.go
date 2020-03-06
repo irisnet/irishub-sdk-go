@@ -226,7 +226,7 @@ func (msg MsgEditFeed) GetSigners() []sdk.AccAddress {
 }
 
 //-------------------------------for query--------------------------
-type Feed struct {
+type feed struct {
 	FeedName         string         `json:"feed_name"`
 	Description      string         `json:"description"`
 	AggregateFunc    string         `json:"aggregate_func"`
@@ -236,8 +236,8 @@ type Feed struct {
 	Creator          sdk.AccAddress `json:"creator"`
 }
 
-type FeedContext struct {
-	Feed              Feed             `json:"feed"`
+type feedContext struct {
+	Feed              feed             `json:"feed"`
 	ServiceName       string           `json:"service_name"`
 	Providers         []sdk.AccAddress `json:"providers"`
 	Input             string           `json:"input"`
@@ -249,7 +249,7 @@ type FeedContext struct {
 	State             string           `json:"state"`
 }
 
-func (fc FeedContext) Convert() interface{} {
+func (fc feedContext) Convert() interface{} {
 	var providers []string
 	for _, provider := range fc.Providers {
 		providers = append(providers, provider.String())
@@ -276,9 +276,9 @@ func (fc FeedContext) Convert() interface{} {
 	}
 }
 
-type FeedContexts []FeedContext
+type feedContexts []feedContext
 
-func (fcs FeedContexts) Convert() interface{} {
+func (fcs feedContexts) Convert() interface{} {
 	result := make([]rpc.FeedContext, len(fcs))
 	for _, fc := range fcs {
 		result = append(result, fc.Convert().(rpc.FeedContext))
@@ -286,13 +286,13 @@ func (fcs FeedContexts) Convert() interface{} {
 	return result
 }
 
-type FeedValue struct {
+type feedValue struct {
 	Data      string    `json:"data"`
 	Timestamp time.Time `json:"timestamp"`
 }
-type FeedValues []FeedValue
+type feedValues []feedValue
 
-func (fvs FeedValues) Convert() interface{} {
+func (fvs feedValues) Convert() interface{} {
 	result := make([]rpc.FeedValue, len(fvs))
 	for _, fv := range fvs {
 		result = append(result, rpc.FeedValue{
@@ -309,6 +309,6 @@ func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgPauseFeed{}, "irishub/oracle/MsgPauseFeed")
 	cdc.RegisterConcrete(MsgEditFeed{}, "irishub/oracle/MsgEditFeed")
 
-	cdc.RegisterConcrete(Feed{}, "irishub/oracle/Feed")
-	cdc.RegisterConcrete(FeedContext{}, "irishub/oracle/FeedContext")
+	cdc.RegisterConcrete(feed{}, "irishub/oracle/Feed")
+	cdc.RegisterConcrete(feedContext{}, "irishub/oracle/FeedContext")
 }

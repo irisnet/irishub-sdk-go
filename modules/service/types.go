@@ -672,8 +672,8 @@ func (msg MsgWithdrawTax) GetSigners() []sdk.AccAddress {
 
 //==========================================for QueryWithResponse==========================================
 
-// Definition represents a service definition
-type Definition struct {
+// serviceDefinition represents a service definition
+type serviceDefinition struct {
 	Name              string         `json:"name"`
 	Description       string         `json:"description"`
 	Tags              []string       `json:"tags"`
@@ -682,7 +682,7 @@ type Definition struct {
 	Schemas           string         `json:"schemas"`
 }
 
-func (r Definition) Convert() interface{} {
+func (r serviceDefinition) Convert() interface{} {
 	return rpc.ServiceDefinition{
 		Name:              r.Name,
 		Description:       r.Description,
@@ -693,8 +693,8 @@ func (r Definition) Convert() interface{} {
 	}
 }
 
-// Binding defines a struct for service binding
-type Binding struct {
+// serviceBinding defines a struct for service binding
+type serviceBinding struct {
 	ServiceName     string         `json:"service_name"`
 	Provider        sdk.AccAddress `json:"provider"`
 	Deposit         sdk.Coins      `json:"deposit"`
@@ -704,7 +704,7 @@ type Binding struct {
 	DisabledTime    time.Time      `json:"disabled_time"`
 }
 
-func (b Binding) Convert() interface{} {
+func (b serviceBinding) Convert() interface{} {
 	return rpc.ServiceBinding{
 		ServiceName:     b.ServiceName,
 		Provider:        b.Provider,
@@ -717,9 +717,9 @@ func (b Binding) Convert() interface{} {
 
 }
 
-type Bindings []Binding
+type serviceBindings []serviceBinding
 
-func (bs Bindings) Convert() interface{} {
+func (bs serviceBindings) Convert() interface{} {
 	bindings := make([]rpc.ServiceBinding, len(bs))
 	for _, binding := range bs {
 		bindings = append(bindings, binding.Convert().(rpc.ServiceBinding))
@@ -727,8 +727,8 @@ func (bs Bindings) Convert() interface{} {
 	return bindings
 }
 
-// RequestService defines a request which contains the detailed request data
-type Request struct {
+// request defines a request which contains the detailed request data
+type request struct {
 	ServiceName                string         `json:"service_name"`
 	Provider                   sdk.AccAddress `json:"provider"`
 	Consumer                   sdk.AccAddress `json:"consumer"`
@@ -741,7 +741,7 @@ type Request struct {
 	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
 }
 
-func (r Request) Convert() interface{} {
+func (r request) Convert() interface{} {
 	return rpc.RequestService{
 		ServiceName:                r.ServiceName,
 		Provider:                   r.Provider,
@@ -756,9 +756,9 @@ func (r Request) Convert() interface{} {
 	}
 }
 
-type Requests []Request
+type requests []request
 
-func (rs Requests) Convert() interface{} {
+func (rs requests) Convert() interface{} {
 	requests := make([]rpc.RequestService, len(rs))
 	for _, request := range rs {
 		requests = append(requests, request.Convert().(rpc.RequestService))
@@ -767,7 +767,7 @@ func (rs Requests) Convert() interface{} {
 }
 
 // ServiceResponse defines a response
-type Response struct {
+type response struct {
 	Provider                   sdk.AccAddress `json:"provider"`
 	Consumer                   sdk.AccAddress `json:"consumer"`
 	Output                     string         `json:"output"`
@@ -776,7 +776,7 @@ type Response struct {
 	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
 }
 
-func (r Response) Convert() interface{} {
+func (r response) Convert() interface{} {
 	return rpc.ServiceResponse{
 		Provider:                   r.Provider,
 		Consumer:                   r.Consumer,
@@ -787,9 +787,9 @@ func (r Response) Convert() interface{} {
 	}
 }
 
-type Responses []Response
+type responses []response
 
-func (rs Responses) Convert() interface{} {
+func (rs responses) Convert() interface{} {
 	responses := make([]rpc.ServiceResponse, len(rs))
 	for _, response := range rs {
 		responses = append(responses, response.Convert().(rpc.ServiceResponse))
@@ -797,8 +797,8 @@ func (rs Responses) Convert() interface{} {
 	return responses
 }
 
-// RequestContext defines a context which holds request-related data
-type RequestContext struct {
+// requestContext defines a context which holds request-related data
+type requestContext struct {
 	ServiceName        string           `json:"service_name"`
 	Providers          []sdk.AccAddress `json:"providers"`
 	Consumer           sdk.AccAddress   `json:"consumer"`
@@ -818,7 +818,7 @@ type RequestContext struct {
 	ModuleName         string           `json:"module_name"`
 }
 
-func (r RequestContext) Convert() interface{} {
+func (r requestContext) Convert() interface{} {
 	return rpc.RequestContext{
 		ServiceName:        r.ServiceName,
 		Providers:          r.Providers,
@@ -840,13 +840,13 @@ func (r RequestContext) Convert() interface{} {
 	}
 }
 
-// EarnedFees defines a struct for the fees earned by the provider
-type EarnedFees struct {
+// earnedFees defines a struct for the fees earned by the provider
+type earnedFees struct {
 	Address sdk.AccAddress `json:"address"`
 	Coins   sdk.Coins      `json:"coins"`
 }
 
-func (e EarnedFees) Convert() interface{} {
+func (e earnedFees) Convert() interface{} {
 	return rpc.EarnedFees{
 		Address: e.Address,
 		Coins:   e.Coins,
@@ -870,10 +870,10 @@ func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgWithdrawEarnedFees{}, "irishub/service/MsgWithdrawEarnedFees")
 	cdc.RegisterConcrete(MsgWithdrawTax{}, "irishub/service/MsgWithdrawTax")
 
-	cdc.RegisterConcrete(Definition{}, "irishub/service/ServiceDefinition")
-	cdc.RegisterConcrete(Binding{}, "irishub/service/ServiceBinding")
-	cdc.RegisterConcrete(RequestContext{}, "irishub/service/RequestContext")
-	cdc.RegisterConcrete(Request{}, "irishub/service/RequestService")
-	cdc.RegisterConcrete(Response{}, "irishub/service/ServiceResponse")
-	cdc.RegisterConcrete(EarnedFees{}, "irishub/service/EarnedFees")
+	cdc.RegisterConcrete(serviceDefinition{}, "irishub/service/ServiceDefinition")
+	cdc.RegisterConcrete(serviceBinding{}, "irishub/service/ServiceBinding")
+	cdc.RegisterConcrete(requestContext{}, "irishub/service/RequestContext")
+	cdc.RegisterConcrete(request{}, "irishub/service/Request")
+	cdc.RegisterConcrete(response{}, "irishub/service/Response")
+	cdc.RegisterConcrete(earnedFees{}, "irishub/service/EarnedFees")
 }

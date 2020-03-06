@@ -1,9 +1,9 @@
-// This module is mainly used to transfer coins between accounts,
-// query account balances, and provide common offline transaction signing and broadcasting methods.
+// Package bank is mainly used to transfer coins between accounts,
+//query account balances, and provide common offline transaction signing and broadcasting methods.
+//
 // In addition, the available units of tokens in the IRIShub system are defined using [coin-type](https://www.irisnet.org/docs/concepts/coin-type.html).
 //
 // [More Details](https://www.irisnet.org/docs/features/bank.html)
-
 package bank
 
 import (
@@ -52,7 +52,7 @@ func (b bankClient) QueryTokenStats(tokenID string) (rpc.TokenStats, error) {
 		TokenId: tokenID,
 	}
 
-	var ts TokenStats
+	var ts tokenStats
 	if err := b.QueryWithResponse("custom/acc/tokenStats", param, &ts); err != nil {
 		return rpc.TokenStats{}, err
 	}

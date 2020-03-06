@@ -76,18 +76,3 @@ func (gts *GovTestSuite) TestDeposit() {
 	require.NoError(gts.T(), err)
 	require.NotEmpty(gts.T(), tally.Yes)
 }
-
-func (gts *GovTestSuite) TestQueryProposal() {
-	proposal, err := gts.Gov().QueryProposal(uint64(5))
-	require.NoError(gts.T(), err)
-	require.Equal(gts.T(), 5, proposal.GetProposalID())
-}
-
-func (gts *GovTestSuite) TestQueryProposals() {
-	proposals, err := gts.Gov().QueryProposals(rpc.ProposalRequest{
-		Voter: gts.Sender().String(),
-		Limit: 0,
-	})
-	require.NoError(gts.T(), err)
-	require.NotEmpty(gts.T(), proposals)
-}
