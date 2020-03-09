@@ -28,11 +28,6 @@ func init() {
 	registerCodec(cdc)
 }
 
-// defines the params for query: "custom/acc/account"
-type QueryAccountParams struct {
-	Address types.AccAddress
-}
-
 type MsgSend struct {
 	Inputs  []Input  `json:"inputs"`
 	Outputs []Output `json:"outputs"`

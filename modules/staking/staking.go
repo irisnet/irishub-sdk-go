@@ -1,3 +1,8 @@
+//**
+// Package staking provides staking functionalities for validators and delegators
+//
+// [More Details](https://www.irisnet.org/docs/features/stake.html)
+//
 package staking
 
 import (

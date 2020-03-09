@@ -1,3 +1,7 @@
+// Package gov provides governance functionalities
+//
+// [More Details](https://www.irisnet.org/docs/features/governance.html)
+//
 package gov
 
 import (
@@ -19,7 +23,7 @@ func New(ac sdk.AbstractClient) rpc.Gov {
 	}
 }
 
-//deposit is responsible for depositing some tokens for proposal
+//Deposit is responsible for depositing some tokens for proposal
 func (g govClient) Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, error) {
 	depositor, err := g.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
@@ -39,7 +43,7 @@ func (g govClient) Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseT
 	return g.Broadcast(baseTx, []sdk.Msg{msg})
 }
 
-//vote is responsible for voting for proposal
+//Vote is responsible for voting for proposal
 func (g govClient) Vote(proposalID uint64, option rpc.VoteOption, baseTx sdk.BaseTx) (sdk.Result, error) {
 	voter, err := g.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {

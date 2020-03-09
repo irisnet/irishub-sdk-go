@@ -136,14 +136,14 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest,
 		return "", err
 	}
 
-	requestContextID := result.GetTags().GetValue(TagRequestContextID)
+	requestContextID := result.GetTags().GetValue(tagRequestContextID)
 	if callback == nil {
 		return requestContextID, nil
 	}
 	builder := sdk.NewEventQueryBuilder().
-		AddCondition(sdk.ActionKey, sdk.EventValue(TagRespondService)).
-		AddCondition(sdk.EventKey(TagConsumer), sdk.EventValue(consumer.String())).
-		AddCondition(sdk.EventKey(TagServiceName), sdk.EventValue(request.ServiceName))
+		AddCondition(sdk.ActionKey, sdk.EventValue(tagRespondService)).
+		AddCondition(sdk.EventKey(tagConsumer), sdk.EventValue(consumer.String())).
+		AddCondition(sdk.EventKey(tagServiceName), sdk.EventValue(request.ServiceName))
 
 	var subscription sdk.Subscription
 	subscription, err = s.SubscribeTx(builder, func(tx sdk.EventDataTx) {
@@ -302,10 +302,10 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter, 
 	}()
 
 	builder := sdk.NewEventQueryBuilder().
-		AddCondition(sdk.EventKey(TagProvider), sdk.EventValue(provider.String()))
+		AddCondition(sdk.EventKey(tagProvider), sdk.EventValue(provider.String()))
 	_, err = s.SubscribeNewBlockWithQuery(builder, func(block sdk.EventDataNewBlock) {
 		s.Debug().Int64("height", block.Block.Height).Msg("received block")
-		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
+		reqIDs := block.ResultEndBlock.Tags.GetValues(tagRequestID)
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
 			if err != nil {
@@ -348,10 +348,10 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 
 	// TODO user will don't received any event from tendermint when block_result has the same key in tag
 	//builder := sdk.NewEventQueryBuilder().
-	//	AddCondition(sdk.EventKey(TagProvider), sdk.EventValue(provider.String())).
-	//	AddCondition(sdk.EventKey(TagServiceName), sdk.EventValue(serviceName))
+	//	AddCondition(sdk.EventKey(tagProvider), sdk.EventValue(provider.String())).
+	//	AddCondition(sdk.EventKey(tagServiceName), sdk.EventValue(serviceName))
 	_, err = s.SubscribeNewBlockWithQuery(nil, func(block sdk.EventDataNewBlock) {
-		reqIDs := block.ResultEndBlock.Tags.GetValues(TagRequestID)
+		reqIDs := block.ResultEndBlock.Tags.GetValues(tagRequestID)
 		s.Debug().Int64("height", block.Block.Height).Msg("received block")
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)

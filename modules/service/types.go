@@ -14,14 +14,14 @@ import (
 const (
 	ModuleName = "service"
 
-	TagServiceName      = "service-name"
-	TagProvider         = "provider"
-	TagConsumer         = "consumer"
-	TagRequestID        = "request-id"
-	TagRespondService   = "respond_service"
-	TagRequestContextID = "request-context-id"
+	tagServiceName      = "service-name"
+	tagProvider         = "provider"
+	tagConsumer         = "consumer"
+	tagRequestID        = "request-id"
+	tagRespondService   = "respond_service"
+	tagRequestContextID = "request-context-id"
 
-	RequestContextIDLen = 32 // length of the request context ID in bytes
+	requestContextIDLen = 32 // length of the request context ID in bytes
 )
 
 var (
@@ -462,8 +462,8 @@ func (msg MsgPauseRequestContext) ValidateBasic() error {
 		return errors.New("consumer missing")
 	}
 
-	if len(msg.RequestContextID) != RequestContextIDLen {
-		return errors.New(fmt.Sprintf("length of the request context ID must be %d in bytes", RequestContextIDLen))
+	if len(msg.RequestContextID) != requestContextIDLen {
+		return errors.New(fmt.Sprintf("length of the request context ID must be %d in bytes", requestContextIDLen))
 	}
 
 	return nil
@@ -501,8 +501,8 @@ func (msg MsgStartRequestContext) ValidateBasic() error {
 		return errors.New("consumer missing")
 	}
 
-	if len(msg.RequestContextID) != RequestContextIDLen {
-		return errors.New(fmt.Sprintf("length of the request context ID must be %d in bytes", RequestContextIDLen))
+	if len(msg.RequestContextID) != requestContextIDLen {
+		return errors.New(fmt.Sprintf("length of the request context ID must be %d in bytes", requestContextIDLen))
 	}
 
 	return nil
@@ -540,8 +540,8 @@ func (msg MsgKillRequestContext) ValidateBasic() error {
 		return errors.New("consumer missing")
 	}
 
-	if len(msg.RequestContextID) != RequestContextIDLen {
-		return errors.New(fmt.Sprintf("length of the request context ID must be %d in bytes", RequestContextIDLen))
+	if len(msg.RequestContextID) != requestContextIDLen {
+		return errors.New(fmt.Sprintf("length of the request context ID must be %d in bytes", requestContextIDLen))
 	}
 
 	return nil
@@ -584,8 +584,8 @@ func (msg MsgUpdateRequestContext) ValidateBasic() error {
 		return errors.New("consumer missing")
 	}
 
-	if len(msg.RequestContextID) != RequestContextIDLen {
-		return errors.New(fmt.Sprintf("length of the request context ID must be %d in bytes", RequestContextIDLen))
+	if len(msg.RequestContextID) != requestContextIDLen {
+		return errors.New(fmt.Sprintf("length of the request context ID must be %d in bytes", requestContextIDLen))
 	}
 
 	return nil

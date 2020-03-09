@@ -92,7 +92,7 @@ func (r randomClient) QueryRandom(reqID string) (rpc.RandomInfo, error) {
 		ReqID: reqID,
 	}
 
-	var rand Rand
+	var rand rand
 	if err := r.QueryWithResponse("custom/rand/rand", param, &rand); err != nil {
 		return rpc.RandomInfo{}, err
 	}
@@ -107,7 +107,7 @@ func (r randomClient) QueryRequests(height int64) ([]rpc.RequestRandom, error) {
 		Height: height,
 	}
 
-	var rs Requests
+	var rs requests
 	if err := r.QueryWithResponse("custom/rand/queue", param, &rs); err != nil {
 		return nil, err
 	}
