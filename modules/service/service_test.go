@@ -110,6 +110,7 @@ func (sts *ServiceTestSuite) TestService() {
 		RepeatedTotal:     -1,
 	}
 	var requestContextID string
+	var exit = make(chan int, 0)
 	requestContextID, err = sts.Service().InvokeService(invocation, func(reqCtxID string, response string) {
 		require.Equal(sts.T(), reqCtxID, requestContextID)
 		require.Equal(sts.T(), output, response)
@@ -117,6 +118,7 @@ func (sts *ServiceTestSuite) TestService() {
 			Str("requestContextID", requestContextID).
 			Str("response", response).
 			Msg("consumer received response")
+		exit <- 1
 	})
 
 	sts.Info().
@@ -129,21 +131,7 @@ func (sts *ServiceTestSuite) TestService() {
 	require.Equal(sts.T(), request.ServiceName, invocation.ServiceName)
 	require.Equal(sts.T(), request.Input, invocation.Input)
 
-	time.Sleep(10 * time.Minute)
-}
-
-func (sts *ServiceTestSuite) TestQueryDefinition() {
-	serviceName := "fbfbbc12-5872-11ea-a1dc-186590e06183"
-	definition, err := sts.Service().QueryDefinition(serviceName)
-	require.NoError(sts.T(), err)
-	fmt.Println(definition)
-}
-
-func (sts *ServiceTestSuite) TestQueryRequestContext() {
-	reqCtxID := "0ef2acf4e1002f1e38c7f0df36be2ad11250aeb6343c6c7d9294f0424deecd96"
-	definition, err := sts.Service().QueryRequestContext(reqCtxID)
-	require.NoError(sts.T(), err)
-	fmt.Println(definition)
+	<-exit
 }
 
 func generateServiceName() string {

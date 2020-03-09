@@ -16,7 +16,7 @@ type govClient struct {
 	cdc *sdk.Codec
 }
 
-func New(ac sdk.AbstractClient) rpc.Gov {
+func Create(ac sdk.AbstractClient) rpc.Gov {
 	return govClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
@@ -40,7 +40,7 @@ func (g govClient) Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseT
 		Str("depositor", depositor.String()).
 		Str("amount", amount.String()).
 		Msg("execute gov deposit")
-	return g.Broadcast(baseTx, []sdk.Msg{msg})
+	return g.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 //Vote is responsible for voting for proposal
@@ -65,7 +65,7 @@ func (g govClient) Vote(proposalID uint64, option rpc.VoteOption, baseTx sdk.Bas
 		Str("voter", voter.String()).
 		Str("option", string(option)).
 		Msg("execute gov vote")
-	return g.Broadcast(baseTx, []sdk.Msg{msg})
+	return g.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 // QueryProposal returns the proposal of the specified proposalID

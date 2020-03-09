@@ -19,7 +19,7 @@ func (o oracleClient) Name() string {
 	return ModuleName
 }
 
-func New(ac sdk.AbstractClient) rpc.Oracle {
+func Create(ac sdk.AbstractClient) rpc.Oracle {
 	return oracleClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
@@ -54,7 +54,7 @@ func (o oracleClient) CreateFeed(request rpc.FeedCreateRequest) (result sdk.Resu
 		ValueJsonPath:     request.ValueJsonPath,
 		ResponseThreshold: request.ResponseThreshold,
 	}
-	return o.Broadcast(request.BaseTx, []sdk.Msg{msg})
+	return o.BuildAndSend([]sdk.Msg{msg}, request.BaseTx)
 }
 
 //StartFeed start a stopped feed
@@ -68,7 +68,7 @@ func (o oracleClient) StartFeed(feedName string, baseTx sdk.BaseTx) (result sdk.
 		FeedName: feedName,
 		Creator:  creator,
 	}
-	return o.Broadcast(baseTx, []sdk.Msg{msg})
+	return o.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 //CreateAndStartFeed create and start a stopped feed
@@ -104,7 +104,7 @@ func (o oracleClient) CreateAndStartFeed(request rpc.FeedCreateRequest) (result 
 		FeedName: request.FeedName,
 		Creator:  creator,
 	}
-	return o.Broadcast(request.BaseTx, []sdk.Msg{msgCreateFeed, msgStartFeed})
+	return o.BuildAndSend([]sdk.Msg{msgCreateFeed, msgStartFeed}, request.BaseTx)
 }
 
 //PauseFeed pause a running feed
@@ -118,7 +118,7 @@ func (o oracleClient) PauseFeed(feedName string, baseTx sdk.BaseTx) (result sdk.
 		FeedName: feedName,
 		Creator:  creator,
 	}
-	return o.Broadcast(baseTx, []sdk.Msg{msg})
+	return o.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 //EditFeed edit a feed
@@ -145,7 +145,7 @@ func (o oracleClient) EditFeed(request rpc.FeedEditRequest) (result sdk.Result, 
 		RepeatedTotal:     request.RepeatedTotal,
 		ResponseThreshold: request.ResponseThreshold,
 	}
-	return o.Broadcast(request.BaseTx, []sdk.Msg{msg})
+	return o.BuildAndSend([]sdk.Msg{msg}, request.BaseTx)
 }
 
 //QueryFeed return the feed by feedName

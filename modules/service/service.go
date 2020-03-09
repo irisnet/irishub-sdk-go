@@ -19,7 +19,7 @@ func (s serviceClient) Name() string {
 	return ModuleName
 }
 
-func New(ac sdk.AbstractClient) rpc.Service {
+func Create(ac sdk.AbstractClient) rpc.Service {
 	return serviceClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
@@ -40,7 +40,7 @@ func (s serviceClient) DefineService(request rpc.ServiceDefinitionRequest) (sdk.
 		AuthorDescription: request.AuthorDescription,
 		Schemas:           request.Schemas,
 	}
-	return s.Broadcast(request.BaseTx, []sdk.Msg{msg})
+	return s.BuildAndSend([]sdk.Msg{msg}, request.BaseTx)
 }
 
 //BindService is responsible for binding a new service definition
@@ -56,7 +56,7 @@ func (s serviceClient) BindService(request rpc.ServiceBindingRequest) (sdk.Resul
 		Deposit:     request.Deposit,
 		Pricing:     request.Pricing,
 	}
-	return s.Broadcast(request.BaseTx, []sdk.Msg{msg})
+	return s.BuildAndSend([]sdk.Msg{msg}, request.BaseTx)
 }
 
 //UpdateServiceBinding updates the specified service binding
@@ -71,7 +71,7 @@ func (s serviceClient) UpdateServiceBinding(request rpc.UpdateServiceBindingRequ
 		Deposit:     request.Deposit,
 		Pricing:     request.Pricing,
 	}
-	return s.Broadcast(request.BaseTx, []sdk.Msg{msg})
+	return s.BuildAndSend([]sdk.Msg{msg}, request.BaseTx)
 }
 
 // DisableService disables the specified service binding
@@ -84,7 +84,7 @@ func (s serviceClient) DisableService(serviceName string, baseTx sdk.BaseTx) (sd
 		ServiceName: serviceName,
 		Provider:    provider,
 	}
-	return s.Broadcast(baseTx, []sdk.Msg{msg})
+	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 // EnableService enables the specified service binding
@@ -98,7 +98,7 @@ func (s serviceClient) EnableService(serviceName string, deposit sdk.Coins, base
 		Provider:    provider,
 		Deposit:     deposit,
 	}
-	return s.Broadcast(baseTx, []sdk.Msg{msg})
+	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 //InvokeService is responsible for invoke a new service and callback `callback`
@@ -131,7 +131,7 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest,
 	//mode must be set to commit
 	request.BaseTx.Mode = sdk.Commit
 
-	result, err := s.Broadcast(request.BaseTx, []sdk.Msg{msg})
+	result, err := s.BuildAndSend([]sdk.Msg{msg}, request.BaseTx)
 	if err != nil {
 		return "", err
 	}
@@ -179,7 +179,7 @@ func (s serviceClient) SetWithdrawAddress(serviceName string, withdrawAddress st
 		Provider:        provider,
 		WithdrawAddress: withdrawAddr,
 	}
-	return s.Broadcast(baseTx, []sdk.Msg{msg})
+	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 // RefundServiceDeposit refunds the deposit from the specified service binding
@@ -192,7 +192,7 @@ func (s serviceClient) RefundServiceDeposit(serviceName string, baseTx sdk.BaseT
 		ServiceName: serviceName,
 		Provider:    provider,
 	}
-	return s.Broadcast(baseTx, []sdk.Msg{msg})
+	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 // StartRequestContext starts the specified request context
@@ -205,7 +205,7 @@ func (s serviceClient) StartRequestContext(requestContextID string, baseTx sdk.B
 		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
 		Consumer:         consumer,
 	}
-	return s.Broadcast(baseTx, []sdk.Msg{msg})
+	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 // PauseRequestContext suspends the specified request context
@@ -218,7 +218,7 @@ func (s serviceClient) PauseRequestContext(requestContextID string, baseTx sdk.B
 		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
 		Consumer:         consumer,
 	}
-	return s.Broadcast(baseTx, []sdk.Msg{msg})
+	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 // KillRequestContext terminates the specified request context
@@ -231,7 +231,7 @@ func (s serviceClient) KillRequestContext(requestContextID string, baseTx sdk.Ba
 		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
 		Consumer:         consumer,
 	}
-	return s.Broadcast(baseTx, []sdk.Msg{msg})
+	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 // UpdateRequestContext updates the specified request context
@@ -256,7 +256,7 @@ func (s serviceClient) UpdateRequestContext(request rpc.UpdateContextRequest) (s
 		RepeatedTotal:     request.RepeatedTotal,
 		Consumer:          consumer,
 	}
-	return s.Broadcast(request.BaseTx, []sdk.Msg{msg})
+	return s.BuildAndSend([]sdk.Msg{msg}, request.BaseTx)
 }
 
 // WithdrawEarnedFees withdraws the earned fees to the specified provider
@@ -269,7 +269,7 @@ func (s serviceClient) WithdrawEarnedFees(baseTx sdk.BaseTx) (sdk.Result, error)
 	msg := MsgWithdrawEarnedFees{
 		Provider: provider,
 	}
-	return s.Broadcast(baseTx, []sdk.Msg{msg})
+	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 // WithdrawTax withdraws the service tax to the speicified destination address by the trustee
@@ -285,7 +285,7 @@ func (s serviceClient) WithdrawTax(destAddress string, amount sdk.Coins, baseTx 
 		DestAddress: receipt,
 		Amount:      amount,
 	}
-	return s.Broadcast(baseTx, []sdk.Msg{msg})
+	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 //RegisterServiceListener is responsible for registering a group of service handler
@@ -321,7 +321,7 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter, 
 					Error:     errMsg,
 				}
 				go func() {
-					if _, err = s.Broadcast(baseTx, []sdk.Msg{msg}); err != nil {
+					if _, err = s.BuildAndSend([]sdk.Msg{msg}, baseTx); err != nil {
 						panic(err)
 					}
 				}()
@@ -368,7 +368,7 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 					Error:     errMsg,
 				}
 				go func() {
-					if _, err = s.Broadcast(baseTx, []sdk.Msg{msg}); err != nil {
+					if _, err = s.BuildAndSend([]sdk.Msg{msg}, baseTx); err != nil {
 						s.Err(err).Str("requestID", reqID).Msg("provider respond failed")
 					}
 				}()

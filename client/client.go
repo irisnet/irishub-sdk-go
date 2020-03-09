@@ -22,17 +22,13 @@ type SDKClient struct {
 	modules map[string]sdk.Module
 
 	sdk.WSClient
+	sdk.TxManager
 }
 
 func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
-	client := &SDKClient{
-		cdc:     sdk.NewAminoCodec(),
-		modules: make(map[string]sdk.Module),
-	}
-
-	rpc := NewRPCClient(cfg.NodeURI, client.cdc)
+	cdc := sdk.NewAminoCodec()
 	ctx := &sdk.TxContext{
-		Codec:      client.cdc,
+		Codec:      cdc,
 		ChainID:    cfg.ChainID,
 		Online:     cfg.Online,
 		KeyManager: adapter.NewDAOAdapter(cfg.KeyDAO, cfg.StoreType),
@@ -43,26 +39,32 @@ func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
 	sdk.SetNetwork(ctx.Network)
 	abstClient := abstractClient{
 		TxContext: ctx,
-		RPC:       rpc,
+		RPC:       NewRPCClient(cfg.NodeURI, cdc),
 		logger:    log.NewLogger(cfg.Level).With("AbstractClient"),
 	}
 
+	client := &SDKClient{
+		cdc:       cdc,
+		modules:   make(map[string]sdk.Module),
+		WSClient:  abstClient.RPC,
+		TxManager: abstClient,
+	}
+
 	client.registerModule(
-		bank.New(abstClient),
-		service.New(abstClient),
-		oracle.New(abstClient),
-		staking.New(abstClient),
-		distribution.New(abstClient),
-		gov.New(abstClient),
-		slashing.New(abstClient),
-		random.New(abstClient),
+		bank.Create(abstClient),
+		service.Create(abstClient),
+		oracle.Create(abstClient),
+		staking.Create(abstClient),
+		distribution.Create(abstClient),
+		gov.Create(abstClient),
+		slashing.Create(abstClient),
+		random.Create(abstClient),
 	)
 
 	return *client
 }
 
 func (s *SDKClient) registerModule(modules ...sdk.Module) {
-	s.modules = make(map[string]sdk.Module, len(modules))
 	for _, m := range modules {
 		if _, existed := s.modules[m.Name()]; existed {
 			panic(fmt.Sprintf("module[%s] has existed", m.Name()))

@@ -23,7 +23,7 @@ func (ac abstractClient) Logger() *log.Logger {
 	return ac.logger
 }
 
-func (ac abstractClient) Broadcast(baseTx sdk.BaseTx, msg []sdk.Msg) (sdk.Result, error) {
+func (ac abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Result, error) {
 	//validate msg
 	for _, m := range msg {
 		if err := m.ValidateBasic(); err != nil {
@@ -58,7 +58,7 @@ func (ac abstractClient) Broadcast(baseTx sdk.BaseTx, msg []sdk.Msg) (sdk.Result
 	return rs, err
 }
 
-func (ac abstractClient) BroadcastTx(signedTx sdk.StdTx, mode sdk.BroadcastMode) (sdk.Result, error) {
+func (ac abstractClient) Broadcast(signedTx sdk.StdTx, mode sdk.BroadcastMode) (sdk.Result, error) {
 	ac.Mode = mode
 	txByte, err := ac.Codec.MarshalBinaryLengthPrefixed(signedTx)
 	if err != nil {
@@ -76,12 +76,12 @@ func (ac abstractClient) Sign(stdTx sdk.StdTx, name string, password string, onl
 		Fee:      stdTx.Fee.Amount.String(),
 		Memo:     stdTx.Memo,
 	}
+	ac.WithOnline(online)
 	err := ac.prepareTxContext(baseTx)
 	if err != nil {
 		return stdTx, err
 	}
 
-	ac.WithOnline(online)
 	tx, err := ac.BuildAndSign(baseTx.From, stdTx.GetMsgs())
 	if err != nil {
 		return stdTx, err

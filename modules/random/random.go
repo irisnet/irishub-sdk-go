@@ -14,7 +14,7 @@ type randomClient struct {
 	*log.Logger
 }
 
-func New(ac sdk.AbstractClient) rpc.Random {
+func Create(ac sdk.AbstractClient) rpc.Random {
 	return randomClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
@@ -43,7 +43,7 @@ func (r randomClient) Generate(request rpc.RandomRequest) (string, error) {
 
 	//mode must be set to commit
 	request.BaseTx.Mode = sdk.Commit
-	result, err := r.Broadcast(request.BaseTx, []sdk.Msg{msg})
+	result, err := r.BuildAndSend([]sdk.Msg{msg}, request.BaseTx)
 	if err != nil {
 		return "", err
 	}

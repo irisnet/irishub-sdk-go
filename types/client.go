@@ -27,9 +27,8 @@ type RPC interface {
 }
 
 type TxManager interface {
-	Broadcast(baseTx BaseTx, msg []Msg) (Result, error)
-	BroadcastTx(signedTx StdTx, mode BroadcastMode) (Result, error)
-	Sign(stdTx StdTx, name string, password string, online bool) (StdTx, error)
+	BuildAndSend(msg []Msg, baseTx BaseTx) (Result, error)
+	Broadcast(signedTx StdTx, mode BroadcastMode) (Result, error)
 }
 
 type Query interface {

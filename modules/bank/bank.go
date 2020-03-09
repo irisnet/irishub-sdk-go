@@ -24,7 +24,7 @@ type bankClient struct {
 	*log.Logger
 }
 
-func New(ac types.AbstractClient) rpc.Bank {
+func Create(ac types.AbstractClient) rpc.Bank {
 	return bankClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
@@ -75,7 +75,7 @@ func (b bankClient) Send(to string, amount types.Coins, baseTx types.BaseTx) (ty
 	}
 
 	msg := NewMsgSend(in, out)
-	return b.Broadcast(baseTx, []types.Msg{msg})
+	return b.BuildAndSend([]types.Msg{msg}, baseTx)
 }
 
 //Send is responsible for burning some tokens from `From` account
@@ -85,7 +85,7 @@ func (b bankClient) Burn(amount types.Coins, baseTx types.BaseTx) (types.Result,
 		return nil, errors.Wrap(err, fmt.Sprintf("%s not found", baseTx.From))
 	}
 	msg := NewMsgBurn(sender, amount)
-	return b.Broadcast(baseTx, []types.Msg{msg})
+	return b.BuildAndSend([]types.Msg{msg}, baseTx)
 }
 
 //Send is responsible for setting memo regexp for your own address, so that you can only receive coins from transactions with the corresponding memo.
@@ -95,7 +95,7 @@ func (b bankClient) SetMemoRegexp(memoRegexp string, baseTx types.BaseTx) (types
 		return nil, errors.Wrap(err, fmt.Sprintf("%s not found", baseTx.From))
 	}
 	msg := NewMsgSetMemoRegexp(sender, memoRegexp)
-	return b.Broadcast(baseTx, []types.Msg{msg})
+	return b.BuildAndSend([]types.Msg{msg}, baseTx)
 }
 
 //SubscribeSendTx Subscribe MsgSend event and return subscription

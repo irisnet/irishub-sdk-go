@@ -26,7 +26,7 @@ func (d distributionClient) Name() string {
 	return ModuleName
 }
 
-func New(ac sdk.AbstractClient) rpc.Distribution {
+func Create(ac sdk.AbstractClient) rpc.Distribution {
 	return distributionClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
@@ -70,7 +70,7 @@ func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.Base
 	d.Info().Str("delegator", delegator.String()).
 		Str("withdrawAddr", withdrawAddr).
 		Msg("execute setWithdrawAddr transaction")
-	return d.Broadcast(baseTx, []sdk.Msg{msg})
+	return d.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 func (d distributionClient) WithdrawRewards(isValidator bool, onlyFromValidator string, baseTx sdk.BaseTx) (sdk.Result, error) {
@@ -113,5 +113,5 @@ func (d distributionClient) WithdrawRewards(isValidator bool, onlyFromValidator 
 			Msg("execute withdrawDelegatorRewardsAll transaction")
 		break
 	}
-	return d.Broadcast(baseTx, msgs)
+	return d.BuildAndSend(msgs, baseTx)
 }

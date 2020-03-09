@@ -23,7 +23,7 @@ type slashingClient struct {
 	*log.Logger
 }
 
-func New(ac sdk.AbstractClient) rpc.Slashing {
+func Create(ac sdk.AbstractClient) rpc.Slashing {
 	return slashingClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
@@ -41,7 +41,7 @@ func (s slashingClient) Unjail(baseTx sdk.BaseTx) (sdk.Result, error) {
 	msg := MsgUnjail{
 		ValidatorAddr: valAddr,
 	}
-	return s.Broadcast(baseTx, []sdk.Msg{msg})
+	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 //QueryParams return parameter for slashing at genesis

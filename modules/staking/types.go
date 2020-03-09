@@ -238,9 +238,9 @@ func (d delegation) Convert() interface{} {
 	}
 }
 
-type Delegations []delegation
+type delegations []delegation
 
-func (ds Delegations) Convert() interface{} {
+func (ds delegations) Convert() interface{} {
 	delegations := make(rpc.Delegations, len(ds))
 	for _, d := range ds {
 		delegations = append(delegations, d.Convert().(rpc.Delegation))
@@ -271,9 +271,9 @@ func (ubd unbondingDelegation) Convert() interface{} {
 	}
 }
 
-type UnbondingDelegations []unbondingDelegation
+type unbondingDelegations []unbondingDelegation
 
-func (ubds UnbondingDelegations) Convert() interface{} {
+func (ubds unbondingDelegations) Convert() interface{} {
 	uds := make(rpc.UnbondingDelegations, len(ubds))
 	for _, d := range ubds {
 		uds = append(uds, d.Convert().(rpc.UnbondingDelegation))
@@ -308,9 +308,9 @@ func (d redelegation) Convert() interface{} {
 	}
 }
 
-type Redelegations []redelegation
+type redelegations []redelegation
 
-func (ds Redelegations) Convert() interface{} {
+func (ds redelegations) Convert() interface{} {
 	rds := make(rpc.Redelegations, len(ds))
 	for _, d := range ds {
 		rds = append(rds, d.Convert().(rpc.Redelegation))
@@ -323,7 +323,7 @@ type validator struct {
 	ConsPubKey   string `json:"consensus_pubkey"` // the consensus public key of the validator; bech encoded in JSON
 	Jailed       bool   `json:"jailed"`           // has the validator been jailed from bonded status?
 
-	Status          BondStatus `json:"status"`           // validator status (bonded/unbonding/unbonded)
+	Status          bondStatus `json:"status"`           // validator status (bonded/unbonding/unbonded)
 	Tokens          string     `json:"tokens"`           // delegated tokens (incl. self-delegation)
 	DelegatorShares string     `json:"delegator_shares"` // total shares issued to a validator's delegators
 
@@ -362,9 +362,9 @@ func (v validator) Convert() interface{} {
 	}
 }
 
-type Validators []validator
+type validators []validator
 
-func (vs Validators) Convert() interface{} {
+func (vs validators) Convert() interface{} {
 	validators := make(rpc.Validators, len(vs))
 	for i, v := range vs {
 		validators[i] = v.Convert().(rpc.Validator)
@@ -373,16 +373,16 @@ func (vs Validators) Convert() interface{} {
 }
 
 // status of a validator
-type BondStatus byte
+type bondStatus byte
 
 // nolint
 const (
-	Unbonded  BondStatus = 0x00
-	Unbonding BondStatus = 0x01
-	Bonded    BondStatus = 0x02
+	Unbonded  bondStatus = 0x00
+	Unbonding bondStatus = 0x01
+	Bonded    bondStatus = 0x02
 )
 
-func (b BondStatus) String() string {
+func (b bondStatus) String() string {
 	switch b {
 	case Unbonded:
 		return "Unbonded"

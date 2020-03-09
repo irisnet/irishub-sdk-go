@@ -11,17 +11,12 @@ import (
 )
 
 const (
-	TypeKey        EventKey = "tm.event"
-	ActionKey      EventKey = "action"
-	SenderKey      EventKey = "sender"
-	RecipientKey   EventKey = "recipient"
-	TxHashKeyKey   EventKey = "tx.hash"
-	TxHeightKeyKey EventKey = "tx.height"
+	TypeKey      EventKey = "tm.event"
+	ActionKey    EventKey = "action"
+	SenderKey    EventKey = "sender"
+	RecipientKey EventKey = "recipient"
 
-	TxValue            EventValue = "Tx"
-	SendValue          EventValue = "send"
-	BurnValue          EventValue = "burn"
-	SetMemoRegexpValue EventValue = "set-memo-regexp"
+	TxValue EventValue = "Tx"
 )
 
 type EventKey string
@@ -102,7 +97,10 @@ func (t Tags) GetValue(key string) string {
 func (t Tags) String() string {
 	var buf bytes.Buffer
 	for _, tag := range t {
-		buf.WriteString(fmt.Sprintf("%s=%s ", tag.Key, tag.Value))
+		if buf.Len() > 0 {
+			buf.WriteString(" ")
+		}
+		buf.WriteString(fmt.Sprintf("%s=%s", tag.Key, tag.Value))
 	}
 	return buf.String()
 }
