@@ -1,6 +1,10 @@
 package service
 
 import (
+	"fmt"
+
+	"github.com/pkg/errors"
+
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -111,8 +115,11 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest,
 
 	var providers []sdk.AccAddress
 	for _, provider := range request.Providers {
-		provider := sdk.MustAccAddressFromBech32(provider)
-		providers = append(providers, provider)
+		p, err := sdk.AccAddressFromBech32(provider)
+		if err != nil {
+			return "", errors.Wrap(err, fmt.Sprintf("%s invalid address", p))
+		}
+		providers = append(providers, p)
 	}
 
 	msg := MsgRequestService{
@@ -173,7 +180,11 @@ func (s serviceClient) SetWithdrawAddress(serviceName string, withdrawAddress st
 	if err != nil {
 		return nil, err
 	}
-	withdrawAddr := sdk.MustAccAddressFromBech32(withdrawAddress)
+
+	withdrawAddr, err := sdk.AccAddressFromBech32(withdrawAddress)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("%s invalid address", withdrawAddress))
+	}
 	msg := MsgSetWithdrawAddress{
 		ServiceName:     serviceName,
 		Provider:        provider,
@@ -242,9 +253,12 @@ func (s serviceClient) UpdateRequestContext(request rpc.UpdateContextRequest) (s
 	}
 
 	var providers []sdk.AccAddress
-	for _, p := range request.Providers {
-		provider := sdk.MustAccAddressFromBech32(p)
-		providers = append(providers, provider)
+	for _, provider := range request.Providers {
+		p, err := sdk.AccAddressFromBech32(provider)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("%s invalid address", p))
+		}
+		providers = append(providers, p)
 	}
 
 	msg := MsgUpdateRequestContext{
@@ -279,7 +293,10 @@ func (s serviceClient) WithdrawTax(destAddress string, amount sdk.Coins, baseTx 
 		return nil, err
 	}
 
-	receipt := sdk.MustAccAddressFromBech32(destAddress)
+	receipt, err := sdk.AccAddressFromBech32(destAddress)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("%s invalid address", destAddress))
+	}
 	msg := MsgWithdrawTax{
 		Trustee:     trustee,
 		DestAddress: receipt,
@@ -322,7 +339,7 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter, 
 				}
 				go func() {
 					if _, err = s.BuildAndSend([]sdk.Msg{msg}, baseTx); err != nil {
-						panic(err)
+						s.Err(err).Str("requestID", reqID).Msg("provider respond failed")
 					}
 				}()
 			}

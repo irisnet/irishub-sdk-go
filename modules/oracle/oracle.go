@@ -1,6 +1,10 @@
 package oracle
 
 import (
+	"fmt"
+
+	"github.com/pkg/errors"
+
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -35,7 +39,11 @@ func (o oracleClient) CreateFeed(request rpc.FeedCreateRequest) (result sdk.Resu
 
 	var providers []sdk.AccAddress
 	for _, provider := range request.Providers {
-		providers = append(providers, sdk.MustAccAddressFromBech32(provider))
+		p, err := sdk.AccAddressFromBech32(provider)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("%s invalid address", p))
+		}
+		providers = append(providers, p)
 	}
 
 	msg := MsgCreateFeed{
@@ -80,7 +88,11 @@ func (o oracleClient) CreateAndStartFeed(request rpc.FeedCreateRequest) (result 
 
 	var providers []sdk.AccAddress
 	for _, provider := range request.Providers {
-		providers = append(providers, sdk.MustAccAddressFromBech32(provider))
+		p, err := sdk.AccAddressFromBech32(provider)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("%s invalid address", p))
+		}
+		providers = append(providers, p)
 	}
 
 	msgCreateFeed := MsgCreateFeed{
@@ -130,7 +142,11 @@ func (o oracleClient) EditFeed(request rpc.FeedEditRequest) (result sdk.Result, 
 
 	var providers []sdk.AccAddress
 	for _, provider := range request.Providers {
-		providers = append(providers, sdk.MustAccAddressFromBech32(provider))
+		p, err := sdk.AccAddressFromBech32(provider)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("%s invalid address", p))
+		}
+		providers = append(providers, p)
 	}
 
 	msg := MsgEditFeed{

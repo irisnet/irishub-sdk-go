@@ -8,6 +8,12 @@ import (
 	"github.com/rs/zerolog"
 )
 
+var Default *Logger
+
+func init() {
+	Default = NewLogger("info")
+}
+
 type Logger struct {
 	zerolog.Logger
 }

@@ -69,7 +69,10 @@ func (b bankClient) Send(to string, amount types.Coins, baseTx types.BaseTx) (ty
 		NewInput(sender, amount),
 	}
 
-	outAddr := types.MustAccAddressFromBech32(to)
+	outAddr, err := types.AccAddressFromBech32(to)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("%s invalid address", to))
+	}
 	out := []Output{
 		NewOutput(outAddr, amount),
 	}

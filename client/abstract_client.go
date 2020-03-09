@@ -24,9 +24,10 @@ type abstractClient struct {
 }
 
 func createAbstractClient(cdc sdk.Codec, cfg sdk.SDKConfig) *abstractClient {
+	log.Default = log.NewLogger(cfg.Level)
 	ac := abstractClient{
 		TmClient: NewRPCClient(cfg.NodeURI, cdc),
-		logger:   log.NewLogger(cfg.Level).With("AbstractClient"),
+		logger:   log.Default.With("AbstractClient"),
 		cfg:      cfg,
 		cdc:      cdc,
 	}
@@ -164,7 +165,8 @@ func (ac abstractClient) QueryAddress(name, password string) (addr sdk.AccAddres
 func (ac *abstractClient) defaultConfigure() {
 	fee, err := sdk.ParseCoins(ac.cfg.Fee)
 	if err != nil {
-		panic(err)
+		ac.Logger().Err(err).Msg("configure tx context failed")
+		return
 	}
 	ac.TxContext = &sdk.TxContext{
 		Codec:      ac.cdc,

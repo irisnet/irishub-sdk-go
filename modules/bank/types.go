@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/rpc"
 	"regexp"
+
+	"github.com/irisnet/irishub-sdk-go/rpc"
 
 	json2 "github.com/irisnet/irishub-sdk-go/tools/json"
 	"github.com/irisnet/irishub-sdk-go/types"
