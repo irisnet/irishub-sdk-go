@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 
-	"github.com/irisnet/irishub-sdk-go/adapter"
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/distribution"
 	"github.com/irisnet/irishub-sdk-go/modules/gov"
@@ -13,7 +12,6 @@ import (
 	"github.com/irisnet/irishub-sdk-go/modules/slashing"
 	"github.com/irisnet/irishub-sdk-go/modules/staking"
 	"github.com/irisnet/irishub-sdk-go/rpc"
-	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
@@ -27,26 +25,13 @@ type SDKClient struct {
 
 func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
 	cdc := sdk.NewAminoCodec()
-	ctx := &sdk.TxContext{
-		Codec:      cdc,
-		ChainID:    cfg.ChainID,
-		Online:     cfg.Online,
-		KeyManager: adapter.NewDAOAdapter(cfg.KeyDAO, cfg.StoreType),
-		Network:    cfg.Network,
-		Mode:       cfg.Mode,
-	}
+	sdk.SetNetwork(cfg.Network)
 
-	sdk.SetNetwork(ctx.Network)
-	abstClient := abstractClient{
-		TxContext: ctx,
-		RPC:       NewRPCClient(cfg.NodeURI, cdc),
-		logger:    log.NewLogger(cfg.Level).With("AbstractClient"),
-	}
-
+	abstClient := createAbstractClient(cdc, cfg)
 	client := &SDKClient{
 		cdc:       cdc,
 		modules:   make(map[string]sdk.Module),
-		WSClient:  abstClient.RPC,
+		WSClient:  abstClient.TmClient,
 		TxManager: abstClient,
 	}
 

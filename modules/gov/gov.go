@@ -13,7 +13,6 @@ import (
 type govClient struct {
 	sdk.AbstractClient
 	*log.Logger
-	cdc *sdk.Codec
 }
 
 func Create(ac sdk.AbstractClient) rpc.Gov {
@@ -229,7 +228,6 @@ func (g govClient) QueryTally(proposalID uint64) (rpc.TallyResult, error) {
 
 func (g govClient) RegisterCodec(cdc sdk.Codec) {
 	registerCodec(cdc)
-	g.cdc = &cdc
 }
 
 func (g govClient) Name() string {

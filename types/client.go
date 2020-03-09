@@ -20,7 +20,7 @@ type WSClient interface {
 	Unscribe(subscription Subscription) error
 }
 
-type RPC interface {
+type TmClient interface {
 	tmclient.Client
 	WSClient
 	Queries

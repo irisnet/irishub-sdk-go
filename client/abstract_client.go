@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/irisnet/irishub-sdk-go/adapter"
+
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -15,15 +17,28 @@ import (
 
 type abstractClient struct {
 	*sdk.TxContext
-	sdk.RPC
+	sdk.TmClient
 	logger *log.Logger
+	cfg    sdk.SDKConfig
+	cdc    sdk.Codec
+}
+
+func createAbstractClient(cdc sdk.Codec, cfg sdk.SDKConfig) *abstractClient {
+	ac := abstractClient{
+		TmClient: NewRPCClient(cfg.NodeURI, cdc),
+		logger:   log.NewLogger(cfg.Level).With("AbstractClient"),
+		cfg:      cfg,
+		cdc:      cdc,
+	}
+	ac.defaultConfigure()
+	return &ac
 }
 
 func (ac abstractClient) Logger() *log.Logger {
 	return ac.logger
 }
 
-func (ac abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Result, error) {
+func (ac *abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Result, error) {
 	//validate msg
 	for _, m := range msg {
 		if err := m.ValidateBasic(); err != nil {
@@ -68,28 +83,6 @@ func (ac abstractClient) Broadcast(signedTx sdk.StdTx, mode sdk.BroadcastMode) (
 	return ac.broadcastTx(txByte)
 }
 
-func (ac abstractClient) Sign(stdTx sdk.StdTx, name string, password string, online bool) (sdk.StdTx, error) {
-	baseTx := sdk.BaseTx{
-		From:     name,
-		Password: password,
-		Gas:      stdTx.Fee.Gas,
-		Fee:      stdTx.Fee.Amount.String(),
-		Memo:     stdTx.Memo,
-	}
-	ac.WithOnline(online)
-	err := ac.prepareTxContext(baseTx)
-	if err != nil {
-		return stdTx, err
-	}
-
-	tx, err := ac.BuildAndSign(baseTx.From, stdTx.GetMsgs())
-	if err != nil {
-		return stdTx, err
-	}
-
-	return tx, nil
-}
-
 func (ac abstractClient) QueryWithResponse(path string, data interface{}, result sdk.Response) error {
 	var bz []byte
 	var err error
@@ -100,7 +93,7 @@ func (ac abstractClient) QueryWithResponse(path string, data interface{}, result
 		}
 	}
 
-	res, err := ac.RPC.Query(path, bz)
+	res, err := ac.TmClient.Query(path, bz)
 	if err != nil {
 		return err
 	}
@@ -122,7 +115,7 @@ func (ac abstractClient) Query(path string, data interface{}) ([]byte, error) {
 		}
 	}
 
-	res, err := ac.RPC.Query(path, bz)
+	res, err := ac.TmClient.Query(path, bz)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +129,7 @@ func (ac abstractClient) QueryStore(key cmn.HexBytes, storeName string) (res []b
 		Prove: false,
 	}
 
-	result, err := ac.RPC.ABCIQueryWithOptions(path, key, opts)
+	result, err := ac.TmClient.ABCIQueryWithOptions(path, key, opts)
 	if err != nil {
 		return res, err
 	}
@@ -168,15 +161,37 @@ func (ac abstractClient) QueryAddress(name, password string) (addr sdk.AccAddres
 	return (*ac.TxContext).KeyManager.QueryAddress(name, password)
 }
 
-func (ac abstractClient) prepareTxContext(baseTx sdk.BaseTx) error {
-	ctx := ac.TxContext
-	if ctx.Online {
+func (ac *abstractClient) defaultConfigure() {
+	fee, err := sdk.ParseCoins(ac.cfg.Fee)
+	if err != nil {
+		panic(err)
+	}
+	ac.TxContext = &sdk.TxContext{
+		Codec:      ac.cdc,
+		ChainID:    ac.cfg.ChainID,
+		Online:     ac.cfg.Online,
+		KeyManager: adapter.NewDAOAdapter(ac.cfg.KeyDAO, ac.cfg.StoreType),
+		Network:    ac.cfg.Network,
+		Mode:       ac.cfg.Mode,
+		Gas:        ac.cfg.Gas,
+		Fee:        fee,
+	}
+}
+
+func (ac *abstractClient) prepareTxContext(baseTx sdk.BaseTx) error {
+	ac.defaultConfigure()
+	if ac.Online {
 		addr, err := ac.QueryAddress(baseTx.From, baseTx.Password)
 		if err != nil {
 			return err
 		}
+
 		account, err := ac.QueryAccount(addr.String())
-		ctx = ctx.WithAccountNumber(account.AccountNumber).
+		if err != nil {
+			return err
+		}
+
+		ac.WithAccountNumber(account.AccountNumber).
 			WithSequence(account.Sequence)
 	}
 	if len(baseTx.Fee) > 0 {
@@ -184,19 +199,19 @@ func (ac abstractClient) prepareTxContext(baseTx sdk.BaseTx) error {
 		if err != nil {
 			return err
 		}
-		ctx = ctx.WithFee(fee)
+		ac.WithFee(fee)
 	}
 
 	if len(baseTx.Mode) > 0 {
-		ctx = ctx.WithMode(baseTx.Mode)
+		ac.WithMode(baseTx.Mode)
 	}
 
 	if baseTx.Simulate {
-		ctx = ctx.WithSimulate(baseTx.Simulate)
+		ac.WithSimulate(baseTx.Simulate)
 	}
 
-	ctx = ctx.WithGas(baseTx.Gas)
-	ctx = ctx.WithMemo(baseTx.Memo)
+	ac.WithGas(baseTx.Gas)
+	ac.WithMemo(baseTx.Memo)
 	return nil
 }
 func (ac abstractClient) broadcastTx(txBytes []byte) (sdk.Result, error) {
@@ -209,13 +224,13 @@ func (ac abstractClient) broadcastTx(txBytes []byte) (sdk.Result, error) {
 		return ac.broadcastTxSync(txBytes)
 
 	}
-	panic("invalid broadcast mode")
+	return nil, errors.New(fmt.Sprintf("no support commit mode:%s", ac.Mode))
 }
 
 // broadcastTxCommit broadcasts transaction bytes to a Tendermint node
 // and waits for a commit.
 func (ac abstractClient) broadcastTxCommit(tx []byte) (result sdk.ResultBroadcastTxCommit, err error) {
-	res, err := ac.RPC.BroadcastTxCommit(tx)
+	res, err := ac.TmClient.BroadcastTxCommit(tx)
 	if err != nil {
 		return result, err
 	}
@@ -238,7 +253,7 @@ func (ac abstractClient) broadcastTxCommit(tx []byte) (result sdk.ResultBroadcas
 // BroadcastTxSync broadcasts transaction bytes to a Tendermint node
 // synchronously.
 func (ac abstractClient) broadcastTxSync(tx []byte) (result sdk.ResultBroadcastTxCommit, err error) {
-	res, err := ac.RPC.BroadcastTxSync(tx)
+	res, err := ac.TmClient.BroadcastTxSync(tx)
 	if err != nil {
 		return result, err
 	}
@@ -256,7 +271,7 @@ func (ac abstractClient) broadcastTxSync(tx []byte) (result sdk.ResultBroadcastT
 // BroadcastTxAsync broadcasts transaction bytes to a Tendermint node
 // asynchronously.
 func (ac abstractClient) broadcastTxAsync(tx []byte) (result sdk.ResultBroadcastTx, err error) {
-	res, err := ac.RPC.BroadcastTxAsync(tx)
+	res, err := ac.TmClient.BroadcastTxAsync(tx)
 	if err != nil {
 		return result, err
 	}
