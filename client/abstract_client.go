@@ -25,13 +25,24 @@ type abstractClient struct {
 
 func createAbstractClient(cdc sdk.Codec, cfg sdk.SDKConfig) *abstractClient {
 	log.Default = log.NewLogger(cfg.Level)
-	ac := abstractClient{
-		TmClient: NewRPCClient(cfg.NodeURI, cdc),
-		logger:   log.Default.With("AbstractClient"),
-		cfg:      cfg,
-		cdc:      cdc,
+	ctx := sdk.TxContext{
+		Codec:      cdc,
+		ChainID:    cfg.ChainID,
+		Online:     cfg.Online,
+		KeyManager: adapter.NewDAOAdapter(cfg.KeyDAO, cfg.StoreType),
+		Network:    cfg.Network,
+		Mode:       cfg.Mode,
+		Gas:        cfg.Gas,
+		Fee:        cfg.Fee,
 	}
-	ac.defaultConfigure()
+	ac := abstractClient{
+		TxContext: &ctx,
+		TmClient:  NewRPCClient(cfg.NodeURI, cdc),
+		logger:    log.Default.With("AbstractClient"),
+		cfg:       cfg,
+		cdc:       cdc,
+	}
+	ac.reset()
 	return &ac
 }
 
@@ -48,7 +59,7 @@ func (ac *abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Re
 	}
 	ac.Logger().Info().Msg("validate msg success")
 
-	err := ac.prepareTxContext(baseTx)
+	err := ac.prepare(baseTx)
 	if err != nil {
 		return nil, err
 	}
@@ -162,26 +173,9 @@ func (ac abstractClient) QueryAddress(name, password string) (addr sdk.AccAddres
 	return (*ac.TxContext).KeyManager.QueryAddress(name, password)
 }
 
-func (ac *abstractClient) defaultConfigure() {
-	fee, err := sdk.ParseCoins(ac.cfg.Fee)
-	if err != nil {
-		ac.Logger().Err(err).Msg("configure tx context failed")
-		return
-	}
-	ac.TxContext = &sdk.TxContext{
-		Codec:      ac.cdc,
-		ChainID:    ac.cfg.ChainID,
-		Online:     ac.cfg.Online,
-		KeyManager: adapter.NewDAOAdapter(ac.cfg.KeyDAO, ac.cfg.StoreType),
-		Network:    ac.cfg.Network,
-		Mode:       ac.cfg.Mode,
-		Gas:        ac.cfg.Gas,
-		Fee:        fee,
-	}
-}
-
-func (ac *abstractClient) prepareTxContext(baseTx sdk.BaseTx) error {
-	ac.defaultConfigure()
+func (ac *abstractClient) prepare(baseTx sdk.BaseTx) error {
+	//clear some params
+	ac.reset()
 	if ac.Online {
 		addr, err := ac.QueryAddress(baseTx.From, baseTx.Password)
 		if err != nil {
@@ -196,12 +190,10 @@ func (ac *abstractClient) prepareTxContext(baseTx sdk.BaseTx) error {
 		ac.WithAccountNumber(account.AccountNumber).
 			WithSequence(account.Sequence)
 	}
-	if len(baseTx.Fee) > 0 {
-		fee, err := sdk.ParseCoins(baseTx.Fee)
-		if err != nil {
-			return err
-		}
-		ac.WithFee(fee)
+
+	// first use baseTx params
+	if !baseTx.Fee.Empty() && baseTx.Fee.IsValid() {
+		ac.WithFee(baseTx.Fee)
 	}
 
 	if len(baseTx.Mode) > 0 {
@@ -212,10 +204,25 @@ func (ac *abstractClient) prepareTxContext(baseTx sdk.BaseTx) error {
 		ac.WithSimulate(baseTx.Simulate)
 	}
 
-	ac.WithGas(baseTx.Gas)
-	ac.WithMemo(baseTx.Memo)
+	if baseTx.Gas > 0 {
+		ac.WithGas(baseTx.Gas)
+	}
+
+	if len(baseTx.Memo) > 0 {
+		ac.WithMemo(baseTx.Memo)
+	}
 	return nil
 }
+
+func (ac *abstractClient) reset() {
+	ac.WithAccountNumber(uint64(0)).
+		WithSequence(uint64(0)).
+		WithFee(ac.cfg.Fee).
+		WithMode(ac.cfg.Mode).
+		WithSimulate(false).
+		WithGas(ac.cfg.Gas)
+}
+
 func (ac abstractClient) broadcastTx(txBytes []byte) (sdk.Result, error) {
 	switch ac.Mode {
 	case sdk.Commit:
