@@ -16,20 +16,20 @@ import (
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
-type RPCClient struct {
+type rpcClient struct {
 	rpc.Client
 	cdc sdk.Codec
 }
 
-func NewRPCClient(remote string, cdc sdk.Codec) RPCClient {
+func NewRPCClient(remote string, cdc sdk.Codec) sdk.TmClient {
 	client := rpc.NewHTTP(remote, "/websocket")
-	return RPCClient{
+	return rpcClient{
 		Client: client,
 		cdc:    cdc,
 	}
 }
 
-func (r RPCClient) Query(path string, data cmn.HexBytes) (res []byte, err error) {
+func (r rpcClient) Query(path string, data cmn.HexBytes) (res []byte, err error) {
 	result, err := r.ABCIQueryWithOptions(path, data, rpc.DefaultABCIQueryOptions)
 	if err != nil {
 		return res, err
@@ -43,7 +43,7 @@ func (r RPCClient) Query(path string, data cmn.HexBytes) (res []byte, err error)
 	return resp.Value, nil
 }
 
-func (r RPCClient) start() {
+func (r rpcClient) start() {
 	if !r.IsRunning() {
 		_ = r.Start()
 	}
@@ -52,12 +52,12 @@ func (r RPCClient) start() {
 //=============================================================================
 
 //SubscribeNewBlock implement WSClient interface
-func (r RPCClient) SubscribeNewBlock(callback sdk.EventNewBlockCallback) (sdk.Subscription, error) {
+func (r rpcClient) SubscribeNewBlock(callback sdk.EventNewBlockCallback) (sdk.Subscription, error) {
 	return r.SubscribeNewBlockWithQuery(nil, callback)
 }
 
 //SubscribeNewBlock implement WSClient interface
-func (r RPCClient) SubscribeNewBlockWithQuery(builder *sdk.EventQueryBuilder, callback sdk.EventNewBlockCallback) (sdk.Subscription, error) {
+func (r rpcClient) SubscribeNewBlockWithQuery(builder *sdk.EventQueryBuilder, callback sdk.EventNewBlockCallback) (sdk.Subscription, error) {
 	ctx := context.Background()
 	subscriber := getSubscriberID()
 	if builder == nil {
@@ -105,7 +105,7 @@ func (r RPCClient) SubscribeNewBlockWithQuery(builder *sdk.EventQueryBuilder, ca
 }
 
 //SubscribeTx implement WSClient interface
-func (r RPCClient) SubscribeTx(builder *sdk.EventQueryBuilder, callback sdk.EventTxCallback) (sdk.Subscription, error) {
+func (r rpcClient) SubscribeTx(builder *sdk.EventQueryBuilder, callback sdk.EventTxCallback) (sdk.Subscription, error) {
 	ctx := context.Background()
 	subscriber := getSubscriberID()
 	query := builder.AddCondition(sdk.TypeKey, sdk.TxValue).Build()
@@ -143,7 +143,7 @@ func (r RPCClient) SubscribeTx(builder *sdk.EventQueryBuilder, callback sdk.Even
 	return sdk.NewSubscription(ctx, query, subscriber), nil
 }
 
-func (r RPCClient) SubscribeNewBlockHeader(callback sdk.EventNewBlockHeaderCallback) (sdk.Subscription, error) {
+func (r rpcClient) SubscribeNewBlockHeader(callback sdk.EventNewBlockHeaderCallback) (sdk.Subscription, error) {
 	ctx := context.Background()
 	subscriber := getSubscriberID()
 	query := tmtypes.QueryForEvent(tmtypes.EventNewBlockHeader).String()
@@ -172,7 +172,7 @@ func (r RPCClient) SubscribeNewBlockHeader(callback sdk.EventNewBlockHeaderCallb
 	return sdk.NewSubscription(ctx, query, subscriber), nil
 }
 
-func (r RPCClient) SubscribeValidatorSetUpdates(callback sdk.EventValidatorSetUpdatesCallback) (sdk.Subscription, error) {
+func (r rpcClient) SubscribeValidatorSetUpdates(callback sdk.EventValidatorSetUpdatesCallback) (sdk.Subscription, error) {
 	ctx := context.Background()
 	subscriber := getSubscriberID()
 	query := tmtypes.QueryForEvent(tmtypes.EventValidatorSetUpdates).String()
@@ -194,7 +194,7 @@ func (r RPCClient) SubscribeValidatorSetUpdates(callback sdk.EventValidatorSetUp
 	return sdk.NewSubscription(ctx, query, subscriber), nil
 }
 
-func (r RPCClient) Unscribe(subscription sdk.Subscription) error {
+func (r rpcClient) Unscribe(subscription sdk.Subscription) error {
 	return r.Client.Unsubscribe(subscription.Ctx, subscription.ID, subscription.Query)
 }
 

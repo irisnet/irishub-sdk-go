@@ -1,9 +1,3 @@
-// Package bank is mainly used to transfer coins between accounts,
-//query account balances, and provide common offline transaction signing and broadcasting methods.
-//
-// In addition, the available units of tokens in the IRIShub system are defined using [coin-type](https://www.irisnet.org/docs/concepts/coin-type.html).
-//
-// [More Details](https://www.irisnet.org/docs/features/bank.html)
 package bank
 
 import (
@@ -11,12 +5,9 @@ import (
 	"strings"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
-
 	"github.com/irisnet/irishub-sdk-go/tools/log"
-
-	"github.com/pkg/errors"
-
 	"github.com/irisnet/irishub-sdk-go/types"
+	"github.com/pkg/errors"
 )
 
 type bankClient struct {
