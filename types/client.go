@@ -27,8 +27,8 @@ type TmClient interface {
 }
 
 type TxManager interface {
-	BuildAndSend(msg []Msg, baseTx BaseTx) (Result, error)
-	Broadcast(signedTx StdTx, mode BroadcastMode) (Result, error)
+	BuildAndSend(msg []Msg, baseTx BaseTx) (Result, Error)
+	Broadcast(signedTx StdTx, mode BroadcastMode) (Result, Error)
 }
 
 type Query interface {

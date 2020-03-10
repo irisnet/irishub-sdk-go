@@ -46,7 +46,6 @@ func (ots *OracleTestSuite) SetupService() {
 	}
 
 	definition := rpc.ServiceDefinitionRequest{
-		BaseTx:            baseTx,
 		ServiceName:       serviceName,
 		Description:       "this is a test service",
 		Tags:              nil,
@@ -54,19 +53,18 @@ func (ots *OracleTestSuite) SetupService() {
 		Schemas:           schemas,
 	}
 
-	result, err := ots.Service().DefineService(definition)
-	require.NoError(ots.T(), err)
+	result, err := ots.Service().DefineService(definition, baseTx)
+	require.True(ots.T(), err.IsNil())
 	require.True(ots.T(), result.IsSuccess())
 
 	deposit, _ := sdk.ParseCoins("20000000000000000000000iris-atto")
 	binding := rpc.ServiceBindingRequest{
-		BaseTx:      baseTx,
 		ServiceName: definition.ServiceName,
 		Deposit:     deposit,
 		Pricing:     pricing,
 	}
-	result, err = ots.Service().BindService(binding)
-	require.NoError(ots.T(), err)
+	result, err = ots.Service().BindService(binding, baseTx)
+	require.True(ots.T(), err.IsNil())
 	require.True(ots.T(), result.IsSuccess())
 
 	err = ots.Service().RegisterSingleServiceListener(serviceName,
@@ -77,7 +75,7 @@ func (ots *OracleTestSuite) SetupService() {
 			return output, ""
 		}, baseTx)
 
-	require.NoError(ots.T(), err)
+	require.True(ots.T(), err.IsNil())
 
 	ots.serviceName = serviceName
 	ots.baseTx = baseTx
@@ -108,19 +106,19 @@ func (ots *OracleTestSuite) TestFeed() {
 		ResponseThreshold: 1,
 	}
 	result, err := ots.Oracle().CreateFeed(createFeedReq)
-	require.NoError(ots.T(), err)
+	require.True(ots.T(), err.IsNil())
 	require.True(ots.T(), result.IsSuccess())
 
 	_, err = ots.Oracle().QueryFeed(feedName)
-	require.NoError(ots.T(), err)
+	require.True(ots.T(), err.IsNil())
 
 	result, err = ots.Oracle().StartFeed(feedName, ots.baseTx)
-	require.NoError(ots.T(), err)
+	require.True(ots.T(), err.IsNil())
 	require.True(ots.T(), result.IsSuccess())
 
 	for {
 		result, err := ots.Oracle().QueryFeedValue(feedName)
-		require.NoError(ots.T(), err)
+		require.True(ots.T(), err.IsNil())
 		if len(result) == int(createFeedReq.RepeatedTotal) {
 			goto stop
 		}

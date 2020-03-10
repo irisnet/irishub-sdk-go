@@ -8,58 +8,59 @@ import (
 )
 
 type ServiceTx interface {
-	DefineService(request ServiceDefinitionRequest) (sdk.Result, error)
+	DefineService(request ServiceDefinitionRequest, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
 
-	BindService(request ServiceBindingRequest) (sdk.Result, error)
+	BindService(request ServiceBindingRequest, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
 
-	UpdateServiceBinding(request UpdateServiceBindingRequest) (sdk.Result, error)
+	UpdateServiceBinding(request UpdateServiceBindingRequest, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
 
 	InvokeService(request ServiceInvocationRequest,
-		callback ServiceInvokeHandler) (requestContextID string, err error)
+		callback ServiceInvokeHandler, baseTx sdk.BaseTx) (requestContextID string, err sdk.Error)
 
-	SetWithdrawAddress(serviceName string, withdrawAddress string, baseTx sdk.BaseTx) (sdk.Result, error)
+	SetWithdrawAddress(withdrawAddress string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
 
-	DisableService(serviceName string, baseTx sdk.BaseTx) (sdk.Result, error)
+	DisableServiceBinding(serviceName string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
 
-	EnableService(serviceName string, deposit sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, error)
+	EnableServiceBinding(serviceName string,
+		deposit sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
 
-	RefundServiceDeposit(serviceName string, baseTx sdk.BaseTx) (sdk.Result, error)
+	RefundServiceDeposit(serviceName string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
 
-	PauseRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.Result, error)
+	PauseRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
 
-	StartRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.Result, error)
+	StartRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
 
-	KillRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.Result, error)
+	KillRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
 
-	UpdateRequestContext(request UpdateContextRequest) (sdk.Result, error)
+	UpdateRequestContext(request UpdateContextRequest, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
 
-	WithdrawEarnedFees(baseTx sdk.BaseTx) (sdk.Result, error)
+	WithdrawEarnedFees(baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
 
-	WithdrawTax(destAddress string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, error)
+	WithdrawTax(destAddress string,
+		amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
 
-	RegisterServiceListener(serviceRouter ServiceRouter,
-		baseTx sdk.BaseTx) error
+	RegisterServiceListener(serviceRouter ServiceRouter, baseTx sdk.BaseTx) sdk.Error
 
 	RegisterSingleServiceListener(serviceName string,
 		respondHandler ServiceRespondHandler,
-		baseTx sdk.BaseTx) error
+		baseTx sdk.BaseTx) sdk.Error
 }
 
 type ServiceQuery interface {
-	QueryDefinition(serviceName string) (ServiceDefinition, error)
+	QueryDefinition(serviceName string) (ServiceDefinition, sdk.Error)
 
-	QueryBinding(serviceName string, provider sdk.AccAddress) (ServiceBinding, error)
-	QueryBindings(serviceName string) ([]ServiceBinding, error)
+	QueryBinding(serviceName string, provider sdk.AccAddress) (ServiceBinding, sdk.Error)
+	QueryBindings(serviceName string) ([]ServiceBinding, sdk.Error)
 
-	QueryRequest(requestID string) (RequestService, error)
-	QueryRequests(serviceName string, provider sdk.AccAddress) ([]RequestService, error)
-	QueryRequestsByReqCtx(requestContextID string, batchCounter uint64) ([]RequestService, error)
+	QueryRequest(requestID string) (RequestService, sdk.Error)
+	QueryRequests(serviceName string, provider sdk.AccAddress) ([]RequestService, sdk.Error)
+	QueryRequestsByReqCtx(requestContextID string, batchCounter uint64) ([]RequestService, sdk.Error)
 
-	QueryResponse(requestID string) (ServiceResponse, error)
-	QueryResponses(requestContextID string, batchCounter uint64) ([]ServiceResponse, error)
+	QueryResponse(requestID string) (ServiceResponse, sdk.Error)
+	QueryResponses(requestContextID string, batchCounter uint64) ([]ServiceResponse, sdk.Error)
 
-	QueryRequestContext(requestContextID string) (RequestContext, error)
-	QueryFees(provider string) (EarnedFees, error)
+	QueryRequestContext(requestContextID string) (RequestContext, sdk.Error)
+	QueryFees(provider string) (EarnedFees, sdk.Error)
 }
 
 type Service interface {
@@ -97,7 +98,6 @@ type ServiceResponse struct {
 }
 
 type ServiceDefinitionRequest struct {
-	sdk.BaseTx
 	ServiceName       string   `json:"service_name"`
 	Description       string   `json:"description"`
 	Tags              []string `json:"tags"`
@@ -116,7 +116,6 @@ type ServiceDefinition struct {
 }
 
 type ServiceBindingRequest struct {
-	sdk.BaseTx
 	ServiceName string    `json:"service_name"`
 	Deposit     sdk.Coins `json:"deposit"`
 	Pricing     string    `json:"pricing"`
@@ -124,7 +123,6 @@ type ServiceBindingRequest struct {
 
 // UpdateServiceBindingRequest defines a message to update a service binding
 type UpdateServiceBindingRequest struct {
-	sdk.BaseTx
 	ServiceName string    `json:"service_name"`
 	Deposit     sdk.Coins `json:"deposit"`
 	Pricing     string    `json:"pricing"`
@@ -142,7 +140,6 @@ type ServiceBinding struct {
 }
 
 type ServiceInvocationRequest struct {
-	sdk.BaseTx
 	ServiceName       string    `json:"service_name"`
 	Providers         []string  `json:"providers"`
 	Input             string    `json:"input"`
@@ -156,7 +153,6 @@ type ServiceInvocationRequest struct {
 
 // UpdateContextRequest defines a message to update a request context
 type UpdateContextRequest struct {
-	sdk.BaseTx
 	RequestContextID  string    `json:"request_context_id"`
 	Providers         []string  `json:"providers"`
 	ServiceFeeCap     sdk.Coins `json:"service_fee_cap"`

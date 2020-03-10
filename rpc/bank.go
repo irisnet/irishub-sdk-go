@@ -7,11 +7,11 @@ import (
 // expose bank module api for user
 type Bank interface {
 	sdk.Module
-	QueryAccount(address string) (sdk.BaseAccount, error)
-	QueryTokenStats(tokenID string) (TokenStats, error)
-	Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, error)
-	Burn(amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, error)
-	SetMemoRegexp(memoRegexp string, baseTx sdk.BaseTx) (sdk.Result, error)
+	QueryAccount(address string) (sdk.BaseAccount, sdk.Error)
+	QueryTokenStats(tokenID string) (TokenStats, sdk.Error)
+	Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+	Burn(amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+	SetMemoRegexp(memoRegexp string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
 	SubscribeSendTx(from, to string, callback EventMsgSendCallback) sdk.Subscription
 }
 

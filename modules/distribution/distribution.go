@@ -33,10 +33,10 @@ func Create(ac sdk.AbstractClient) rpc.Distribution {
 	}
 }
 
-func (d distributionClient) QueryRewards(delegator string) (rpc.Rewards, error) {
+func (d distributionClient) QueryRewards(delegator string) (rpc.Rewards, sdk.Error) {
 	address, err := sdk.AccAddressFromBech32(delegator)
 	if err != nil {
-		return rpc.Rewards{}, err
+		return rpc.Rewards{}, sdk.Wrap(err)
 	}
 
 	param := struct {
@@ -46,21 +46,21 @@ func (d distributionClient) QueryRewards(delegator string) (rpc.Rewards, error) 
 	}
 
 	var rewards rewards
-	if err = d.QueryWithResponse("custom/distr/rewards", param, &rewards); err != nil {
-		return rpc.Rewards{}, err
+	if err := d.QueryWithResponse("custom/distr/rewards", param, &rewards); err != nil {
+		return rpc.Rewards{}, sdk.Wrap(err)
 	}
-	return rewards.Convert().(rpc.Rewards), nil
+	return rewards.Convert().(rpc.Rewards), sdk.Nil
 }
 
-func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.BaseTx) (sdk.Result, error) {
+func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
 	delegator, err := d.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, err
+		return nil, sdk.Wrap(err)
 	}
 
 	withdraw, err := sdk.AccAddressFromBech32(withdrawAddr)
 	if err != nil {
-		return nil, err
+		return nil, sdk.Wrap(err)
 	}
 
 	msg := MsgSetWithdrawAddress{
@@ -73,10 +73,10 @@ func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.Base
 	return d.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
-func (d distributionClient) WithdrawRewards(isValidator bool, onlyFromValidator string, baseTx sdk.BaseTx) (sdk.Result, error) {
+func (d distributionClient) WithdrawRewards(isValidator bool, onlyFromValidator string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
 	delegator, err := d.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, err
+		return nil, sdk.Wrap(err)
 	}
 
 	var msgs []sdk.Msg
@@ -92,7 +92,7 @@ func (d distributionClient) WithdrawRewards(isValidator bool, onlyFromValidator 
 	case onlyFromValidator != "":
 		valAddr, err := sdk.ValAddressFromBech32(onlyFromValidator)
 		if err != nil {
-			return nil, err
+			return nil, sdk.Wrap(err)
 		}
 		msgs = append(msgs, MsgWithdrawDelegatorReward{
 			ValidatorAddr: valAddr,

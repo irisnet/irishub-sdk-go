@@ -327,3 +327,11 @@ type PaginationParams struct {
 	Page uint64
 	Size uint16
 }
+
+type ResultTx struct {
+	GasWanted int64  `json:"gas_wanted"`
+	GasUsed   int64  `json:"gas_used"`
+	Tags      Tags   `json:"tags"`
+	Hash      string `json:"hash"`
+	Height    int64  `json:"height"`
+}

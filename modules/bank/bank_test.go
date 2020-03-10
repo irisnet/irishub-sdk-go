@@ -27,13 +27,13 @@ func (bts *BankTestSuite) SetupTest() {
 
 func (bts BankTestSuite) TestGetAccount() {
 	acc, err := bts.Bank().QueryAccount(bts.Sender().String())
-	require.NoError(bts.T(), err)
+	require.True(bts.T(), err.IsNil())
 	fmt.Printf("%v", acc)
 }
 
 func (bts BankTestSuite) TestGetTokenStats() {
 	acc, err := bts.Bank().QueryTokenStats("iris")
-	require.NoError(bts.T(), err)
+	require.True(bts.T(), err.IsNil())
 	fmt.Printf("%v", acc)
 }
 
@@ -51,16 +51,16 @@ func (bts BankTestSuite) TestSend() {
 
 	beforeCoin := types.NewCoins()
 	toAccBefore, err := bts.Bank().QueryAccount(to)
-	if err == nil {
+	if err.IsNil() {
 		beforeCoin = toAccBefore.GetCoins()
 	}
 
 	result, err := bts.Bank().Send(to, coins, baseTx)
-	require.NoError(bts.T(), err)
+	require.True(bts.T(), err.IsNil())
 	require.True(bts.T(), result.IsSuccess())
 
 	toAccAfter, err := bts.Bank().QueryAccount(to)
-	require.NoError(bts.T(), err)
+	require.True(bts.T(), err.IsNil())
 	require.Equal(bts.T(),
 		beforeCoin.Add(coins).String(),
 		toAccAfter.GetCoins().String(),
@@ -74,12 +74,11 @@ func (bts BankTestSuite) TestBurn() {
 	baseTx := types.BaseTx{
 		From: "test1",
 		Gas:  20000,
-		Fee:  "600000000000000000iris-atto",
 		Memo: "test",
 		Mode: types.Commit,
 	}
 	result, err := bts.Bank().Burn(coins, baseTx)
-	require.NoError(bts.T(), err)
+	require.True(bts.T(), err.IsNil())
 	require.True(bts.T(), result.IsSuccess())
 }
 
@@ -87,15 +86,14 @@ func (bts BankTestSuite) TestSetMemoRegexp() {
 	baseTx := types.BaseTx{
 		From: "test1",
 		Gas:  20000,
-		Fee:  "600000000000000000iris-atto",
 		Memo: "test",
 		Mode: types.Commit,
 	}
 	result, err := bts.Bank().SetMemoRegexp("testMemo", baseTx)
-	require.NoError(bts.T(), err)
+	require.True(bts.T(), err.IsNil())
 	require.True(bts.T(), result.IsSuccess())
 
 	acc, err := bts.Bank().QueryAccount(bts.Sender().String())
-	require.NoError(bts.T(), err)
+	require.True(bts.T(), err.IsNil())
 	require.Equal(bts.T(), "testMemo", acc.MemoRegexp)
 }

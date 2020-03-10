@@ -8,9 +8,8 @@ import (
 
 type Slashing interface {
 	sdk.Module
-	Unjail(baseTx sdk.BaseTx) (sdk.Result, error)
-	QueryParams() (SlashingParams, error)
-	QueryValidatorSigningInfo(validatorConPubKey string) (ValidatorSigningInfo, error)
+	QueryParams() (SlashingParams, sdk.Error)
+	QueryValidatorSigningInfo(validatorConPubKey string) (ValidatorSigningInfo, sdk.Error)
 }
 
 type SlashingParams struct {

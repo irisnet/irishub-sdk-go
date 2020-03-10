@@ -39,7 +39,7 @@ func (dts *DistrTestSuite) TestSetWithdrawAddr() {
 	}
 
 	rs, err := dts.Distr().SetWithdrawAddr(dts.Sender().String(), baseTx)
-	require.NoError(dts.T(), err)
+	require.True(dts.T(), err.IsNil())
 	require.True(dts.T(), rs.IsSuccess())
 }
 
@@ -47,12 +47,11 @@ func (dts *DistrTestSuite) TestWithdrawRewards() {
 	baseTx := sdk.BaseTx{
 		From: "test1",
 		Gas:  20000,
-		Fee:  "600000000000000000iris-atto",
 		Memo: "test",
 		Mode: sdk.Commit,
 	}
 
 	rs, err := dts.Distr().WithdrawRewards(true, "", baseTx)
-	require.NoError(dts.T(), err)
+	require.True(dts.T(), err.IsNil())
 	require.True(dts.T(), rs.IsSuccess())
 }

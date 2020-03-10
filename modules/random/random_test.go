@@ -39,14 +39,14 @@ func (rts *RandomTestSuite) TestGenerate() {
 	request := rpc.RandomRequest{
 		BaseTx:        baseTx,
 		BlockInterval: 2,
-		Callback: func(reqID, randomNum string, err error) {
-			require.NoError(rts.T(), err)
+		Callback: func(reqID, randomNum string, err sdk.Error) {
+			require.True(rts.T(), err.IsNil())
 			memory[reqID] = randomNum
 			signal <- 1
 		},
 	}
 	reqID, err := rts.Random().Generate(request)
-	require.NoError(rts.T(), err)
+	require.True(rts.T(), err.IsNil())
 	memory[reqID] = ""
 	<-signal
 	require.NotEmpty(rts.T(), memory[reqID])

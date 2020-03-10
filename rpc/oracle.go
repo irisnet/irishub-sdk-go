@@ -13,17 +13,17 @@ type Oracle interface {
 }
 
 type OracleTx interface {
-	CreateFeed(request FeedCreateRequest) (result sdk.Result, err error)
-	StartFeed(feedName string, baseTx sdk.BaseTx) (result sdk.Result, err error)
-	CreateAndStartFeed(request FeedCreateRequest) (result sdk.Result, err error)
-	PauseFeed(feedName string, baseTx sdk.BaseTx) (result sdk.Result, err error)
-	EditFeed(request FeedEditRequest) (result sdk.Result, err error)
+	CreateFeed(request FeedCreateRequest) (result sdk.Result, err sdk.Error)
+	StartFeed(feedName string, baseTx sdk.BaseTx) (result sdk.Result, err sdk.Error)
+	CreateAndStartFeed(request FeedCreateRequest) (result sdk.Result, err sdk.Error)
+	PauseFeed(feedName string, baseTx sdk.BaseTx) (result sdk.Result, err sdk.Error)
+	EditFeed(request FeedEditRequest) (result sdk.Result, err sdk.Error)
 }
 
 type OracleQuery interface {
-	QueryFeed(feedName string) (feed FeedContext, err error)
-	QueryFeeds(state string) (feed []FeedContext, err error)
-	QueryFeedValue(feedName string) (value []FeedValue, err error)
+	QueryFeed(feedName string) (feed FeedContext, err sdk.Error)
+	QueryFeeds(state string) (feed []FeedContext, err sdk.Error)
+	QueryFeedValue(feedName string) (value []FeedValue, err sdk.Error)
 }
 
 // FeedCreateRequest - struct for create a feed

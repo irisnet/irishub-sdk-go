@@ -273,7 +273,6 @@ func (msg MsgUpdateServiceBinding) GetSigners() []sdk.AccAddress {
 
 // MsgSetWithdrawAddress defines a message to set the withdrawal address for a service binding
 type MsgSetWithdrawAddress struct {
-	ServiceName     string         `json:"service_name"`
 	Provider        sdk.AccAddress `json:"provider"`
 	WithdrawAddress sdk.AccAddress `json:"withdraw_address"`
 }
@@ -295,10 +294,6 @@ func (msg MsgSetWithdrawAddress) GetSignBytes() []byte {
 func (msg MsgSetWithdrawAddress) ValidateBasic() error {
 	if len(msg.Provider) == 0 {
 		return errors.New("provider missing")
-	}
-
-	if len(msg.ServiceName) == 0 {
-		return errors.New("service name missing")
 	}
 
 	if len(msg.WithdrawAddress) == 0 {
