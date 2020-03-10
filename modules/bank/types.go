@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/irisnet/irishub-sdk-go/rpc"
+
 	json2 "github.com/irisnet/irishub-sdk-go/tools/json"
 	"github.com/irisnet/irishub-sdk-go/types"
 )
@@ -25,11 +27,6 @@ var (
 
 func init() {
 	registerCodec(cdc)
-}
-
-// defines the params for query: "custom/acc/account"
-type QueryAccountParams struct {
-	Address types.AccAddress
 }
 
 type MsgSend struct {
@@ -274,6 +271,22 @@ func (msg MsgSetMemoRegexp) GetSignBytes() []byte {
 // Implements Msg.
 func (msg MsgSetMemoRegexp) GetSigners() []types.AccAddress {
 	return []types.AccAddress{msg.Owner}
+}
+
+type tokenStats struct {
+	LooseTokens  types.Coins `json:"loose_tokens"`
+	BondedTokens types.Coins `json:"bonded_tokens"`
+	BurnedTokens types.Coins `json:"burned_tokens"`
+	TotalSupply  types.Coins `json:"total_supply"`
+}
+
+func (ts tokenStats) Convert() interface{} {
+	return rpc.TokenStats{
+		LooseTokens:  ts.LooseTokens,
+		BondedTokens: ts.BondedTokens,
+		BurnedTokens: ts.BurnedTokens,
+		TotalSupply:  ts.TotalSupply,
+	}
 }
 
 func registerCodec(cdc types.Codec) {

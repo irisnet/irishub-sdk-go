@@ -3,6 +3,9 @@ package oracle
 import (
 	"errors"
 	"strings"
+	"time"
+
+	"github.com/irisnet/irishub-sdk-go/rpc"
 
 	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -223,7 +226,7 @@ func (msg MsgEditFeed) GetSigners() []sdk.AccAddress {
 }
 
 //-------------------------------for query--------------------------
-type Feed struct {
+type feed struct {
 	FeedName         string         `json:"feed_name"`
 	Description      string         `json:"description"`
 	AggregateFunc    string         `json:"aggregate_func"`
@@ -233,8 +236,8 @@ type Feed struct {
 	Creator          sdk.AccAddress `json:"creator"`
 }
 
-type FeedContext struct {
-	Feed              Feed             `json:"feed"`
+type feedContext struct {
+	Feed              feed             `json:"feed"`
 	ServiceName       string           `json:"service_name"`
 	Providers         []sdk.AccAddress `json:"providers"`
 	Input             string           `json:"input"`
@@ -246,40 +249,58 @@ type FeedContext struct {
 	State             string           `json:"state"`
 }
 
-func (ctx FeedContext) toSDKFeedContext() sdk.FeedContext {
+func (fc feedContext) Convert() interface{} {
 	var providers []string
-	for _, provider := range ctx.Providers {
+	for _, provider := range fc.Providers {
 		providers = append(providers, provider.String())
 	}
-	return sdk.FeedContext{
-		Feed: sdk.Feed{
-			FeedName:         ctx.Feed.FeedName,
-			Description:      ctx.Feed.Description,
-			AggregateFunc:    ctx.Feed.AggregateFunc,
-			ValueJsonPath:    ctx.Feed.ValueJsonPath,
-			LatestHistory:    ctx.Feed.LatestHistory,
-			RequestContextID: sdk.RequestContextIDToString(ctx.Feed.RequestContextID),
-			Creator:          ctx.Feed.Creator.String(),
+	return rpc.FeedContext{
+		Feed: rpc.Feed{
+			FeedName:         fc.Feed.FeedName,
+			Description:      fc.Feed.Description,
+			AggregateFunc:    fc.Feed.AggregateFunc,
+			ValueJsonPath:    fc.Feed.ValueJsonPath,
+			LatestHistory:    fc.Feed.LatestHistory,
+			RequestContextID: rpc.RequestContextIDToString(fc.Feed.RequestContextID),
+			Creator:          fc.Feed.Creator.String(),
 		},
-		ServiceName:       ctx.ServiceName,
+		ServiceName:       fc.ServiceName,
 		Providers:         providers,
-		Input:             ctx.Input,
-		Timeout:           ctx.Timeout,
-		ServiceFeeCap:     ctx.ServiceFeeCap,
-		RepeatedFrequency: ctx.RepeatedFrequency,
-		RepeatedTotal:     ctx.RepeatedTotal,
-		ResponseThreshold: ctx.ResponseThreshold,
-		State:             ctx.State,
+		Input:             fc.Input,
+		Timeout:           fc.Timeout,
+		ServiceFeeCap:     fc.ServiceFeeCap,
+		RepeatedFrequency: fc.RepeatedFrequency,
+		RepeatedTotal:     fc.RepeatedTotal,
+		ResponseThreshold: fc.ResponseThreshold,
+		State:             fc.State,
 	}
 }
 
-type FeedContexts []FeedContext
+type feedContexts []feedContext
 
-func (ctx FeedContexts) toSDKFeedContexts() (result []sdk.FeedContext) {
-	for _, feedCtx := range ctx {
-		result = append(result, feedCtx.toSDKFeedContext())
+func (fcs feedContexts) Convert() interface{} {
+	result := make([]rpc.FeedContext, len(fcs))
+	for _, fc := range fcs {
+		result = append(result, fc.Convert().(rpc.FeedContext))
 	}
-	return
+	return result
+}
+
+type feedValue struct {
+	Data      string    `json:"data"`
+	Timestamp time.Time `json:"timestamp"`
+}
+type feedValues []feedValue
+
+func (fvs feedValues) Convert() interface{} {
+	result := make([]rpc.FeedValue, len(fvs))
+	for _, fv := range fvs {
+		result = append(result, rpc.FeedValue{
+			Data:      fv.Data,
+			Timestamp: fv.Timestamp,
+		})
+	}
+	return result
 }
 
 func registerCodec(cdc sdk.Codec) {
@@ -288,6 +309,6 @@ func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgPauseFeed{}, "irishub/oracle/MsgPauseFeed")
 	cdc.RegisterConcrete(MsgEditFeed{}, "irishub/oracle/MsgEditFeed")
 
-	cdc.RegisterConcrete(Feed{}, "irishub/oracle/Feed")
-	cdc.RegisterConcrete(FeedContext{}, "irishub/oracle/FeedContext")
+	cdc.RegisterConcrete(feed{}, "irishub/oracle/Feed")
+	cdc.RegisterConcrete(feedContext{}, "irishub/oracle/FeedContext")
 }

@@ -7,22 +7,16 @@ import (
 	"fmt"
 
 	cmn "github.com/tendermint/tendermint/libs/common"
-
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 const (
-	TypeKey        EventKey = "tm.event"
-	ActionKey      EventKey = "action"
-	SenderKey      EventKey = "sender"
-	RecipientKey   EventKey = "recipient"
-	TxHashKeyKey   EventKey = "tx.hash"
-	TxHeightKeyKey EventKey = "tx.height"
+	TypeKey      EventKey = "tm.event"
+	ActionKey    EventKey = "action"
+	SenderKey    EventKey = "sender"
+	RecipientKey EventKey = "recipient"
 
-	TxValue            EventValue = "Tx"
-	SendValue          EventValue = "send"
-	BurnValue          EventValue = "burn"
-	SetMemoRegexpValue EventValue = "set-memo-regexp"
+	TxValue EventValue = "Tx"
 )
 
 type EventKey string
@@ -103,7 +97,10 @@ func (t Tags) GetValue(key string) string {
 func (t Tags) String() string {
 	var buf bytes.Buffer
 	for _, tag := range t {
-		buf.WriteString(fmt.Sprintf("%s=%s ", tag.Key, tag.Value))
+		if buf.Len() > 0 {
+			buf.WriteString(" ")
+		}
+		buf.WriteString(fmt.Sprintf("%s=%s", tag.Key, tag.Value))
 	}
 	return buf.String()
 }
@@ -160,8 +157,14 @@ type EventDataNewBlockHeader struct {
 type EventNewBlockHeaderCallback func(EventDataNewBlockHeader)
 
 //===============EventDataValidatorSetUpdates for SubscribeValidatorSetUpdates=================
+type Validator struct {
+	Address          string `json:"address"`
+	PubKey           string `json:"pub_key"`
+	VotingPower      int64  `json:"voting_power"`
+	ProposerPriority int64  `json:"proposer_priority"`
+}
 type EventDataValidatorSetUpdates struct {
-	ValidatorUpdates []TmValidator `json:"validator_updates"`
+	ValidatorUpdates []Validator `json:"validator_updates"`
 }
 
 type EventValidatorSetUpdatesCallback func(EventDataValidatorSetUpdates)

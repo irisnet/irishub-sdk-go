@@ -3,6 +3,8 @@ package random
 import (
 	"errors"
 
+	"github.com/irisnet/irishub-sdk-go/rpc"
+
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
@@ -12,7 +14,7 @@ type randomClient struct {
 	*log.Logger
 }
 
-func New(ac sdk.AbstractClient) sdk.Random {
+func Create(ac sdk.AbstractClient) rpc.Random {
 	return randomClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
@@ -28,7 +30,7 @@ func (r randomClient) Name() string {
 }
 
 // Generate is responsible for requesting a random number and callback `callback`
-func (r randomClient) Generate(request sdk.RandomRequest) (string, error) {
+func (r randomClient) Generate(request rpc.RandomRequest) (string, error) {
 	consumer, err := r.QueryAddress(request.From, request.Password)
 	if err != nil {
 		return "", err
@@ -41,7 +43,7 @@ func (r randomClient) Generate(request sdk.RandomRequest) (string, error) {
 
 	//mode must be set to commit
 	request.BaseTx.Mode = sdk.Commit
-	result, err := r.Broadcast(request.BaseTx, []sdk.Msg{msg})
+	result, err := r.BuildAndSend([]sdk.Msg{msg}, request.BaseTx)
 	if err != nil {
 		return "", err
 	}
@@ -83,31 +85,31 @@ func (r randomClient) Generate(request sdk.RandomRequest) (string, error) {
 }
 
 // QueryRandom returns the random information of the specified reqID
-func (r randomClient) QueryRandom(reqID string) (sdk.RandomInfo, error) {
+func (r randomClient) QueryRandom(reqID string) (rpc.RandomInfo, error) {
 	param := struct {
 		ReqID string
 	}{
 		ReqID: reqID,
 	}
 
-	var rand Rand
-	if err := r.Query("custom/rand/rand", param, &rand); err != nil {
-		return sdk.RandomInfo{}, err
+	var rand rand
+	if err := r.QueryWithResponse("custom/rand/rand", param, &rand); err != nil {
+		return rpc.RandomInfo{}, err
 	}
-	return rand.toSDKRequest(), nil
+	return rand.Convert().(rpc.RandomInfo), nil
 }
 
 // QueryRequests returns the list of request by the specified block height
-func (r randomClient) QueryRequests(height int64) ([]sdk.RequestRandom, error) {
+func (r randomClient) QueryRequests(height int64) ([]rpc.RequestRandom, error) {
 	param := struct {
 		Height int64
 	}{
 		Height: height,
 	}
 
-	var rs Requests
-	if err := r.Query("custom/rand/queue", param, &rs); err != nil {
+	var rs requests
+	if err := r.QueryWithResponse("custom/rand/queue", param, &rs); err != nil {
 		return nil, err
 	}
-	return rs.toSDKRequest(), nil
+	return rs.Convert().([]rpc.RequestRandom), nil
 }

@@ -1,11 +1,15 @@
-package types
+package rpc
 
-import "time"
+import (
+	"time"
+
+	sdk "github.com/irisnet/irishub-sdk-go/types"
+)
 
 type Gov interface {
-	Module
-	Deposit(proposalID uint64, amount Coins, baseTx BaseTx) (Result, error)
-	Vote(proposalID uint64, option VoteOption, baseTx BaseTx) (Result, error)
+	sdk.Module
+	Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, error)
+	Vote(proposalID uint64, option VoteOption, baseTx sdk.BaseTx) (sdk.Result, error)
 
 	QueryProposal(proposalID uint64) (Proposal, error)
 	QueryProposals(request ProposalRequest) ([]Proposal, error)
@@ -28,7 +32,7 @@ const (
 	Abstain    VoteOption = "Abstain"
 )
 
-//=========================BasicProposal========================================================
+//=========================basicProposal========================================================
 type Proposal interface {
 	GetProposalID() uint64
 	GetTitle() string
@@ -38,7 +42,7 @@ type Proposal interface {
 	GetTallyResult() TallyResult
 	GetSubmitTime() time.Time
 	GetDepositEndTime() time.Time
-	GetTotalDeposit() Coins
+	GetTotalDeposit() sdk.Coins
 	GetVotingStartTime() time.Time
 	GetVotingEndTime() time.Time
 	GetProposer() string
@@ -55,7 +59,7 @@ type BasicProposal struct {
 	TallyResult     TallyResult `json:"tally_result"`      // Result of Tallys
 	SubmitTime      time.Time   `json:"submit_time"`       // Time of the block where TxGovSubmitProposal was included
 	DepositEndTime  time.Time   `json:"deposit_end_time"`  // Time that the Proposal would expire if deposit amount isn't met
-	TotalDeposit    Coins       `json:"total_deposit"`     // Current deposit on this proposal. Initial value is set at InitialDeposit
+	TotalDeposit    sdk.Coins   `json:"total_deposit"`     // Current deposit on this proposal. Initial value is set at InitialDeposit
 	VotingStartTime time.Time   `json:"voting_start_time"` // Time of the block where MinDeposit was reached. -1 if MinDeposit is not reached
 	VotingEndTime   time.Time   `json:"voting_end_time"`
 	Proposer        string      `json:"proposer"`
@@ -93,7 +97,7 @@ func (b BasicProposal) GetDepositEndTime() time.Time {
 	return b.DepositEndTime
 }
 
-func (b BasicProposal) GetTotalDeposit() Coins {
+func (b BasicProposal) GetTotalDeposit() sdk.Coins {
 	return b.TotalDeposit
 }
 
@@ -178,5 +182,5 @@ type Vote struct {
 type Deposit struct {
 	Depositor  string
 	ProposalID uint64
-	Amount     Coins
+	Amount     sdk.Coins
 }

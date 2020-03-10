@@ -3,6 +3,8 @@ package random
 import (
 	"errors"
 
+	"github.com/irisnet/irishub-sdk-go/rpc"
+
 	cmn "github.com/tendermint/tendermint/libs/common"
 
 	"github.com/irisnet/irishub-sdk-go/tools/json"
@@ -58,45 +60,42 @@ func (msg MsgRequestRand) GetSigners() []sdk.AccAddress {
 }
 
 //=======================for query=====================================================
-// Rand represents a random number with related data
-type Rand struct {
+// rand represents a random number with related data
+type rand struct {
 	RequestTxHash []byte `json:"request_tx_hash"` // the original request tx hash
 	Height        int64  `json:"height"`          // the height of the block used to generate the random number
 	Value         string `json:"value"`           // the actual random number
 }
 
-func (r Rand) toSDKRequest() sdk.RandomInfo {
-	return sdk.RandomInfo{
+func (r rand) Convert() interface{} {
+	return rpc.RandomInfo{
 		RequestTxHash: cmn.HexBytes(r.RequestTxHash).String(),
 		Height:        r.Height,
 		RandomNum:     r.Value,
 	}
 }
 
-// Request represents a request for a random number
-type Request struct {
+// RequestService represents a request for a random number
+type request struct {
 	Height   int64          `json:"height"`   // the height of the block in which the request tx is included
 	Consumer sdk.AccAddress `json:"consumer"` // the request address
 	TxHash   []byte         `json:"txhash"`   // the request tx hash
 }
 
-func (r Request) toSDKRequest() sdk.RequestRandom {
-	return sdk.RequestRandom{
+func (r request) Convert() interface{} {
+	return rpc.RequestRandom{
 		Height:   r.Height,
 		Consumer: r.Consumer.String(),
 		TxHash:   cmn.HexBytes(r.TxHash).String(),
 	}
 }
 
-type Requests []Request
+type requests []request
 
-func (rs Requests) toSDKRequest() (requests []sdk.RequestRandom) {
+func (rs requests) Convert() interface{} {
+	var requests = make([]rpc.RequestRandom, len(rs))
 	for _, r := range rs {
-		requests = append(requests, sdk.RequestRandom{
-			Height:   r.Height,
-			Consumer: r.Consumer.String(),
-			TxHash:   cmn.HexBytes(r.TxHash).String(),
-		})
+		requests = append(requests, r.Convert().(rpc.RequestRandom))
 	}
 	return requests
 }
@@ -104,6 +103,6 @@ func (rs Requests) toSDKRequest() (requests []sdk.RequestRandom) {
 func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgRequestRand{}, "irishub/rand/MsgRequestRand")
 
-	cdc.RegisterConcrete(&Rand{}, "irishub/rand/Rand")
-	cdc.RegisterConcrete(&Request{}, "irishub/rand/Request")
+	cdc.RegisterConcrete(&rand{}, "irishub/rand/Rand")
+	cdc.RegisterConcrete(&request{}, "irishub/rand/Request")
 }

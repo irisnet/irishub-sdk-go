@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/irisnet/irishub-sdk-go/rpc"
+
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -39,12 +41,11 @@ func (ots *OracleTestSuite) SetupService() {
 	baseTx := sdk.BaseTx{
 		From: "test1",
 		Gas:  20000,
-		Fee:  "600000000000000000iris-atto",
 		Memo: "test",
 		Mode: sdk.Commit,
 	}
 
-	definition := sdk.ServiceDefinitionRequest{
+	definition := rpc.ServiceDefinitionRequest{
 		BaseTx:            baseTx,
 		ServiceName:       serviceName,
 		Description:       "this is a test service",
@@ -58,7 +59,7 @@ func (ots *OracleTestSuite) SetupService() {
 	require.True(ots.T(), result.IsSuccess())
 
 	deposit, _ := sdk.ParseCoins("20000000000000000000000iris-atto")
-	binding := sdk.ServiceBindingRequest{
+	binding := rpc.ServiceBindingRequest{
 		BaseTx:      baseTx,
 		ServiceName: definition.ServiceName,
 		Deposit:     deposit,
@@ -90,7 +91,7 @@ func (ots *OracleTestSuite) TestFeed() {
 	feedName := generateFeedName(ots.serviceName)
 	serviceFeeCap, _ := sdk.ParseCoins("1000000000000000000iris-atto")
 
-	createFeedReq := sdk.FeedCreateRequest{
+	createFeedReq := rpc.FeedCreateRequest{
 		BaseTx:            ots.baseTx,
 		FeedName:          feedName,
 		LatestHistory:     5,

@@ -3,6 +3,8 @@ package distribution
 import (
 	"errors"
 
+	"github.com/irisnet/irishub-sdk-go/rpc"
+
 	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
@@ -162,28 +164,28 @@ func (msg MsgWithdrawValidatorRewardsAll) ValidateBasic() error {
 	return nil
 }
 
-type Rewards struct {
+type rewards struct {
 	Total       sdk.Coins            `json:"total"`
-	Delegations []DelegationsRewards `json:"delegations"`
+	Delegations []delegationsRewards `json:"delegations"`
 	Commission  sdk.Coins            `json:"commission"`
 }
 
-func (r Rewards) toSDKResponse() (rewards sdk.Rewards) {
-	rewards.Total = r.Total
-	rewards.Commission = r.Commission
-
-	var delegations []sdk.DelegationRewards
+func (r rewards) Convert() interface{} {
+	var delegations []rpc.DelegationRewards
 	for _, d := range r.Delegations {
-		delegations = append(delegations, sdk.DelegationRewards{
+		delegations = append(delegations, rpc.DelegationRewards{
 			Validator: d.Validator.String(),
 			Reward:    d.Reward,
 		})
 	}
-	rewards.Delegations = delegations
-	return
+	return rpc.Rewards{
+		Total:       r.Total,
+		Commission:  r.Commission,
+		Delegations: delegations,
+	}
 }
 
-type DelegationsRewards struct {
+type delegationsRewards struct {
 	Validator sdk.ValAddress `json:"validator"`
 	Reward    sdk.Coins      `json:"reward"`
 }

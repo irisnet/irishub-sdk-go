@@ -2,7 +2,10 @@ package slashing
 
 import (
 	"errors"
+	"fmt"
 	"time"
+
+	"github.com/irisnet/irishub-sdk-go/rpc"
 
 	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -49,8 +52,7 @@ func (msg MsgUnjail) ValidateBasic() error {
 	return nil
 }
 
-// Params - used for initializing default parameter for slashing at genesis
-type ParamsV017 struct {
+type paramsV017 struct {
 	MaxEvidenceAge          int64         `json:"max_evidence_age"`
 	SignedBlocksWindow      int64         `json:"signed_blocks_window"`
 	MinSignedPerWindow      sdk.Dec       `json:"min_signed_per_window"`
@@ -62,8 +64,19 @@ type ParamsV017 struct {
 	SlashFractionCensorship sdk.Dec       `json:"slash_fraction_censorship"`
 }
 
-// Params - used for initializing default parameter for slashing at genesis
-type Params struct {
+func (p paramsV017) Convert() interface{} {
+	return rpc.SlashingParams{
+		MaxEvidenceAge:          fmt.Sprintf("%d", p.MaxEvidenceAge),
+		SignedBlocksWindow:      p.SignedBlocksWindow,
+		MinSignedPerWindow:      p.MinSignedPerWindow.String(),
+		DoubleSignJailDuration:  p.DoubleSignJailDuration.String(),
+		DowntimeJailDuration:    p.DowntimeJailDuration.String(),
+		SlashFractionDoubleSign: p.SlashFractionDoubleSign.String(),
+		SlashFractionDowntime:   p.SlashFractionDowntime.String(),
+	}
+}
+
+type params struct {
 	MaxEvidenceAge          time.Duration `json:"max_evidence_age"`
 	SignedBlocksWindow      int64         `json:"signed_blocks_window"`
 	MinSignedPerWindow      sdk.Dec       `json:"min_signed_per_window"`
@@ -72,8 +85,8 @@ type Params struct {
 	SlashFractionDowntime   sdk.Dec       `json:"slash_fraction_downtime"`
 }
 
-func (params Params) ToSDKResponse() sdk.SlashingParams {
-	return sdk.SlashingParams{
+func (params params) Convert() interface{} {
+	return rpc.SlashingParams{
 		MaxEvidenceAge:          params.MaxEvidenceAge.String(),
 		SignedBlocksWindow:      params.SignedBlocksWindow,
 		MinSignedPerWindow:      params.MinSignedPerWindow.String(),
@@ -84,15 +97,15 @@ func (params Params) ToSDKResponse() sdk.SlashingParams {
 }
 
 // Signing info for a validator
-type ValidatorSigningInfoV017 struct {
+type validatorSigningInfoV017 struct {
 	StartHeight         int64     `json:"start_height"`          // height at which validator was first a candidate OR was unjailed
 	IndexOffset         int64     `json:"index_offset"`          // index offset into signed block bit array
 	JailedUntil         time.Time `json:"jailed_until"`          // timestamp validator cannot be unjailed until
 	MissedBlocksCounter int64     `json:"missed_blocks_counter"` // missed blocks counter (to avoid scanning the array every time)
 }
 
-// ValidatorSigningInfo defines the signing info for a validator
-type ValidatorSigningInfo struct {
+// validatorSigningInfo defines the signing info for a validator
+type validatorSigningInfo struct {
 	Address             sdk.ConsAddress `json:"address"`               // validator consensus address
 	StartHeight         int64           `json:"start_height"`          // height at which validator was first a candidate OR was unjailed
 	IndexOffset         int64           `json:"index_offset"`          // index offset into signed block bit array
@@ -101,18 +114,18 @@ type ValidatorSigningInfo struct {
 	MissedBlocksCounter int64           `json:"missed_blocks_counter"` // missed blocks counter (to avoid scanning the array every time)
 }
 
-func (signingInfo ValidatorSigningInfo) ToSDKResponse() sdk.ValidatorSigningInfo {
-	return sdk.ValidatorSigningInfo{
-		Address:             signingInfo.Address.String(),
-		StartHeight:         signingInfo.StartHeight,
-		IndexOffset:         signingInfo.IndexOffset,
-		JailedUntil:         signingInfo.JailedUntil,
-		Tombstoned:          signingInfo.Tombstoned,
-		MissedBlocksCounter: signingInfo.MissedBlocksCounter,
+func (vsi validatorSigningInfo) Convert() interface{} {
+	return rpc.ValidatorSigningInfo{
+		Address:             vsi.Address.String(),
+		StartHeight:         vsi.StartHeight,
+		IndexOffset:         vsi.IndexOffset,
+		JailedUntil:         vsi.JailedUntil,
+		Tombstoned:          vsi.Tombstoned,
+		MissedBlocksCounter: vsi.MissedBlocksCounter,
 	}
 }
 
 func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgUnjail{}, "irishub/slashing/MsgUnjail")
-	cdc.RegisterConcrete(&ParamsV017{}, "irishub/slashing/Params")
+	cdc.RegisterConcrete(&paramsV017{}, "irishub/slashing/Params")
 }

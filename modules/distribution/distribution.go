@@ -1,6 +1,14 @@
+// Package distribution is in charge of distributing collected transaction fee and inflated token to all validators and delegators.
+// To reduce computation stress, a lazy distribution strategy is brought in. lazy means that the benefit won't be paid directly to contributors automatically.
+// The contributors are required to explicitly send transactions to withdraw their benefit, otherwise, their benefit will be kept in the global pool.
+//
+// [More Details](https://www.irisnet.org/docs/features/distribution.html)
+//
+//
 package distribution
 
 import (
+	"github.com/irisnet/irishub-sdk-go/rpc"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
@@ -18,17 +26,17 @@ func (d distributionClient) Name() string {
 	return ModuleName
 }
 
-func New(ac sdk.AbstractClient) sdk.Distribution {
+func Create(ac sdk.AbstractClient) rpc.Distribution {
 	return distributionClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
 	}
 }
 
-func (d distributionClient) QueryRewards(delegator string) (sdk.Rewards, error) {
+func (d distributionClient) QueryRewards(delegator string) (rpc.Rewards, error) {
 	address, err := sdk.AccAddressFromBech32(delegator)
 	if err != nil {
-		return sdk.Rewards{}, err
+		return rpc.Rewards{}, err
 	}
 
 	param := struct {
@@ -37,12 +45,11 @@ func (d distributionClient) QueryRewards(delegator string) (sdk.Rewards, error) 
 		Address: address,
 	}
 
-	var rewards Rewards
-	err = d.Query("custom/distr/rewards", param, &rewards)
-	if err != nil {
-		return sdk.Rewards{}, err
+	var rewards rewards
+	if err = d.QueryWithResponse("custom/distr/rewards", param, &rewards); err != nil {
+		return rpc.Rewards{}, err
 	}
-	return rewards.toSDKResponse(), nil
+	return rewards.Convert().(rpc.Rewards), nil
 }
 
 func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.BaseTx) (sdk.Result, error) {
@@ -63,7 +70,7 @@ func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.Base
 	d.Info().Str("delegator", delegator.String()).
 		Str("withdrawAddr", withdrawAddr).
 		Msg("execute setWithdrawAddr transaction")
-	return d.Broadcast(baseTx, []sdk.Msg{msg})
+	return d.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 func (d distributionClient) WithdrawRewards(isValidator bool, onlyFromValidator string, baseTx sdk.BaseTx) (sdk.Result, error) {
@@ -106,5 +113,5 @@ func (d distributionClient) WithdrawRewards(isValidator bool, onlyFromValidator 
 			Msg("execute withdrawDelegatorRewardsAll transaction")
 		break
 	}
-	return d.Broadcast(baseTx, msgs)
+	return d.BuildAndSend(msgs, baseTx)
 }

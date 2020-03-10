@@ -20,20 +20,20 @@ type WSClient interface {
 	Unscribe(subscription Subscription) error
 }
 
-type RPC interface {
+type TmClient interface {
 	tmclient.Client
 	WSClient
 	Queries
 }
 
 type TxManager interface {
-	Broadcast(baseTx BaseTx, msg []Msg) (Result, error)
-	BroadcastTx(signedTx StdTx, mode BroadcastMode) (Result, error)
-	Sign(stdTx StdTx, name string, password string, online bool) (StdTx, error)
+	BuildAndSend(msg []Msg, baseTx BaseTx) (Result, error)
+	Broadcast(signedTx StdTx, mode BroadcastMode) (Result, error)
 }
 
 type Query interface {
-	Query(path string, data interface{}, result interface{}) error
+	QueryWithResponse(path string, data interface{}, result Response) error
+	Query(path string, data interface{}) ([]byte, error)
 	QueryStore(key cmn.HexBytes, storeName string) (res []byte, err error)
 	QueryAccount(address string) (BaseAccount, error)
 	QueryAddress(name, password string) (addr AccAddress, err error)

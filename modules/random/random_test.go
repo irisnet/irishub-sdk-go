@@ -3,6 +3,8 @@ package random_test
 import (
 	"testing"
 
+	"github.com/irisnet/irishub-sdk-go/rpc"
+
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -28,14 +30,13 @@ func (rts *RandomTestSuite) TestGenerate() {
 	baseTx := sdk.BaseTx{
 		From: "test1",
 		Gas:  20000,
-		Fee:  "600000000000000000iris-atto",
 		Memo: "test",
 		Mode: sdk.Commit,
 	}
 
 	var memory = make(map[string]string, 1)
 	var signal = make(chan int, 0)
-	request := sdk.RandomRequest{
+	request := rpc.RandomRequest{
 		BaseTx:        baseTx,
 		BlockInterval: 2,
 		Callback: func(reqID, randomNum string, err error) {

@@ -45,7 +45,6 @@ func (bts BankTestSuite) TestSend() {
 	baseTx := types.BaseTx{
 		From: "test1",
 		Gas:  20000,
-		Fee:  "600000000000000000iris-atto",
 		Memo: "test",
 		Mode: types.Commit,
 	}

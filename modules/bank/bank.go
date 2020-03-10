@@ -1,14 +1,16 @@
-// This module is mainly used to transfer coins between accounts,
-// query account balances, and provide common offline transaction signing and broadcasting methods.
+// Package bank is mainly used to transfer coins between accounts,
+//query account balances, and provide common offline transaction signing and broadcasting methods.
+//
 // In addition, the available units of tokens in the IRIShub system are defined using [coin-type](https://www.irisnet.org/docs/concepts/coin-type.html).
 //
 // [More Details](https://www.irisnet.org/docs/features/bank.html)
-
 package bank
 
 import (
 	"fmt"
 	"strings"
+
+	"github.com/irisnet/irishub-sdk-go/rpc"
 
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 
@@ -22,7 +24,7 @@ type bankClient struct {
 	*log.Logger
 }
 
-func New(ac types.AbstractClient) types.Bank {
+func Create(ac types.AbstractClient) rpc.Bank {
 	return bankClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
@@ -43,17 +45,18 @@ func (b bankClient) QueryAccount(address string) (types.BaseAccount, error) {
 }
 
 // GetTokenStats return token statistic, including total loose tokens, total burned tokens and total bonded tokens.
-func (b bankClient) QueryTokenStats(tokenID string) (result types.TokenStats, err error) {
+func (b bankClient) QueryTokenStats(tokenID string) (rpc.TokenStats, error) {
 	param := struct {
 		TokenId string
 	}{
 		TokenId: tokenID,
 	}
-	err = b.Query("custom/acc/tokenStats", param, &result)
-	if err != nil {
-		return result, err
+
+	var ts tokenStats
+	if err := b.QueryWithResponse("custom/acc/tokenStats", param, &ts); err != nil {
+		return rpc.TokenStats{}, err
 	}
-	return
+	return ts.Convert().(rpc.TokenStats), nil
 }
 
 //Send is responsible for transferring tokens from `From` to `to` account
@@ -66,13 +69,16 @@ func (b bankClient) Send(to string, amount types.Coins, baseTx types.BaseTx) (ty
 		NewInput(sender, amount),
 	}
 
-	outAddr := types.MustAccAddressFromBech32(to)
+	outAddr, err := types.AccAddressFromBech32(to)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("%s invalid address", to))
+	}
 	out := []Output{
 		NewOutput(outAddr, amount),
 	}
 
 	msg := NewMsgSend(in, out)
-	return b.Broadcast(baseTx, []types.Msg{msg})
+	return b.BuildAndSend([]types.Msg{msg}, baseTx)
 }
 
 //Send is responsible for burning some tokens from `From` account
@@ -82,7 +88,7 @@ func (b bankClient) Burn(amount types.Coins, baseTx types.BaseTx) (types.Result,
 		return nil, errors.Wrap(err, fmt.Sprintf("%s not found", baseTx.From))
 	}
 	msg := NewMsgBurn(sender, amount)
-	return b.Broadcast(baseTx, []types.Msg{msg})
+	return b.BuildAndSend([]types.Msg{msg}, baseTx)
 }
 
 //Send is responsible for setting memo regexp for your own address, so that you can only receive coins from transactions with the corresponding memo.
@@ -92,11 +98,11 @@ func (b bankClient) SetMemoRegexp(memoRegexp string, baseTx types.BaseTx) (types
 		return nil, errors.Wrap(err, fmt.Sprintf("%s not found", baseTx.From))
 	}
 	msg := NewMsgSetMemoRegexp(sender, memoRegexp)
-	return b.Broadcast(baseTx, []types.Msg{msg})
+	return b.BuildAndSend([]types.Msg{msg}, baseTx)
 }
 
 //SubscribeSendTx Subscribe MsgSend event and return subscription
-func (b bankClient) SubscribeSendTx(from, to string, callback types.EventMsgSendCallback) types.Subscription {
+func (b bankClient) SubscribeSendTx(from, to string, callback rpc.EventMsgSendCallback) types.Subscription {
 	var builder = types.NewEventQueryBuilder()
 
 	from = strings.TrimSpace(from)
@@ -113,7 +119,7 @@ func (b bankClient) SubscribeSendTx(from, to string, callback types.EventMsgSend
 		for _, msg := range data.Tx.Msgs {
 			if value, ok := msg.(MsgSend); ok {
 				for i, m := range value.Inputs {
-					callback(types.EventDataMsgSend{
+					callback(rpc.EventDataMsgSend{
 						Height: data.Height,
 						Hash:   data.Hash,
 						From:   m.Address.String(),

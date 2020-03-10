@@ -240,7 +240,7 @@ type BaseTx struct {
 	From     string        `json:"from"`
 	Password string        `json:"password"`
 	Gas      uint64        `json:"gas"`
-	Fee      string        `json:"fee"`
+	Fee      Coins         `json:"fee"`
 	Memo     string        `json:"memo"`
 	Mode     BroadcastMode `json:"broadcast_mode"`
 	Simulate bool          `json:"simulate"`

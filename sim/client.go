@@ -38,13 +38,17 @@ func NewClient() TestClient {
 		panic(err)
 	}
 	addr = types.AccAddress(keyManager.GetPrivKey().PubKey().Address()).String()
+	fees, err := types.ParseCoins(Fee)
+	if err != nil {
+		panic(err)
+	}
 
 	client := client.NewSDKClient(types.SDKConfig{
 		NodeURI:   NodeURI,
 		Network:   Network,
 		ChainID:   ChainID,
 		Gas:       Gas,
-		Fee:       Fee,
+		Fee:       fees,
 		KeyDAO:    createTestKeyDAO(),
 		Mode:      Mode,
 		Online:    Online,

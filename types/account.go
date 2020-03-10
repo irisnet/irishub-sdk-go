@@ -115,6 +115,10 @@ func (acc *BaseAccount) SetMemoRegexp(regexp string) {
 	acc.MemoRegexp = regexp
 }
 
+func (acc *BaseAccount) Convert() interface{} {
+	return acc
+}
+
 func RegisterCodec(cdc Codec) {
 	cdc.RegisterInterface((*Account)(nil))
 	cdc.RegisterInterface((*Msg)(nil))
