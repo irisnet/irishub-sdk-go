@@ -227,7 +227,7 @@ func (ac abstractClient) broadcastTx(txBytes []byte) (sdk.ResultTx, sdk.Error) {
 		return ac.broadcastTxSync(txBytes)
 
 	}
-	return sdk.ResultTx{}, sdk.Wrapf("no support commit mode:%s", ac.Mode)
+	return sdk.ResultTx{}, sdk.Wrapf("commit mode(%s) not supported", ac.Mode)
 }
 
 // broadcastTxCommit broadcasts transaction bytes to a Tendermint node

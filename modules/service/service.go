@@ -313,9 +313,9 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter, 
 		}
 	}()
 
-	builder := sdk.NewEventQueryBuilder().
-		AddCondition(sdk.EventKey(tagProvider), sdk.EventValue(provider.String()))
-	_, err = s.SubscribeNewBlockWithQuery(builder, func(block sdk.EventDataNewBlock) {
+	//builder := sdk.NewEventQueryBuilder().
+	//	AddCondition(tagProvider, sdk.EventValue(provider.String()))
+	_, err = s.SubscribeNewBlockWithQuery(nil, func(block sdk.EventDataNewBlock) {
 		s.Debug().Int64("height", block.Block.Height).Msg("received block")
 		reqIDs := block.ResultEndBlock.Tags.GetValues(tagRequestID)
 		for _, reqID := range reqIDs {
@@ -358,7 +358,7 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 		}
 	}()
 
-	// TODO user will don't received any event from tendermint when block_result has the same key in tag
+	// TODO user will not received any event from tendermint when block_result has the same key in tag
 	//builder := sdk.NewEventQueryBuilder().
 	//	AddCondition(sdk.EventKey(tagProvider), sdk.EventValue(provider.String())).
 	//	AddCondition(sdk.EventKey(tagServiceName), sdk.EventValue(serviceName))
