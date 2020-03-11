@@ -27,29 +27,32 @@ func (r randomClient) Name() string {
 	return ModuleName
 }
 
-// Generate is responsible for requesting a random number and callback `callback`
-func (r randomClient) Generate(request rpc.RandomRequest) (string, sdk.Error) {
-	consumer, err := r.QueryAddress(request.From, request.Password)
+// Request is responsible for requesting a random number and callback `callback`
+func (r randomClient) Request(blockInterval uint64,
+	callback rpc.EventRequestRandomCallback, baseTx sdk.BaseTx) (string, sdk.Error) {
+	consumer, err := r.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return "", sdk.Wrap(err)
 	}
 
+	needWatch := callback != nil
 	msg := MsgRequestRand{
 		Consumer:      consumer,
-		BlockInterval: request.BlockInterval,
+		BlockInterval: blockInterval,
 	}
 
-	//mode must be set to commit
-	request.BaseTx.Mode = sdk.Commit
-	result, err := r.BuildAndSend([]sdk.Msg{msg}, request.BaseTx)
+	if needWatch {
+		//mode must be set to commit
+		baseTx.Mode = sdk.Commit
+	}
+	result, err := r.BuildAndSend([]sdk.Msg{msg}, baseTx)
 	if err != nil {
 		return "", sdk.Wrap(err)
 	}
 
 	requestID := result.Tags.GetValue(TagRequestID)
-	if request.Callback != nil {
+	if needWatch {
 		var subscription sdk.Subscription
-		//TODO add query ?
 		subscription, err = r.SubscribeNewBlockWithQuery(nil, func(block sdk.EventDataNewBlock) {
 			tags := block.ResultBeginBlock.Tags
 			r.Debug().
@@ -61,10 +64,10 @@ func (r randomClient) Generate(request rpc.RandomRequest) (string, sdk.Error) {
 				if reqID == requestID {
 					result, err := r.QueryRandom(requestID)
 					var randomNum string
-					if err != nil {
-						randomNum = result.RandomNum
+					if err == nil {
+						randomNum = result.Value
 					}
-					request.Callback(requestID, randomNum, err)
+					callback(requestID, randomNum, err)
 					_ = r.Unscribe(subscription)
 					return
 				}

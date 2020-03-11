@@ -45,7 +45,7 @@ func (rts *RandomTestSuite) TestGenerate() {
 			signal <- 1
 		},
 	}
-	reqID, err := rts.Random().Generate(request)
+	reqID, err := rts.Random().Request(request)
 	require.NoError(rts.T(), err)
 	memory[reqID] = ""
 	<-signal

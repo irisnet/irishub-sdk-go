@@ -83,7 +83,7 @@ func generateKeyStore(privateKey crypto.PrivKey, password string) (Keystore, err
 	return Keystore{
 		//Address: addr.String(),
 		Id:      id.String(),
-		Version: 1,
+		Version: "1",
 		Crypto: Crypto{
 			CipherText: hex.EncodeToString(cipherText),
 			CipherParams: CipherParams{
@@ -183,7 +183,7 @@ func ensureInt(x interface{}) int {
 }
 
 type Keystore struct {
-	Version int    `json:"version"`
+	Version string `json:"version"`
 	Id      string `json:"id"`
 	Address string `json:"address"`
 	Crypto  Crypto `json:"crypto"`
