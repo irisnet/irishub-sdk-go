@@ -1,13 +1,13 @@
 package staking_test
 
 import (
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/irisnet/irishub-sdk-go/sim"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type StakingTestSuite struct {
@@ -33,7 +33,7 @@ func (sts *StakingTestSuite) TestDelegate() {
 
 	validators, _ := sts.Staking().QueryValidators(1, 10)
 	validator := validators[0].OperatorAddress
-	amt, _ := sdk.NewIntFromString("10000000000000000000")
+	amt, _ := sdk.NewIntFromString("20000000000000000000")
 	amount := sdk.NewCoin("iris-atto", amt)
 
 	rs, err := sts.Staking().Delegate(validator, amount, baseTx)
@@ -52,7 +52,7 @@ func (sts *StakingTestSuite) TestUndelegate() {
 
 	validators, _ := sts.Staking().QueryValidators(1, 10)
 	validator := validators[0].OperatorAddress
-	amt, _ := sdk.NewIntFromString("1000000000000000000")
+	amt, _ := sdk.NewIntFromString("10000000000000000000")
 	amount := sdk.NewCoin("iris-atto", amt)
 
 	rs, err := sts.Staking().Undelegate(validator, amount, baseTx)
@@ -61,24 +61,25 @@ func (sts *StakingTestSuite) TestUndelegate() {
 
 }
 
-func (sts *StakingTestSuite) TestRedelegate() {
-	baseTx := sdk.BaseTx{
-		From: "test1",
-		Gas:  20000,
-		Memo: "test",
-		Mode: sdk.Commit,
-	}
-
-	validators, _ := sts.Staking().QueryValidators(1, 10)
-	validator := validators[0].OperatorAddress
-	amt, _ := sdk.NewIntFromString("1000000000000000000")
-	amount := sdk.NewCoin("iris-atto", amt)
-
-	rs, err := sts.Staking().Undelegate(validator, amount, baseTx)
-	require.NoError(sts.T(), err)
-	require.NotEmpty(sts.T(), rs.Hash)
-
-}
+//
+//func (sts *StakingTestSuite) TestRedelegate() {
+//	baseTx := sdk.BaseTx{
+//		From: "test1",
+//		Gas:  20000,
+//		Memo: "test",
+//		Mode: sdk.Commit,
+//	}
+//
+//	validators, _ := sts.Staking().QueryValidators(1, 10)
+//	validator := validators[0].OperatorAddress
+//	amt, _ := sdk.NewIntFromString("1000000000000000000")
+//	amount := sdk.NewCoin("iris-atto", amt)
+//
+//	rs, err := sts.Staking().Undelegate(validator, amount, baseTx)
+//	require.NoError(sts.T(), err)
+//	require.NotEmpty(sts.T(), rs.Hash)
+//
+//}
 
 func (sts *StakingTestSuite) TestQueryQueryDelegation() {
 	validators, _ := sts.Staking().QueryValidators(1, 10)

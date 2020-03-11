@@ -1,13 +1,13 @@
 package distribution_test
 
 import (
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/irisnet/irishub-sdk-go/sim"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type DistrTestSuite struct {
