@@ -38,40 +38,40 @@ func (gts *GovTestSuite) TestDeposit() {
 	proposalID := uint64(12)
 
 	proposal, err := gts.Gov().QueryProposal(proposalID)
-	require.True(gts.T(), err.IsNil())
+	require.NoError(gts.T(), err)
 	require.Equal(gts.T(), proposalID, proposal.GetProposalID())
 
 	proposals, err := gts.Gov().QueryProposals(rpc.ProposalRequest{
 		Depositor: gts.Sender().String(),
 	})
-	require.True(gts.T(), err.IsNil())
+	require.NoError(gts.T(), err)
 	require.NotEmpty(gts.T(), proposals)
 
 	rs, err := gts.Gov().Deposit(proposalID, amount, baseTx)
-	require.True(gts.T(), err.IsNil())
+	require.NoError(gts.T(), err)
 	require.NotEmpty(gts.T(), rs.Hash)
 
 	d, err := gts.Gov().QueryDeposit(proposalID, gts.Sender().String())
-	require.True(gts.T(), err.IsNil())
+	require.NoError(gts.T(), err)
 	require.NotEmpty(gts.T(), d)
 
 	ds, err := gts.Gov().QueryDeposits(proposalID)
-	require.True(gts.T(), err.IsNil())
+	require.NoError(gts.T(), err)
 	require.NotEmpty(gts.T(), ds)
 
 	rs, err = gts.Gov().Vote(proposalID, rpc.Yes, baseTx)
-	require.True(gts.T(), err.IsNil())
+	require.NoError(gts.T(), err)
 	require.NotEmpty(gts.T(), rs.Hash)
 
 	vote, err := gts.Gov().QueryVote(proposalID, gts.Sender().String())
-	require.True(gts.T(), err.IsNil())
+	require.NoError(gts.T(), err)
 	require.Equal(gts.T(), proposalID, vote.ProposalID)
 
 	votes, err := gts.Gov().QueryVotes(proposalID)
-	require.True(gts.T(), err.IsNil())
+	require.NoError(gts.T(), err)
 	require.NotEmpty(gts.T(), votes)
 
 	tally, err := gts.Gov().QueryTally(proposalID)
-	require.True(gts.T(), err.IsNil())
+	require.NoError(gts.T(), err)
 	require.NotEmpty(gts.T(), tally.Yes)
 }

@@ -63,7 +63,7 @@ func (s slashingClient) queryParamsV017() (rpc.SlashingParams, sdk.Error) {
 	if err := s.QueryWithResponse("custom/params/module", param, &params); err != nil {
 		return rpc.SlashingParams{}, sdk.Wrap(err)
 	}
-	return params.Convert().(rpc.SlashingParams), sdk.Nil
+	return params.Convert().(rpc.SlashingParams), nil
 }
 
 func (s slashingClient) queryParamsV100() (rpc.SlashingParams, error) {
@@ -96,7 +96,7 @@ func (s slashingClient) querySigningInfoV017(pk crypto.PubKey) (rpc.ValidatorSig
 		JailedUntil:         signingInfo.JailedUntil,
 		Tombstoned:          false,
 		MissedBlocksCounter: signingInfo.MissedBlocksCounter,
-	}, sdk.Nil
+	}, nil
 }
 
 func (s slashingClient) querySigningInfoV100(pk crypto.PubKey) (rpc.ValidatorSigningInfo, error) {

@@ -51,11 +51,11 @@ func (sts *ServiceTestSuite) TestService() {
 	}
 
 	result, err := sts.Service().DefineService(definition, baseTx)
-	require.True(sts.T(), err.IsNil())
+	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), result.Hash)
 
 	defi, err := sts.Service().QueryDefinition(definition.ServiceName)
-	require.True(sts.T(), err.IsNil())
+	require.NoError(sts.T(), err)
 	require.Equal(sts.T(), definition.ServiceName, defi.Name)
 	require.Equal(sts.T(), definition.Description, defi.Description)
 	require.EqualValues(sts.T(), definition.Tags, defi.Tags)
@@ -70,11 +70,11 @@ func (sts *ServiceTestSuite) TestService() {
 		Pricing:     pricing,
 	}
 	result, err = sts.Service().BindService(binding, baseTx)
-	require.True(sts.T(), err.IsNil())
+	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), result.Hash)
 
 	bindResp, err := sts.Service().QueryBinding(definition.ServiceName, sts.Sender())
-	require.True(sts.T(), err.IsNil())
+	require.NoError(sts.T(), err)
 	require.Equal(sts.T(), binding.ServiceName, bindResp.ServiceName)
 	require.Equal(sts.T(), sts.Sender(), bindResp.Provider)
 	require.Equal(sts.T(), binding.Deposit.String(), bindResp.Deposit.String())
@@ -91,7 +91,7 @@ func (sts *ServiceTestSuite) TestService() {
 				Msg("provider received request")
 			return output, ""
 		}, baseTx)
-	require.True(sts.T(), err.IsNil())
+	require.NoError(sts.T(), err)
 
 	serviceFeeCap, _ := sdk.ParseCoins("1000000000000000000iris-atto")
 	invocation := rpc.ServiceInvocationRequest{
@@ -120,10 +120,10 @@ func (sts *ServiceTestSuite) TestService() {
 	sts.Info().
 		Str("requestContextID", requestContextID).
 		Msg("RequestService service success")
-	require.True(sts.T(), err.IsNil())
+	require.NoError(sts.T(), err)
 
 	request, err := sts.Service().QueryRequestContext(requestContextID)
-	require.True(sts.T(), err.IsNil())
+	require.NoError(sts.T(), err)
 	require.Equal(sts.T(), request.ServiceName, invocation.ServiceName)
 	require.Equal(sts.T(), request.Input, invocation.Input)
 

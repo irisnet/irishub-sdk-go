@@ -134,14 +134,14 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest,
 	//mode must be set to commit
 	baseTx.Mode = sdk.Commit
 
-	result, err1 := s.BuildAndSend([]sdk.Msg{msg}, baseTx)
-	if !err1.IsNil() {
-		return "", err1
+	result, err := s.BuildAndSend([]sdk.Msg{msg}, baseTx)
+	if err != nil {
+		return "", sdk.Wrap(err)
 	}
 
 	requestContextID := result.Tags.GetValue(tagRequestContextID)
 	if callback == nil {
-		return requestContextID, sdk.Nil
+		return requestContextID, nil
 	}
 	builder := sdk.NewEventQueryBuilder().
 		AddCondition(sdk.ActionKey, tagRespondService).
@@ -167,7 +167,7 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest,
 		return "", sdk.Wrap(err)
 	}
 
-	return requestContextID, sdk.Nil
+	return requestContextID, nil
 }
 
 // SetWithdrawAddress sets a new withdrawal address for the specified service binding
@@ -320,7 +320,7 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter, 
 		reqIDs := block.ResultEndBlock.Tags.GetValues(tagRequestID)
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
-			if !err.IsNil() {
+			if err != nil {
 				s.Err(err).Str("requestID", reqID).Msg("service request don't exist")
 				continue
 			}
@@ -333,7 +333,7 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter, 
 					Error:     errMsg,
 				}
 				go func() {
-					if _, err = s.BuildAndSend([]sdk.Msg{msg}, baseTx); !err.IsNil() {
+					if _, err = s.BuildAndSend([]sdk.Msg{msg}, baseTx); err != nil {
 						s.Err(err).Str("requestID", reqID).Msg("provider respond failed")
 					}
 				}()
@@ -367,7 +367,7 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 		s.Debug().Int64("height", block.Block.Height).Msg("received block")
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
-			if !err.IsNil() {
+			if err != nil {
 				s.Err(err).Str("requestID", reqID).Msg("service request don't exist")
 				continue
 			}
@@ -380,7 +380,7 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 					Error:     errMsg,
 				}
 				go func() {
-					if _, err = s.BuildAndSend([]sdk.Msg{msg}, baseTx); !err.IsNil() {
+					if _, err = s.BuildAndSend([]sdk.Msg{msg}, baseTx); err != nil {
 						s.Err(err).Str("requestID", reqID).Msg("provider respond failed")
 					}
 				}()
@@ -402,7 +402,7 @@ func (s serviceClient) QueryDefinition(serviceName string) (rpc.ServiceDefinitio
 	if err := s.QueryWithResponse("custom/service/definition", param, &definition); err != nil {
 		return rpc.ServiceDefinition{}, sdk.Wrap(err)
 	}
-	return definition.Convert().(rpc.ServiceDefinition), sdk.Nil
+	return definition.Convert().(rpc.ServiceDefinition), nil
 }
 
 // QueryBinding return the specified service binding
@@ -419,7 +419,7 @@ func (s serviceClient) QueryBinding(serviceName string, provider sdk.AccAddress)
 	if err := s.QueryWithResponse("custom/service/binding", param, &binding); err != nil {
 		return rpc.ServiceBinding{}, sdk.Wrap(err)
 	}
-	return binding.Convert().(rpc.ServiceBinding), sdk.Nil
+	return binding.Convert().(rpc.ServiceBinding), nil
 }
 
 // QueryBindings returns all bindings of the specified service
@@ -434,7 +434,7 @@ func (s serviceClient) QueryBindings(serviceName string) ([]rpc.ServiceBinding, 
 	if err := s.QueryWithResponse("custom/service/bindings", param, &bindings); err != nil {
 		return nil, sdk.Wrap(err)
 	}
-	return bindings.Convert().([]rpc.ServiceBinding), sdk.Nil
+	return bindings.Convert().([]rpc.ServiceBinding), nil
 }
 
 // QueryRequest returns  the active request of the specified requestID
@@ -449,7 +449,7 @@ func (s serviceClient) QueryRequest(requestID string) (rpc.RequestService, sdk.E
 	if err := s.QueryWithResponse("custom/service/request", param, &request); err != nil {
 		return rpc.RequestService{}, sdk.Wrap(err)
 	}
-	return request.Convert().(rpc.RequestService), sdk.Nil
+	return request.Convert().(rpc.RequestService), nil
 }
 
 // QueryRequest returns all the active requests of the specified service binding
@@ -466,7 +466,7 @@ func (s serviceClient) QueryRequests(serviceName string, provider sdk.AccAddress
 	if err := s.QueryWithResponse("custom/service/requests", param, &rs); err != nil {
 		return nil, sdk.Wrap(err)
 	}
-	return rs.Convert().([]rpc.RequestService), sdk.Nil
+	return rs.Convert().([]rpc.RequestService), nil
 }
 
 // QueryRequestsByReqCtx returns all requests of the specified request context ID and batch counter
@@ -483,7 +483,7 @@ func (s serviceClient) QueryRequestsByReqCtx(requestContextID string, batchCount
 	if err := s.QueryWithResponse("custom/service/requests_by_ctx", param, &rs); err != nil {
 		return nil, sdk.Wrap(err)
 	}
-	return rs.Convert().([]rpc.RequestService), sdk.Nil
+	return rs.Convert().([]rpc.RequestService), nil
 }
 
 // QueryResponse returns a response with the speicified request ID
@@ -498,7 +498,7 @@ func (s serviceClient) QueryResponse(requestID string) (rpc.ServiceResponse, sdk
 	if err := s.QueryWithResponse("custom/service/response", param, &response); err != nil {
 		return rpc.ServiceResponse{}, sdk.Wrap(nil)
 	}
-	return response.Convert().(rpc.ServiceResponse), sdk.Nil
+	return response.Convert().(rpc.ServiceResponse), nil
 }
 
 // QueryResponses returns all responses of the specified request context and batch counter
@@ -514,7 +514,7 @@ func (s serviceClient) QueryResponses(requestContextID string, batchCounter uint
 	if err := s.QueryWithResponse("custom/service/responses", param, &rs); err != nil {
 		return nil, sdk.Wrap(err)
 	}
-	return rs.Convert().([]rpc.ServiceResponse), sdk.Nil
+	return rs.Convert().([]rpc.ServiceResponse), nil
 }
 
 // QueryRequestContext return the specified request context
@@ -529,7 +529,7 @@ func (s serviceClient) QueryRequestContext(requestContextID string) (rpc.Request
 	if err := s.QueryWithResponse("custom/service/context", param, &reqCtx); err != nil {
 		return rpc.RequestContext{}, sdk.Wrap(err)
 	}
-	return reqCtx.Convert().(rpc.RequestContext), sdk.Nil
+	return reqCtx.Convert().(rpc.RequestContext), nil
 }
 
 //QueryFees return the earned fees for a provider
@@ -550,5 +550,5 @@ func (s serviceClient) QueryFees(provider string) (rpc.EarnedFees, sdk.Error) {
 	if err := s.QueryWithResponse("custom/service/fees", param, &fee); err != nil {
 		return rpc.EarnedFees{}, sdk.Wrap(err)
 	}
-	return fee.Convert().(rpc.EarnedFees), sdk.Nil
+	return fee.Convert().(rpc.EarnedFees), nil
 }

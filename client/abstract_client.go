@@ -254,7 +254,7 @@ func (ac abstractClient) broadcastTxCommit(tx []byte) (sdk.ResultTx, sdk.Error) 
 		Tags:      sdk.ParseTags(res.DeliverTx.Tags),
 		Hash:      res.Hash.String(),
 		Height:    res.Height,
-	}, sdk.Nil
+	}, nil
 }
 
 // BroadcastTxSync broadcasts transaction bytes to a Tendermint node
@@ -272,7 +272,7 @@ func (ac abstractClient) broadcastTxSync(tx []byte) (sdk.ResultTx, sdk.Error) {
 
 	return sdk.ResultTx{
 		Hash: res.Hash.String(),
-	}, sdk.Nil
+	}, nil
 }
 
 // BroadcastTxAsync broadcasts transaction bytes to a Tendermint node
@@ -285,5 +285,5 @@ func (ac abstractClient) broadcastTxAsync(tx []byte) (sdk.ResultTx, sdk.Error) {
 
 	return sdk.ResultTx{
 		Hash: res.Hash.String(),
-	}, sdk.Nil
+	}, nil
 }

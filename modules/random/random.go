@@ -41,9 +41,9 @@ func (r randomClient) Generate(request rpc.RandomRequest) (string, sdk.Error) {
 
 	//mode must be set to commit
 	request.BaseTx.Mode = sdk.Commit
-	result, err1 := r.BuildAndSend([]sdk.Msg{msg}, request.BaseTx)
-	if !err1.IsNil() {
-		return "", err1
+	result, err := r.BuildAndSend([]sdk.Msg{msg}, request.BaseTx)
+	if err != nil {
+		return "", sdk.Wrap(err)
 	}
 
 	requestID := result.Tags.GetValue(TagRequestID)
@@ -61,7 +61,7 @@ func (r randomClient) Generate(request rpc.RandomRequest) (string, sdk.Error) {
 				if reqID == requestID {
 					result, err := r.QueryRandom(requestID)
 					var randomNum string
-					if err.IsNil() {
+					if err != nil {
 						randomNum = result.RandomNum
 					}
 					request.Callback(requestID, randomNum, err)
@@ -71,7 +71,7 @@ func (r randomClient) Generate(request rpc.RandomRequest) (string, sdk.Error) {
 			}
 		})
 	}
-	return requestID, sdk.Nil
+	return requestID, nil
 }
 
 // QueryRandom returns the random information of the specified reqID
@@ -86,7 +86,7 @@ func (r randomClient) QueryRandom(reqID string) (rpc.RandomInfo, sdk.Error) {
 	if err := r.QueryWithResponse("custom/rand/rand", param, &rand); err != nil {
 		return rpc.RandomInfo{}, sdk.Wrap(err)
 	}
-	return rand.Convert().(rpc.RandomInfo), sdk.Nil
+	return rand.Convert().(rpc.RandomInfo), nil
 }
 
 // QueryRequests returns the list of request by the specified block height
@@ -101,5 +101,5 @@ func (r randomClient) QueryRequests(height int64) ([]rpc.RequestRandom, sdk.Erro
 	if err := r.QueryWithResponse("custom/rand/queue", param, &rs); err != nil {
 		return nil, sdk.Wrap(err)
 	}
-	return rs.Convert().([]rpc.RequestRandom), sdk.Nil
+	return rs.Convert().([]rpc.RequestRandom), nil
 }

@@ -85,7 +85,7 @@ func (g govClient) QueryProposal(proposalID uint64) (rpc.Proposal, sdk.Error) {
 		return nil, sdk.Wrap(err)
 	}
 
-	return proposal.Convert().(rpc.Proposal), sdk.Nil
+	return proposal.Convert().(rpc.Proposal), nil
 }
 
 // QueryProposals returns all proposals of the specified params
@@ -132,7 +132,7 @@ func (g govClient) QueryProposals(request rpc.ProposalRequest) ([]rpc.Proposal, 
 	for _, p := range proposals {
 		ps = append(ps, p.Convert().(rpc.Proposal))
 	}
-	return ps, sdk.Nil
+	return ps, nil
 }
 
 // QueryVote returns the vote of the specified proposalID and voter
@@ -154,7 +154,7 @@ func (g govClient) QueryVote(proposalID uint64, voter string) (rpc.Vote, sdk.Err
 	if err := g.QueryWithResponse("custom/gov/vote", param, &vote); err != nil {
 		return rpc.Vote{}, sdk.Wrap(err)
 	}
-	return vote.Convert().(rpc.Vote), sdk.Nil
+	return vote.Convert().(rpc.Vote), nil
 }
 
 // QueryVotes returns all votes of the specified proposalID
@@ -170,7 +170,7 @@ func (g govClient) QueryVotes(proposalID uint64) ([]rpc.Vote, sdk.Error) {
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}
-	return vs.Convert().([]rpc.Vote), sdk.Nil
+	return vs.Convert().([]rpc.Vote), nil
 }
 
 // QueryDeposit returns the deposit of the specified proposalID and depositor
@@ -192,7 +192,7 @@ func (g govClient) QueryDeposit(proposalID uint64, depositor string) (rpc.Deposi
 	if err := g.QueryWithResponse("custom/gov/deposit", param, &deposit); err != nil {
 		return rpc.Deposit{}, sdk.Wrap(err)
 	}
-	return deposit.Convert().(rpc.Deposit), sdk.Nil
+	return deposit.Convert().(rpc.Deposit), nil
 }
 
 // QueryDeposits returns all deposits of the specified proposalID
@@ -208,7 +208,7 @@ func (g govClient) QueryDeposits(proposalID uint64) ([]rpc.Deposit, sdk.Error) {
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}
-	return deposits.Convert().([]rpc.Deposit), sdk.Nil
+	return deposits.Convert().([]rpc.Deposit), nil
 }
 
 // QueryTally returns the result of proposal by the specified proposalID
@@ -224,7 +224,7 @@ func (g govClient) QueryTally(proposalID uint64) (rpc.TallyResult, sdk.Error) {
 	if err != nil {
 		return rpc.TallyResult{}, sdk.Wrap(err)
 	}
-	return tally.Convert().(rpc.TallyResult), sdk.Nil
+	return tally.Convert().(rpc.TallyResult), nil
 }
 
 func (g govClient) RegisterCodec(cdc sdk.Codec) {

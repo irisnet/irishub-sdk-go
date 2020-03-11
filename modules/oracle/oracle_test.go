@@ -54,7 +54,7 @@ func (ots *OracleTestSuite) SetupService() {
 	}
 
 	result, err := ots.Service().DefineService(definition, baseTx)
-	require.True(ots.T(), err.IsNil())
+	require.NoError(ots.T(), err)
 	require.NotEmpty(ots.T(), result.Hash)
 
 	deposit, _ := sdk.ParseCoins("20000000000000000000000iris-atto")
@@ -64,7 +64,7 @@ func (ots *OracleTestSuite) SetupService() {
 		Pricing:     pricing,
 	}
 	result, err = ots.Service().BindService(binding, baseTx)
-	require.True(ots.T(), err.IsNil())
+	require.NoError(ots.T(), err)
 	require.NotEmpty(ots.T(), result.Hash)
 
 	err = ots.Service().RegisterSingleServiceListener(serviceName,
@@ -75,7 +75,7 @@ func (ots *OracleTestSuite) SetupService() {
 			return output, ""
 		}, baseTx)
 
-	require.True(ots.T(), err.IsNil())
+	require.NoError(ots.T(), err)
 
 	ots.serviceName = serviceName
 	ots.baseTx = baseTx
@@ -106,19 +106,19 @@ func (ots *OracleTestSuite) TestFeed() {
 		ResponseThreshold: 1,
 	}
 	result, err := ots.Oracle().CreateFeed(createFeedReq)
-	require.True(ots.T(), err.IsNil())
+	require.NoError(ots.T(), err)
 	require.NotEmpty(ots.T(), result.Hash)
 
 	_, err = ots.Oracle().QueryFeed(feedName)
-	require.True(ots.T(), err.IsNil())
+	require.NoError(ots.T(), err)
 
 	result, err = ots.Oracle().StartFeed(feedName, ots.baseTx)
-	require.True(ots.T(), err.IsNil())
+	require.NoError(ots.T(), err)
 	require.NotEmpty(ots.T(), result.Hash)
 
 	for {
 		result, err := ots.Oracle().QueryFeedValue(feedName)
-		require.True(ots.T(), err.IsNil())
+		require.NoError(ots.T(), err)
 		if len(result) == int(createFeedReq.RepeatedTotal) {
 			goto stop
 		}
@@ -133,13 +133,4 @@ func generateServiceName() string {
 
 func generateFeedName(serviceName string) string {
 	return fmt.Sprintf("feed-%s", serviceName)
-}
-
-func execTimer(call func()) *time.Ticker {
-	ticker := time.NewTicker(10 * time.Second)
-	defer ticker.Stop()
-	for range ticker.C {
-		call()
-	}
-	return ticker
 }

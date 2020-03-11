@@ -41,7 +41,7 @@ func (b bankClient) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) {
 	if err != nil {
 		return sdk.BaseAccount{}, sdk.Wrap(err)
 	}
-	return account, sdk.Nil
+	return account, nil
 }
 
 // GetTokenStats return token statistic, including total loose tokens, total burned tokens and total bonded tokens.
@@ -56,7 +56,7 @@ func (b bankClient) QueryTokenStats(tokenID string) (rpc.TokenStats, sdk.Error) 
 	if err := b.QueryWithResponse("custom/acc/tokenStats", param, &ts); err != nil {
 		return rpc.TokenStats{}, sdk.Wrap(err)
 	}
-	return ts.Convert().(rpc.TokenStats), sdk.Nil
+	return ts.Convert().(rpc.TokenStats), nil
 }
 
 //Send is responsible for transferring tokens from `From` to `to` account

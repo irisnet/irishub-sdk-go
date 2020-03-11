@@ -25,16 +25,16 @@ func (sts *SlashingTestSuite) SetupTest() {
 
 func (sts *SlashingTestSuite) TestQueryParams() {
 	params, err := sts.Slashing().QueryParams()
-	require.True(sts.T(), err.IsNil())
+	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), params)
 }
 
 func (sts *SlashingTestSuite) TestQueryValidatorSigningInfo() {
 	validators, err := sts.Staking().QueryValidators(1, 10)
-	require.True(sts.T(), err.IsNil())
+	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), validators)
 
 	signingInfo, err := sts.Slashing().QueryValidatorSigningInfo(validators[0].ConsensusPubkey)
-	require.True(sts.T(), err.IsNil())
+	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), signingInfo)
 }

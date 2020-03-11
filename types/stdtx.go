@@ -244,12 +244,8 @@ type BaseTx struct {
 	Simulate bool          `json:"simulate"`
 }
 
-// defines the params for all list queries:
-type PaginationParams struct {
-	Page uint64
-	Size uint16
-}
-
+// ResultTx encapsulates the return result of the transaction. When the transaction fails,
+// it is an empty object. The specific error information can be obtained through the Error interface.
 type ResultTx struct {
 	GasWanted int64  `json:"gas_wanted"`
 	GasUsed   int64  `json:"gas_used"`

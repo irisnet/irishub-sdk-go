@@ -40,13 +40,13 @@ func (rts *RandomTestSuite) TestGenerate() {
 		BaseTx:        baseTx,
 		BlockInterval: 2,
 		Callback: func(reqID, randomNum string, err sdk.Error) {
-			require.True(rts.T(), err.IsNil())
+			require.NoError(rts.T(), err)
 			memory[reqID] = randomNum
 			signal <- 1
 		},
 	}
 	reqID, err := rts.Random().Generate(request)
-	require.True(rts.T(), err.IsNil())
+	require.NoError(rts.T(), err)
 	memory[reqID] = ""
 	<-signal
 	require.NotEmpty(rts.T(), memory[reqID])

@@ -49,7 +49,7 @@ func (d distributionClient) QueryRewards(delegator string) (rpc.Rewards, sdk.Err
 	if err := d.QueryWithResponse("custom/distr/rewards", param, &rewards); err != nil {
 		return rpc.Rewards{}, sdk.Wrap(err)
 	}
-	return rewards.Convert().(rpc.Rewards), sdk.Nil
+	return rewards.Convert().(rpc.Rewards), nil
 }
 
 func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
