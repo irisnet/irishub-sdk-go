@@ -184,7 +184,7 @@ func (ac *abstractClient) prepare(baseTx sdk.BaseTx) error {
 		ac.WithAccountNumber(account.AccountNumber).
 			WithSequence(account.Sequence)
 	}
-
+	ac.WithPassword(baseTx.Password)
 	// first use baseTx params
 	if !baseTx.Fee.Empty() && baseTx.Fee.IsValid() {
 		ac.WithFee(baseTx.Fee)

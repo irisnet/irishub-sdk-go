@@ -65,7 +65,7 @@ func (tc TestClient) Sender() types.AccAddress {
 	return tc.sender
 }
 
-func createTestKeyDAO() TestKeyDAO {
+func createTestKeyDAO() *TestKeyDAO {
 	dao := TestKeyDAO{
 		store: map[string]types.Store{},
 	}
@@ -74,22 +74,23 @@ func createTestKeyDAO() TestKeyDAO {
 		Address: addr,
 	}
 	_ = dao.Write("test1", keystore)
-	return dao
+	return &dao
 }
 
 type TestKeyDAO struct {
 	store map[string]types.Store
 }
 
-func (dao TestKeyDAO) Write(name string, store types.Store) error {
+func (dao *TestKeyDAO) Write(name string, store types.Store) error {
 	dao.store[name] = store
 	return nil
 }
 
-func (dao TestKeyDAO) Read(name string) (types.Store, error) {
+func (dao *TestKeyDAO) Read(name, pwd string) (types.Store, error) {
 	return dao.store[name], nil
 }
 
-func (dao TestKeyDAO) Delete(name string) error {
+func (dao *TestKeyDAO) Delete(name, pwd string) error {
+	delete(dao.store, name)
 	return nil
 }

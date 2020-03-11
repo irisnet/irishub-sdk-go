@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -21,7 +22,7 @@ func NewDAOAdapter(dao types.KeyDAO, storeType types.StoreType) types.KeyManager
 }
 
 func (adapter daoAdapter) Sign(name, password string, data []byte) (signature types.Signature, err error) {
-	store, err := adapter.keyDAO.Read(name)
+	store, err := adapter.keyDAO.Read(name, password)
 	if err != nil {
 		return signature, err
 	}
@@ -48,7 +49,7 @@ func (adapter daoAdapter) Sign(name, password string, data []byte) (signature ty
 }
 
 func (adapter daoAdapter) QueryAddress(name, password string) (addr types.AccAddress, err error) {
-	store, err := adapter.keyDAO.Read(name)
+	store, err := adapter.keyDAO.Read(name, password)
 	if err != nil {
 		return addr, err
 	}
@@ -92,8 +93,8 @@ func (adapter daoAdapter) Insert(name, password string) (string, string, error) 
 }
 
 func (adapter daoAdapter) Recover(name, password, mnemonic string) (string, error) {
-	store, err := adapter.keyDAO.Read(name)
-	if err == nil {
+	store, err := adapter.keyDAO.Read(name, password)
+	if err != nil || store != nil {
 		return "", errors.New(fmt.Sprintf("%s has existed", name))
 	}
 
@@ -112,8 +113,8 @@ func (adapter daoAdapter) Recover(name, password, mnemonic string) (string, erro
 }
 
 func (adapter daoAdapter) Import(name, password string, keystore types.Store) (address string, err error) {
-	_, err = adapter.keyDAO.Read(name)
-	if err == nil {
+	store, err := adapter.keyDAO.Read(name, password)
+	if err != nil || store != nil {
 		return "", errors.New(fmt.Sprintf("%s has existed", name))
 	}
 	switch keystore := keystore.(type) {
@@ -130,12 +131,79 @@ func (adapter daoAdapter) Import(name, password string, keystore types.Store) (a
 	return
 }
 
+func (adapter daoAdapter) Export(name, password, encryptKeystorePwd string) (keystore string, err error) {
+	store, err := adapter.keyDAO.Read(name, password)
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("%s not existed", name))
+	}
+	var km crypto.KeyManager
+	switch store := store.(type) {
+	case types.KeyInfo:
+		km, err = crypto.NewPrivateKeyManager(store.PrivKey)
+		if err != nil {
+			return "", err
+		}
+	case types.KeystoreInfo:
+		km, err = crypto.NewKeyStoreKeyManager(store.KeystoreJSON, password)
+		if err != nil {
+			return "", err
+		}
+	}
+	keyStore, err := km.ExportAsKeystore(encryptKeystorePwd)
+	if err != nil {
+		return "", err
+	}
+
+	keyStore.Address = types.AccAddress(km.GetPrivKey().PubKey().Address()).String()
+	bz, err := json.Marshal(keyStore)
+	if err != nil {
+		return "", err
+	}
+	return string(bz), nil
+}
+
+func (adapter daoAdapter) Delete(name, password string) error {
+	return adapter.keyDAO.Delete(name, password)
+}
+
+func (adapter daoAdapter) Query(name string) (address string, err error) {
+	store, err := adapter.keyDAO.Read(name, "")
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("%s not existed", name))
+	}
+	switch store := store.(type) {
+	case types.KeyInfo:
+		address = store.Address
+	case types.KeystoreInfo:
+		var keystore crypto.Keystore
+		err := json.Unmarshal([]byte(store.KeystoreJSON), &keystore)
+		if err != nil {
+			return "", err
+		}
+		address = keystore.Address
+	}
+	return address, nil
+}
+
 func adapt(km crypto.KeyManager, storeType types.StoreType, password string) (address string, store types.Store, err error) {
 	address = types.AccAddress(km.GetPrivKey().PubKey().Address()).String()
 	switch storeType {
 	case types.Keystore:
-		store, err = km.ExportAsKeystore(password)
-		return
+		keystore, err := km.ExportAsKeystore(password)
+		if err != nil {
+			return "", "", err
+		}
+
+		keystore.Address = address
+		bz, err := json.Marshal(keystore)
+		if err != nil {
+			return "", "", err
+		}
+
+		store = types.KeystoreInfo{
+			KeystoreJSON: string(bz),
+		}
+		return address, store, nil
 	case types.Key:
 		privKey, err := km.ExportAsPrivateKey()
 		if err != nil {
