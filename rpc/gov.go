@@ -8,19 +8,19 @@ import (
 
 type Gov interface {
 	sdk.Module
-	Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, error)
-	Vote(proposalID uint64, option VoteOption, baseTx sdk.BaseTx) (sdk.Result, error)
+	Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	Vote(proposalID uint64, option VoteOption, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	QueryProposal(proposalID uint64) (Proposal, error)
-	QueryProposals(request ProposalRequest) ([]Proposal, error)
+	QueryProposal(proposalID uint64) (Proposal, sdk.Error)
+	QueryProposals(request ProposalRequest) ([]Proposal, sdk.Error)
 
-	QueryVote(proposalID uint64, voter string) (Vote, error)
-	QueryVotes(proposalID uint64) ([]Vote, error)
+	QueryVote(proposalID uint64, voter string) (Vote, sdk.Error)
+	QueryVotes(proposalID uint64) ([]Vote, sdk.Error)
 
-	QueryDeposit(proposalID uint64, depositor string) (Deposit, error)
-	QueryDeposits(proposalID uint64) ([]Deposit, error)
+	QueryDeposit(proposalID uint64, depositor string) (Deposit, sdk.Error)
+	QueryDeposits(proposalID uint64) ([]Deposit, sdk.Error)
 
-	QueryTally(proposalID uint64) (TallyResult, error)
+	QueryTally(proposalID uint64) (TallyResult, sdk.Error)
 }
 
 type VoteOption string

@@ -24,11 +24,11 @@ const (
 type AccAddress []byte
 
 // AccAddressFromBech32 creates an AccAddress from a Bech32 string.
-func AccAddressFromBech32(address string) (addr AccAddress, err error) {
+func AccAddressFromBech32(address string) (AccAddress, error) {
 	bech32PrefixAccAddr := GetAddrPrefixCfg().GetBech32AccountAddrPrefix()
 	bz, err := bech32.GetFromBech32(address, bech32PrefixAccAddr)
 	if err != nil {
-		return nil, err
+		return nil, Wrap(err)
 	}
 
 	return AccAddress(bz), nil
@@ -135,11 +135,11 @@ func ValAddressFromHex(address string) (addr ValAddress, err error) {
 }
 
 // ValAddressFromBech32 creates a ValAddress from a Bech32 string.
-func ValAddressFromBech32(address string) (addr ValAddress, err error) {
+func ValAddressFromBech32(address string) (ValAddress, error) {
 	bech32PrefixValAddr := GetAddrPrefixCfg().GetBech32ValidatorAddrPrefix()
 	bz, err := bech32.GetFromBech32(address, bech32PrefixValAddr)
 	if err != nil {
-		return nil, err
+		return nil, Wrap(err)
 	}
 
 	return ValAddress(bz), nil

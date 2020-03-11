@@ -43,7 +43,6 @@ func (sts *ServiceTestSuite) TestService() {
 	}
 
 	definition := rpc.ServiceDefinitionRequest{
-		BaseTx:            baseTx,
 		ServiceName:       generateServiceName(),
 		Description:       "this is a test service",
 		Tags:              nil,
@@ -51,9 +50,9 @@ func (sts *ServiceTestSuite) TestService() {
 		Schemas:           schemas,
 	}
 
-	result, err := sts.Service().DefineService(definition)
+	result, err := sts.Service().DefineService(definition, baseTx)
 	require.NoError(sts.T(), err)
-	require.True(sts.T(), result.IsSuccess())
+	require.NotEmpty(sts.T(), result.Hash)
 
 	defi, err := sts.Service().QueryDefinition(definition.ServiceName)
 	require.NoError(sts.T(), err)
@@ -66,14 +65,13 @@ func (sts *ServiceTestSuite) TestService() {
 
 	deposit, _ := sdk.ParseCoins("20000000000000000000000iris-atto")
 	binding := rpc.ServiceBindingRequest{
-		BaseTx:      baseTx,
 		ServiceName: definition.ServiceName,
 		Deposit:     deposit,
 		Pricing:     pricing,
 	}
-	result, err = sts.Service().BindService(binding)
+	result, err = sts.Service().BindService(binding, baseTx)
 	require.NoError(sts.T(), err)
-	require.True(sts.T(), result.IsSuccess())
+	require.NotEmpty(sts.T(), result.Hash)
 
 	bindResp, err := sts.Service().QueryBinding(definition.ServiceName, sts.Sender())
 	require.NoError(sts.T(), err)
@@ -97,7 +95,6 @@ func (sts *ServiceTestSuite) TestService() {
 
 	serviceFeeCap, _ := sdk.ParseCoins("1000000000000000000iris-atto")
 	invocation := rpc.ServiceInvocationRequest{
-		BaseTx:            baseTx,
 		ServiceName:       definition.ServiceName,
 		Providers:         []string{sts.Sender().String()},
 		Input:             input,
@@ -118,7 +115,7 @@ func (sts *ServiceTestSuite) TestService() {
 			Str("response", response).
 			Msg("consumer received response")
 		exit <- 1
-	})
+	}, baseTx)
 
 	sts.Info().
 		Str("requestContextID", requestContextID).

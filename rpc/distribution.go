@@ -6,9 +6,9 @@ import (
 
 type Distribution interface {
 	sdk.Module
-	QueryRewards(delegator string) (Rewards, error)
-	SetWithdrawAddr(withdrawAddr string, baseTx sdk.BaseTx) (sdk.Result, error)
-	WithdrawRewards(isValidator bool, onlyFromValidator string, baseTx sdk.BaseTx) (sdk.Result, error)
+	QueryRewards(delegator string) (Rewards, sdk.Error)
+	SetWithdrawAddr(withdrawAddr string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	WithdrawRewards(isValidator bool, onlyFromValidator string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 }
 
 type Rewards struct {

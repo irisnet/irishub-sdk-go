@@ -6,9 +6,9 @@ import (
 
 type Random interface {
 	sdk.Module
-	Generate(request RandomRequest) (reqID string, err error)
-	QueryRandom(reqID string) (RandomInfo, error)
-	QueryRequests(height int64) ([]RequestRandom, error)
+	Generate(request RandomRequest) (reqID string, err sdk.Error)
+	QueryRandom(reqID string) (RandomInfo, sdk.Error)
+	QueryRequests(height int64) ([]RequestRandom, sdk.Error)
 }
 
 type RandomRequest struct {
@@ -17,7 +17,7 @@ type RandomRequest struct {
 	Callback      EventGenerateRandomCallback
 }
 
-type EventGenerateRandomCallback func(reqID, randomNum string, err error)
+type EventGenerateRandomCallback func(reqID, randomNum string, err sdk.Error)
 
 // Rand represents a random number with related data
 type RandomInfo struct {

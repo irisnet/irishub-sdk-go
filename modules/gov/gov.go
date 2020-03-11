@@ -23,10 +23,10 @@ func Create(ac sdk.AbstractClient) rpc.Gov {
 }
 
 //Deposit is responsible for depositing some tokens for proposal
-func (g govClient) Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, error) {
+func (g govClient) Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	depositor, err := g.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, err
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	msg := MsgDeposit{
@@ -43,15 +43,15 @@ func (g govClient) Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseT
 }
 
 //Vote is responsible for voting for proposal
-func (g govClient) Vote(proposalID uint64, option rpc.VoteOption, baseTx sdk.BaseTx) (sdk.Result, error) {
+func (g govClient) Vote(proposalID uint64, option rpc.VoteOption, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	voter, err := g.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, err
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	op, err := VoteOptionFromString(option)
 	if err != nil {
-		return nil, err
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	msg := MsgVote{
@@ -68,7 +68,7 @@ func (g govClient) Vote(proposalID uint64, option rpc.VoteOption, baseTx sdk.Bas
 }
 
 // QueryProposal returns the proposal of the specified proposalID
-func (g govClient) QueryProposal(proposalID uint64) (rpc.Proposal, error) {
+func (g govClient) QueryProposal(proposalID uint64) (rpc.Proposal, sdk.Error) {
 	param := struct {
 		ProposalID uint64
 	}{
@@ -77,31 +77,32 @@ func (g govClient) QueryProposal(proposalID uint64) (rpc.Proposal, error) {
 
 	res, err := g.Query("custom/gov/proposal", param)
 	if err != nil {
-		return nil, err
+		return nil, sdk.Wrap(err)
 	}
 
 	var proposal proposal
 	if err = cdc.UnmarshalJSON(res, &proposal); err != nil {
-		return nil, err
+		return nil, sdk.Wrap(err)
 	}
 
 	return proposal.Convert().(rpc.Proposal), nil
 }
 
 // QueryProposals returns all proposals of the specified params
-func (g govClient) QueryProposals(request rpc.ProposalRequest) (ps []rpc.Proposal, err error) {
+func (g govClient) QueryProposals(request rpc.ProposalRequest) ([]rpc.Proposal, sdk.Error) {
 	var voter, depositor sdk.AccAddress
+	var err error
 	if len(request.Voter) != 0 {
 		voter, err = sdk.AccAddressFromBech32(request.Voter)
 		if err != nil {
-			return nil, err
+			return nil, sdk.Wrap(err)
 		}
 	}
 
 	if len(request.Depositor) != 0 {
 		depositor, err = sdk.AccAddressFromBech32(request.Depositor)
 		if err != nil {
-			return nil, err
+			return nil, sdk.Wrap(err)
 		}
 	}
 
@@ -119,13 +120,15 @@ func (g govClient) QueryProposals(request rpc.ProposalRequest) (ps []rpc.Proposa
 
 	res, err := g.Query("custom/gov/proposals", param)
 	if err != nil {
-		return nil, err
+		return nil, sdk.Wrap(err)
 	}
 
 	var proposals proposals
-	if err = cdc.UnmarshalJSON(res, &proposals); err != nil {
-		return nil, err
+	if err := cdc.UnmarshalJSON(res, &proposals); err != nil {
+		return nil, sdk.Wrap(err)
 	}
+
+	var ps []rpc.Proposal
 	for _, p := range proposals {
 		ps = append(ps, p.Convert().(rpc.Proposal))
 	}
@@ -133,10 +136,10 @@ func (g govClient) QueryProposals(request rpc.ProposalRequest) (ps []rpc.Proposa
 }
 
 // QueryVote returns the vote of the specified proposalID and voter
-func (g govClient) QueryVote(proposalID uint64, voter string) (rpc.Vote, error) {
+func (g govClient) QueryVote(proposalID uint64, voter string) (rpc.Vote, sdk.Error) {
 	v, err := sdk.AccAddressFromBech32(voter)
 	if err != nil {
-		return rpc.Vote{}, err
+		return rpc.Vote{}, sdk.Wrap(err)
 	}
 
 	param := struct {
@@ -148,15 +151,14 @@ func (g govClient) QueryVote(proposalID uint64, voter string) (rpc.Vote, error) 
 	}
 
 	var vote vote
-	err = g.QueryWithResponse("custom/gov/vote", param, &vote)
-	if err != nil {
-		return rpc.Vote{}, err
+	if err := g.QueryWithResponse("custom/gov/vote", param, &vote); err != nil {
+		return rpc.Vote{}, sdk.Wrap(err)
 	}
 	return vote.Convert().(rpc.Vote), nil
 }
 
 // QueryVotes returns all votes of the specified proposalID
-func (g govClient) QueryVotes(proposalID uint64) ([]rpc.Vote, error) {
+func (g govClient) QueryVotes(proposalID uint64) ([]rpc.Vote, sdk.Error) {
 	param := struct {
 		ProposalID uint64
 	}{
@@ -166,16 +168,16 @@ func (g govClient) QueryVotes(proposalID uint64) ([]rpc.Vote, error) {
 	var vs votes
 	err := g.QueryWithResponse("custom/gov/votes", param, &vs)
 	if err != nil {
-		return nil, err
+		return nil, sdk.Wrap(err)
 	}
 	return vs.Convert().([]rpc.Vote), nil
 }
 
 // QueryDeposit returns the deposit of the specified proposalID and depositor
-func (g govClient) QueryDeposit(proposalID uint64, depositor string) (rpc.Deposit, error) {
+func (g govClient) QueryDeposit(proposalID uint64, depositor string) (rpc.Deposit, sdk.Error) {
 	d, err := sdk.AccAddressFromBech32(depositor)
 	if err != nil {
-		return rpc.Deposit{}, err
+		return rpc.Deposit{}, sdk.Wrap(err)
 	}
 
 	param := struct {
@@ -187,15 +189,14 @@ func (g govClient) QueryDeposit(proposalID uint64, depositor string) (rpc.Deposi
 	}
 
 	var deposit deposit
-	err = g.QueryWithResponse("custom/gov/deposit", param, &deposit)
-	if err != nil {
-		return rpc.Deposit{}, err
+	if err := g.QueryWithResponse("custom/gov/deposit", param, &deposit); err != nil {
+		return rpc.Deposit{}, sdk.Wrap(err)
 	}
 	return deposit.Convert().(rpc.Deposit), nil
 }
 
 // QueryDeposits returns all deposits of the specified proposalID
-func (g govClient) QueryDeposits(proposalID uint64) ([]rpc.Deposit, error) {
+func (g govClient) QueryDeposits(proposalID uint64) ([]rpc.Deposit, sdk.Error) {
 	param := struct {
 		ProposalID uint64
 	}{
@@ -205,13 +206,13 @@ func (g govClient) QueryDeposits(proposalID uint64) ([]rpc.Deposit, error) {
 	var deposits deposits
 	err := g.QueryWithResponse("custom/gov/deposits", param, &deposits)
 	if err != nil {
-		return nil, err
+		return nil, sdk.Wrap(err)
 	}
 	return deposits.Convert().([]rpc.Deposit), nil
 }
 
 // QueryTally returns the result of proposal by the specified proposalID
-func (g govClient) QueryTally(proposalID uint64) (rpc.TallyResult, error) {
+func (g govClient) QueryTally(proposalID uint64) (rpc.TallyResult, sdk.Error) {
 	param := struct {
 		ProposalID uint64
 	}{
@@ -221,7 +222,7 @@ func (g govClient) QueryTally(proposalID uint64) (rpc.TallyResult, error) {
 	var tally tallyResult
 	err := g.QueryWithResponse("custom/gov/tally", param, &tally)
 	if err != nil {
-		return rpc.TallyResult{}, err
+		return rpc.TallyResult{}, sdk.Wrap(err)
 	}
 	return tally.Convert().(rpc.TallyResult), nil
 }

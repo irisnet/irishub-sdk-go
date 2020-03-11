@@ -30,30 +30,16 @@ func Create(ac sdk.AbstractClient) rpc.Slashing {
 	}
 }
 
-//Unjail is responsible for unjail a validator previously jailed
-func (s slashingClient) Unjail(baseTx sdk.BaseTx) (sdk.Result, error) {
-	address, err := s.QueryAddress(baseTx.From, baseTx.Password)
-	if err != nil {
-		return nil, err
-	}
-
-	valAddr := sdk.ValAddress(address)
-	msg := MsgUnjail{
-		ValidatorAddr: valAddr,
-	}
-	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
-}
-
 //QueryParams return parameter for slashing at genesis
-func (s slashingClient) QueryParams() (rpc.SlashingParams, error) {
+func (s slashingClient) QueryParams() (rpc.SlashingParams, sdk.Error) {
 	return s.queryParamsV017()
 }
 
 //QueryValidatorSigningInfo return the specified validator sign information
-func (s slashingClient) QueryValidatorSigningInfo(validatorConPubKey string) (rpc.ValidatorSigningInfo, error) {
+func (s slashingClient) QueryValidatorSigningInfo(validatorConPubKey string) (rpc.ValidatorSigningInfo, sdk.Error) {
 	pk, err := sdk.GetConsPubKeyBech32(validatorConPubKey)
 	if err != nil {
-		return rpc.ValidatorSigningInfo{}, err
+		return rpc.ValidatorSigningInfo{}, sdk.Wrap(err)
 	}
 	return s.querySigningInfoV017(pk)
 }
@@ -66,7 +52,7 @@ func (s slashingClient) Name() string {
 	return ModuleName
 }
 
-func (s slashingClient) queryParamsV017() (rpc.SlashingParams, error) {
+func (s slashingClient) queryParamsV017() (rpc.SlashingParams, sdk.Error) {
 	param := struct {
 		Module string
 	}{
@@ -75,7 +61,7 @@ func (s slashingClient) queryParamsV017() (rpc.SlashingParams, error) {
 
 	var params paramsV017
 	if err := s.QueryWithResponse("custom/params/module", param, &params); err != nil {
-		return rpc.SlashingParams{}, err
+		return rpc.SlashingParams{}, sdk.Wrap(err)
 	}
 	return params.Convert().(rpc.SlashingParams), nil
 }
@@ -89,17 +75,17 @@ func (s slashingClient) queryParamsV100() (rpc.SlashingParams, error) {
 	return params.Convert().(rpc.SlashingParams), nil
 }
 
-func (s slashingClient) querySigningInfoV017(pk crypto.PubKey) (rpc.ValidatorSigningInfo, error) {
+func (s slashingClient) querySigningInfoV017(pk crypto.PubKey) (rpc.ValidatorSigningInfo, sdk.Error) {
 	key := append([]byte{0x01}, pk.Bytes()...)
 	res, err := s.QueryStore(key, s.Name())
 	if err != nil {
-		return rpc.ValidatorSigningInfo{}, err
+		return rpc.ValidatorSigningInfo{}, sdk.Wrap(err)
 	}
 
 	var signingInfo validatorSigningInfoV017
 	err = cdc.UnmarshalBinaryLengthPrefixed(res, &signingInfo)
 	if err != nil {
-		return rpc.ValidatorSigningInfo{}, err
+		return rpc.ValidatorSigningInfo{}, sdk.Wrap(err)
 	}
 
 	consAddr := sdk.ConsAddress(pk.Address())

@@ -39,7 +39,7 @@ func (rts *RandomTestSuite) TestGenerate() {
 	request := rpc.RandomRequest{
 		BaseTx:        baseTx,
 		BlockInterval: 2,
-		Callback: func(reqID, randomNum string, err error) {
+		Callback: func(reqID, randomNum string, err sdk.Error) {
 			require.NoError(rts.T(), err)
 			memory[reqID] = randomNum
 			signal <- 1
