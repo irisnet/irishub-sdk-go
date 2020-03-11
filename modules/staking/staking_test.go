@@ -38,7 +38,7 @@ func (sts *StakingTestSuite) TestDelegate() {
 
 	rs, err := sts.Staking().Delegate(validator, amount, baseTx)
 	require.True(sts.T(), err.IsNil())
-	require.True(sts.T(), rs.IsSuccess())
+	require.NotEmpty(sts.T(), rs.Hash)
 
 }
 
@@ -57,7 +57,7 @@ func (sts *StakingTestSuite) TestUndelegate() {
 
 	rs, err := sts.Staking().Undelegate(validator, amount, baseTx)
 	require.True(sts.T(), err.IsNil())
-	require.True(sts.T(), rs.IsSuccess())
+	require.NotEmpty(sts.T(), rs.Hash)
 
 }
 
@@ -76,7 +76,7 @@ func (sts *StakingTestSuite) TestRedelegate() {
 
 	rs, err := sts.Staking().Undelegate(validator, amount, baseTx)
 	require.True(sts.T(), err.IsNil())
-	require.True(sts.T(), rs.IsSuccess())
+	require.NotEmpty(sts.T(), rs.Hash)
 
 }
 

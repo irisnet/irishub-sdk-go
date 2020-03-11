@@ -8,36 +8,36 @@ import (
 )
 
 type ServiceTx interface {
-	DefineService(request ServiceDefinitionRequest, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+	DefineService(request ServiceDefinitionRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	BindService(request ServiceBindingRequest, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+	BindService(request ServiceBindingRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	UpdateServiceBinding(request UpdateServiceBindingRequest, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+	UpdateServiceBinding(request UpdateServiceBindingRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
 	InvokeService(request ServiceInvocationRequest,
 		callback ServiceInvokeHandler, baseTx sdk.BaseTx) (requestContextID string, err sdk.Error)
 
-	SetWithdrawAddress(withdrawAddress string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+	SetWithdrawAddress(withdrawAddress string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	DisableServiceBinding(serviceName string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+	DisableServiceBinding(serviceName string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
 	EnableServiceBinding(serviceName string,
-		deposit sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+		deposit sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	RefundServiceDeposit(serviceName string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+	RefundServiceDeposit(serviceName string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	PauseRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+	PauseRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	StartRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+	StartRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	KillRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+	KillRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	UpdateRequestContext(request UpdateContextRequest, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+	UpdateRequestContext(request UpdateContextRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	WithdrawEarnedFees(baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+	WithdrawEarnedFees(baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
 	WithdrawTax(destAddress string,
-		amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+		amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
 	RegisterServiceListener(serviceRouter ServiceRouter, baseTx sdk.BaseTx) sdk.Error
 

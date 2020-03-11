@@ -60,10 +60,10 @@ func (b bankClient) QueryTokenStats(tokenID string) (rpc.TokenStats, sdk.Error) 
 }
 
 //Send is responsible for transferring tokens from `From` to `to` account
-func (b bankClient) Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (b bankClient) Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	sender, err := b.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrapf("%s not found", baseTx.From)
+		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
 	}
 	in := []Input{
 		NewInput(sender, amount),
@@ -71,7 +71,7 @@ func (b bankClient) Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Re
 
 	outAddr, err := sdk.AccAddressFromBech32(to)
 	if err != nil {
-		return nil, sdk.Wrapf(fmt.Sprintf("%s invalid address", to))
+		return sdk.ResultTx{}, sdk.Wrapf(fmt.Sprintf("%s invalid address", to))
 	}
 	out := []Output{
 		NewOutput(outAddr, amount),
@@ -82,20 +82,20 @@ func (b bankClient) Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Re
 }
 
 //Send is responsible for burning some tokens from `From` account
-func (b bankClient) Burn(amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (b bankClient) Burn(amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	sender, err := b.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrapf("%s not found", baseTx.From)
+		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
 	}
 	msg := NewMsgBurn(sender, amount)
 	return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 //Send is responsible for setting memo regexp for your own address, so that you can only receive coins from transactions with the corresponding memo.
-func (b bankClient) SetMemoRegexp(memoRegexp string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (b bankClient) SetMemoRegexp(memoRegexp string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	sender, err := b.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrapf("%s not found", baseTx.From)
+		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
 	}
 	msg := NewMsgSetMemoRegexp(sender, memoRegexp)
 	return b.BuildAndSend([]sdk.Msg{msg}, baseTx)

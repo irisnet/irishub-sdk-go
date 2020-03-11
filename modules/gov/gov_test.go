@@ -49,7 +49,7 @@ func (gts *GovTestSuite) TestDeposit() {
 
 	rs, err := gts.Gov().Deposit(proposalID, amount, baseTx)
 	require.True(gts.T(), err.IsNil())
-	require.True(gts.T(), rs.IsSuccess())
+	require.NotEmpty(gts.T(), rs.Hash)
 
 	d, err := gts.Gov().QueryDeposit(proposalID, gts.Sender().String())
 	require.True(gts.T(), err.IsNil())
@@ -61,7 +61,7 @@ func (gts *GovTestSuite) TestDeposit() {
 
 	rs, err = gts.Gov().Vote(proposalID, rpc.Yes, baseTx)
 	require.True(gts.T(), err.IsNil())
-	require.True(gts.T(), rs.IsSuccess())
+	require.NotEmpty(gts.T(), rs.Hash)
 
 	vote, err := gts.Gov().QueryVote(proposalID, gts.Sender().String())
 	require.True(gts.T(), err.IsNil())

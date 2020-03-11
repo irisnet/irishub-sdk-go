@@ -52,15 +52,15 @@ func (d distributionClient) QueryRewards(delegator string) (rpc.Rewards, sdk.Err
 	return rewards.Convert().(rpc.Rewards), sdk.Nil
 }
 
-func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	delegator, err := d.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	withdraw, err := sdk.AccAddressFromBech32(withdrawAddr)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	msg := MsgSetWithdrawAddress{
@@ -73,10 +73,10 @@ func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.Base
 	return d.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
-func (d distributionClient) WithdrawRewards(isValidator bool, onlyFromValidator string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (d distributionClient) WithdrawRewards(isValidator bool, onlyFromValidator string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	delegator, err := d.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	var msgs []sdk.Msg
@@ -92,7 +92,7 @@ func (d distributionClient) WithdrawRewards(isValidator bool, onlyFromValidator 
 	case onlyFromValidator != "":
 		valAddr, err := sdk.ValAddressFromBech32(onlyFromValidator)
 		if err != nil {
-			return nil, sdk.Wrap(err)
+			return sdk.ResultTx{}, sdk.Wrap(err)
 		}
 		msgs = append(msgs, MsgWithdrawDelegatorReward{
 			ValidatorAddr: valAddr,

@@ -52,7 +52,7 @@ func (sts *ServiceTestSuite) TestService() {
 
 	result, err := sts.Service().DefineService(definition, baseTx)
 	require.True(sts.T(), err.IsNil())
-	require.True(sts.T(), result.IsSuccess())
+	require.NotEmpty(sts.T(), result.Hash)
 
 	defi, err := sts.Service().QueryDefinition(definition.ServiceName)
 	require.True(sts.T(), err.IsNil())
@@ -71,7 +71,7 @@ func (sts *ServiceTestSuite) TestService() {
 	}
 	result, err = sts.Service().BindService(binding, baseTx)
 	require.True(sts.T(), err.IsNil())
-	require.True(sts.T(), result.IsSuccess())
+	require.NotEmpty(sts.T(), result.Hash)
 
 	bindResp, err := sts.Service().QueryBinding(definition.ServiceName, sts.Sender())
 	require.True(sts.T(), err.IsNil())

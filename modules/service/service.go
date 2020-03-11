@@ -27,10 +27,10 @@ func Create(ac sdk.AbstractClient) rpc.Service {
 }
 
 //DefineService is responsible for creating a new service definition
-func (s serviceClient) DefineService(request rpc.ServiceDefinitionRequest, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (s serviceClient) DefineService(request rpc.ServiceDefinitionRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	author, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 	msg := MsgDefineService{
 		Name:              request.ServiceName,
@@ -44,10 +44,10 @@ func (s serviceClient) DefineService(request rpc.ServiceDefinitionRequest, baseT
 }
 
 //BindService is responsible for binding a new service definition
-func (s serviceClient) BindService(request rpc.ServiceBindingRequest, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (s serviceClient) BindService(request rpc.ServiceBindingRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	msg := MsgBindService{
@@ -60,10 +60,10 @@ func (s serviceClient) BindService(request rpc.ServiceBindingRequest, baseTx sdk
 }
 
 //UpdateServiceBinding updates the specified service binding
-func (s serviceClient) UpdateServiceBinding(request rpc.UpdateServiceBindingRequest, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (s serviceClient) UpdateServiceBinding(request rpc.UpdateServiceBindingRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 	msg := MsgUpdateServiceBinding{
 		ServiceName: request.ServiceName,
@@ -75,10 +75,10 @@ func (s serviceClient) UpdateServiceBinding(request rpc.UpdateServiceBindingRequ
 }
 
 // DisableServiceBinding disables the specified service binding
-func (s serviceClient) DisableServiceBinding(serviceName string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (s serviceClient) DisableServiceBinding(serviceName string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 	msg := MsgDisableService{
 		ServiceName: serviceName,
@@ -88,10 +88,10 @@ func (s serviceClient) DisableServiceBinding(serviceName string, baseTx sdk.Base
 }
 
 // EnableServiceBinding enables the specified service binding
-func (s serviceClient) EnableServiceBinding(serviceName string, deposit sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (s serviceClient) EnableServiceBinding(serviceName string, deposit sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 	msg := MsgEnableService{
 		ServiceName: serviceName,
@@ -139,7 +139,7 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest,
 		return "", err1
 	}
 
-	requestContextID := result.GetTags().GetValue(tagRequestContextID)
+	requestContextID := result.Tags.GetValue(tagRequestContextID)
 	if callback == nil {
 		return requestContextID, sdk.Nil
 	}
@@ -171,15 +171,15 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest,
 }
 
 // SetWithdrawAddress sets a new withdrawal address for the specified service binding
-func (s serviceClient) SetWithdrawAddress(withdrawAddress string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (s serviceClient) SetWithdrawAddress(withdrawAddress string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	withdrawAddr, err := sdk.AccAddressFromBech32(withdrawAddress)
 	if err != nil {
-		return nil, sdk.Wrapf("%s invalid address", withdrawAddress)
+		return sdk.ResultTx{}, sdk.Wrapf("%s invalid address", withdrawAddress)
 	}
 	msg := MsgSetWithdrawAddress{
 		Provider:        provider,
@@ -189,10 +189,10 @@ func (s serviceClient) SetWithdrawAddress(withdrawAddress string, baseTx sdk.Bas
 }
 
 // RefundServiceDeposit refunds the deposit from the specified service binding
-func (s serviceClient) RefundServiceDeposit(serviceName string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (s serviceClient) RefundServiceDeposit(serviceName string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 	msg := MsgRefundServiceDeposit{
 		ServiceName: serviceName,
@@ -202,10 +202,10 @@ func (s serviceClient) RefundServiceDeposit(serviceName string, baseTx sdk.BaseT
 }
 
 // StartRequestContext starts the specified request context
-func (s serviceClient) StartRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (s serviceClient) StartRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	consumer, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 	msg := MsgStartRequestContext{
 		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
@@ -215,10 +215,10 @@ func (s serviceClient) StartRequestContext(requestContextID string, baseTx sdk.B
 }
 
 // PauseRequestContext suspends the specified request context
-func (s serviceClient) PauseRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (s serviceClient) PauseRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	consumer, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 	msg := MsgPauseRequestContext{
 		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
@@ -228,10 +228,10 @@ func (s serviceClient) PauseRequestContext(requestContextID string, baseTx sdk.B
 }
 
 // KillRequestContext terminates the specified request context
-func (s serviceClient) KillRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (s serviceClient) KillRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	consumer, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 	msg := MsgKillRequestContext{
 		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
@@ -241,17 +241,17 @@ func (s serviceClient) KillRequestContext(requestContextID string, baseTx sdk.Ba
 }
 
 // UpdateRequestContext updates the specified request context
-func (s serviceClient) UpdateRequestContext(request rpc.UpdateContextRequest, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (s serviceClient) UpdateRequestContext(request rpc.UpdateContextRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	consumer, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	var providers []sdk.AccAddress
 	for _, provider := range request.Providers {
 		p, err := sdk.AccAddressFromBech32(provider)
 		if err != nil {
-			return nil, sdk.Wrap(err)
+			return sdk.ResultTx{}, sdk.Wrap(err)
 		}
 		providers = append(providers, p)
 	}
@@ -269,10 +269,10 @@ func (s serviceClient) UpdateRequestContext(request rpc.UpdateContextRequest, ba
 }
 
 // WithdrawEarnedFees withdraws the earned fees to the specified provider
-func (s serviceClient) WithdrawEarnedFees(baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (s serviceClient) WithdrawEarnedFees(baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	provider, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	msg := MsgWithdrawEarnedFees{
@@ -282,15 +282,15 @@ func (s serviceClient) WithdrawEarnedFees(baseTx sdk.BaseTx) (sdk.Result, sdk.Er
 }
 
 // WithdrawTax withdraws the service tax to the speicified destination address by the trustee
-func (s serviceClient) WithdrawTax(destAddress string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (s serviceClient) WithdrawTax(destAddress string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	trustee, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	receipt, err := sdk.AccAddressFromBech32(destAddress)
 	if err != nil {
-		return nil, sdk.Wrapf("%s invalid address", destAddress)
+		return sdk.ResultTx{}, sdk.Wrapf("%s invalid address", destAddress)
 	}
 	msg := MsgWithdrawTax{
 		Trustee:     trustee,

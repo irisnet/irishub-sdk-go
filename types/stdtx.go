@@ -5,10 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/multisig"
-	cmn "github.com/tendermint/tendermint/libs/common"
 
 	json2 "github.com/irisnet/irishub-sdk-go/tools/json"
 )
@@ -244,82 +242,6 @@ type BaseTx struct {
 	Memo     string        `json:"memo"`
 	Mode     BroadcastMode `json:"broadcast_mode"`
 	Simulate bool          `json:"simulate"`
-}
-
-// Result is the result of broadcast tx
-type Result interface {
-	IsSuccess() bool
-	GetHash() string
-	GetLog() string
-	GetHeight() int64
-	GetTags() Tags
-}
-
-// Result is the result of broadcast tx when BroadcastMode = commit
-type ResultBroadcastTxCommit struct {
-	CheckTx   abci.ResponseCheckTx   `json:"check_tx"`
-	DeliverTx abci.ResponseDeliverTx `json:"deliver_tx"`
-	Hash      cmn.HexBytes           `json:"hash"`
-	Height    int64                  `json:"height"`
-}
-
-func (rbt ResultBroadcastTxCommit) IsSuccess() bool {
-	return rbt.CheckTx.Code == 0 && rbt.DeliverTx.Code == 0
-}
-
-func (rbt ResultBroadcastTxCommit) GetHash() string {
-	return rbt.Hash.String()
-}
-
-func (rbt ResultBroadcastTxCommit) GetLog() string {
-	if rbt.CheckTx.Code != 0 {
-		return rbt.CheckTx.Log
-	}
-	if rbt.DeliverTx.Code != 0 {
-		return rbt.DeliverTx.Log
-	}
-	return "success"
-}
-
-func (rbt ResultBroadcastTxCommit) GetHeight() int64 {
-	return rbt.Height
-}
-
-func (rbt ResultBroadcastTxCommit) GetTags() (tags Tags) {
-	tags = append(tags, ParseTags(rbt.CheckTx.Tags)...)
-	tags = append(tags, ParseTags(rbt.DeliverTx.Tags)...)
-	return tags
-}
-
-// Result is the result of broadcast tx when BroadcastMode = Sync/Async
-type ResultBroadcastTx struct {
-	Code uint32       `json:"code"`
-	Data cmn.HexBytes `json:"data"`
-	Log  string       `json:"log"`
-	Hash cmn.HexBytes `json:"hash"`
-}
-
-func (rb ResultBroadcastTx) IsSuccess() bool {
-	return rb.Code == 0
-}
-
-func (rb ResultBroadcastTx) GetHash() string {
-	return rb.Hash.String()
-}
-
-func (rb ResultBroadcastTx) GetLog() string {
-	if rb.Code != 0 {
-		return rb.Log
-	}
-	return "success"
-}
-
-func (rb ResultBroadcastTx) GetHeight() int64 {
-	return 0
-}
-
-func (rb ResultBroadcastTx) GetTags() (tags Tags) {
-	return tags
 }
 
 // defines the params for all list queries:

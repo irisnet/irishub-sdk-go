@@ -13,11 +13,11 @@ type Oracle interface {
 }
 
 type OracleTx interface {
-	CreateFeed(request FeedCreateRequest) (result sdk.Result, err sdk.Error)
-	StartFeed(feedName string, baseTx sdk.BaseTx) (result sdk.Result, err sdk.Error)
-	CreateAndStartFeed(request FeedCreateRequest) (result sdk.Result, err sdk.Error)
-	PauseFeed(feedName string, baseTx sdk.BaseTx) (result sdk.Result, err sdk.Error)
-	EditFeed(request FeedEditRequest) (result sdk.Result, err sdk.Error)
+	CreateFeed(request FeedCreateRequest) (result sdk.ResultTx, err sdk.Error)
+	StartFeed(feedName string, baseTx sdk.BaseTx) (result sdk.ResultTx, err sdk.Error)
+	CreateAndStartFeed(request FeedCreateRequest) (result sdk.ResultTx, err sdk.Error)
+	PauseFeed(feedName string, baseTx sdk.BaseTx) (result sdk.ResultTx, err sdk.Error)
+	EditFeed(request FeedEditRequest) (result sdk.ResultTx, err sdk.Error)
 }
 
 type OracleQuery interface {

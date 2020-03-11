@@ -5,9 +5,12 @@ import (
 )
 
 type StakingTx interface {
-	Delegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
-	Undelegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
-	Redelegate(srcValAddr, dstValAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+	Delegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	Undelegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	Redelegate(srcValAddr,
+		dstValAddr string,
+		amount sdk.Coin,
+		baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 }
 
 type StakingQueries interface {

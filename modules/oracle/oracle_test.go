@@ -55,7 +55,7 @@ func (ots *OracleTestSuite) SetupService() {
 
 	result, err := ots.Service().DefineService(definition, baseTx)
 	require.True(ots.T(), err.IsNil())
-	require.True(ots.T(), result.IsSuccess())
+	require.NotEmpty(ots.T(), result.Hash)
 
 	deposit, _ := sdk.ParseCoins("20000000000000000000000iris-atto")
 	binding := rpc.ServiceBindingRequest{
@@ -65,7 +65,7 @@ func (ots *OracleTestSuite) SetupService() {
 	}
 	result, err = ots.Service().BindService(binding, baseTx)
 	require.True(ots.T(), err.IsNil())
-	require.True(ots.T(), result.IsSuccess())
+	require.NotEmpty(ots.T(), result.Hash)
 
 	err = ots.Service().RegisterSingleServiceListener(serviceName,
 		func(input string) (string, string) {
@@ -107,14 +107,14 @@ func (ots *OracleTestSuite) TestFeed() {
 	}
 	result, err := ots.Oracle().CreateFeed(createFeedReq)
 	require.True(ots.T(), err.IsNil())
-	require.True(ots.T(), result.IsSuccess())
+	require.NotEmpty(ots.T(), result.Hash)
 
 	_, err = ots.Oracle().QueryFeed(feedName)
 	require.True(ots.T(), err.IsNil())
 
 	result, err = ots.Oracle().StartFeed(feedName, ots.baseTx)
 	require.True(ots.T(), err.IsNil())
-	require.True(ots.T(), result.IsSuccess())
+	require.NotEmpty(ots.T(), result.Hash)
 
 	for {
 		result, err := ots.Oracle().QueryFeedValue(feedName)

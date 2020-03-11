@@ -9,9 +9,9 @@ type Bank interface {
 	sdk.Module
 	QueryAccount(address string) (sdk.BaseAccount, sdk.Error)
 	QueryTokenStats(tokenID string) (TokenStats, sdk.Error)
-	Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
-	Burn(amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
-	SetMemoRegexp(memoRegexp string, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+	Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	Burn(amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	SetMemoRegexp(memoRegexp string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 	SubscribeSendTx(from, to string, callback EventMsgSendCallback) sdk.Subscription
 }
 

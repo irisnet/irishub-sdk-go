@@ -23,10 +23,10 @@ func Create(ac sdk.AbstractClient) rpc.Gov {
 }
 
 //Deposit is responsible for depositing some tokens for proposal
-func (g govClient) Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (g govClient) Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	depositor, err := g.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	msg := MsgDeposit{
@@ -43,15 +43,15 @@ func (g govClient) Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseT
 }
 
 //Vote is responsible for voting for proposal
-func (g govClient) Vote(proposalID uint64, option rpc.VoteOption, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (g govClient) Vote(proposalID uint64, option rpc.VoteOption, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	voter, err := g.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	op, err := VoteOptionFromString(option)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	msg := MsgVote{

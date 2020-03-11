@@ -57,7 +57,7 @@ func (bts BankTestSuite) TestSend() {
 
 	result, err := bts.Bank().Send(to, coins, baseTx)
 	require.True(bts.T(), err.IsNil())
-	require.True(bts.T(), result.IsSuccess())
+	require.NotEmpty(bts.T(), result.Hash)
 
 	toAccAfter, err := bts.Bank().QueryAccount(to)
 	require.True(bts.T(), err.IsNil())
@@ -79,7 +79,7 @@ func (bts BankTestSuite) TestBurn() {
 	}
 	result, err := bts.Bank().Burn(coins, baseTx)
 	require.True(bts.T(), err.IsNil())
-	require.True(bts.T(), result.IsSuccess())
+	require.NotEmpty(bts.T(), result.Hash)
 }
 
 func (bts BankTestSuite) TestSetMemoRegexp() {
@@ -91,7 +91,7 @@ func (bts BankTestSuite) TestSetMemoRegexp() {
 	}
 	result, err := bts.Bank().SetMemoRegexp("testMemo", baseTx)
 	require.True(bts.T(), err.IsNil())
-	require.True(bts.T(), result.IsSuccess())
+	require.NotEmpty(bts.T(), result.Hash)
 
 	acc, err := bts.Bank().QueryAccount(bts.Sender().String())
 	require.True(bts.T(), err.IsNil())

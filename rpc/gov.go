@@ -8,8 +8,8 @@ import (
 
 type Gov interface {
 	sdk.Module
-	Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
-	Vote(proposalID uint64, option VoteOption, baseTx sdk.BaseTx) (sdk.Result, sdk.Error)
+	Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	Vote(proposalID uint64, option VoteOption, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
 	QueryProposal(proposalID uint64) (Proposal, sdk.Error)
 	QueryProposals(request ProposalRequest) ([]Proposal, sdk.Error)

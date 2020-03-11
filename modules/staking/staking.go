@@ -34,15 +34,15 @@ func Create(ac sdk.AbstractClient) rpc.Staking {
 }
 
 //Delegate is responsible for delegating liquid tokens to an validator
-func (s stakingClient) Delegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (s stakingClient) Delegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	delegator, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	validator, err := sdk.ValAddressFromBech32(valAddr)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	msg := MsgDelegate{
@@ -59,27 +59,27 @@ func (s stakingClient) Delegate(valAddr string, amount sdk.Coin, baseTx sdk.Base
 }
 
 //Undelegate is responsible for undelegating from a validator
-func (s stakingClient) Undelegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+func (s stakingClient) Undelegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	delegator, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	val, err1 := s.QueryValidator(valAddr)
 	if !err1.IsNil() {
-		return nil, err1
+		return sdk.ResultTx{}, err1
 	}
 
 	exRate := val.DelegatorShareExRate()
 	if exRate.IsZero() {
-		return nil, sdk.Wrapf("zero exRate should not happen")
+		return sdk.ResultTx{}, sdk.Wrapf("zero exRate should not happen")
 	}
 	amountDec := sdk.NewDecFromInt(amount.Amount)
 	share := amountDec.Quo(exRate)
 
 	varAddr, err := sdk.ValAddressFromBech32(valAddr)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	msg := MsgUndelegate{
@@ -97,30 +97,30 @@ func (s stakingClient) Undelegate(valAddr string, amount sdk.Coin, baseTx sdk.Ba
 
 //Redelegate is responsible for redelegating illiquid tokens from one validator to another
 func (s stakingClient) Redelegate(srcValidatorAddr,
-	dstValidatorAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.Result, sdk.Error) {
+	dstValidatorAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	delAddr, err := s.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	srcValAddr, err := sdk.ValAddressFromBech32(srcValidatorAddr)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	dstValAddr, err := sdk.ValAddressFromBech32(dstValidatorAddr)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	val, err := s.QueryValidator(srcValidatorAddr)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	exRate := val.DelegatorShareExRate()
 	if exRate.IsZero() {
-		return nil, sdk.Wrapf("zero exRate should not happen")
+		return sdk.ResultTx{}, sdk.Wrapf("zero exRate should not happen")
 	}
 	amountDec := sdk.NewDecFromInt(amount.Amount)
 	share := amountDec.Quo(exRate)

@@ -40,7 +40,7 @@ func (dts *DistrTestSuite) TestSetWithdrawAddr() {
 
 	rs, err := dts.Distr().SetWithdrawAddr(dts.Sender().String(), baseTx)
 	require.True(dts.T(), err.IsNil())
-	require.True(dts.T(), rs.IsSuccess())
+	require.NotEmpty(dts.T(), rs.Hash)
 }
 
 func (dts *DistrTestSuite) TestWithdrawRewards() {
@@ -53,5 +53,5 @@ func (dts *DistrTestSuite) TestWithdrawRewards() {
 
 	rs, err := dts.Distr().WithdrawRewards(true, "", baseTx)
 	require.True(dts.T(), err.IsNil())
-	require.True(dts.T(), rs.IsSuccess())
+	require.NotEmpty(dts.T(), rs.Hash)
 }

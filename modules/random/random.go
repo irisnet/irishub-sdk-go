@@ -45,11 +45,8 @@ func (r randomClient) Generate(request rpc.RandomRequest) (string, sdk.Error) {
 	if !err1.IsNil() {
 		return "", err1
 	}
-	if !result.IsSuccess() {
-		return "", sdk.Wrapf(result.GetLog())
-	}
 
-	requestID := result.GetTags().GetValue(TagRequestID)
+	requestID := result.Tags.GetValue(TagRequestID)
 	if request.Callback != nil {
 		var subscription sdk.Subscription
 		//TODO add query ?
