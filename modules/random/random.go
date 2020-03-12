@@ -28,17 +28,18 @@ func (r randomClient) Name() string {
 }
 
 // Request is responsible for requesting a random number and callback `callback`
-func (r randomClient) Request(blockInterval uint64,
-	callback rpc.EventRequestRandomCallback, baseTx sdk.BaseTx) (string, sdk.Error) {
+func (r randomClient) Request(request rpc.RandomRequest, baseTx sdk.BaseTx) (string, sdk.Error) {
 	consumer, err := r.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return "", sdk.Wrap(err)
 	}
 
-	needWatch := callback != nil
+	needWatch := request.Callback != nil
 	msg := MsgRequestRand{
 		Consumer:      consumer,
-		BlockInterval: blockInterval,
+		BlockInterval: request.BlockInterval,
+		Oracle:        request.Oracle,
+		ServiceFeeCap: request.ServiceFeeCap,
 	}
 
 	if needWatch {
@@ -50,8 +51,8 @@ func (r randomClient) Request(blockInterval uint64,
 		return "", sdk.Wrap(err)
 	}
 
-	requestID := result.Tags.GetValue(TagRequestID)
-	if needWatch {
+	requestID := result.Tags.GetValue(tagRequestID)
+	if needWatch && !request.Oracle {
 		var subscription sdk.Subscription
 		subscription, err = r.SubscribeNewBlockWithQuery(nil, func(block sdk.EventDataNewBlock) {
 			tags := block.ResultBeginBlock.Tags
@@ -59,7 +60,7 @@ func (r randomClient) Request(blockInterval uint64,
 				Int64("height", block.Block.Height).
 				Str("tags", tags.String()).
 				Msg("received block")
-			requestIDs := tags.GetValues(TagRequestID)
+			requestIDs := tags.GetValues(tagRequestID)
 			for _, reqID := range requestIDs {
 				if reqID == requestID {
 					result, err := r.QueryRandom(requestID)
@@ -67,7 +68,7 @@ func (r randomClient) Request(blockInterval uint64,
 					if err == nil {
 						randomNum = result.Value
 					}
-					callback(requestID, randomNum, err)
+					request.Callback(requestID, randomNum, err)
 					_ = r.Unscribe(subscription)
 					return
 				}
@@ -78,7 +79,7 @@ func (r randomClient) Request(blockInterval uint64,
 }
 
 // QueryRandom returns the random information of the specified reqID
-func (r randomClient) QueryRandom(reqID string) (rpc.RandomInfo, sdk.Error) {
+func (r randomClient) QueryRandom(reqID string) (rpc.ResponseRandom, sdk.Error) {
 	param := struct {
 		ReqID string
 	}{
@@ -87,9 +88,9 @@ func (r randomClient) QueryRandom(reqID string) (rpc.RandomInfo, sdk.Error) {
 
 	var rand rand
 	if err := r.QueryWithResponse("custom/rand/rand", param, &rand); err != nil {
-		return rpc.RandomInfo{}, sdk.Wrap(err)
+		return rpc.ResponseRandom{}, sdk.Wrap(err)
 	}
-	return rand.Convert().(rpc.RandomInfo), nil
+	return rand.Convert().(rpc.ResponseRandom), nil
 }
 
 // QueryRequests returns the list of request by the specified block height
