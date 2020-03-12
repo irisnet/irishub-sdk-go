@@ -12,13 +12,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/irisnet/irishub-sdk-go/sim"
+	"github.com/irisnet/irishub-sdk-go/test"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type ServiceTestSuite struct {
 	suite.Suite
-	sim.TestClient
+	test.TestClient
 	*log.Logger
 }
 
@@ -27,7 +27,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (sts *ServiceTestSuite) SetupTest() {
-	sts.TestClient = sim.NewClient()
+	sts.TestClient = test.NewClient()
 	sts.Logger = log.NewLogger("info")
 }
 

@@ -1,20 +1,24 @@
-package sim
+package test
 
 import (
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/irisnet/irishub-sdk-go/client"
 	"github.com/irisnet/irishub-sdk-go/crypto"
 	"github.com/irisnet/irishub-sdk-go/types"
 )
 
 const (
-	NodeURI  = "localhost:26657"
-	ChainID  = "irishub-test"
-	Online   = true
-	Network  = types.Testnet
-	Mode     = types.Commit
-	Fee      = "600000000000000000iris-atto"
-	Gas      = 20000
-	mnemonic = "small culture theory rare offer polar seek mule planet fog garlic segment burger guard bar cool milk lion loyal head olympic impulse purpose forget"
+	NodeURI = "localhost:26657"
+	ChainID = "test"
+	Online  = true
+	Network = types.Testnet
+	Mode    = types.Commit
+	Fee     = "600000000000000000iris-atto"
+	Gas     = 20000
 )
 
 var (
@@ -28,7 +32,7 @@ type TestClient struct {
 }
 
 func NewClient() TestClient {
-	keyManager, err := crypto.NewMnemonicKeyManager(mnemonic)
+	keyManager, err := crypto.NewKeyStoreKeyManager(getKeystore(), "11111111")
 	if err != nil {
 		panic(err)
 	}
@@ -93,4 +97,19 @@ func (dao *TestKeyDAO) Read(name, pwd string) (types.Store, error) {
 func (dao *TestKeyDAO) Delete(name, pwd string) error {
 	delete(dao.store, name)
 	return nil
+}
+
+func getKeystore() string {
+	path, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	path = filepath.Dir(path)
+	path = strings.TrimRight(path, "modules")
+	path = filepath.Join(path, "test/scripts/keystore1.json")
+	bz, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	return string(bz)
 }

@@ -10,14 +10,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/irisnet/irishub-sdk-go/sim"
+	"github.com/irisnet/irishub-sdk-go/test"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type OracleTestSuite struct {
 	suite.Suite
-	sim.TestClient
+	test.TestClient
 	*log.Logger
 	serviceName string
 	baseTx      sdk.BaseTx
@@ -28,7 +28,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (ots *OracleTestSuite) SetupTest() {
-	ots.TestClient = sim.NewClient()
+	ots.TestClient = test.NewClient()
 	ots.Logger = log.NewLogger("info")
 }
 

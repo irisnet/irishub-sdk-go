@@ -2,17 +2,18 @@ package keys_test
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/irisnet/irishub-sdk-go/sim"
+	"github.com/irisnet/irishub-sdk-go/test"
 )
 
 type KeysTestSuite struct {
 	suite.Suite
-	sim.TestClient
+	test.TestClient
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -20,7 +21,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (kts *KeysTestSuite) SetupTest() {
-	tc := sim.NewClient()
+	tc := test.NewClient()
 	kts.TestClient = tc
 }
 

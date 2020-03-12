@@ -6,12 +6,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/irisnet/irishub-sdk-go/sim"
+	"github.com/irisnet/irishub-sdk-go/test"
 )
 
 type SlashingTestSuite struct {
 	suite.Suite
-	sim.TestClient
+	test.TestClient
 }
 
 func TestSlashingTestSuite(t *testing.T) {
@@ -19,7 +19,7 @@ func TestSlashingTestSuite(t *testing.T) {
 }
 
 func (sts *SlashingTestSuite) SetupTest() {
-	tc := sim.NewClient()
+	tc := test.NewClient()
 	sts.TestClient = tc
 }
 
