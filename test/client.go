@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	NodeURI = "10.1.4.137:26657"
+	NodeURI = "localhost:26657"
 	ChainID = "test"
 	Online  = true
 	Network = types.Testnet
