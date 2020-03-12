@@ -10,13 +10,11 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/irisnet/irishub-sdk-go/tools"
+	"github.com/irisnet/irishub-sdk-go/tools/uuid"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"golang.org/x/crypto/pbkdf2"
-	"golang.org/x/crypto/sha3"
-
-	"github.com/irisnet/irishub-sdk-go/tools"
-	"github.com/irisnet/irishub-sdk-go/tools/uuid"
 )
 
 func NewKeyStoreKeyManager(keystore string, auth string) (KeyManager, error) {
@@ -63,7 +61,7 @@ func generateKeyStore(privateKey crypto.PrivKey, password string) (Keystore, err
 	}
 
 	derivedKey := pbkdf2.Key([]byte(password), salt, 262144, 32, sha256.New)
-	encryptKey := derivedKey[:32]
+	encryptKey := derivedKey[:16]
 	secpPrivateKey, ok := privateKey.(secp256k1.PrivKeySecp256k1)
 	if !ok {
 		return Keystore{}, fmt.Errorf(" Only PrivKeySecp256k1 key is supported ")
@@ -73,7 +71,7 @@ func generateKeyStore(privateKey crypto.PrivKey, password string) (Keystore, err
 		return Keystore{}, err
 	}
 
-	hasher := sha3.NewLegacyKeccak512()
+	hasher := sha256.New()
 	hasher.Write(derivedKey[16:32])
 	hasher.Write(cipherText)
 	mac := hasher.Sum(nil)
@@ -85,7 +83,7 @@ func generateKeyStore(privateKey crypto.PrivKey, password string) (Keystore, err
 	return Keystore{
 		//Address: addr.String(),
 		Id:      id.String(),
-		Version: 1,
+		Version: "1",
 		Crypto: Crypto{
 			CipherText: hex.EncodeToString(cipherText),
 			CipherParams: CipherParams{
@@ -185,18 +183,18 @@ func ensureInt(x interface{}) int {
 }
 
 type Keystore struct {
-	Address string `json:"address"`
+	Version string `json:"version"`
 	Id      string `json:"id"`
-	Version int    `json:"version"`
+	Address string `json:"address"`
 	Crypto  Crypto `json:"crypto"`
 }
 
 type Crypto struct {
-	CipherText   string       `json:"cipher_text"`
-	CipherParams CipherParams `json:"cipher_params"`
+	CipherText   string       `json:"ciphertext"`
+	CipherParams CipherParams `json:"cipherparams"`
 	Cipher       string       `json:"cipher"`
 	Kdf          string       `json:"kdf"`
-	KdfParams    KdfParams    `json:"kdf_params"`
+	KdfParams    KdfParams    `json:"kdfparams"`
 	Mac          string       `json:"mac"`
 }
 
@@ -205,8 +203,8 @@ type CipherParams struct {
 }
 
 type KdfParams struct {
-	DkLen int    `json:"dk_len"`
+	DkLen int    `json:"dklen"`
 	Salt  string `json:"salt"`
-	C     int64  `json:"c"`
+	C     int    `json:"c"`
 	Prf   string `json:"prf"`
 }

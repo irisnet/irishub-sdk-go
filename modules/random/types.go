@@ -75,7 +75,7 @@ func (r rand) Convert() interface{} {
 	}
 }
 
-// RequestService represents a request for a random number
+// ServiceRequest represents a request for a random number
 type request struct {
 	Height   int64          `json:"height"`   // the height of the block in which the request tx is included
 	Consumer sdk.AccAddress `json:"consumer"` // the request address

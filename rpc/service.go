@@ -52,9 +52,9 @@ type ServiceQuery interface {
 	QueryBinding(serviceName string, provider sdk.AccAddress) (ServiceBinding, sdk.Error)
 	QueryBindings(serviceName string) ([]ServiceBinding, sdk.Error)
 
-	QueryRequest(requestID string) (RequestService, sdk.Error)
-	QueryRequests(serviceName string, provider sdk.AccAddress) ([]RequestService, sdk.Error)
-	QueryRequestsByReqCtx(requestContextID string, batchCounter uint64) ([]RequestService, sdk.Error)
+	QueryRequest(requestID string) (ServiceRequest, sdk.Error)
+	QueryRequests(serviceName string, provider sdk.AccAddress) ([]ServiceRequest, sdk.Error)
+	QueryRequestsByReqCtx(requestContextID string, batchCounter uint64) ([]ServiceRequest, sdk.Error)
 
 	QueryResponse(requestID string) (ServiceResponse, sdk.Error)
 	QueryResponses(requestContextID string, batchCounter uint64) ([]ServiceResponse, sdk.Error)
@@ -73,8 +73,8 @@ type ServiceInvokeHandler func(reqCtxID string, responses string)
 type ServiceRespondHandler func(input string) (output string, errMsg string)
 type ServiceRouter map[string]ServiceRespondHandler
 
-// RequestService defines a request which contains the detailed request data
-type RequestService struct {
+// ServiceRequest defines a request which contains the detailed request data
+type ServiceRequest struct {
 	ServiceName                string         `json:"service_name"`
 	Provider                   sdk.AccAddress `json:"provider"`
 	Consumer                   sdk.AccAddress `json:"consumer"`

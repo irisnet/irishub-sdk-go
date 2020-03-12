@@ -23,9 +23,9 @@ type KeystoreInfo struct {
 }
 
 type KeyDAO interface {
-	Write(name string, keystore Store) error
-	Read(name string) (Store, error)
-	Delete(name string) error
+	Write(name string, store Store) error
+	Read(name, password string) (Store, error)
+	Delete(name, password string) error
 }
 
 type KeyManager interface {
@@ -33,12 +33,8 @@ type KeyManager interface {
 	QueryAddress(name, password string) (addr AccAddress, err error)
 	Insert(name, password string) (string, string, error)
 	Recover(name, password, mnemonic string) (string, error)
-}
-
-type Keys interface {
-	Add(name, password string) (address string, mnemonic string, err error)
-	Recover(name, password, mnemonic string) (address string, err error)
-	Import(name, password, keystore string) (address string, err error)
+	Import(name, password string, keystore string) (address string, err error)
 	Export(name, password, encryptKeystorePwd string) (keystore string, err error)
 	Delete(name, password string) error
+	Query(name string) (address string, err error)
 }
