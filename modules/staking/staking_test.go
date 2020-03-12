@@ -149,8 +149,8 @@ func (sts *StakingTestSuite) TestStaking() {
 //	delegator := sts.Sender().String()
 //	d, err := sts.Staking().QueryDelegation(delegator, validator)
 //	require.NoError(sts.T(), err)
-//	require.Equal(sts.T(), validator, d.ValidatorAddr)
-//	require.Equal(sts.T(), delegator, d.DelegatorAddr)
+//	require.EQ(sts.T(), validator, d.ValidatorAddr)
+//	require.EQ(sts.T(), delegator, d.DelegatorAddr)
 //}
 //
 //func (sts *StakingTestSuite) TestQueryQueryDelegations() {
@@ -166,8 +166,8 @@ func (sts *StakingTestSuite) TestStaking() {
 //	delegator := sts.Sender().String()
 //	ubd, err := sts.Staking().QueryUnbondingDelegation(delegator, validator)
 //	require.NoError(sts.T(), err)
-//	require.Equal(sts.T(), validator, ubd.ValidatorAddr)
-//	require.Equal(sts.T(), delegator, ubd.DelegatorAddr)
+//	require.EQ(sts.T(), validator, ubd.ValidatorAddr)
+//	require.EQ(sts.T(), delegator, ubd.DelegatorAddr)
 //}
 //
 //func (sts *StakingTestSuite) TestQueryUnbondingDelegations() {

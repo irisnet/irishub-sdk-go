@@ -53,7 +53,7 @@ func (aa AccAddress) String() string {
 	return bech32Addr
 }
 
-// Returns boolean for whether two AccAddresses are Equal
+// Returns boolean for whether two AccAddresses are EQ
 func (aa AccAddress) Equals(aa2 AccAddress) bool {
 	if aa.Empty() && aa2.Empty() {
 		return true
@@ -145,7 +145,7 @@ func ValAddressFromBech32(address string) (ValAddress, error) {
 	return ValAddress(bz), nil
 }
 
-// Returns boolean for whether two ValAddresses are Equal
+// Returns boolean for whether two ValAddresses are EQ
 func (va ValAddress) Equals(va2 ValAddress) bool {
 	if va.Empty() && va2.Empty() {
 		return true

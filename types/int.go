@@ -161,7 +161,7 @@ func (i Int) Sign() int {
 	return i.i.Sign()
 }
 
-// Equal compares two Ints
+// EQ compares two Ints
 func (i Int) Equal(i2 Int) bool {
 	return equal(i.i, i2.i)
 }
@@ -419,7 +419,7 @@ func (i Uint) Sign() int {
 	return i.i.Sign()
 }
 
-// Equal compares two Uints
+// EQ compares two Uints
 func (i Uint) Equal(i2 Uint) bool {
 	return equal(i.i, i2.i)
 }

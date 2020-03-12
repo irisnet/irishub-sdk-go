@@ -101,12 +101,12 @@ func (b bankClient) SubscribeSendTx(from, to string, callback rpc.EventMsgSendCa
 
 	from = strings.TrimSpace(from)
 	if len(from) != 0 {
-		builder.AddCondition(sdk.Cond(sdk.SenderKey).Equal(sdk.EventValue(from)))
+		builder.AddCondition(sdk.Cond(sdk.SenderKey).EQ(sdk.EventValue(from)))
 	}
 
 	to = strings.TrimSpace(to)
 	if len(to) != 0 {
-		builder.AddCondition(sdk.Cond(sdk.RecipientKey).Equal(sdk.EventValue(to)))
+		builder.AddCondition(sdk.Cond(sdk.RecipientKey).EQ(sdk.EventValue(to)))
 	}
 
 	subscription, _ := b.SubscribeTx(builder, func(data sdk.EventDataTx) {

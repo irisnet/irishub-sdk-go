@@ -144,9 +144,9 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest,
 		return requestContextID, nil
 	}
 	builder := sdk.NewEventQueryBuilder().
-		AddCondition(sdk.Cond(sdk.ActionKey).Equal(tagRespondService)).
-		AddCondition(sdk.Cond(tagConsumer).Equal(sdk.EventValue(consumer.String()))).
-		AddCondition(sdk.Cond(tagServiceName).Equal(sdk.EventValue(request.ServiceName)))
+		AddCondition(sdk.Cond(sdk.ActionKey).EQ(tagRespondService)).
+		AddCondition(sdk.Cond(tagConsumer).EQ(sdk.EventValue(consumer.String()))).
+		AddCondition(sdk.Cond(tagServiceName).EQ(sdk.EventValue(request.ServiceName)))
 
 	var subscription sdk.Subscription
 	subscription, err = s.SubscribeTx(builder, func(tx sdk.EventDataTx) {
