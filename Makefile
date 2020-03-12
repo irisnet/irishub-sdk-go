@@ -8,6 +8,5 @@ format:
 
 test_unit:
 	cd test/scripts/ && sh build.sh && sh start.sh
-	sleep 5s
 	@go test -p 1 $(PACKAGES)
-	sh clean.sh
+	cd test/scripts/ && sh clean.sh
