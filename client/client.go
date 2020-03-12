@@ -3,6 +3,8 @@ package client
 import (
 	"fmt"
 
+	"github.com/irisnet/irishub-sdk-go/modules/keys"
+
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/distribution"
 	"github.com/irisnet/irishub-sdk-go/modules/gov"
@@ -44,6 +46,7 @@ func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
 		gov.Create(abstClient),
 		slashing.Create(abstClient),
 		random.Create(abstClient),
+		keys.Create(abstClient.KeyManager),
 	)
 
 	return *client
@@ -90,4 +93,8 @@ func (s *SDKClient) Slashing() rpc.Slashing {
 
 func (s *SDKClient) Random() rpc.Random {
 	return s.modules[random.ModuleName].(rpc.Random)
+}
+
+func (s *SDKClient) Keys() rpc.Keys {
+	return s.modules[keys.ModuleName].(rpc.Keys)
 }

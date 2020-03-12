@@ -273,7 +273,6 @@ func (msg MsgUpdateServiceBinding) GetSigners() []sdk.AccAddress {
 
 // MsgSetWithdrawAddress defines a message to set the withdrawal address for a service binding
 type MsgSetWithdrawAddress struct {
-	ServiceName     string         `json:"service_name"`
 	Provider        sdk.AccAddress `json:"provider"`
 	WithdrawAddress sdk.AccAddress `json:"withdraw_address"`
 }
@@ -295,10 +294,6 @@ func (msg MsgSetWithdrawAddress) GetSignBytes() []byte {
 func (msg MsgSetWithdrawAddress) ValidateBasic() error {
 	if len(msg.Provider) == 0 {
 		return errors.New("provider missing")
-	}
-
-	if len(msg.ServiceName) == 0 {
-		return errors.New("service name missing")
 	}
 
 	if len(msg.WithdrawAddress) == 0 {
@@ -742,7 +737,7 @@ type request struct {
 }
 
 func (r request) Convert() interface{} {
-	return rpc.RequestService{
+	return rpc.ServiceRequest{
 		ServiceName:                r.ServiceName,
 		Provider:                   r.Provider,
 		Consumer:                   r.Consumer,
@@ -759,9 +754,9 @@ func (r request) Convert() interface{} {
 type requests []request
 
 func (rs requests) Convert() interface{} {
-	requests := make([]rpc.RequestService, len(rs))
+	requests := make([]rpc.ServiceRequest, len(rs))
 	for _, request := range rs {
-		requests = append(requests, request.Convert().(rpc.RequestService))
+		requests = append(requests, request.Convert().(rpc.ServiceRequest))
 	}
 	return requests
 }

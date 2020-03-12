@@ -1,20 +1,19 @@
 package random_test
 
 import (
-	"testing"
-
 	"github.com/irisnet/irishub-sdk-go/rpc"
+	"testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/irisnet/irishub-sdk-go/sim"
+	"github.com/irisnet/irishub-sdk-go/test"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type RandomTestSuite struct {
 	suite.Suite
-	sim.TestClient
+	test.TestClient
 }
 
 func TestSlashingTestSuite(t *testing.T) {
@@ -22,7 +21,7 @@ func TestSlashingTestSuite(t *testing.T) {
 }
 
 func (rts *RandomTestSuite) SetupTest() {
-	tc := sim.NewClient()
+	tc := test.NewClient()
 	rts.TestClient = tc
 }
 
@@ -37,15 +36,17 @@ func (rts *RandomTestSuite) TestGenerate() {
 	var memory = make(map[string]string, 1)
 	var signal = make(chan int, 0)
 	request := rpc.RandomRequest{
-		BaseTx:        baseTx,
 		BlockInterval: 2,
-		Callback: func(reqID, randomNum string, err error) {
+		Callback: func(reqID, randomNum string, err sdk.Error) {
+			require.NoError(rts.T(), err)
 			require.NoError(rts.T(), err)
 			memory[reqID] = randomNum
 			signal <- 1
 		},
+		Oracle: false,
 	}
-	reqID, err := rts.Random().Generate(request)
+
+	reqID, err := rts.Random().Request(request, baseTx)
 	require.NoError(rts.T(), err)
 	memory[reqID] = ""
 	<-signal

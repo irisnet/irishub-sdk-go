@@ -6,23 +6,22 @@ import (
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
-	"github.com/irisnet/irishub-sdk-go/types"
-	"github.com/pkg/errors"
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type bankClient struct {
-	types.AbstractClient
+	sdk.AbstractClient
 	*log.Logger
 }
 
-func Create(ac types.AbstractClient) rpc.Bank {
+func Create(ac sdk.AbstractClient) rpc.Bank {
 	return bankClient{
 		AbstractClient: ac,
 		Logger:         ac.Logger().With(ModuleName),
 	}
 }
 
-func (b bankClient) RegisterCodec(cdc types.Codec) {
+func (b bankClient) RegisterCodec(cdc sdk.Codec) {
 	registerCodec(cdc)
 }
 
@@ -31,12 +30,16 @@ func (b bankClient) Name() string {
 }
 
 // QueryAccount return account information specified address
-func (b bankClient) QueryAccount(address string) (types.BaseAccount, error) {
-	return b.AbstractClient.QueryAccount(address)
+func (b bankClient) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) {
+	account, err := b.AbstractClient.QueryAccount(address)
+	if err != nil {
+		return sdk.BaseAccount{}, sdk.Wrap(err)
+	}
+	return account, nil
 }
 
 // GetTokenStats return token statistic, including total loose tokens, total burned tokens and total bonded tokens.
-func (b bankClient) QueryTokenStats(tokenID string) (rpc.TokenStats, error) {
+func (b bankClient) QueryTokenStats(tokenID string) (rpc.TokenStats, sdk.Error) {
 	param := struct {
 		TokenId string
 	}{
@@ -45,68 +48,68 @@ func (b bankClient) QueryTokenStats(tokenID string) (rpc.TokenStats, error) {
 
 	var ts tokenStats
 	if err := b.QueryWithResponse("custom/acc/tokenStats", param, &ts); err != nil {
-		return rpc.TokenStats{}, err
+		return rpc.TokenStats{}, sdk.Wrap(err)
 	}
 	return ts.Convert().(rpc.TokenStats), nil
 }
 
 //Send is responsible for transferring tokens from `From` to `to` account
-func (b bankClient) Send(to string, amount types.Coins, baseTx types.BaseTx) (types.Result, error) {
+func (b bankClient) Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	sender, err := b.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("%s not found", baseTx.From))
+		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
 	}
 	in := []Input{
 		NewInput(sender, amount),
 	}
 
-	outAddr, err := types.AccAddressFromBech32(to)
+	outAddr, err := sdk.AccAddressFromBech32(to)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("%s invalid address", to))
+		return sdk.ResultTx{}, sdk.Wrapf(fmt.Sprintf("%s invalid address", to))
 	}
 	out := []Output{
 		NewOutput(outAddr, amount),
 	}
 
 	msg := NewMsgSend(in, out)
-	return b.BuildAndSend([]types.Msg{msg}, baseTx)
+	return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 //Send is responsible for burning some tokens from `From` account
-func (b bankClient) Burn(amount types.Coins, baseTx types.BaseTx) (types.Result, error) {
+func (b bankClient) Burn(amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	sender, err := b.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("%s not found", baseTx.From))
+		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
 	}
 	msg := NewMsgBurn(sender, amount)
-	return b.BuildAndSend([]types.Msg{msg}, baseTx)
+	return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 //Send is responsible for setting memo regexp for your own address, so that you can only receive coins from transactions with the corresponding memo.
-func (b bankClient) SetMemoRegexp(memoRegexp string, baseTx types.BaseTx) (types.Result, error) {
+func (b bankClient) SetMemoRegexp(memoRegexp string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	sender, err := b.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("%s not found", baseTx.From))
+		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
 	}
 	msg := NewMsgSetMemoRegexp(sender, memoRegexp)
-	return b.BuildAndSend([]types.Msg{msg}, baseTx)
+	return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
 //SubscribeSendTx Subscribe MsgSend event and return subscription
-func (b bankClient) SubscribeSendTx(from, to string, callback rpc.EventMsgSendCallback) types.Subscription {
-	var builder = types.NewEventQueryBuilder()
+func (b bankClient) SubscribeSendTx(from, to string, callback rpc.EventMsgSendCallback) sdk.Subscription {
+	var builder = sdk.NewEventQueryBuilder()
 
 	from = strings.TrimSpace(from)
 	if len(from) != 0 {
-		builder.AddCondition(types.SenderKey, types.EventValue(from))
+		builder.AddCondition(sdk.SenderKey, sdk.EventValue(from))
 	}
 
 	to = strings.TrimSpace(to)
 	if len(to) != 0 {
-		builder.AddCondition(types.RecipientKey, types.EventValue(to))
+		builder.AddCondition(sdk.RecipientKey, sdk.EventValue(to))
 	}
 
-	subscription, _ := b.SubscribeTx(builder, func(data types.EventDataTx) {
+	subscription, _ := b.SubscribeTx(builder, func(data sdk.EventDataTx) {
 		for _, msg := range data.Tx.Msgs {
 			if value, ok := msg.(MsgSend); ok {
 				for i, m := range value.Inputs {

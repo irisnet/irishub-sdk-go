@@ -17,6 +17,7 @@ type TxContext struct {
 	Network       Network
 	Mode          BroadcastMode
 	Simulate      bool
+	Password      string
 	KeyManager    KeyManager
 }
 
@@ -89,6 +90,12 @@ func (txCtx *TxContext) WithMode(mode BroadcastMode) *TxContext {
 // WithRPC returns a pointer of the context with a simulate.
 func (txCtx *TxContext) WithSimulate(simulate bool) *TxContext {
 	txCtx.Simulate = simulate
+	return txCtx
+}
+
+// WithRPC returns a pointer of the context with a password.
+func (txCtx *TxContext) WithPassword(password string) *TxContext {
+	txCtx.Password = password
 	return txCtx
 }
 

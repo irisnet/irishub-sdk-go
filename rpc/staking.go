@@ -5,30 +5,33 @@ import (
 )
 
 type StakingTx interface {
-	Delegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.Result, error)
-	Undelegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.Result, error)
-	Redelegate(srcValAddr, dstValAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.Result, error)
+	Delegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	Undelegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	Redelegate(srcValAddr,
+		dstValAddr string,
+		amount sdk.Coin,
+		baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 }
 
 type StakingQueries interface {
-	QueryDelegation(delAddr, valAddr string) (Delegation, error)
-	QueryDelegations(delAddr string) (Delegations, error)
+	QueryDelegation(delAddr, valAddr string) (Delegation, sdk.Error)
+	QueryDelegations(delAddr string) (Delegations, sdk.Error)
 
-	QueryUnbondingDelegation(delAddr, valAddr string) (UnbondingDelegation, error)
-	QueryUnbondingDelegations(delAddr string) (UnbondingDelegations, error)
+	QueryUnbondingDelegation(delAddr, valAddr string) (UnbondingDelegation, sdk.Error)
+	QueryUnbondingDelegations(delAddr string) (UnbondingDelegations, sdk.Error)
 
-	QueryRedelegation(delAddr, srcValAddr, dstValAddr string) (Redelegation, error)
-	QueryRedelegations(delAddr string) (Redelegations, error)
+	QueryRedelegation(delAddr, srcValAddr, dstValAddr string) (Redelegation, sdk.Error)
+	QueryRedelegations(delAddr string) (Redelegations, sdk.Error)
 
-	QueryDelegationsTo(valAddr string) (Delegations, error)
-	QueryUnbondingDelegationsFrom(valAddr string) (UnbondingDelegations, error)
-	QueryRedelegationsFrom(valAddr string) (Redelegations, error)
+	QueryDelegationsTo(valAddr string) (Delegations, sdk.Error)
+	QueryUnbondingDelegationsFrom(valAddr string) (UnbondingDelegations, sdk.Error)
+	QueryRedelegationsFrom(valAddr string) (Redelegations, sdk.Error)
 
-	QueryValidator(address string) (Validator, error)
-	QueryValidators(page uint64, size uint16) (Validators, error)
+	QueryValidator(address string) (Validator, sdk.Error)
+	QueryValidators(page uint64, size uint16) (Validators, sdk.Error)
 
-	QueryPool() (StakePool, error)
-	QueryParams() (StakeParams, error)
+	QueryPool() (StakePool, sdk.Error)
+	QueryParams() (StakeParams, sdk.Error)
 }
 
 type StakingSubscriber interface {

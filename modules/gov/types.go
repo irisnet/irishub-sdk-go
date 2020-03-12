@@ -229,7 +229,7 @@ func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgVote{}, "irishub/gov/MsgVote")
 
 	registerCodecForProposal(cdc)
-	cdc.RegisterConcrete(&vote{}, "irishub/gov/vote")
+	cdc.RegisterConcrete(&vote{}, "irishub/gov/Vote")
 }
 
 func registerCodecForProposal(cdc sdk.Codec) {

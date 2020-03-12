@@ -7,13 +7,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/irisnet/irishub-sdk-go/sim"
+	"github.com/irisnet/irishub-sdk-go/test"
 	"github.com/irisnet/irishub-sdk-go/types"
 )
 
 type BankTestSuite struct {
 	suite.Suite
-	sim.TestClient
+	test.TestClient
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -21,7 +21,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (bts *BankTestSuite) SetupTest() {
-	tc := sim.NewClient()
+	tc := test.NewClient()
 	bts.TestClient = tc
 }
 
@@ -57,7 +57,7 @@ func (bts BankTestSuite) TestSend() {
 
 	result, err := bts.Bank().Send(to, coins, baseTx)
 	require.NoError(bts.T(), err)
-	require.True(bts.T(), result.IsSuccess())
+	require.NotEmpty(bts.T(), result.Hash)
 
 	toAccAfter, err := bts.Bank().QueryAccount(to)
 	require.NoError(bts.T(), err)
@@ -79,7 +79,7 @@ func (bts BankTestSuite) TestBurn() {
 	}
 	result, err := bts.Bank().Burn(coins, baseTx)
 	require.NoError(bts.T(), err)
-	require.True(bts.T(), result.IsSuccess())
+	require.NotEmpty(bts.T(), result.Hash)
 }
 
 func (bts BankTestSuite) TestSetMemoRegexp() {
@@ -91,7 +91,7 @@ func (bts BankTestSuite) TestSetMemoRegexp() {
 	}
 	result, err := bts.Bank().SetMemoRegexp("testMemo", baseTx)
 	require.NoError(bts.T(), err)
-	require.True(bts.T(), result.IsSuccess())
+	require.NotEmpty(bts.T(), result.Hash)
 
 	acc, err := bts.Bank().QueryAccount(bts.Sender().String())
 	require.NoError(bts.T(), err)

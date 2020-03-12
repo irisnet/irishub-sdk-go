@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	ModuleName   = "random"
-	TagRequestID = "request-id"
+	ModuleName          = "random"
+	tagRequestID        = "request-id"
+	tagRequestContextID = "request-context-id"
 )
 
 var (
@@ -28,8 +29,10 @@ func init() {
 
 // MsgRequestRand represents a msg for requesting a random number
 type MsgRequestRand struct {
-	Consumer      sdk.AccAddress `json:"consumer"`       // request address
-	BlockInterval uint64         `json:"block-interval"` // block interval after which the requested random number will be generated
+	Consumer      sdk.AccAddress `json:"consumer"`        // request address
+	BlockInterval uint64         `json:"block_interval"`  // block interval after which the requested random number will be generated
+	Oracle        bool           `json:"oracle"`          // oracle method
+	ServiceFeeCap sdk.Coins      `json:"service_fee_cap"` // service fee cap
 }
 
 // Implements Msg.
@@ -68,25 +71,29 @@ type rand struct {
 }
 
 func (r rand) Convert() interface{} {
-	return rpc.RandomInfo{
+	return rpc.ResponseRandom{
 		RequestTxHash: cmn.HexBytes(r.RequestTxHash).String(),
 		Height:        r.Height,
-		RandomNum:     r.Value,
+		Value:         r.Value,
 	}
 }
 
-// RequestService represents a request for a random number
+// ServiceRequest represents a request for a random number
 type request struct {
-	Height   int64          `json:"height"`   // the height of the block in which the request tx is included
-	Consumer sdk.AccAddress `json:"consumer"` // the request address
-	TxHash   []byte         `json:"txhash"`   // the request tx hash
+	Height        int64          `json:"height"`          // the height of the block in which the request tx is included
+	Consumer      sdk.AccAddress `json:"consumer"`        // the request address
+	TxHash        []byte         `json:"txhash"`          // the request tx hash
+	Oracle        bool           `json:"oracle"`          // oracle method
+	ServiceFeeCap sdk.Coins      `json:"service_fee_cap"` // service fee cap
 }
 
 func (r request) Convert() interface{} {
 	return rpc.RequestRandom{
-		Height:   r.Height,
-		Consumer: r.Consumer.String(),
-		TxHash:   cmn.HexBytes(r.TxHash).String(),
+		Height:        r.Height,
+		Consumer:      r.Consumer.String(),
+		TxHash:        cmn.HexBytes(r.TxHash).String(),
+		Oracle:        r.Oracle,
+		ServiceFeeCap: r.ServiceFeeCap,
 	}
 }
 

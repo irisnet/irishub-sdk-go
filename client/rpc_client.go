@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"os/user"
 
+	"github.com/irisnet/irishub-sdk-go/tools/uuid"
 	"github.com/pkg/errors"
 
 	abcitypes "github.com/tendermint/tendermint/abci/types"
@@ -59,7 +59,7 @@ func (r rpcClient) SubscribeNewBlock(callback sdk.EventNewBlockCallback) (sdk.Su
 //SubscribeNewBlock implement WSClient interface
 func (r rpcClient) SubscribeNewBlockWithQuery(builder *sdk.EventQueryBuilder, callback sdk.EventNewBlockCallback) (sdk.Subscription, error) {
 	ctx := context.Background()
-	subscriber := getSubscriberID()
+	subscriber := getSubscriber()
 	if builder == nil {
 		builder = sdk.NewEventQueryBuilder()
 	}
@@ -107,7 +107,7 @@ func (r rpcClient) SubscribeNewBlockWithQuery(builder *sdk.EventQueryBuilder, ca
 //SubscribeTx implement WSClient interface
 func (r rpcClient) SubscribeTx(builder *sdk.EventQueryBuilder, callback sdk.EventTxCallback) (sdk.Subscription, error) {
 	ctx := context.Background()
-	subscriber := getSubscriberID()
+	subscriber := getSubscriber()
 	query := builder.AddCondition(sdk.TypeKey, sdk.TxValue).Build()
 	r.start()
 	ch, err := r.Subscribe(ctx, subscriber, query, 0)
@@ -145,7 +145,7 @@ func (r rpcClient) SubscribeTx(builder *sdk.EventQueryBuilder, callback sdk.Even
 
 func (r rpcClient) SubscribeNewBlockHeader(callback sdk.EventNewBlockHeaderCallback) (sdk.Subscription, error) {
 	ctx := context.Background()
-	subscriber := getSubscriberID()
+	subscriber := getSubscriber()
 	query := tmtypes.QueryForEvent(tmtypes.EventNewBlockHeader).String()
 	r.start()
 	ch, err := r.Subscribe(ctx, subscriber, query, 0)
@@ -174,7 +174,7 @@ func (r rpcClient) SubscribeNewBlockHeader(callback sdk.EventNewBlockHeaderCallb
 
 func (r rpcClient) SubscribeValidatorSetUpdates(callback sdk.EventValidatorSetUpdatesCallback) (sdk.Subscription, error) {
 	ctx := context.Background()
-	subscriber := getSubscriberID()
+	subscriber := getSubscriber()
 	query := tmtypes.QueryForEvent(tmtypes.EventValidatorSetUpdates).String()
 	r.start()
 	ch, err := r.Subscribe(ctx, subscriber, query, 0)
@@ -198,12 +198,13 @@ func (r rpcClient) Unscribe(subscription sdk.Subscription) error {
 	return r.Client.Unsubscribe(subscription.Ctx, subscription.ID, subscription.Query)
 }
 
-func getSubscriberID() string {
-	u, err := user.Current()
-	if err != nil {
-		return "IRISHUB-SDK"
+func getSubscriber() string {
+	subscriber := "irishub-sdk-go"
+	id, err := uuid.NewV1()
+	if err == nil {
+		subscriber = fmt.Sprintf("%s-%s", subscriber, id.String())
 	}
-	return fmt.Sprintf("subscriber-%s", u.Uid)
+	return subscriber
 }
 
 func parseValidatorUpdate(vp abcitypes.ValidatorUpdates) (validatorUpdates []sdk.ValidatorUpdate) {

@@ -6,29 +6,32 @@ import (
 
 type Random interface {
 	sdk.Module
-	Generate(request RandomRequest) (reqID string, err error)
-	QueryRandom(reqID string) (RandomInfo, error)
-	QueryRequests(height int64) ([]RequestRandom, error)
+	Request(request RandomRequest, baseTx sdk.BaseTx) (reqID string, err sdk.Error)
+	QueryRandom(reqID string) (ResponseRandom, sdk.Error)
+	QueryRequests(height int64) ([]RequestRandom, sdk.Error)
 }
 
 type RandomRequest struct {
-	sdk.BaseTx
-	BlockInterval uint64
-	Callback      EventGenerateRandomCallback
+	BlockInterval uint64    `json:"block_interval"`  // block interval after which the requested random number will be generated
+	Oracle        bool      `json:"oracle"`          // oracle method
+	ServiceFeeCap sdk.Coins `json:"service_fee_cap"` // service fee cap
+	Callback      EventRequestRandomCallback
 }
 
-type EventGenerateRandomCallback func(reqID, randomNum string, err error)
+type EventRequestRandomCallback func(reqID, randomNum string, err sdk.Error)
 
-// Rand represents a random number with related data
-type RandomInfo struct {
+// ResponseRandom represents a random number with related data
+type ResponseRandom struct {
 	RequestTxHash string `json:"request_tx_hash"` // the original request tx hash
 	Height        int64  `json:"height"`          // the height of the block used to generate the random number
-	RandomNum     string `json:"random_num"`      // the actual random number
+	Value         string `json:"value"`           // the actual random number
 }
 
 // RequestRandom represents a request for a random number
 type RequestRandom struct {
-	Height   int64  `json:"height"`   // the height of the block in which the request tx is included
-	Consumer string `json:"consumer"` // the request address
-	TxHash   string `json:"tx_hash"`  // the request tx hash
+	Height        int64     `json:"height"`          // the height of the block in which the request tx is included
+	Consumer      string    `json:"consumer"`        // the request address
+	TxHash        string    `json:"tx_hash"`         // the request tx hash
+	Oracle        bool      `json:"oracle"`          // oracle method
+	ServiceFeeCap sdk.Coins `json:"service_fee_cap"` // service fee cap
 }

@@ -10,14 +10,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/irisnet/irishub-sdk-go/sim"
+	"github.com/irisnet/irishub-sdk-go/test"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type OracleTestSuite struct {
 	suite.Suite
-	sim.TestClient
+	test.TestClient
 	*log.Logger
 	serviceName string
 	baseTx      sdk.BaseTx
@@ -28,7 +28,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (ots *OracleTestSuite) SetupTest() {
-	ots.TestClient = sim.NewClient()
+	ots.TestClient = test.NewClient()
 	ots.Logger = log.NewLogger("info")
 }
 
@@ -46,7 +46,6 @@ func (ots *OracleTestSuite) SetupService() {
 	}
 
 	definition := rpc.ServiceDefinitionRequest{
-		BaseTx:            baseTx,
 		ServiceName:       serviceName,
 		Description:       "this is a test service",
 		Tags:              nil,
@@ -54,20 +53,19 @@ func (ots *OracleTestSuite) SetupService() {
 		Schemas:           schemas,
 	}
 
-	result, err := ots.Service().DefineService(definition)
+	result, err := ots.Service().DefineService(definition, baseTx)
 	require.NoError(ots.T(), err)
-	require.True(ots.T(), result.IsSuccess())
+	require.NotEmpty(ots.T(), result.Hash)
 
 	deposit, _ := sdk.ParseCoins("20000000000000000000000iris-atto")
 	binding := rpc.ServiceBindingRequest{
-		BaseTx:      baseTx,
 		ServiceName: definition.ServiceName,
 		Deposit:     deposit,
 		Pricing:     pricing,
 	}
-	result, err = ots.Service().BindService(binding)
+	result, err = ots.Service().BindService(binding, baseTx)
 	require.NoError(ots.T(), err)
-	require.True(ots.T(), result.IsSuccess())
+	require.NotEmpty(ots.T(), result.Hash)
 
 	err = ots.Service().RegisterSingleServiceListener(serviceName,
 		func(input string) (string, string) {
@@ -109,14 +107,14 @@ func (ots *OracleTestSuite) TestFeed() {
 	}
 	result, err := ots.Oracle().CreateFeed(createFeedReq)
 	require.NoError(ots.T(), err)
-	require.True(ots.T(), result.IsSuccess())
+	require.NotEmpty(ots.T(), result.Hash)
 
 	_, err = ots.Oracle().QueryFeed(feedName)
 	require.NoError(ots.T(), err)
 
 	result, err = ots.Oracle().StartFeed(feedName, ots.baseTx)
 	require.NoError(ots.T(), err)
-	require.True(ots.T(), result.IsSuccess())
+	require.NotEmpty(ots.T(), result.Hash)
 
 	for {
 		result, err := ots.Oracle().QueryFeedValue(feedName)
@@ -135,13 +133,4 @@ func generateServiceName() string {
 
 func generateFeedName(serviceName string) string {
 	return fmt.Sprintf("feed-%s", serviceName)
-}
-
-func execTimer(call func()) *time.Ticker {
-	ticker := time.NewTicker(10 * time.Second)
-	defer ticker.Stop()
-	for range ticker.C {
-		call()
-	}
-	return ticker
 }
