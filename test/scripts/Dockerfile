@@ -1,4 +1,4 @@
-FROM irisnet/irishub:testnet-v0.16.0
+FROM irisnet/irishub:develop
 
 COPY . /scripts
 
