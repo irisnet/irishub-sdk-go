@@ -119,7 +119,7 @@ func (sts *ServiceTestSuite) TestService() {
 
 	sts.Info().
 		Str("requestContextID", requestContextID).
-		Msg("RequestService service success")
+		Msg("ServiceRequest service success")
 	require.NoError(sts.T(), err)
 
 	request, err := sts.Service().QueryRequestContext(requestContextID)

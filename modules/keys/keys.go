@@ -28,10 +28,7 @@ func (k keysClient) Recover(name, password, mnemonic string) (string, sdk.Error)
 }
 
 func (k keysClient) Import(name, password, keystore string) (string, sdk.Error) {
-	store := sdk.KeystoreInfo{
-		KeystoreJSON: keystore,
-	}
-	address, err := k.KeyManager.Import(name, password, store)
+	address, err := k.KeyManager.Import(name, password, keystore)
 	return address, sdk.Wrap(err)
 }
 
