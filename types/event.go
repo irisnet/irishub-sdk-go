@@ -202,10 +202,6 @@ func (c *condition) EQ(v EventValue) *condition {
 	return c.fill(v, "=")
 }
 
-func (c *condition) Equal(v EventValue) *condition {
-	return c.fill(v, "=")
-}
-
 func (c *condition) Contains(v EventValue) *condition {
 	return c.fill(v, "CONTAINS")
 }
