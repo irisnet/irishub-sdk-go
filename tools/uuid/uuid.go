@@ -56,7 +56,7 @@ var (
 	NamespaceX500 = Must(FromString("6ba7b814-9dad-11d1-80b4-00c04fd430c8"))
 )
 
-// EQ returns true if u1 and u2 equals, otherwise returns false.
+// Equal returns true if u1 and u2 equals, otherwise returns false.
 func Equal(u1 UUID, u2 UUID) bool {
 	return bytes.Equal(u1[:], u2[:])
 }
