@@ -170,29 +170,68 @@ type EventDataValidatorSetUpdates struct {
 type EventValidatorSetUpdatesCallback func(EventDataValidatorSetUpdates)
 
 //===============EventQueryBuilder for build query string=================
+type Operator uint8
+
+func (o Operator) String() string {
+	switch o {
+	case OpLessEqual:
+		return "<="
+	case OpGreaterEqual:
+		return ">="
+	case OpLess:
+		return "<"
+	case OpGreater:
+		return ">"
+	case OpEqual:
+		return "="
+	case OpContains:
+		return "CONTAINS"
+
+	}
+	panic("invalid operator")
+}
+
+const (
+	// "<="
+	OpLessEqual Operator = iota
+	// ">="
+	OpGreaterEqual
+	// "<"
+	OpLess
+	// ">"
+	OpGreater
+	// "="
+	OpEqual
+	// "CONTAINS"; used to check if a string contains a certain sub string.
+	OpContains
+)
+
+//EventQueryBuilder is responsible for constructing listening conditions
 type EventQueryBuilder struct {
-	params map[EventKey]EventValue
+	conditions []string
 }
 
 func NewEventQueryBuilder() *EventQueryBuilder {
 	return &EventQueryBuilder{
-		params: make(map[EventKey]EventValue),
+		conditions: []string{},
 	}
 }
 
-func (eqb *EventQueryBuilder) AddCondition(eventKey EventKey,
-	value EventValue) *EventQueryBuilder {
-	eqb.params[eventKey] = value
+//Append is responsible for adding listening conditions
+func (eqb *EventQueryBuilder) Append(key EventKey, value EventValue, op Operator) *EventQueryBuilder {
+	condition := fmt.Sprintf("%s %s '%s'", key, op.String(), value)
+	eqb.conditions = append(eqb.conditions, condition)
 	return eqb
 }
 
+//Build is responsible for constructing the listening condition into a listening instruction identified by tendermint
 func (eqb *EventQueryBuilder) Build() string {
 	var buf bytes.Buffer
-	for k, v := range eqb.params {
+	for _, condition := range eqb.conditions {
 		if buf.Len() > 0 {
 			buf.WriteString(" AND ")
 		}
-		buf.WriteString(fmt.Sprintf("%s='%s'", k, v))
+		buf.WriteString(condition)
 	}
 	return buf.String()
 }
