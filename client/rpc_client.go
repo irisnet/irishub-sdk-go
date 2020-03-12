@@ -63,7 +63,7 @@ func (r rpcClient) SubscribeNewBlockWithQuery(builder *sdk.EventQueryBuilder, ca
 	if builder == nil {
 		builder = sdk.NewEventQueryBuilder()
 	}
-	builder.Append(sdk.TypeKey, tmtypes.EventNewBlock, sdk.OpEqual)
+	builder.AddCondition(sdk.NewCondition(sdk.TypeKey, tmtypes.EventNewBlock, sdk.OpEqual))
 	query := builder.Build()
 	r.start()
 	ch, err := r.Subscribe(ctx, subscriber, query, 0)
@@ -108,7 +108,7 @@ func (r rpcClient) SubscribeNewBlockWithQuery(builder *sdk.EventQueryBuilder, ca
 func (r rpcClient) SubscribeTx(builder *sdk.EventQueryBuilder, callback sdk.EventTxCallback) (sdk.Subscription, error) {
 	ctx := context.Background()
 	subscriber := getSubscriber()
-	query := builder.Append(sdk.TypeKey, sdk.TxValue, sdk.OpEqual).Build()
+	query := builder.AddCondition(sdk.NewCondition(sdk.TypeKey, sdk.TxValue, sdk.OpEqual)).Build()
 	r.start()
 	ch, err := r.Subscribe(ctx, subscriber, query, 0)
 	if err != nil {

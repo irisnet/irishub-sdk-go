@@ -206,6 +206,20 @@ const (
 	OpContains
 )
 
+type Condition struct {
+	Key   EventKey
+	Value EventValue
+	Op    Operator
+}
+
+func NewCondition(key EventKey, value EventValue, op Operator) Condition {
+	return Condition{
+		Key:   key,
+		Value: value,
+		Op:    op,
+	}
+}
+
 //EventQueryBuilder is responsible for constructing listening conditions
 type EventQueryBuilder struct {
 	conditions []string
@@ -217,9 +231,9 @@ func NewEventQueryBuilder() *EventQueryBuilder {
 	}
 }
 
-//Append is responsible for adding listening conditions
-func (eqb *EventQueryBuilder) Append(key EventKey, value EventValue, op Operator) *EventQueryBuilder {
-	condition := fmt.Sprintf("%s %s '%s'", key, op.String(), value)
+//AddCondition is responsible for adding listening conditions
+func (eqb *EventQueryBuilder) AddCondition(c Condition) *EventQueryBuilder {
+	condition := fmt.Sprintf("%s %s '%s'", c.Key, c.Op.String(), c.Value)
 	eqb.conditions = append(eqb.conditions, condition)
 	return eqb
 }
