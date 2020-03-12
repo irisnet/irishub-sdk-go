@@ -438,7 +438,7 @@ func (s serviceClient) QueryBindings(serviceName string) ([]rpc.ServiceBinding, 
 }
 
 // QueryRequest returns  the active request of the specified requestID
-func (s serviceClient) QueryRequest(requestID string) (rpc.RequestService, sdk.Error) {
+func (s serviceClient) QueryRequest(requestID string) (rpc.ServiceRequest, sdk.Error) {
 	param := struct {
 		RequestID string
 	}{
@@ -447,13 +447,13 @@ func (s serviceClient) QueryRequest(requestID string) (rpc.RequestService, sdk.E
 
 	var request request
 	if err := s.QueryWithResponse("custom/service/request", param, &request); err != nil {
-		return rpc.RequestService{}, sdk.Wrap(err)
+		return rpc.ServiceRequest{}, sdk.Wrap(err)
 	}
-	return request.Convert().(rpc.RequestService), nil
+	return request.Convert().(rpc.ServiceRequest), nil
 }
 
 // QueryRequest returns all the active requests of the specified service binding
-func (s serviceClient) QueryRequests(serviceName string, provider sdk.AccAddress) ([]rpc.RequestService, sdk.Error) {
+func (s serviceClient) QueryRequests(serviceName string, provider sdk.AccAddress) ([]rpc.ServiceRequest, sdk.Error) {
 	param := struct {
 		ServiceName string
 		Provider    sdk.AccAddress
@@ -466,11 +466,11 @@ func (s serviceClient) QueryRequests(serviceName string, provider sdk.AccAddress
 	if err := s.QueryWithResponse("custom/service/requests", param, &rs); err != nil {
 		return nil, sdk.Wrap(err)
 	}
-	return rs.Convert().([]rpc.RequestService), nil
+	return rs.Convert().([]rpc.ServiceRequest), nil
 }
 
 // QueryRequestsByReqCtx returns all requests of the specified request context ID and batch counter
-func (s serviceClient) QueryRequestsByReqCtx(requestContextID string, batchCounter uint64) ([]rpc.RequestService, sdk.Error) {
+func (s serviceClient) QueryRequestsByReqCtx(requestContextID string, batchCounter uint64) ([]rpc.ServiceRequest, sdk.Error) {
 	param := struct {
 		RequestContextID []byte
 		BatchCounter     uint64
@@ -483,7 +483,7 @@ func (s serviceClient) QueryRequestsByReqCtx(requestContextID string, batchCount
 	if err := s.QueryWithResponse("custom/service/requests_by_ctx", param, &rs); err != nil {
 		return nil, sdk.Wrap(err)
 	}
-	return rs.Convert().([]rpc.RequestService), nil
+	return rs.Convert().([]rpc.ServiceRequest), nil
 }
 
 // QueryResponse returns a response with the speicified request ID

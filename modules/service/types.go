@@ -737,7 +737,7 @@ type request struct {
 }
 
 func (r request) Convert() interface{} {
-	return rpc.RequestService{
+	return rpc.ServiceRequest{
 		ServiceName:                r.ServiceName,
 		Provider:                   r.Provider,
 		Consumer:                   r.Consumer,
@@ -754,9 +754,9 @@ func (r request) Convert() interface{} {
 type requests []request
 
 func (rs requests) Convert() interface{} {
-	requests := make([]rpc.RequestService, len(rs))
+	requests := make([]rpc.ServiceRequest, len(rs))
 	for _, request := range rs {
-		requests = append(requests, request.Convert().(rpc.RequestService))
+		requests = append(requests, request.Convert().(rpc.ServiceRequest))
 	}
 	return requests
 }
