@@ -1,18 +1,19 @@
 package distribution_test
 
 import (
-	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"testing"
+
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/irisnet/irishub-sdk-go/sim"
+	"github.com/irisnet/irishub-sdk-go/test"
 )
 
 type DistrTestSuite struct {
 	suite.Suite
-	sim.TestClient
+	test.TestClient
 }
 
 func TestDistrTestSuite(t *testing.T) {
@@ -20,7 +21,7 @@ func TestDistrTestSuite(t *testing.T) {
 }
 
 func (dts *DistrTestSuite) SetupTest() {
-	tc := sim.NewClient()
+	tc := test.NewClient()
 	dts.TestClient = tc
 }
 

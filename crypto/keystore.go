@@ -10,11 +10,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/irisnet/irishub-sdk-go/tools"
-	"github.com/irisnet/irishub-sdk-go/tools/uuid"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"golang.org/x/crypto/pbkdf2"
+
+	"github.com/irisnet/irishub-sdk-go/tools"
+	"github.com/irisnet/irishub-sdk-go/tools/uuid"
 )
 
 func NewKeyStoreKeyManager(keystore string, auth string) (KeyManager, error) {

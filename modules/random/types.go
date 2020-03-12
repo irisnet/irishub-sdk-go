@@ -71,7 +71,7 @@ func (r rand) Convert() interface{} {
 	return rpc.RandomInfo{
 		RequestTxHash: cmn.HexBytes(r.RequestTxHash).String(),
 		Height:        r.Height,
-		RandomNum:     r.Value,
+		Value:         r.Value,
 	}
 }
 

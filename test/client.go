@@ -1,4 +1,4 @@
-package sim
+package test
 
 import (
 	"io/ioutil"
@@ -106,7 +106,7 @@ func getKeystore() string {
 	}
 	path = filepath.Dir(path)
 	path = strings.TrimRight(path, "modules")
-	path = filepath.Join(path, "scripts/keystore1.json")
+	path = filepath.Join(path, "test/scripts/keystore1.json")
 	bz, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)

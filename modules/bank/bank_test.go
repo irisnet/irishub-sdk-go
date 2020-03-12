@@ -7,13 +7,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/irisnet/irishub-sdk-go/sim"
+	"github.com/irisnet/irishub-sdk-go/test"
 	"github.com/irisnet/irishub-sdk-go/types"
 )
 
 type BankTestSuite struct {
 	suite.Suite
-	sim.TestClient
+	test.TestClient
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -21,7 +21,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (bts *BankTestSuite) SetupTest() {
-	tc := sim.NewClient()
+	tc := test.NewClient()
 	bts.TestClient = tc
 }
 

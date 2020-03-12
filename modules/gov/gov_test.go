@@ -5,12 +5,12 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/irisnet/irishub-sdk-go/sim"
+	"github.com/irisnet/irishub-sdk-go/test"
 )
 
 type GovTestSuite struct {
 	suite.Suite
-	sim.TestClient
+	test.TestClient
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -18,7 +18,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (gts *GovTestSuite) SetupTest() {
-	gts.TestClient = sim.NewClient()
+	gts.TestClient = test.NewClient()
 }
 
 //func (gts *GovTestSuite) TestDeposit() {
