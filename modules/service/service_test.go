@@ -130,20 +130,6 @@ func (sts *ServiceTestSuite) TestService() {
 	<-exit
 }
 
-func (sts *ServiceTestSuite) TestService1() {
-	builder := sdk.NewEventQueryBuilder().
-		Append(sdk.EventKey("provider"), sdk.EventValue("faa18cuw4v08vxzjzy0zw0akxk3kl8d99gj2zxsg4u"), sdk.OpContains).
-		Append(sdk.EventKey("service-name"), sdk.EventValue("price_service"), sdk.OpEqual)
-	fmt.Println(builder.Build())
-	_, _ = sts.SubscribeNewBlockWithQuery(builder, func(block sdk.EventDataNewBlock) {
-		sts.Info().Int64("height", block.Block.Height).
-			Str("tag", block.ResultEndBlock.Tags.String()).
-			Msg("received block")
-	})
-
-	time.Sleep(10 * time.Minute)
-}
-
 func generateServiceName() string {
 	return fmt.Sprintf("service-%d", time.Now().Nanosecond())
 }
