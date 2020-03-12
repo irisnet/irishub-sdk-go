@@ -170,53 +170,64 @@ type EventDataValidatorSetUpdates struct {
 type EventValidatorSetUpdatesCallback func(EventDataValidatorSetUpdates)
 
 //===============EventQueryBuilder for build query string=================
-type Operator uint8
-
-func (o Operator) String() string {
-	switch o {
-	case OpLessEqual:
-		return "<="
-	case OpGreaterEqual:
-		return ">="
-	case OpLess:
-		return "<"
-	case OpGreater:
-		return ">"
-	case OpEqual:
-		return "="
-	case OpContains:
-		return "CONTAINS"
-
-	}
-	panic("invalid operator")
-}
-
-const (
-	// "<="
-	OpLessEqual Operator = iota
-	// ">="
-	OpGreaterEqual
-	// "<"
-	OpLess
-	// ">"
-	OpGreater
-	// "="
-	OpEqual
-	// "CONTAINS"; used to check if a string contains a certain sub string.
-	OpContains
-)
-
 type Condition struct {
-	Key   EventKey
-	Value EventValue
-	Op    Operator
+	key   EventKey
+	value EventValue
+	op    string
 }
 
-func NewCondition(key EventKey, value EventValue, op Operator) Condition {
-	return Condition{
-		Key:   key,
-		Value: value,
-		Op:    op,
+func (c *Condition) LTE(v EventValue) *Condition {
+	c.value = v
+	c.op = "<="
+	return c
+}
+
+func (c *Condition) GTE(v EventValue) *Condition {
+	c.value = v
+	c.op = ">="
+	return c
+}
+
+func (c *Condition) LE(v EventValue) *Condition {
+	c.value = v
+	c.op = "<"
+	return c
+}
+
+func (c *Condition) GE(v EventValue) *Condition {
+	c.value = v
+	c.op = ">"
+	return c
+}
+
+func (c *Condition) EQ(v EventValue) *Condition {
+	c.value = v
+	c.op = "="
+	return c
+}
+
+func (c *Condition) Equal(v EventValue) *Condition {
+	c.value = v
+	c.op = "="
+	return c
+}
+
+func (c *Condition) Contains(v EventValue) *Condition {
+	c.value = v
+	c.op = "CONTAINS"
+	return c
+}
+
+func (c *Condition) String() string {
+	if len(c.key) == 0 || len(c.value) == 0 || len(c.op) == 0 {
+		panic("invalid condition")
+	}
+	return fmt.Sprintf("%s %s '%s'", c.key, c.op, c.value)
+}
+
+func Cond(key EventKey) *Condition {
+	return &Condition{
+		key: key,
 	}
 }
 
@@ -232,9 +243,11 @@ func NewEventQueryBuilder() *EventQueryBuilder {
 }
 
 //AddCondition is responsible for adding listening conditions
-func (eqb *EventQueryBuilder) AddCondition(c Condition) *EventQueryBuilder {
-	condition := fmt.Sprintf("%s %s '%s'", c.Key, c.Op.String(), c.Value)
-	eqb.conditions = append(eqb.conditions, condition)
+func (eqb *EventQueryBuilder) AddCondition(c *Condition) *EventQueryBuilder {
+	if c == nil {
+		panic("invalid condition")
+	}
+	eqb.conditions = append(eqb.conditions, c.String())
 	return eqb
 }
 
