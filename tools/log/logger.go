@@ -1,6 +1,7 @@
 package log
 
 import (
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -57,4 +58,8 @@ func (l *Logger) With(component string) *Logger {
 	logger := *l
 	logger.Logger = logger.Logger.With().Str("component", component).Logger()
 	return &logger
+}
+
+func (l *Logger) SetOutput(w io.Writer) {
+	l.Logger = l.Logger.Output(w)
 }
