@@ -176,45 +176,43 @@ type condition struct {
 	op    string
 }
 
+func Cond(key EventKey) *condition {
+	return &condition{
+		key: key,
+	}
+}
+
 func (c *condition) LTE(v EventValue) *condition {
-	c.value = v
-	c.op = "<="
-	return c
+	return c.fill(v, "<=")
 }
 
 func (c *condition) GTE(v EventValue) *condition {
-	c.value = v
-	c.op = ">="
-	return c
+	return c.fill(v, ">=")
 }
 
 func (c *condition) LE(v EventValue) *condition {
-	c.value = v
-	c.op = "<"
-	return c
+	return c.fill(v, "<")
 }
 
 func (c *condition) GE(v EventValue) *condition {
-	c.value = v
-	c.op = ">"
-	return c
+	return c.fill(v, ">")
 }
 
 func (c *condition) EQ(v EventValue) *condition {
-	c.value = v
-	c.op = "="
-	return c
+	return c.fill(v, "=")
 }
 
 func (c *condition) Equal(v EventValue) *condition {
-	c.value = v
-	c.op = "="
-	return c
+	return c.fill(v, "=")
 }
 
 func (c *condition) Contains(v EventValue) *condition {
+	return c.fill(v, "CONTAINS")
+}
+
+func (c *condition) fill(v EventValue, op string) *condition {
 	c.value = v
-	c.op = "CONTAINS"
+	c.op = op
 	return c
 }
 
@@ -223,12 +221,6 @@ func (c *condition) String() string {
 		panic("invalid condition")
 	}
 	return fmt.Sprintf("%s %s '%s'", c.key, c.op, c.value)
-}
-
-func Cond(key EventKey) *condition {
-	return &condition{
-		key: key,
-	}
 }
 
 //EventQueryBuilder is responsible for constructing listening conditions
