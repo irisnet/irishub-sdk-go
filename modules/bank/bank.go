@@ -1,9 +1,3 @@
-// Package bank is mainly used to transfer coins between accounts,
-//query account balances, and provide common offline transaction signing and broadcasting methods.
-//
-// In addition, the available units of tokens in the IRIShub system are defined using [coin-type](https://www.irisnet.org/docs/concepts/coin-type.html).
-//
-// [More Details](https://www.irisnet.org/docs/features/bank.html)
 package bank
 
 import (
@@ -107,12 +101,12 @@ func (b bankClient) SubscribeSendTx(from, to string, callback rpc.EventMsgSendCa
 
 	from = strings.TrimSpace(from)
 	if len(from) != 0 {
-		builder.AddCondition(sdk.SenderKey, sdk.EventValue(from))
+		builder.AddCondition(sdk.Cond(sdk.SenderKey).EQ(sdk.EventValue(from)))
 	}
 
 	to = strings.TrimSpace(to)
 	if len(to) != 0 {
-		builder.AddCondition(sdk.RecipientKey, sdk.EventValue(to))
+		builder.AddCondition(sdk.Cond(sdk.RecipientKey).EQ(sdk.EventValue(to)))
 	}
 
 	subscription, _ := b.SubscribeTx(builder, func(data sdk.EventDataTx) {

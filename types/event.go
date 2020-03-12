@@ -170,29 +170,83 @@ type EventDataValidatorSetUpdates struct {
 type EventValidatorSetUpdatesCallback func(EventDataValidatorSetUpdates)
 
 //===============EventQueryBuilder for build query string=================
+type condition struct {
+	key   EventKey
+	value EventValue
+	op    string
+}
+
+func Cond(key EventKey) *condition {
+	return &condition{
+		key: key,
+	}
+}
+
+func (c *condition) LTE(v EventValue) *condition {
+	return c.fill(v, "<=")
+}
+
+func (c *condition) GTE(v EventValue) *condition {
+	return c.fill(v, ">=")
+}
+
+func (c *condition) LE(v EventValue) *condition {
+	return c.fill(v, "<")
+}
+
+func (c *condition) GE(v EventValue) *condition {
+	return c.fill(v, ">")
+}
+
+func (c *condition) EQ(v EventValue) *condition {
+	return c.fill(v, "=")
+}
+
+func (c *condition) Contains(v EventValue) *condition {
+	return c.fill(v, "CONTAINS")
+}
+
+func (c *condition) fill(v EventValue, op string) *condition {
+	c.value = v
+	c.op = op
+	return c
+}
+
+func (c *condition) String() string {
+	if len(c.key) == 0 || len(c.value) == 0 || len(c.op) == 0 {
+		panic("invalid condition")
+	}
+	return fmt.Sprintf("%s %s '%s'", c.key, c.op, c.value)
+}
+
+//EventQueryBuilder is responsible for constructing listening conditions
 type EventQueryBuilder struct {
-	params map[EventKey]EventValue
+	conditions []string
 }
 
 func NewEventQueryBuilder() *EventQueryBuilder {
 	return &EventQueryBuilder{
-		params: make(map[EventKey]EventValue),
+		conditions: []string{},
 	}
 }
 
-func (eqb *EventQueryBuilder) AddCondition(eventKey EventKey,
-	value EventValue) *EventQueryBuilder {
-	eqb.params[eventKey] = value
+//AddCondition is responsible for adding listening conditions
+func (eqb *EventQueryBuilder) AddCondition(c *condition) *EventQueryBuilder {
+	if c == nil {
+		panic("invalid condition")
+	}
+	eqb.conditions = append(eqb.conditions, c.String())
 	return eqb
 }
 
+//Build is responsible for constructing the listening condition into a listening instruction identified by tendermint
 func (eqb *EventQueryBuilder) Build() string {
 	var buf bytes.Buffer
-	for k, v := range eqb.params {
+	for _, condition := range eqb.conditions {
 		if buf.Len() > 0 {
 			buf.WriteString(" AND ")
 		}
-		buf.WriteString(fmt.Sprintf("%s='%s'", k, v))
+		buf.WriteString(condition)
 	}
 	return buf.String()
 }

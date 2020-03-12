@@ -22,8 +22,7 @@ type abstractClient struct {
 	cdc    sdk.Codec
 }
 
-func createAbstractClient(cdc sdk.Codec, cfg sdk.SDKConfig) *abstractClient {
-	log.Default = log.NewLogger(cfg.Level)
+func createAbstractClient(cdc sdk.Codec, cfg sdk.SDKConfig, logger *log.Logger) *abstractClient {
 	ctx := sdk.TxContext{
 		Codec:      cdc,
 		ChainID:    cfg.ChainID,
@@ -37,7 +36,7 @@ func createAbstractClient(cdc sdk.Codec, cfg sdk.SDKConfig) *abstractClient {
 	ac := abstractClient{
 		TxContext: &ctx,
 		TmClient:  NewRPCClient(cfg.NodeURI, cdc),
-		logger:    log.Default.With("AbstractClient"),
+		logger:    logger,
 		cfg:       cfg,
 		cdc:       cdc,
 	}

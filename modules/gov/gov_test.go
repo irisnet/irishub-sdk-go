@@ -35,7 +35,7 @@ func (gts *GovTestSuite) SetupTest() {
 //
 //	proposal, err := gts.Gov().QueryProposal(proposalID)
 //	require.NoError(gts.T(), err)
-//	require.Equal(gts.T(), proposalID, proposal.GetProposalID())
+//	require.EQ(gts.T(), proposalID, proposal.GetProposalID())
 //
 //	proposals, err := gts.Gov().QueryProposals(rpc.ProposalRequest{
 //		Depositor: gts.Sender().String(),
@@ -61,7 +61,7 @@ func (gts *GovTestSuite) SetupTest() {
 //
 //	vote, err := gts.Gov().QueryVote(proposalID, gts.Sender().String())
 //	require.NoError(gts.T(), err)
-//	require.Equal(gts.T(), proposalID, vote.ProposalID)
+//	require.EQ(gts.T(), proposalID, vote.ProposalID)
 //
 //	votes, err := gts.Gov().QueryVotes(proposalID)
 //	require.NoError(gts.T(), err)

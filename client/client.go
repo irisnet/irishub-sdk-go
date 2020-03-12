@@ -2,6 +2,9 @@ package client
 
 import (
 	"fmt"
+	"io"
+
+	"github.com/irisnet/irishub-sdk-go/tools/log"
 
 	"github.com/irisnet/irishub-sdk-go/modules/keys"
 
@@ -20,6 +23,7 @@ import (
 type SDKClient struct {
 	cdc     sdk.Codec
 	modules map[string]sdk.Module
+	logger  *log.Logger
 
 	sdk.WSClient
 	sdk.TxManager
@@ -29,12 +33,16 @@ func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
 	cdc := sdk.NewAminoCodec()
 	sdk.SetNetwork(cfg.Network)
 
-	abstClient := createAbstractClient(cdc, cfg)
+	//create logger
+	log.Default = log.NewLogger(cfg.Level)
+
+	abstClient := createAbstractClient(cdc, cfg, log.Default)
 	client := &SDKClient{
 		cdc:       cdc,
 		modules:   make(map[string]sdk.Module),
 		WSClient:  abstClient.TmClient,
 		TxManager: abstClient,
+		logger:    log.Default,
 	}
 
 	client.registerModule(
@@ -97,4 +105,8 @@ func (s *SDKClient) Random() rpc.Random {
 
 func (s *SDKClient) Keys() rpc.Keys {
 	return s.modules[keys.ModuleName].(rpc.Keys)
+}
+
+func (s *SDKClient) SetOutput(w io.Writer) {
+	s.logger.SetOutput(w)
 }
