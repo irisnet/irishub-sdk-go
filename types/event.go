@@ -170,63 +170,63 @@ type EventDataValidatorSetUpdates struct {
 type EventValidatorSetUpdatesCallback func(EventDataValidatorSetUpdates)
 
 //===============EventQueryBuilder for build query string=================
-type Condition struct {
+type condition struct {
 	key   EventKey
 	value EventValue
 	op    string
 }
 
-func (c *Condition) LTE(v EventValue) *Condition {
+func (c *condition) LTE(v EventValue) *condition {
 	c.value = v
 	c.op = "<="
 	return c
 }
 
-func (c *Condition) GTE(v EventValue) *Condition {
+func (c *condition) GTE(v EventValue) *condition {
 	c.value = v
 	c.op = ">="
 	return c
 }
 
-func (c *Condition) LE(v EventValue) *Condition {
+func (c *condition) LE(v EventValue) *condition {
 	c.value = v
 	c.op = "<"
 	return c
 }
 
-func (c *Condition) GE(v EventValue) *Condition {
+func (c *condition) GE(v EventValue) *condition {
 	c.value = v
 	c.op = ">"
 	return c
 }
 
-func (c *Condition) EQ(v EventValue) *Condition {
+func (c *condition) EQ(v EventValue) *condition {
 	c.value = v
 	c.op = "="
 	return c
 }
 
-func (c *Condition) Equal(v EventValue) *Condition {
+func (c *condition) Equal(v EventValue) *condition {
 	c.value = v
 	c.op = "="
 	return c
 }
 
-func (c *Condition) Contains(v EventValue) *Condition {
+func (c *condition) Contains(v EventValue) *condition {
 	c.value = v
 	c.op = "CONTAINS"
 	return c
 }
 
-func (c *Condition) String() string {
+func (c *condition) String() string {
 	if len(c.key) == 0 || len(c.value) == 0 || len(c.op) == 0 {
 		panic("invalid condition")
 	}
 	return fmt.Sprintf("%s %s '%s'", c.key, c.op, c.value)
 }
 
-func Cond(key EventKey) *Condition {
-	return &Condition{
+func Cond(key EventKey) *condition {
+	return &condition{
 		key: key,
 	}
 }
@@ -243,7 +243,7 @@ func NewEventQueryBuilder() *EventQueryBuilder {
 }
 
 //AddCondition is responsible for adding listening conditions
-func (eqb *EventQueryBuilder) AddCondition(c *Condition) *EventQueryBuilder {
+func (eqb *EventQueryBuilder) AddCondition(c *condition) *EventQueryBuilder {
 	if c == nil {
 		panic("invalid condition")
 	}
