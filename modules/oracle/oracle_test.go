@@ -39,10 +39,11 @@ func (ots *OracleTestSuite) SetupService() {
 	serviceName := generateServiceName()
 
 	baseTx := sdk.BaseTx{
-		From: "test1",
-		Gas:  20000,
-		Memo: "test",
-		Mode: sdk.Commit,
+		From:     "test1",
+		Gas:      20000,
+		Memo:     "test",
+		Mode:     sdk.Commit,
+		Password: ots.Password(),
 	}
 
 	definition := rpc.ServiceDefinitionRequest{

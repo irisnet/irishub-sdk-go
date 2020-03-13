@@ -36,10 +36,11 @@ func (sts *ServiceTestSuite) TestService() {
 	pricing := `{"price":[{"denom":"iris-atto","amount":"1000000000000000000"}]}`
 
 	baseTx := sdk.BaseTx{
-		From: "test1",
-		Gas:  20000,
-		Memo: "test",
-		Mode: sdk.Commit,
+		From:     "test1",
+		Gas:      20000,
+		Memo:     "test",
+		Mode:     sdk.Commit,
+		Password: sts.Password(),
 	}
 
 	definition := rpc.ServiceDefinitionRequest{

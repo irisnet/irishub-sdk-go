@@ -33,10 +33,11 @@ func (dts *DistrTestSuite) TestQueryRewards() {
 
 func (dts *DistrTestSuite) TestSetWithdrawAddr() {
 	baseTx := sdk.BaseTx{
-		From: "test1",
-		Gas:  20000,
-		Memo: "test",
-		Mode: sdk.Commit,
+		From:     "test1",
+		Gas:      20000,
+		Memo:     "test",
+		Mode:     sdk.Commit,
+		Password: dts.Password(),
 	}
 
 	rs, err := dts.Distr().SetWithdrawAddr(dts.Sender().String(), baseTx)
@@ -46,10 +47,11 @@ func (dts *DistrTestSuite) TestSetWithdrawAddr() {
 
 func (dts *DistrTestSuite) TestWithdrawRewards() {
 	baseTx := sdk.BaseTx{
-		From: "test1",
-		Gas:  20000,
-		Memo: "test",
-		Mode: sdk.Commit,
+		From:     "test1",
+		Gas:      20000,
+		Memo:     "test",
+		Mode:     sdk.Commit,
+		Password: dts.Password(),
 	}
 
 	rs, err := dts.Distr().WithdrawRewards(true, "", baseTx)

@@ -43,10 +43,11 @@ func (bts BankTestSuite) TestSend() {
 	coins := types.NewCoins(coin)
 	to := "faa1hp29kuh22vpjjlnctmyml5s75evsnsd8r4x0mm"
 	baseTx := types.BaseTx{
-		From: "test1",
-		Gas:  20000,
-		Memo: "test",
-		Mode: types.Commit,
+		From:     "test1",
+		Gas:      20000,
+		Memo:     "test",
+		Mode:     types.Commit,
+		Password: bts.Password(),
 	}
 
 	beforeCoin := types.NewCoins()
@@ -72,10 +73,11 @@ func (bts BankTestSuite) TestBurn() {
 	coin := types.NewCoin("iris-atto", amt)
 	coins := types.NewCoins(coin)
 	baseTx := types.BaseTx{
-		From: "test1",
-		Gas:  20000,
-		Memo: "test",
-		Mode: types.Commit,
+		From:     "test1",
+		Gas:      20000,
+		Memo:     "test",
+		Mode:     types.Commit,
+		Password: bts.Password(),
 	}
 	result, err := bts.Bank().Burn(coins, baseTx)
 	require.NoError(bts.T(), err)
@@ -84,10 +86,11 @@ func (bts BankTestSuite) TestBurn() {
 
 func (bts BankTestSuite) TestSetMemoRegexp() {
 	baseTx := types.BaseTx{
-		From: "test1",
-		Gas:  20000,
-		Memo: "test",
-		Mode: types.Commit,
+		From:     "test1",
+		Gas:      20000,
+		Memo:     "test",
+		Mode:     types.Commit,
+		Password: bts.Password(),
 	}
 	result, err := bts.Bank().SetMemoRegexp("testMemo", baseTx)
 	require.NoError(bts.T(), err)

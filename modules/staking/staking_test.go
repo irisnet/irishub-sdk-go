@@ -26,10 +26,11 @@ func (sts *StakingTestSuite) SetupTest() {
 
 func (sts *StakingTestSuite) TestStaking() {
 	baseTx := sdk.BaseTx{
-		From: "test1",
-		Gas:  20000,
-		Memo: "test",
-		Mode: sdk.Commit,
+		From:     "test1",
+		Gas:      20000,
+		Memo:     "test",
+		Mode:     sdk.Commit,
+		Password: sts.Password(),
 	}
 
 	//test QueryValidators

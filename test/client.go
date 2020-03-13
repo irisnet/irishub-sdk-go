@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/irisnet/irishub-sdk-go/client"
-	"github.com/irisnet/irishub-sdk-go/crypto"
 	"github.com/irisnet/irishub-sdk-go/types"
 )
 
@@ -21,27 +20,14 @@ const (
 	Gas     = 20000
 )
 
-var (
-	priKey string
-	addr   string
-)
-
 type TestClient struct {
 	sender types.AccAddress
 	client.SDKClient
 }
 
 func NewClient() TestClient {
-	keyManager, err := crypto.NewKeyStoreKeyManager(getKeystore(), "11111111")
-	if err != nil {
-		panic(err)
-	}
-
-	priKey, err = keyManager.ExportAsPrivateKey()
-	if err != nil {
-		panic(err)
-	}
-	addr = types.AccAddress(keyManager.GetPrivKey().PubKey().Address()).String()
+	tc := TestClient{}
+	keystore := getKeystore()
 	fees, err := types.ParseCoins(Fee)
 	if err != nil {
 		panic(err)
@@ -59,25 +45,30 @@ func NewClient() TestClient {
 		StoreType: types.Key,
 		Level:     "debug",
 	})
-	return TestClient{
-		SDKClient: c,
-		sender:    types.MustAccAddressFromBech32(addr),
+
+	//init account
+	address, err := c.Keys().Import("test1", tc.Password(), keystore)
+	if err != nil {
+		panic(err)
 	}
+
+	tc.SDKClient = c
+	tc.sender = types.MustAccAddressFromBech32(address)
+	return tc
 }
 
 func (tc TestClient) Sender() types.AccAddress {
 	return tc.sender
 }
 
+func (tc TestClient) Password() string {
+	return "11111111"
+}
+
 func createTestKeyDAO() types.KeyDAO {
 	dao := TestKeyDAO{
 		store: map[string]types.Store{},
 	}
-	keystore := types.KeyInfo{
-		PrivKey: priKey,
-		Address: addr,
-	}
-	_ = dao.Write("test1", keystore)
 	return types.NewKeyDAO(&dao, nil)
 }
 

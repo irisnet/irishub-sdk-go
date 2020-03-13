@@ -103,7 +103,7 @@ func (adapter daoAdapter) Import(name, password string, keystore string) (addres
 	}
 
 	address = types.AccAddress(km.GetPrivKey().PubKey().Address()).String()
-	err = adapter.keyDAO.Write(name, keystore)
+	err = adapter.keyDAO.Write(name, types.KeystoreInfo{Keystore: keystore})
 	return
 }
 

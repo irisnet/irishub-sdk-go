@@ -140,7 +140,7 @@ func (txCtx *TxContext) makeSignature(name string, msg StdSignMsg) (sig StdSigna
 		Sequence:      msg.Sequence,
 	}
 	if !txCtx.Simulate {
-		signature, err := txCtx.KeyManager.Sign(name, "", msg.Bytes(txCtx.Codec))
+		signature, err := txCtx.KeyManager.Sign(name, txCtx.Password, msg.Bytes(txCtx.Codec))
 		if err != nil {
 			return sig, err
 		}

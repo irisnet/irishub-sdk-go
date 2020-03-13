@@ -27,10 +27,11 @@ func (rts *RandomTestSuite) SetupTest() {
 
 func (rts *RandomTestSuite) TestGenerate() {
 	baseTx := sdk.BaseTx{
-		From: "test1",
-		Gas:  20000,
-		Memo: "test",
-		Mode: sdk.Commit,
+		From:     "test1",
+		Gas:      20000,
+		Memo:     "test",
+		Mode:     sdk.Commit,
+		Password: rts.Password(),
 	}
 
 	var memory = make(map[string]string, 1)
