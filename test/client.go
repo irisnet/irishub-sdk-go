@@ -66,28 +66,22 @@ func (tc TestClient) Password() string {
 }
 
 func createTestKeyDAO() types.KeyDAO {
-	dao := TestKeyDAO{
-		store: map[string]types.Store{},
-	}
-
-	return types.NewKeyDAO(&dao, nil)
+	return types.NewKeyDAO(&Memory{}, nil)
 }
 
-type TestKeyDAO struct {
-	store map[string]types.Store
-}
+type Memory map[string]types.Store
 
-func (dao *TestKeyDAO) Write(name string, store types.Store) error {
-	dao.store[name] = store
+func (m Memory) Write(name string, store types.Store) error {
+	m[name] = store
 	return nil
 }
 
-func (dao *TestKeyDAO) Read(name string) (types.Store, error) {
-	return dao.store[name], nil
+func (m Memory) Read(name string) (types.Store, error) {
+	return m[name], nil
 }
 
-func (dao *TestKeyDAO) Delete(name string) error {
-	delete(dao.store, name)
+func (m Memory) Delete(name string) error {
+	delete(m, name)
 	return nil
 }
 
