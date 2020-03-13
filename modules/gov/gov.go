@@ -1,7 +1,3 @@
-// Package gov provides governance functionalities
-//
-// [More Details](https://www.irisnet.org/docs/features/governance.html)
-//
 package gov
 
 import (

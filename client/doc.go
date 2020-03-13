@@ -5,17 +5,7 @@
 //
 // As a quick start:
 //
-// 	keyManager, err := crypto.NewMnemonicKeyManager(mnemonic)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-//
-// 	priKey, err = keyManager.ExportAsPrivateKey()
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	addr = types.AccAddress(keyManager.GetPrivKey().PubKey().Address()).String()
-// 	fees, err := types.ParseCoins(Fee)
+// 	fees, err := types.ParseCoins("1iris")
 // 	if err != nil {
 // 		panic(err)
 // 	}

@@ -8,7 +8,7 @@
 //
 // Transfer coins to other account
 //
-//  client := sim.NewClient()
+//  client := test.NewClient()
 //  amt := types.NewIntWithDecimal(1, 18)
 //  coins := types.NewCoins(types.NewCoin("iris-atto", amt))
 //  to := "faa1hp29kuh22vpjjlnctmyml5s75evsnsd8r4x0mm"
