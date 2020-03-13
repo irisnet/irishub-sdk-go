@@ -13,7 +13,7 @@ import (
 
 type KeysTestSuite struct {
 	suite.Suite
-	test.TestClient
+	test.MockClient
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -21,8 +21,8 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (kts *KeysTestSuite) SetupTest() {
-	tc := test.NewClient()
-	kts.TestClient = tc
+	tc := test.NewMockClient()
+	kts.MockClient = tc
 }
 
 func (kts *KeysTestSuite) TestKeys() {

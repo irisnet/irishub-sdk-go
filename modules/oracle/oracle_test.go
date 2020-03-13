@@ -17,7 +17,7 @@ import (
 
 type OracleTestSuite struct {
 	suite.Suite
-	test.TestClient
+	test.MockClient
 	*log.Logger
 	serviceName string
 	baseTx      sdk.BaseTx
@@ -28,7 +28,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (ots *OracleTestSuite) SetupTest() {
-	ots.TestClient = test.NewClient()
+	ots.MockClient = test.NewMockClient()
 	ots.Logger = log.NewLogger("info")
 }
 
@@ -39,11 +39,11 @@ func (ots *OracleTestSuite) SetupService() {
 	serviceName := generateServiceName()
 
 	baseTx := sdk.BaseTx{
-		From:     "test1",
+		From:     ots.Account().Name,
 		Gas:      20000,
 		Memo:     "test",
 		Mode:     sdk.Commit,
-		Password: ots.Password(),
+		Password: ots.Account().Password,
 	}
 
 	definition := rpc.ServiceDefinitionRequest{
@@ -96,7 +96,7 @@ func (ots *OracleTestSuite) TestFeed() {
 		LatestHistory:     5,
 		Description:       "fetch USDT-CNY ",
 		ServiceName:       ots.serviceName,
-		Providers:         []string{ots.Sender().String()},
+		Providers:         []string{ots.Account().Address.String()},
 		Input:             input,
 		Timeout:           3,
 		ServiceFeeCap:     serviceFeeCap,

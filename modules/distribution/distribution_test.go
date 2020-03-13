@@ -13,7 +13,7 @@ import (
 
 type DistrTestSuite struct {
 	suite.Suite
-	test.TestClient
+	test.MockClient
 }
 
 func TestDistrTestSuite(t *testing.T) {
@@ -21,37 +21,37 @@ func TestDistrTestSuite(t *testing.T) {
 }
 
 func (dts *DistrTestSuite) SetupTest() {
-	tc := test.NewClient()
-	dts.TestClient = tc
+	tc := test.NewMockClient()
+	dts.MockClient = tc
 }
 
 func (dts *DistrTestSuite) TestQueryRewards() {
-	r, err := dts.Distr().QueryRewards(dts.Sender().String())
+	r, err := dts.Distr().QueryRewards(dts.Account().Address.String())
 	require.NoError(dts.T(), err)
 	require.NotEmpty(dts.T(), r)
 }
 
 func (dts *DistrTestSuite) TestSetWithdrawAddr() {
 	baseTx := sdk.BaseTx{
-		From:     "test1",
+		From:     dts.Account().Name,
 		Gas:      20000,
 		Memo:     "test",
 		Mode:     sdk.Commit,
-		Password: dts.Password(),
+		Password: dts.Account().Password,
 	}
 
-	rs, err := dts.Distr().SetWithdrawAddr(dts.Sender().String(), baseTx)
+	rs, err := dts.Distr().SetWithdrawAddr(dts.Account().Address.String(), baseTx)
 	require.NoError(dts.T(), err)
 	require.NotEmpty(dts.T(), rs.Hash)
 }
 
 func (dts *DistrTestSuite) TestWithdrawRewards() {
 	baseTx := sdk.BaseTx{
-		From:     "test1",
+		From:     dts.Account().Name,
 		Gas:      20000,
 		Memo:     "test",
 		Mode:     sdk.Commit,
-		Password: dts.Password(),
+		Password: dts.Account().Password,
 	}
 
 	rs, err := dts.Distr().WithdrawRewards(true, "", baseTx)

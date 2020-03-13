@@ -18,7 +18,7 @@ import (
 
 type ServiceTestSuite struct {
 	suite.Suite
-	test.TestClient
+	test.MockClient
 	*log.Logger
 }
 
@@ -27,7 +27,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (sts *ServiceTestSuite) SetupTest() {
-	sts.TestClient = test.NewClient()
+	sts.MockClient = test.NewMockClient()
 	sts.Logger = log.NewLogger("info")
 }
 
@@ -36,11 +36,11 @@ func (sts *ServiceTestSuite) TestService() {
 	pricing := `{"price":[{"denom":"iris-atto","amount":"1000000000000000000"}]}`
 
 	baseTx := sdk.BaseTx{
-		From:     "test1",
+		From:     sts.Account().Name,
 		Gas:      20000,
 		Memo:     "test",
 		Mode:     sdk.Commit,
-		Password: sts.Password(),
+		Password: sts.Account().Password,
 	}
 
 	definition := rpc.ServiceDefinitionRequest{
@@ -62,7 +62,7 @@ func (sts *ServiceTestSuite) TestService() {
 	require.EqualValues(sts.T(), definition.Tags, defi.Tags)
 	require.Equal(sts.T(), definition.AuthorDescription, defi.AuthorDescription)
 	require.Equal(sts.T(), definition.Schemas, defi.Schemas)
-	require.Equal(sts.T(), sts.Sender(), defi.Author)
+	require.Equal(sts.T(), sts.Account().Address, defi.Author)
 
 	deposit, _ := sdk.ParseCoins("20000000000000000000000iris-atto")
 	binding := rpc.ServiceBindingRequest{
@@ -74,10 +74,10 @@ func (sts *ServiceTestSuite) TestService() {
 	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), result.Hash)
 
-	bindResp, err := sts.Service().QueryBinding(definition.ServiceName, sts.Sender())
+	bindResp, err := sts.Service().QueryBinding(definition.ServiceName, sts.Account().Address)
 	require.NoError(sts.T(), err)
 	require.Equal(sts.T(), binding.ServiceName, bindResp.ServiceName)
-	require.Equal(sts.T(), sts.Sender(), bindResp.Provider)
+	require.Equal(sts.T(), sts.Account().Address, bindResp.Provider)
 	require.Equal(sts.T(), binding.Deposit.String(), bindResp.Deposit.String())
 	require.Equal(sts.T(), binding.Pricing, bindResp.Pricing)
 
@@ -97,7 +97,7 @@ func (sts *ServiceTestSuite) TestService() {
 	serviceFeeCap, _ := sdk.ParseCoins("1000000000000000000iris-atto")
 	invocation := rpc.ServiceInvocationRequest{
 		ServiceName:       definition.ServiceName,
-		Providers:         []string{sts.Sender().String()},
+		Providers:         []string{sts.Account().Address.String()},
 		Input:             input,
 		ServiceFeeCap:     serviceFeeCap,
 		Timeout:           3,

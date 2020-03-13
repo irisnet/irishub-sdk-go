@@ -11,7 +11,7 @@ import (
 
 type SlashingTestSuite struct {
 	suite.Suite
-	test.TestClient
+	test.MockClient
 }
 
 func TestSlashingTestSuite(t *testing.T) {
@@ -19,8 +19,8 @@ func TestSlashingTestSuite(t *testing.T) {
 }
 
 func (sts *SlashingTestSuite) SetupTest() {
-	tc := test.NewClient()
-	sts.TestClient = tc
+	tc := test.NewMockClient()
+	sts.MockClient = tc
 }
 
 func (sts *SlashingTestSuite) TestQueryParams() {

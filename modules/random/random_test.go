@@ -13,7 +13,7 @@ import (
 
 type RandomTestSuite struct {
 	suite.Suite
-	test.TestClient
+	test.MockClient
 }
 
 func TestSlashingTestSuite(t *testing.T) {
@@ -21,17 +21,17 @@ func TestSlashingTestSuite(t *testing.T) {
 }
 
 func (rts *RandomTestSuite) SetupTest() {
-	tc := test.NewClient()
-	rts.TestClient = tc
+	tc := test.NewMockClient()
+	rts.MockClient = tc
 }
 
 func (rts *RandomTestSuite) TestGenerate() {
 	baseTx := sdk.BaseTx{
-		From:     "test1",
+		From:     rts.Account().Name,
 		Gas:      20000,
 		Memo:     "test",
 		Mode:     sdk.Commit,
-		Password: rts.Password(),
+		Password: rts.Account().Password,
 	}
 
 	var memory = make(map[string]string, 1)

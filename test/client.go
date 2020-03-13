@@ -7,76 +7,77 @@ import (
 	"strings"
 
 	"github.com/irisnet/irishub-sdk-go/client"
-	"github.com/irisnet/irishub-sdk-go/types"
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 const (
 	NodeURI = "localhost:26657"
 	ChainID = "test"
 	Online  = true
-	Network = types.Testnet
-	Mode    = types.Commit
+	Network = sdk.Testnet
+	Mode    = sdk.Commit
 	Fee     = "600000000000000000iris-atto"
 	Gas     = 20000
 )
 
-type TestClient struct {
-	sender types.AccAddress
+type MockClient struct {
 	client.SDKClient
+	user MockAccount
 }
 
-func NewClient() TestClient {
-	tc := TestClient{}
-	keystore := getKeystore()
-	fees, err := types.ParseCoins(Fee)
+type MockAccount struct {
+	Name, Password string
+	Address        sdk.AccAddress
+}
+
+func NewMockClient() MockClient {
+	tc := MockClient{
+		user: MockAccount{
+			Name:     "test1",
+			Password: "11111111",
+		},
+	}
+	fees, err := sdk.ParseCoins(Fee)
 	if err != nil {
 		panic(err)
 	}
 
-	c := client.NewSDKClient(types.SDKConfig{
+	c := client.NewSDKClient(sdk.SDKConfig{
 		NodeURI:   NodeURI,
 		Network:   Network,
 		ChainID:   ChainID,
 		Gas:       Gas,
 		Fee:       fees,
-		KeyDAO:    createTestKeyDAO(),
+		KeyDAO:    sdk.NewDefaultKeyDAO(&Memory{}),
 		Mode:      Mode,
 		Online:    Online,
-		StoreType: types.Key,
+		StoreType: sdk.Key,
 		Level:     "debug",
 	})
 
 	//init account
-	address, err := c.Keys().Import("test1", tc.Password(), keystore)
+	keystore := getKeystore()
+	address, err := c.Keys().Import("test1", tc.user.Password, keystore)
 	if err != nil {
 		panic(err)
 	}
 
 	tc.SDKClient = c
-	tc.sender = types.MustAccAddressFromBech32(address)
+	tc.user.Address = sdk.MustAccAddressFromBech32(address)
 	return tc
 }
-
-func (tc TestClient) Sender() types.AccAddress {
-	return tc.sender
+func (tc MockClient) Account() MockAccount {
+	return tc.user
 }
 
-func (tc TestClient) Password() string {
-	return "11111111"
-}
+type Memory map[string]sdk.Store
 
-func createTestKeyDAO() types.KeyDAO {
-	return types.NewKeyDAO(&Memory{}, nil)
-}
-
-type Memory map[string]types.Store
-
-func (m Memory) Write(name string, store types.Store) error {
+func (m Memory) Write(name string, store sdk.Store) error {
 	m[name] = store
 	return nil
 }
 
-func (m Memory) Read(name string) (types.Store, error) {
+func (m Memory) Read(name string) (sdk.Store, error) {
 	return m[name], nil
 }
 

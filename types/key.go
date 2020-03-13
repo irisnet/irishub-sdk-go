@@ -33,23 +33,18 @@ type AccountAccess interface {
 }
 
 type Crypto interface {
-	Encrypt(privKey string, password string) (string, error)
-	Decrypt(privKey string, password string) (string, error)
+	Encrypt(data string, password string) (string, error)
+	Decrypt(data string, password string) (string, error)
 }
 
-type keyDAOImpl struct {
+type defaultKeyDAOImpl struct {
 	AccountAccess
-	Crypto
+	AES
 }
 
-func NewKeyDAO(account AccountAccess, crypto Crypto) KeyDAO {
-	if crypto == nil {
-		//default
-		crypto = AES{}
-	}
-	return keyDAOImpl{
+func NewDefaultKeyDAO(account AccountAccess) KeyDAO {
+	return defaultKeyDAOImpl{
 		AccountAccess: account,
-		Crypto:        crypto,
 	}
 }
 
