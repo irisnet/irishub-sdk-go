@@ -91,7 +91,7 @@ func (adapter daoAdapter) Recover(name, password, mnemonic string) (string, erro
 	return address, err
 }
 
-func (adapter daoAdapter) Import(name, password string, keystore string) (address string, err error) {
+func (adapter daoAdapter) Import(name, password string, keystore string) (string, error) {
 	store, err := adapter.keyDAO.Read(name)
 	if err != nil || store != nil {
 		return "", errors.New(fmt.Sprintf("%s has existed", name))
@@ -101,10 +101,11 @@ func (adapter daoAdapter) Import(name, password string, keystore string) (addres
 	if err != nil {
 		return "", err
 	}
-
-	address = types.AccAddress(km.GetPrivKey().PubKey().Address()).String()
-	err = adapter.keyDAO.Write(name, types.KeystoreInfo{Keystore: keystore})
-	return
+	address, s, err := adapter.apply(km, password)
+	if err != nil {
+		return "", err
+	}
+	return address, adapter.keyDAO.Write(name, s)
 }
 
 func (adapter daoAdapter) Export(name, password, encryptKeystorePwd string) (keystore string, err error) {

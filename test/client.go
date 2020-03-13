@@ -69,6 +69,7 @@ func createTestKeyDAO() types.KeyDAO {
 	dao := TestKeyDAO{
 		store: map[string]types.Store{},
 	}
+
 	return types.NewKeyDAO(&dao, nil)
 }
 
