@@ -32,13 +32,13 @@ func (k keysClient) Import(name, password, keystore string) (string, sdk.Error) 
 	return address, sdk.Wrap(err)
 }
 
-func (k keysClient) Export(name, password, encryptKeystorePwd string) (string, sdk.Error) {
-	keystore, err := k.KeyManager.Export(name, password, encryptKeystorePwd)
+func (k keysClient) Export(name, srcPwd, dstPwd string) (string, sdk.Error) {
+	keystore, err := k.KeyManager.Export(name, srcPwd, dstPwd)
 	return keystore, sdk.Wrap(err)
 }
 
-func (k keysClient) Delete(name, password string) sdk.Error {
-	err := k.KeyManager.Delete(name, password)
+func (k keysClient) Delete(name string) sdk.Error {
+	err := k.KeyManager.Delete(name)
 	return sdk.Wrap(err)
 }
 
@@ -47,7 +47,7 @@ func (k keysClient) Show(name string) (string, sdk.Error) {
 	if err != nil {
 		return "", sdk.Wrap(err)
 	}
-	return address, nil
+	return address.String(), nil
 }
 
 func (k keysClient) RegisterCodec(_ sdk.Codec) {

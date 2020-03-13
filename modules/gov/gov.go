@@ -20,7 +20,7 @@ func Create(ac sdk.AbstractClient) rpc.Gov {
 
 //Deposit is responsible for depositing some tokens for proposal
 func (g govClient) Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	depositor, err := g.QueryAddress(baseTx.From, baseTx.Password)
+	depositor, err := g.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -40,7 +40,7 @@ func (g govClient) Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseT
 
 //Vote is responsible for voting for proposal
 func (g govClient) Vote(proposalID uint64, option rpc.VoteOption, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	voter, err := g.QueryAddress(baseTx.From, baseTx.Password)
+	voter, err := g.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}

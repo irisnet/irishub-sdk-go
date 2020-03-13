@@ -46,7 +46,7 @@ func (d distributionClient) QueryRewards(delegator string) (rpc.Rewards, sdk.Err
 }
 
 func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	delegator, err := d.QueryAddress(baseTx.From, baseTx.Password)
+	delegator, err := d.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -67,7 +67,7 @@ func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.Base
 }
 
 func (d distributionClient) WithdrawRewards(isValidator bool, onlyFromValidator string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	delegator, err := d.QueryAddress(baseTx.From, baseTx.Password)
+	delegator, err := d.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
