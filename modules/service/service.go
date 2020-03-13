@@ -22,7 +22,7 @@ func (s serviceClient) Name() string {
 func Create(ac sdk.AbstractClient) rpc.Service {
 	return serviceClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger().With(ModuleName),
+		Logger:         ac.Logger(),
 	}
 }
 

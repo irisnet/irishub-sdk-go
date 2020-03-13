@@ -26,7 +26,7 @@ type slashingClient struct {
 func Create(ac sdk.AbstractClient) rpc.Slashing {
 	return slashingClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger().With(ModuleName),
+		Logger:         ac.Logger(),
 	}
 }
 

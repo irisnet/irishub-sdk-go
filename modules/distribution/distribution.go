@@ -29,7 +29,7 @@ func (d distributionClient) Name() string {
 func Create(ac sdk.AbstractClient) rpc.Distribution {
 	return distributionClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger().With(ModuleName),
+		Logger:         ac.Logger(),
 	}
 }
 

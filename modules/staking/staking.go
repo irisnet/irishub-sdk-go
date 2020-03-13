@@ -29,7 +29,7 @@ func (s stakingClient) Name() string {
 func Create(ac sdk.AbstractClient) rpc.Staking {
 	return stakingClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger().With(ModuleName),
+		Logger:         ac.Logger(),
 	}
 }
 

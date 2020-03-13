@@ -22,7 +22,7 @@ func (o oracleClient) Name() string {
 func Create(ac sdk.AbstractClient) rpc.Oracle {
 	return oracleClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger().With(ModuleName),
+		Logger:         ac.Logger(),
 	}
 }
 

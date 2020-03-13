@@ -18,7 +18,7 @@ type govClient struct {
 func Create(ac sdk.AbstractClient) rpc.Gov {
 	return govClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger().With(ModuleName),
+		Logger:         ac.Logger(),
 	}
 }
 

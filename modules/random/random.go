@@ -15,7 +15,7 @@ type randomClient struct {
 func Create(ac sdk.AbstractClient) rpc.Random {
 	return randomClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger().With(ModuleName),
+		Logger:         ac.Logger(),
 	}
 }
 

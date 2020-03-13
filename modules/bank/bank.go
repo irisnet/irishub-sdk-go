@@ -17,7 +17,7 @@ type bankClient struct {
 func Create(ac sdk.AbstractClient) rpc.Bank {
 	return bankClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger().With(ModuleName),
+		Logger:         ac.Logger(),
 	}
 }
 
