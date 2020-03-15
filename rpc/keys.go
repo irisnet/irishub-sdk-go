@@ -10,6 +10,6 @@ type Keys interface {
 	Recover(name, password, mnemonic string) (address string, err sdk.Error)
 	Import(name, password, keystore string) (address string, err sdk.Error)
 	Export(name, password, encryptKeystorePwd string) (keystore string, err sdk.Error)
-	Delete(name, password string) sdk.Error
+	Delete(name string) sdk.Error
 	Show(name string) (string, sdk.Error)
 }

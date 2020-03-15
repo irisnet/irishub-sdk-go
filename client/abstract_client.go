@@ -162,15 +162,15 @@ func (ac abstractClient) QueryAccount(address string) (sdk.BaseAccount, error) {
 	return account, nil
 }
 
-func (ac abstractClient) QueryAddress(name, password string) (sdk.AccAddress, error) {
-	return (*ac.TxContext).KeyManager.QueryAddress(name, password)
+func (ac abstractClient) QueryAddress(name string) (sdk.AccAddress, error) {
+	return (*ac.TxContext).KeyManager.Query(name)
 }
 
 func (ac *abstractClient) prepare(baseTx sdk.BaseTx) error {
 	//clear some params
 	ac.reset()
 	if ac.Online {
-		addr, err := ac.QueryAddress(baseTx.From, baseTx.Password)
+		addr, err := ac.QueryAddress(baseTx.From)
 		if err != nil {
 			return err
 		}

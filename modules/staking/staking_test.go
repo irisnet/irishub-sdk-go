@@ -13,7 +13,7 @@ import (
 
 type StakingTestSuite struct {
 	suite.Suite
-	test.TestClient
+	test.MockClient
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -21,15 +21,16 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (sts *StakingTestSuite) SetupTest() {
-	sts.TestClient = test.NewClient()
+	sts.MockClient = test.NewMockClient()
 }
 
 func (sts *StakingTestSuite) TestStaking() {
 	baseTx := sdk.BaseTx{
-		From: "test1",
-		Gas:  20000,
-		Memo: "test",
-		Mode: sdk.Commit,
+		From:     sts.Account().Name,
+		Gas:      20000,
+		Memo:     "test",
+		Mode:     sdk.Commit,
+		Password: sts.Account().Password,
 	}
 
 	//test QueryValidators
@@ -44,7 +45,7 @@ func (sts *StakingTestSuite) TestStaking() {
 	require.NotEmpty(sts.T(), rs.Hash)
 
 	//test QueryDelegation
-	delegator := sts.Sender().String()
+	delegator := sts.Account().Address.String()
 	d, err := sts.Staking().QueryDelegation(delegator, validator)
 	require.NoError(sts.T(), err)
 	require.Equal(sts.T(), validator, d.ValidatorAddr)

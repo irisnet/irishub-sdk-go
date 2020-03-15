@@ -5,17 +5,7 @@
 //
 // As a quick start:
 //
-// 	keyManager, err := crypto.NewMnemonicKeyManager(mnemonic)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-//
-// 	priKey, err = keyManager.ExportAsPrivateKey()
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	addr = types.AccAddress(keyManager.GetPrivKey().PubKey().Address()).String()
-// 	fees, err := types.ParseCoins(Fee)
+// 	fees, err := types.ParseCoins("1iris")
 // 	if err != nil {
 // 		panic(err)
 // 	}
@@ -29,21 +19,21 @@
 // 		KeyDAO:    createTestKeyDAO(),
 // 		Mode:      Mode,
 // 		Online:    Online,
-// 		StoreType: types.Keystore,
+// 		StoreType: types.Key,
 // 		Level:     "debug",
 // 	})
 // KeyDAO is an interface, you need to implement this interface to support the ability of SDK to access external data, such as access to a database
-// 	func createTestKeyDAO() TestKeyDAO {
+// 	func createTestKeyDAO() types.KeyDAO {
 // 		dao := TestKeyDAO{
-// 		store: map[string]types.Store{},
-// 	}
-// 	keystore := types.KeyInfo{
-// 		PrivKey: priKey,
-// 		Address: addr,
-// 	}
-// 	_ = dao.Write("test1", keystore)
-// 		return dao
-// 	}
+// 		     store: map[string]types.Store{},
+// 		}
+// 		keystore := types.KeyInfo{
+// 		 		PrivKey: priKey,
+// 		 		Address: addr,
+// 		}
+// 		_ = dao.Write("test1", keystore)
+// 		return types.NewKeyDAO(&dao,nil)
+//	}
 //
 // 	type TestKeyDAO struct {
 // 		store map[string]types.Store

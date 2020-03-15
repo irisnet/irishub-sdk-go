@@ -14,27 +14,46 @@ var (
 
 type Store interface{}
 type KeyInfo struct {
-	PrivKey  string `json:"priv_key"`
-	Address  string `json:"address"`
-	Password string `json:"password"`
+	PrivKey string `json:"priv_key"`
+	Address string `json:"address"`
 }
 type KeystoreInfo struct {
-	KeystoreJSON string `json:"keystore_json"`
+	Keystore string `json:"keystore"`
 }
 
 type KeyDAO interface {
+	AccountAccess
+	Crypto
+}
+
+type AccountAccess interface {
 	Write(name string, store Store) error
-	Read(name, password string) (Store, error)
-	Delete(name, password string) error
+	Read(name string) (Store, error)
+	Delete(name string) error
+}
+
+type Crypto interface {
+	Encrypt(data string, password string) (string, error)
+	Decrypt(data string, password string) (string, error)
+}
+
+type defaultKeyDAOImpl struct {
+	AccountAccess
+	AES
+}
+
+func NewDefaultKeyDAO(account AccountAccess) KeyDAO {
+	return defaultKeyDAOImpl{
+		AccountAccess: account,
+	}
 }
 
 type KeyManager interface {
 	Sign(name, password string, data []byte) (Signature, error)
-	QueryAddress(name, password string) (addr AccAddress, err error)
 	Insert(name, password string) (string, string, error)
 	Recover(name, password, mnemonic string) (string, error)
 	Import(name, password string, keystore string) (address string, err error)
 	Export(name, password, encryptKeystorePwd string) (keystore string, err error)
-	Delete(name, password string) error
-	Query(name string) (address string, err error)
+	Delete(name string) error
+	Query(name string) (address AccAddress, err error)
 }

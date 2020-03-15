@@ -22,13 +22,13 @@ func (o oracleClient) Name() string {
 func Create(ac sdk.AbstractClient) rpc.Oracle {
 	return oracleClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger().With(ModuleName),
+		Logger:         ac.Logger(),
 	}
 }
 
 //CreateFeed create a stopped feed
 func (o oracleClient) CreateFeed(request rpc.FeedCreateRequest) (sdk.ResultTx, sdk.Error) {
-	creator, err := o.QueryAddress(request.From, request.Password)
+	creator, err := o.QueryAddress(request.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -63,7 +63,7 @@ func (o oracleClient) CreateFeed(request rpc.FeedCreateRequest) (sdk.ResultTx, s
 
 //StartFeed start a stopped feed
 func (o oracleClient) StartFeed(feedName string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	creator, err := o.QueryAddress(baseTx.From, baseTx.Password)
+	creator, err := o.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -77,7 +77,7 @@ func (o oracleClient) StartFeed(feedName string, baseTx sdk.BaseTx) (sdk.ResultT
 
 //CreateAndStartFeed create and start a stopped feed
 func (o oracleClient) CreateAndStartFeed(request rpc.FeedCreateRequest) (sdk.ResultTx, sdk.Error) {
-	creator, err := o.QueryAddress(request.From, request.Password)
+	creator, err := o.QueryAddress(request.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -117,7 +117,7 @@ func (o oracleClient) CreateAndStartFeed(request rpc.FeedCreateRequest) (sdk.Res
 
 //PauseFeed pause a running feed
 func (o oracleClient) PauseFeed(feedName string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	creator, err := o.QueryAddress(baseTx.From, baseTx.Password)
+	creator, err := o.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -131,7 +131,7 @@ func (o oracleClient) PauseFeed(feedName string, baseTx sdk.BaseTx) (sdk.ResultT
 
 //EditFeed edit a feed
 func (o oracleClient) EditFeed(request rpc.FeedEditRequest) (sdk.ResultTx, sdk.Error) {
-	creator, err := o.QueryAddress(request.From, request.Password)
+	creator, err := o.QueryAddress(request.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}

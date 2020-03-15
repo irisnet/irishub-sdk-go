@@ -36,7 +36,7 @@ type Query interface {
 	Query(path string, data interface{}) ([]byte, error)
 	QueryStore(key cmn.HexBytes, storeName string) (res []byte, err error)
 	QueryAccount(address string) (BaseAccount, error)
-	QueryAddress(name, password string) (addr AccAddress, err error)
+	QueryAddress(name string) (addr AccAddress, err error)
 }
 
 type Logger interface {

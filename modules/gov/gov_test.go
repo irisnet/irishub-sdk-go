@@ -10,7 +10,7 @@ import (
 
 type GovTestSuite struct {
 	suite.Suite
-	test.TestClient
+	test.MockClient
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -18,7 +18,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (gts *GovTestSuite) SetupTest() {
-	gts.TestClient = test.NewClient()
+	gts.MockClient = test.NewMockClient()
 }
 
 //func (gts *GovTestSuite) TestDeposit() {

@@ -13,7 +13,7 @@ import (
 
 type BankTestSuite struct {
 	suite.Suite
-	test.TestClient
+	test.MockClient
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -21,12 +21,12 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (bts *BankTestSuite) SetupTest() {
-	tc := test.NewClient()
-	bts.TestClient = tc
+	tc := test.NewMockClient()
+	bts.MockClient = tc
 }
 
 func (bts BankTestSuite) TestGetAccount() {
-	acc, err := bts.Bank().QueryAccount(bts.Sender().String())
+	acc, err := bts.Bank().QueryAccount(bts.Account().Address.String())
 	require.NoError(bts.T(), err)
 	fmt.Printf("%v", acc)
 }
@@ -43,10 +43,11 @@ func (bts BankTestSuite) TestSend() {
 	coins := types.NewCoins(coin)
 	to := "faa1hp29kuh22vpjjlnctmyml5s75evsnsd8r4x0mm"
 	baseTx := types.BaseTx{
-		From: "test1",
-		Gas:  20000,
-		Memo: "test",
-		Mode: types.Commit,
+		From:     bts.Account().Name,
+		Gas:      20000,
+		Memo:     "test",
+		Mode:     types.Commit,
+		Password: bts.Account().Password,
 	}
 
 	beforeCoin := types.NewCoins()
@@ -72,10 +73,11 @@ func (bts BankTestSuite) TestBurn() {
 	coin := types.NewCoin("iris-atto", amt)
 	coins := types.NewCoins(coin)
 	baseTx := types.BaseTx{
-		From: "test1",
-		Gas:  20000,
-		Memo: "test",
-		Mode: types.Commit,
+		From:     bts.Account().Name,
+		Gas:      20000,
+		Memo:     "test",
+		Mode:     types.Commit,
+		Password: bts.Account().Password,
 	}
 	result, err := bts.Bank().Burn(coins, baseTx)
 	require.NoError(bts.T(), err)
@@ -84,16 +86,17 @@ func (bts BankTestSuite) TestBurn() {
 
 func (bts BankTestSuite) TestSetMemoRegexp() {
 	baseTx := types.BaseTx{
-		From: "test1",
-		Gas:  20000,
-		Memo: "test",
-		Mode: types.Commit,
+		From:     bts.Account().Name,
+		Gas:      20000,
+		Memo:     "test",
+		Mode:     types.Commit,
+		Password: bts.Account().Password,
 	}
 	result, err := bts.Bank().SetMemoRegexp("testMemo", baseTx)
 	require.NoError(bts.T(), err)
 	require.NotEmpty(bts.T(), result.Hash)
 
-	acc, err := bts.Bank().QueryAccount(bts.Sender().String())
+	acc, err := bts.Bank().QueryAccount(bts.Account().Address.String())
 	require.NoError(bts.T(), err)
 	require.Equal(bts.T(), "testMemo", acc.MemoRegexp)
 }

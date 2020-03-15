@@ -1,10 +1,3 @@
-// Package distribution is in charge of distributing collected transaction fee and inflated token to all validators and delegators.
-// To reduce computation stress, a lazy distribution strategy is brought in. lazy means that the benefit won't be paid directly to contributors automatically.
-// The contributors are required to explicitly send transactions to withdraw their benefit, otherwise, their benefit will be kept in the global pool.
-//
-// [More Details](https://www.irisnet.org/docs/features/distribution.html)
-//
-//
 package distribution
 
 import (
@@ -29,7 +22,7 @@ func (d distributionClient) Name() string {
 func Create(ac sdk.AbstractClient) rpc.Distribution {
 	return distributionClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger().With(ModuleName),
+		Logger:         ac.Logger(),
 	}
 }
 
@@ -53,7 +46,7 @@ func (d distributionClient) QueryRewards(delegator string) (rpc.Rewards, sdk.Err
 }
 
 func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	delegator, err := d.QueryAddress(baseTx.From, baseTx.Password)
+	delegator, err := d.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -74,7 +67,7 @@ func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.Base
 }
 
 func (d distributionClient) WithdrawRewards(isValidator bool, onlyFromValidator string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	delegator, err := d.QueryAddress(baseTx.From, baseTx.Password)
+	delegator, err := d.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}

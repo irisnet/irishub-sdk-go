@@ -7,95 +7,82 @@ import (
 	"strings"
 
 	"github.com/irisnet/irishub-sdk-go/client"
-	"github.com/irisnet/irishub-sdk-go/crypto"
-	"github.com/irisnet/irishub-sdk-go/types"
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 const (
 	NodeURI = "localhost:26657"
 	ChainID = "test"
 	Online  = true
-	Network = types.Testnet
-	Mode    = types.Commit
+	Network = sdk.Testnet
+	Mode    = sdk.Commit
 	Fee     = "600000000000000000iris-atto"
 	Gas     = 20000
 )
 
-var (
-	priKey string
-	addr   string
-)
-
-type TestClient struct {
-	sender types.AccAddress
+type MockClient struct {
 	client.SDKClient
+	user MockAccount
 }
 
-func NewClient() TestClient {
-	keyManager, err := crypto.NewKeyStoreKeyManager(getKeystore(), "11111111")
+type MockAccount struct {
+	Name, Password string
+	Address        sdk.AccAddress
+}
+
+func NewMockClient() MockClient {
+	tc := MockClient{
+		user: MockAccount{
+			Name:     "test1",
+			Password: "11111111",
+		},
+	}
+	fees, err := sdk.ParseCoins(Fee)
 	if err != nil {
 		panic(err)
 	}
 
-	priKey, err = keyManager.ExportAsPrivateKey()
-	if err != nil {
-		panic(err)
-	}
-	addr = types.AccAddress(keyManager.GetPrivKey().PubKey().Address()).String()
-	fees, err := types.ParseCoins(Fee)
-	if err != nil {
-		panic(err)
-	}
-
-	client := client.NewSDKClient(types.SDKConfig{
+	c := client.NewSDKClient(sdk.SDKConfig{
 		NodeURI:   NodeURI,
 		Network:   Network,
 		ChainID:   ChainID,
 		Gas:       Gas,
 		Fee:       fees,
-		KeyDAO:    createTestKeyDAO(),
+		KeyDAO:    sdk.NewDefaultKeyDAO(&Memory{}),
 		Mode:      Mode,
 		Online:    Online,
-		StoreType: types.Keystore,
+		StoreType: sdk.Key,
 		Level:     "debug",
 	})
-	return TestClient{
-		SDKClient: client,
-		sender:    types.MustAccAddressFromBech32(addr),
+
+	//init account
+	keystore := getKeystore()
+	address, err := c.Keys().Import("test1", tc.user.Password, keystore)
+	if err != nil {
+		panic(err)
 	}
+
+	tc.SDKClient = c
+	tc.user.Address = sdk.MustAccAddressFromBech32(address)
+	return tc
+}
+func (tc MockClient) Account() MockAccount {
+	return tc.user
 }
 
-func (tc TestClient) Sender() types.AccAddress {
-	return tc.sender
-}
+type Memory map[string]sdk.Store
 
-func createTestKeyDAO() *TestKeyDAO {
-	dao := TestKeyDAO{
-		store: map[string]types.Store{},
-	}
-	keystore := types.KeyInfo{
-		PrivKey: priKey,
-		Address: addr,
-	}
-	_ = dao.Write("test1", keystore)
-	return &dao
-}
-
-type TestKeyDAO struct {
-	store map[string]types.Store
-}
-
-func (dao *TestKeyDAO) Write(name string, store types.Store) error {
-	dao.store[name] = store
+func (m Memory) Write(name string, store sdk.Store) error {
+	m[name] = store
 	return nil
 }
 
-func (dao *TestKeyDAO) Read(name, pwd string) (types.Store, error) {
-	return dao.store[name], nil
+func (m Memory) Read(name string) (sdk.Store, error) {
+	return m[name], nil
 }
 
-func (dao *TestKeyDAO) Delete(name, pwd string) error {
-	delete(dao.store, name)
+func (m Memory) Delete(name string) error {
+	delete(m, name)
 	return nil
 }
 

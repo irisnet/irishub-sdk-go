@@ -1,8 +1,3 @@
-//**
-// Package staking provides staking functionalities for validators and delegators
-//
-// [More Details](https://www.irisnet.org/docs/features/stake.html)
-//
 package staking
 
 import (
@@ -29,13 +24,13 @@ func (s stakingClient) Name() string {
 func Create(ac sdk.AbstractClient) rpc.Staking {
 	return stakingClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger().With(ModuleName),
+		Logger:         ac.Logger(),
 	}
 }
 
 //Delegate is responsible for delegating liquid tokens to an validator
 func (s stakingClient) Delegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	delegator, err := s.QueryAddress(baseTx.From, baseTx.Password)
+	delegator, err := s.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -60,7 +55,7 @@ func (s stakingClient) Delegate(valAddr string, amount sdk.Coin, baseTx sdk.Base
 
 //Undelegate is responsible for undelegating from a validator
 func (s stakingClient) Undelegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	delegator, err := s.QueryAddress(baseTx.From, baseTx.Password)
+	delegator, err := s.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -98,7 +93,7 @@ func (s stakingClient) Undelegate(valAddr string, amount sdk.Coin, baseTx sdk.Ba
 //Redelegate is responsible for redelegating illiquid tokens from one validator to another
 func (s stakingClient) Redelegate(srcValidatorAddr,
 	dstValidatorAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	delAddr, err := s.QueryAddress(baseTx.From, baseTx.Password)
+	delAddr, err := s.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}

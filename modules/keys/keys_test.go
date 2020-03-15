@@ -13,7 +13,7 @@ import (
 
 type KeysTestSuite struct {
 	suite.Suite
-	test.TestClient
+	test.MockClient
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -21,8 +21,8 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (kts *KeysTestSuite) SetupTest() {
-	tc := test.NewClient()
-	kts.TestClient = tc
+	tc := test.NewMockClient()
+	kts.MockClient = tc
 }
 
 func (kts *KeysTestSuite) TestKeys() {
@@ -37,19 +37,19 @@ func (kts *KeysTestSuite) TestKeys() {
 	require.NoError(kts.T(), err)
 	require.Equal(kts.T(), address, address1)
 
-	newPwd := "0123456789"
+	newPwd := "01234567891"
 	keystore, err := kts.Keys().Export(name, password, newPwd)
 	require.NoError(kts.T(), err)
 	fmt.Println(keystore)
 
-	err = kts.Keys().Delete(name, newPwd)
+	err = kts.Keys().Delete(name)
 	require.NoError(kts.T(), err)
 
 	address2, err := kts.Keys().Import(name, newPwd, keystore)
 	require.NoError(kts.T(), err)
 	require.Equal(kts.T(), address, address2)
 
-	err = kts.Keys().Delete(name, newPwd)
+	err = kts.Keys().Delete(name)
 	require.NoError(kts.T(), err)
 
 	address3, err := kts.Keys().Recover(name, newPwd, mnemonic)

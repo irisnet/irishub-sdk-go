@@ -1,12 +1,13 @@
 package log
 
 import (
+	"fmt"
+	"github.com/rs/zerolog"
 	"io"
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/rs/zerolog"
+	"time"
 )
 
 var Default *Logger
@@ -18,15 +19,6 @@ func init() {
 type Logger struct {
 	zerolog.Logger
 }
-
-//type CallerHook struct{}
-//
-//func (hook CallerHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
-//	pc := make([]uintptr, 10)
-//	runtime.Callers(5, pc)
-//	f := runtime.FuncForPC(pc[0])
-//	e.Str("method", f.Name())
-//}
 
 func NewLogger(level string) *Logger {
 	l, err := zerolog.ParseLevel(level)
@@ -42,24 +34,36 @@ func NewLogger(level string) *Logger {
 		return fileName + ":" + strconv.Itoa(line)
 	}
 
-	output := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: "2006-01-02 15:04:05.000"}
-	log := zerolog.New(output).
+	log := zerolog.New(prettyWriter(os.Stdout)).
 		Level(l).
 		With().
 		Caller().
 		Timestamp().Logger()
-	//Hook(CallerHook{})
 	return &Logger{
 		log,
 	}
 }
 
-func (l *Logger) With(component string) *Logger {
-	logger := *l
-	logger.Logger = logger.Logger.With().Str("component", component).Logger()
-	return &logger
+func (l *Logger) SetOutput(w io.Writer) {
+	l.Logger = zerolog.New(prettyWriter(w)).
+		Level(l.GetLevel()).
+		With().
+		Timestamp().Logger()
 }
 
-func (l *Logger) SetOutput(w io.Writer) {
-	l.Logger = l.Logger.Output(w)
+func prettyWriter(w io.Writer) io.Writer {
+	output := zerolog.ConsoleWriter{Out: w, TimeFormat: time.RFC3339}
+	output.FormatTimestamp = func(i interface{}) string {
+		return strings.ToUpper(fmt.Sprintf("[%s]", i))
+	}
+	output.FormatLevel = func(i interface{}) string {
+		return strings.ToUpper(fmt.Sprintf("[%s]", i))
+	}
+	output.FormatMessage = func(i interface{}) string {
+		return fmt.Sprintf("****%s****", i)
+	}
+	output.FormatFieldName = func(i interface{}) string {
+		return fmt.Sprintf("[%s]:", i)
+	}
+	return output
 }

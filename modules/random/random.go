@@ -15,7 +15,7 @@ type randomClient struct {
 func Create(ac sdk.AbstractClient) rpc.Random {
 	return randomClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger().With(ModuleName),
+		Logger:         ac.Logger(),
 	}
 }
 
@@ -29,7 +29,7 @@ func (r randomClient) Name() string {
 
 // Request is responsible for requesting a random number and callback `callback`
 func (r randomClient) Request(request rpc.RandomRequest, baseTx sdk.BaseTx) (string, sdk.Error) {
-	consumer, err := r.QueryAddress(baseTx.From, baseTx.Password)
+	consumer, err := r.QueryAddress(baseTx.From)
 	if err != nil {
 		return "", sdk.Wrap(err)
 	}

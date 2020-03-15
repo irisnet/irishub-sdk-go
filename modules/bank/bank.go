@@ -17,7 +17,7 @@ type bankClient struct {
 func Create(ac sdk.AbstractClient) rpc.Bank {
 	return bankClient{
 		AbstractClient: ac,
-		Logger:         ac.Logger().With(ModuleName),
+		Logger:         ac.Logger(),
 	}
 }
 
@@ -55,7 +55,7 @@ func (b bankClient) QueryTokenStats(tokenID string) (rpc.TokenStats, sdk.Error) 
 
 //Send is responsible for transferring tokens from `From` to `to` account
 func (b bankClient) Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	sender, err := b.QueryAddress(baseTx.From, baseTx.Password)
+	sender, err := b.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
 	}
@@ -77,7 +77,7 @@ func (b bankClient) Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Re
 
 //Send is responsible for burning some tokens from `From` account
 func (b bankClient) Burn(amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	sender, err := b.QueryAddress(baseTx.From, baseTx.Password)
+	sender, err := b.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
 	}
@@ -87,7 +87,7 @@ func (b bankClient) Burn(amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk
 
 //Send is responsible for setting memo regexp for your own address, so that you can only receive coins from transactions with the corresponding memo.
 func (b bankClient) SetMemoRegexp(memoRegexp string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	sender, err := b.QueryAddress(baseTx.From, baseTx.Password)
+	sender, err := b.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
 	}
