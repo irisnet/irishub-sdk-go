@@ -38,11 +38,8 @@ func (bts BankTestSuite) TestGetTokenStats() {
 }
 
 func (bts BankTestSuite) TestSend() {
-	//amt := types.NewIntWithDecimal(1, 18)
-	amt, err := types.NewDecFromStr("0.1")
+	coins, err := types.ParseDecCoins("0.1iris")
 	require.NoError(bts.T(), err)
-	coin := types.NewDecCoinFromDec("iris", amt)
-	coins := types.NewDecCoins(coin)
 	to := "faa1hp29kuh22vpjjlnctmyml5s75evsnsd8r4x0mm"
 	baseTx := types.BaseTx{
 		From:     bts.Account().Name,
@@ -52,22 +49,9 @@ func (bts BankTestSuite) TestSend() {
 		Password: bts.Account().Password,
 	}
 
-	//beforeCoin := types.NewCoins()
-	//toAccBefore, err := bts.Bank().QueryAccount(to)
-	//if err == nil {
-	//	beforeCoin = toAccBefore.GetCoins()
-	//}
-
 	result, err := bts.Bank().Send(to, coins, baseTx)
 	require.NoError(bts.T(), err)
 	require.NotEmpty(bts.T(), result.Hash)
-
-	//toAccAfter, err := bts.Bank().QueryAccount(to)
-	//require.NoError(bts.T(), err)
-	//require.Equal(bts.T(),
-	//	beforeCoin.Add(coins...).String(),
-	//	toAccAfter.GetCoins().String(),
-	//)
 }
 
 func (bts BankTestSuite) TestBurn() {

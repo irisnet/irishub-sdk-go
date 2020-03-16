@@ -193,7 +193,7 @@ func (ac abstractClient) QueryToken(symbol string) (sdk.Token, error) {
 	if err := ac.QueryWithResponse("custom/asset/token", param, &token); err != nil {
 		return sdk.Token{}, err
 	}
-	sdk.CacheToken(token)
+	sdk.CacheTokens(token)
 	return token, nil
 }
 

@@ -102,7 +102,7 @@ func (ots *OracleTestSuite) TestFeed() {
 		Timeout:           3,
 		ServiceFeeCap:     serviceFeeCap,
 		RepeatedFrequency: 5,
-		RepeatedTotal:     2,
+		RepeatedTotal:     -1,
 		AggregateFunc:     "avg",
 		ValueJsonPath:     "last",
 		ResponseThreshold: 1,

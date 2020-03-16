@@ -20,13 +20,15 @@ var (
 )
 
 func init() {
-	CacheToken(IRIS)
+	CacheTokens(IRIS)
 }
 
-func CacheToken(token Token) {
-	if _, ok := cachedToken[token.Symbol]; !ok {
-		cachedToken[token.Symbol] = token
-		cachedToken[token.GetMinUnit()] = token
+func CacheTokens(tokens ...Token) {
+	for _, token := range tokens {
+		if _, ok := cachedToken[token.Symbol]; !ok {
+			cachedToken[token.Symbol] = token
+			cachedToken[token.GetMinUnit()] = token
+		}
 	}
 }
 func GetToken(name string) (token Token, existed bool) {
@@ -67,5 +69,11 @@ func (t Token) GetCoinType() CoinType {
 }
 
 func (t Token) Convert() interface{} {
+	return t
+}
+
+type Tokens []Token
+
+func (t Tokens) Convert() interface{} {
 	return t
 }
