@@ -54,13 +54,19 @@ func (b bankClient) QueryTokenStats(tokenID string) (rpc.TokenStats, sdk.Error) 
 }
 
 //Send is responsible for transferring tokens from `From` to `to` account
-func (b bankClient) Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+func (b bankClient) Send(to string, amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	sender, err := b.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
 	}
+
+	amt, err := b.ConvertToMinCoin(amount...)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
 	in := []Input{
-		NewInput(sender, amount),
+		NewInput(sender, amt),
 	}
 
 	outAddr, err := sdk.AccAddressFromBech32(to)
@@ -68,7 +74,7 @@ func (b bankClient) Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Re
 		return sdk.ResultTx{}, sdk.Wrapf(fmt.Sprintf("%s invalid address", to))
 	}
 	out := []Output{
-		NewOutput(outAddr, amount),
+		NewOutput(outAddr, amt),
 	}
 
 	msg := NewMsgSend(in, out)
@@ -76,12 +82,17 @@ func (b bankClient) Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.Re
 }
 
 //Send is responsible for burning some tokens from `From` account
-func (b bankClient) Burn(amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+func (b bankClient) Burn(amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	sender, err := b.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
 	}
-	msg := NewMsgBurn(sender, amount)
+
+	amt, err := b.ConvertToMinCoin(amount...)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+	msg := NewMsgBurn(sender, amt)
 	return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 

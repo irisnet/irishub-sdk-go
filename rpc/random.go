@@ -12,9 +12,9 @@ type Random interface {
 }
 
 type RandomRequest struct {
-	BlockInterval uint64    `json:"block_interval"`  // block interval after which the requested random number will be generated
-	Oracle        bool      `json:"oracle"`          // oracle method
-	ServiceFeeCap sdk.Coins `json:"service_fee_cap"` // service fee cap
+	BlockInterval uint64       `json:"block_interval"`  // block interval after which the requested random number will be generated
+	Oracle        bool         `json:"oracle"`          // oracle method
+	ServiceFeeCap sdk.DecCoins `json:"service_fee_cap"` // service fee cap
 	Callback      EventRequestRandomCallback
 }
 

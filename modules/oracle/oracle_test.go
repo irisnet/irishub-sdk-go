@@ -58,7 +58,8 @@ func (ots *OracleTestSuite) SetupService() {
 	require.NoError(ots.T(), err)
 	require.NotEmpty(ots.T(), result.Hash)
 
-	deposit, _ := sdk.ParseCoins("20000000000000000000000iris-atto")
+	deposit, e := sdk.ParseDecCoins("20000iris")
+	require.NoError(ots.T(), e)
 	binding := rpc.ServiceBindingRequest{
 		ServiceName: definition.ServiceName,
 		Deposit:     deposit,
@@ -88,7 +89,7 @@ func (ots *OracleTestSuite) TestFeed() {
 
 	input := `{"pair":"iris-usdt"}`
 	feedName := generateFeedName(ots.serviceName)
-	serviceFeeCap, _ := sdk.ParseCoins("1000000000000000000iris-atto")
+	serviceFeeCap, _ := sdk.ParseDecCoins("1iris")
 
 	createFeedReq := rpc.FeedCreateRequest{
 		BaseTx:            ots.baseTx,

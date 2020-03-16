@@ -64,7 +64,8 @@ func (sts *ServiceTestSuite) TestService() {
 	require.Equal(sts.T(), definition.Schemas, defi.Schemas)
 	require.Equal(sts.T(), sts.Account().Address, defi.Author)
 
-	deposit, _ := sdk.ParseCoins("20000000000000000000000iris-atto")
+	deposit, e := sdk.ParseDecCoins("20000iris")
+	require.NoError(sts.T(), e)
 	binding := rpc.ServiceBindingRequest{
 		ServiceName: definition.ServiceName,
 		Deposit:     deposit,
@@ -78,7 +79,6 @@ func (sts *ServiceTestSuite) TestService() {
 	require.NoError(sts.T(), err)
 	require.Equal(sts.T(), binding.ServiceName, bindResp.ServiceName)
 	require.Equal(sts.T(), sts.Account().Address, bindResp.Provider)
-	require.Equal(sts.T(), binding.Deposit.String(), bindResp.Deposit.String())
 	require.Equal(sts.T(), binding.Pricing, bindResp.Pricing)
 
 	input := `{"pair":"iris-usdt"}`
@@ -94,7 +94,9 @@ func (sts *ServiceTestSuite) TestService() {
 		}, baseTx)
 	require.NoError(sts.T(), err)
 
-	serviceFeeCap, _ := sdk.ParseCoins("1000000000000000000iris-atto")
+	serviceFeeCap, e := sdk.ParseDecCoins("1iris")
+	require.NoError(sts.T(), e)
+
 	invocation := rpc.ServiceInvocationRequest{
 		ServiceName:       definition.ServiceName,
 		Providers:         []string{sts.Account().Address.String()},

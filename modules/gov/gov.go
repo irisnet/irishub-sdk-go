@@ -19,8 +19,13 @@ func Create(ac sdk.AbstractClient) rpc.Gov {
 }
 
 //Deposit is responsible for depositing some tokens for proposal
-func (g govClient) Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+func (g govClient) Deposit(proposalID uint64, amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	depositor, err := g.QueryAddress(baseTx.From)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
+	amt, err := g.ConvertToMinCoin(amount...)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -28,12 +33,12 @@ func (g govClient) Deposit(proposalID uint64, amount sdk.Coins, baseTx sdk.BaseT
 	msg := MsgDeposit{
 		ProposalID: proposalID,
 		Depositor:  depositor,
-		Amount:     amount,
+		Amount:     amt,
 	}
 	g.Info().
 		Uint64("proposalID", proposalID).
 		Str("depositor", depositor.String()).
-		Str("amount", amount.String()).
+		Str("amount", amt.String()).
 		Msg("execute gov deposit")
 	return g.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }

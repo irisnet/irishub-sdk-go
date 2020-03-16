@@ -8,6 +8,8 @@ import (
 	"testing"
 )
 
+const maxBitLen = 255
+
 func newIntegerFromString(s string) (*big.Int, bool) {
 	return new(big.Int).SetString(s, 0)
 }
@@ -276,6 +278,11 @@ func MinInt(i1, i2 Int) Int {
 // Human readable string
 func (i Int) String() string {
 	return i.i.String()
+}
+
+// ToDec converts Int to Dec
+func (i Int) ToDec() Dec {
+	return NewDecFromInt(i)
 }
 
 // Testing purpose random Int generator
@@ -587,4 +594,11 @@ func AddUint64Overflow(a, b uint64) (uint64, bool) {
 // intended to be used with require/assert:  require.True(IntEq(...))
 func IntEq(t *testing.T, exp, got Int) (*testing.T, bool, string, string, string) {
 	return t, exp.Equal(got), "expected:\t%v\ngot:\t\t%v", exp.String(), got.String()
+}
+
+// NewIntFromUint64 constructs an Int from a uint64.
+func NewIntFromUint64(n uint64) Int {
+	b := big.NewInt(0)
+	b.SetUint64(n)
+	return Int{b}
 }

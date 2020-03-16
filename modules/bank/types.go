@@ -58,13 +58,13 @@ func (msg MsgSend) ValidateBasic() error {
 		if err := in.ValidateBasic(); err != nil {
 			return err
 		}
-		totalIn = totalIn.Add(in.Coins)
+		totalIn = totalIn.Add(in.Coins...)
 	}
 	for _, out := range msg.Outputs {
 		if err := out.ValidateBasic(); err != nil {
 			return err
 		}
-		totalOut = totalOut.Add(out.Coins)
+		totalOut = totalOut.Add(out.Coins...)
 	}
 	// make sure inputs and outputs match
 	if !totalIn.IsEqual(totalOut) {

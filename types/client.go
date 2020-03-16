@@ -37,6 +37,12 @@ type Query interface {
 	QueryStore(key cmn.HexBytes, storeName string) (res []byte, err error)
 	QueryAccount(address string) (BaseAccount, error)
 	QueryAddress(name string) (addr AccAddress, err error)
+	QueryToken(symbol string) (Token, error)
+}
+
+type TokenConvert interface {
+	ConvertToMinCoin(coins ...DecCoin) (Coins, error)
+	ConvertToMainCoin(coins ...Coin) (DecCoins, error)
 }
 
 type Logger interface {
@@ -46,6 +52,7 @@ type Logger interface {
 type AbstractClient interface {
 	TxManager
 	Query
+	TokenConvert
 	WSClient
 	Logger
 }

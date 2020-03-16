@@ -102,7 +102,7 @@ func (msg MsgUndelegate) ValidateBasic() error {
 	if msg.ValidatorAddr == nil {
 		return errors.New("validator address is nil")
 	}
-	if msg.SharesAmount.Int == nil || msg.SharesAmount.LTE(sdk.ZeroDec()) {
+	if msg.SharesAmount.LTE(sdk.ZeroDec()) {
 		return errors.New("shares must be > 0")
 	}
 	return nil
@@ -164,7 +164,7 @@ func (msg MsgBeginRedelegate) ValidateBasic() error {
 	if msg.ValidatorDstAddr == nil {
 		return errors.New("validator address is nil")
 	}
-	if msg.SharesAmount.Int == nil || msg.SharesAmount.LTE(sdk.ZeroDec()) {
+	if msg.SharesAmount.LTE(sdk.ZeroDec()) {
 		return errors.New("shares must be > 0")
 	}
 	return nil

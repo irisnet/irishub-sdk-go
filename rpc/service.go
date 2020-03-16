@@ -116,16 +116,16 @@ type ServiceDefinition struct {
 }
 
 type ServiceBindingRequest struct {
-	ServiceName string    `json:"service_name"`
-	Deposit     sdk.Coins `json:"deposit"`
-	Pricing     string    `json:"pricing"`
+	ServiceName string       `json:"service_name"`
+	Deposit     sdk.DecCoins `json:"deposit"`
+	Pricing     string       `json:"pricing"`
 }
 
 // UpdateServiceBindingRequest defines a message to update a service binding
 type UpdateServiceBindingRequest struct {
-	ServiceName string    `json:"service_name"`
-	Deposit     sdk.Coins `json:"deposit"`
-	Pricing     string    `json:"pricing"`
+	ServiceName string       `json:"service_name"`
+	Deposit     sdk.DecCoins `json:"deposit"`
+	Pricing     string       `json:"pricing"`
 }
 
 // ServiceBinding defines a struct for service binding
@@ -140,25 +140,25 @@ type ServiceBinding struct {
 }
 
 type ServiceInvocationRequest struct {
-	ServiceName       string    `json:"service_name"`
-	Providers         []string  `json:"providers"`
-	Input             string    `json:"input"`
-	ServiceFeeCap     sdk.Coins `json:"service_fee_cap"`
-	Timeout           int64     `json:"timeout"`
-	SuperMode         bool      `json:"super_mode"`
-	Repeated          bool      `json:"repeated"`
-	RepeatedFrequency uint64    `json:"repeated_frequency"`
-	RepeatedTotal     int64     `json:"repeated_total"`
+	ServiceName       string       `json:"service_name"`
+	Providers         []string     `json:"providers"`
+	Input             string       `json:"input"`
+	ServiceFeeCap     sdk.DecCoins `json:"service_fee_cap"`
+	Timeout           int64        `json:"timeout"`
+	SuperMode         bool         `json:"super_mode"`
+	Repeated          bool         `json:"repeated"`
+	RepeatedFrequency uint64       `json:"repeated_frequency"`
+	RepeatedTotal     int64        `json:"repeated_total"`
 }
 
 // UpdateContextRequest defines a message to update a request context
 type UpdateContextRequest struct {
-	RequestContextID  string    `json:"request_context_id"`
-	Providers         []string  `json:"providers"`
-	ServiceFeeCap     sdk.Coins `json:"service_fee_cap"`
-	Timeout           int64     `json:"timeout"`
-	RepeatedFrequency uint64    `json:"repeated_frequency"`
-	RepeatedTotal     int64     `json:"repeated_total"`
+	RequestContextID  string       `json:"request_context_id"`
+	Providers         []string     `json:"providers"`
+	ServiceFeeCap     sdk.DecCoins `json:"service_fee_cap"`
+	Timeout           int64        `json:"timeout"`
+	RepeatedFrequency uint64       `json:"repeated_frequency"`
+	RepeatedTotal     int64        `json:"repeated_total"`
 }
 
 // RequestContext defines a context which holds request-related data

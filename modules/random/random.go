@@ -34,14 +34,19 @@ func (r randomClient) Request(request rpc.RandomRequest, baseTx sdk.BaseTx) (str
 		return "", sdk.Wrap(err)
 	}
 
-	needWatch := request.Callback != nil
+	amt, err := r.ConvertToMinCoin(request.ServiceFeeCap...)
+	if err != nil {
+		return "", sdk.Wrap(err)
+	}
+
 	msg := MsgRequestRand{
 		Consumer:      consumer,
 		BlockInterval: request.BlockInterval,
 		Oracle:        request.Oracle,
-		ServiceFeeCap: request.ServiceFeeCap,
+		ServiceFeeCap: amt,
 	}
 
+	needWatch := request.Callback != nil
 	if needWatch {
 		//mode must be set to commit
 		baseTx.Mode = sdk.Commit

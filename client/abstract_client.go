@@ -29,9 +29,6 @@ func createAbstractClient(cdc sdk.Codec, cfg sdk.SDKConfig, logger *log.Logger) 
 		Online:     cfg.Online,
 		KeyManager: adapter.NewDAOAdapter(cfg.KeyDAO, cfg.StoreType),
 		Network:    cfg.Network,
-		Mode:       cfg.Mode,
-		Gas:        cfg.Gas,
-		Fee:        cfg.Fee,
 	}
 	ac := abstractClient{
 		TxContext: &ctx,
@@ -40,8 +37,18 @@ func createAbstractClient(cdc sdk.Codec, cfg sdk.SDKConfig, logger *log.Logger) 
 		cfg:       cfg,
 		cdc:       cdc,
 	}
-	ac.reset()
+
+	ac.init()
 	return &ac
+}
+
+func (ac *abstractClient) init() {
+	fees, err := ac.ConvertToMinCoin(ac.cfg.Fee...)
+	if err != nil {
+		panic(err)
+	}
+	ac.cfg.Fee = sdk.NewDecCoinsFromCoins(fees...)
+	ac.reset()
 }
 
 func (ac abstractClient) Logger() *log.Logger {
@@ -65,14 +72,24 @@ func (ac *abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Re
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
-	ac.Logger().Info().Msg("sign transaction success")
+	ac.Logger().Info().RawJSON("data", tx.GetSignBytes()).
+		Msg("sign transaction success")
 
 	txByte, err := ac.Codec.MarshalBinaryLengthPrefixed(tx)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	return ac.broadcastTx(txByte)
+	res, err := ac.broadcastTx(txByte)
+	if err != nil {
+		ac.Logger().Err(err).Msg("broadcastTx transaction failed")
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+	ac.Logger().Info().
+		Str("txhash", res.Hash).
+		Str("tags", res.Tags.String()).
+		Msg("broadcastTx transaction success")
+	return res, nil
 }
 
 func (ac abstractClient) Broadcast(signedTx sdk.StdTx, mode sdk.BroadcastMode) (sdk.ResultTx, sdk.Error) {
@@ -162,6 +179,56 @@ func (ac abstractClient) QueryAccount(address string) (sdk.BaseAccount, error) {
 	return account, nil
 }
 
+func (ac abstractClient) QueryToken(symbol string) (sdk.Token, error) {
+	if token, ok := sdk.GetToken(symbol); ok {
+		return token, nil
+	}
+	param := struct {
+		Symbol string
+	}{
+		Symbol: symbol,
+	}
+
+	var token sdk.Token
+	if err := ac.QueryWithResponse("custom/asset/token", param, &token); err != nil {
+		return sdk.Token{}, err
+	}
+	sdk.CacheToken(token)
+	return token, nil
+}
+
+func (ac abstractClient) ConvertToMinCoin(coins ...sdk.DecCoin) (dstCoins sdk.Coins, err error) {
+	for _, coin := range coins {
+		token, err := ac.QueryToken(coin.Denom)
+		if err != nil {
+			return nil, err
+		}
+
+		minCoin, err := token.GetCoinType().ConvertToMinCoin(coin)
+		if err != nil {
+			return nil, err
+		}
+		dstCoins = append(dstCoins, minCoin)
+	}
+	return dstCoins.Sort(), nil
+}
+
+func (ac abstractClient) ConvertToMainCoin(coins ...sdk.Coin) (dstCoins sdk.DecCoins, err error) {
+	for _, coin := range coins {
+		token, err := ac.QueryToken(coin.Denom)
+		if err != nil {
+			return dstCoins, err
+		}
+
+		mainCoin, err := token.GetCoinType().ConvertToMainCoin(coin)
+		if err != nil {
+			return dstCoins, err
+		}
+		dstCoins = append(dstCoins, sdk.NewDecCoinFromCoin(mainCoin))
+	}
+	return dstCoins.Sort(), nil
+}
+
 func (ac abstractClient) QueryAddress(name string) (sdk.AccAddress, error) {
 	return (*ac.TxContext).KeyManager.Query(name)
 }
@@ -186,7 +253,11 @@ func (ac *abstractClient) prepare(baseTx sdk.BaseTx) error {
 	ac.WithPassword(baseTx.Password)
 	// first use baseTx params
 	if !baseTx.Fee.Empty() && baseTx.Fee.IsValid() {
-		ac.WithFee(baseTx.Fee)
+		fees, err := ac.ConvertToMinCoin(baseTx.Fee...)
+		if err != nil {
+			return err
+		}
+		ac.WithFee(fees)
 	}
 
 	if len(baseTx.Mode) > 0 {
@@ -208,9 +279,10 @@ func (ac *abstractClient) prepare(baseTx sdk.BaseTx) error {
 }
 
 func (ac *abstractClient) reset() {
+	fees, _ := ac.cfg.Fee.TruncateDecimal()
 	ac.WithAccountNumber(uint64(0)).
 		WithSequence(uint64(0)).
-		WithFee(ac.cfg.Fee).
+		WithFee(fees).
 		WithMode(ac.cfg.Mode).
 		WithSimulate(false).
 		WithGas(ac.cfg.Gas)

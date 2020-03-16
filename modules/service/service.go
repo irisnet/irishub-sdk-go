@@ -50,10 +50,15 @@ func (s serviceClient) BindService(request rpc.ServiceBindingRequest, baseTx sdk
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
+	amt, err := s.ConvertToMinCoin(request.Deposit...)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
 	msg := MsgBindService{
 		ServiceName: request.ServiceName,
 		Provider:    provider,
-		Deposit:     request.Deposit,
+		Deposit:     amt,
 		Pricing:     request.Pricing,
 	}
 	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
@@ -65,10 +70,16 @@ func (s serviceClient) UpdateServiceBinding(request rpc.UpdateServiceBindingRequ
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
+
+	amt, err := s.ConvertToMinCoin(request.Deposit...)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
 	msg := MsgUpdateServiceBinding{
 		ServiceName: request.ServiceName,
 		Provider:    provider,
-		Deposit:     request.Deposit,
+		Deposit:     amt,
 		Pricing:     request.Pricing,
 	}
 	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
@@ -118,12 +129,17 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest,
 		providers = append(providers, p)
 	}
 
+	amt, err := s.ConvertToMinCoin(request.ServiceFeeCap...)
+	if err != nil {
+		return "", sdk.Wrap(err)
+	}
+
 	msg := MsgRequestService{
 		ServiceName:       request.ServiceName,
 		Providers:         providers,
 		Consumer:          consumer,
 		Input:             request.Input,
-		ServiceFeeCap:     request.ServiceFeeCap,
+		ServiceFeeCap:     amt,
 		Timeout:           request.Timeout,
 		SuperMode:         request.SuperMode,
 		Repeated:          request.Repeated,
@@ -256,10 +272,15 @@ func (s serviceClient) UpdateRequestContext(request rpc.UpdateContextRequest, ba
 		providers = append(providers, p)
 	}
 
+	amt, err := s.ConvertToMinCoin(request.ServiceFeeCap...)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
 	msg := MsgUpdateRequestContext{
 		RequestContextID:  rpc.RequestContextIDToByte(request.RequestContextID),
 		Providers:         providers,
-		ServiceFeeCap:     request.ServiceFeeCap,
+		ServiceFeeCap:     amt,
 		Timeout:           request.Timeout,
 		RepeatedFrequency: request.RepeatedFrequency,
 		RepeatedTotal:     request.RepeatedTotal,

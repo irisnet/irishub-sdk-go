@@ -42,6 +42,11 @@ func (o oracleClient) CreateFeed(request rpc.FeedCreateRequest) (sdk.ResultTx, s
 		providers = append(providers, p)
 	}
 
+	amt, err := o.ConvertToMinCoin(request.ServiceFeeCap...)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
 	msg := MsgCreateFeed{
 		FeedName:          request.FeedName,
 		LatestHistory:     request.LatestHistory,
@@ -51,7 +56,7 @@ func (o oracleClient) CreateFeed(request rpc.FeedCreateRequest) (sdk.ResultTx, s
 		Providers:         providers,
 		Input:             request.Input,
 		Timeout:           request.Timeout,
-		ServiceFeeCap:     request.ServiceFeeCap,
+		ServiceFeeCap:     amt,
 		RepeatedFrequency: request.RepeatedFrequency,
 		RepeatedTotal:     request.RepeatedTotal,
 		AggregateFunc:     request.AggregateFunc,
@@ -91,6 +96,11 @@ func (o oracleClient) CreateAndStartFeed(request rpc.FeedCreateRequest) (sdk.Res
 		providers = append(providers, p)
 	}
 
+	amt, err := o.ConvertToMinCoin(request.ServiceFeeCap...)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
 	msgCreateFeed := MsgCreateFeed{
 		FeedName:          request.FeedName,
 		LatestHistory:     request.LatestHistory,
@@ -100,7 +110,7 @@ func (o oracleClient) CreateAndStartFeed(request rpc.FeedCreateRequest) (sdk.Res
 		Providers:         providers,
 		Input:             request.Input,
 		Timeout:           request.Timeout,
-		ServiceFeeCap:     request.ServiceFeeCap,
+		ServiceFeeCap:     amt,
 		RepeatedFrequency: request.RepeatedFrequency,
 		RepeatedTotal:     request.RepeatedTotal,
 		AggregateFunc:     request.AggregateFunc,
@@ -145,6 +155,11 @@ func (o oracleClient) EditFeed(request rpc.FeedEditRequest) (sdk.ResultTx, sdk.E
 		providers = append(providers, p)
 	}
 
+	amt, err := o.ConvertToMinCoin(request.ServiceFeeCap...)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
 	msg := MsgEditFeed{
 		FeedName:          request.FeedName,
 		LatestHistory:     request.LatestHistory,
@@ -152,7 +167,7 @@ func (o oracleClient) EditFeed(request rpc.FeedEditRequest) (sdk.ResultTx, sdk.E
 		Creator:           creator,
 		Providers:         providers,
 		Timeout:           request.Timeout,
-		ServiceFeeCap:     request.ServiceFeeCap,
+		ServiceFeeCap:     amt,
 		RepeatedFrequency: request.RepeatedFrequency,
 		RepeatedTotal:     request.RepeatedTotal,
 		ResponseThreshold: request.ResponseThreshold,

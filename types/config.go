@@ -14,7 +14,7 @@ type SDKConfig struct {
 	Gas uint64
 
 	// Default Fee amount of iris-atto
-	Fee Coins
+	Fee DecCoins
 
 	// Key DAO Implements
 	KeyDAO KeyDAO
