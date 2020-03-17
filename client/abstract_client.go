@@ -32,7 +32,7 @@ func createAbstractClient(cdc sdk.Codec, cfg sdk.SDKConfig, logger *log.Logger) 
 	}
 	ac := abstractClient{
 		TxContext: &ctx,
-		TmClient:  NewRPCClient(cfg.NodeURI, cdc),
+		TmClient:  NewRPCClient(cfg.NodeURI, cdc, logger),
 		logger:    logger,
 		cfg:       cfg,
 		cdc:       cdc,
@@ -72,7 +72,8 @@ func (ac *abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Re
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
-	ac.Logger().Info().RawJSON("data", tx.GetSignBytes()).
+	ac.Logger().Info().
+		Strs("data", tx.GetSignBytes()).
 		Msg("sign transaction success")
 
 	txByte, err := ac.Codec.MarshalBinaryLengthPrefixed(tx)

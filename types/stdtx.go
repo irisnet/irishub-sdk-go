@@ -158,13 +158,12 @@ func NewStdTx(msgs []Msg, fee StdFee, sigs []StdSignature, memo string) StdTx {
 //nolint
 // GetMsgs returns the all the transaction's messages.
 func (tx StdTx) GetMsgs() []Msg { return tx.Msgs }
-func (tx StdTx) GetSignBytes() []byte {
+func (tx StdTx) GetSignBytes() []string {
 	var bz []string
 	for _, msg := range tx.Msgs {
 		bz = append(bz, string(msg.GetSignBytes()))
 	}
-	data, _ := json.Marshal(bz)
-	return data
+	return bz
 }
 
 // ValidateBasic does a simple and lightweight validation check that doesn't

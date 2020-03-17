@@ -160,23 +160,34 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest,
 		return requestContextID, nil
 	}
 	builder := sdk.NewEventQueryBuilder().
-		AddCondition(sdk.Cond(sdk.ActionKey).EQ(tagRespondService)).
 		AddCondition(sdk.Cond(tagConsumer).EQ(sdk.EventValue(consumer.String()))).
-		AddCondition(sdk.Cond(tagServiceName).EQ(sdk.EventValue(request.ServiceName)))
+		AddCondition(sdk.Cond(tagServiceName).EQ(sdk.EventValue(request.ServiceName))).
+		AddCondition(sdk.Cond(sdk.ActionKey).EQ(tagRespondService)).
+		AddCondition(sdk.Cond(tagRequestContextID).EQ(sdk.EventValue(requestContextID)))
 
 	var subscription sdk.Subscription
 	subscription, err = s.SubscribeTx(builder, func(tx sdk.EventDataTx) {
-		s.Debug().Str("tx_hash", tx.Hash).Int64("height", tx.Height).
+		s.Debug().
+			Str("tx_hash", tx.Hash).
+			Int64("height", tx.Height).
+			Str("requestContextID", requestContextID).
+			Str("requestID", tx.Result.Tags.GetValue(tagRequestID)).
 			Msg("consumer received response transaction sent by provider")
+		//cancel subscription
+		if !request.Repeated {
+			_ = s.Unscribe(subscription)
+		} else {
+			reqCtx, err := s.QueryRequestContext(requestContextID)
+			if err != nil || reqCtx.State == "completed" {
+				_ = s.Unscribe(subscription)
+			}
+		}
+
 		for _, msg := range tx.Tx.Msgs {
 			msg, ok := msg.(MsgRespondService)
 			if ok {
 				callback(requestContextID, msg.Output)
 			}
-		}
-		//cancel subscription
-		if !request.Repeated {
-			_ = s.Unscribe(subscription)
 		}
 	})
 	if err != nil {
@@ -334,11 +345,15 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter, 
 		}
 	}()
 
-	//builder := sdk.NewEventQueryBuilder().
-	//	AddCondition(tagProvider, sdk.EventValue(provider.String()))
-	_, err = s.SubscribeNewBlockWithQuery(nil, func(block sdk.EventDataNewBlock) {
-		s.Debug().Int64("height", block.Block.Height).Msg("received block")
+	builder := sdk.NewEventQueryBuilder().
+		AddCondition(sdk.Cond(tagProvider).Contains(sdk.EventValue(provider.String())))
+	_, err = s.SubscribeNewBlockWithQuery(builder, func(block sdk.EventDataNewBlock) {
 		reqIDs := block.ResultEndBlock.Tags.GetValues(tagRequestID)
+		s.Debug().
+			Int64("height", block.Block.Height).
+			Str(tagProvider, provider.String()).
+			Strs("requestIDs", reqIDs).
+			Msg("received service request")
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
 			if err != nil {
@@ -379,17 +394,26 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 		}
 	}()
 
-	// TODO user will not received any event from tendermint when block_result has the same key in tag
-	//builder := sdk.NewEventQueryBuilder().
-	//	AddCondition(sdk.EventKey(tagProvider), sdk.EventValue(provider.String())).
-	//	AddCondition(sdk.EventKey(tagServiceName), sdk.EventValue(serviceName))
-	_, err = s.SubscribeNewBlockWithQuery(nil, func(block sdk.EventDataNewBlock) {
+	builder := sdk.NewEventQueryBuilder().
+		AddCondition(sdk.Cond(tagProvider).Contains(sdk.EventValue(provider.String()))).
+		AddCondition(sdk.Cond(tagServiceName).Contains(sdk.EventValue(serviceName)))
+	_, err = s.SubscribeNewBlockWithQuery(builder, func(block sdk.EventDataNewBlock) {
 		reqIDs := block.ResultEndBlock.Tags.GetValues(tagRequestID)
-		s.Debug().Int64("height", block.Block.Height).Msg("received block")
+		s.Debug().
+			Int64("height", block.Block.Height).
+			Str(tagServiceName, serviceName).
+			Str(tagProvider, provider.String()).
+			Strs("requestIDs", reqIDs).
+			Msg("received service request")
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
 			if err != nil {
-				s.Err(err).Str("requestID", reqID).Msg("service request don't exist")
+				s.Err(err).
+					Str("requestID", reqID).
+					Int64("height", block.Block.Height).
+					Str(tagServiceName, serviceName).
+					Str(tagProvider, provider.String()).
+					Msg("service request don't exist")
 				continue
 			}
 			if provider.Equals(request.Provider) && request.ServiceName == serviceName {
@@ -402,7 +426,12 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 				}
 				go func() {
 					if _, err = s.BuildAndSend([]sdk.Msg{msg}, baseTx); err != nil {
-						s.Err(err).Str("requestID", reqID).Msg("provider respond failed")
+						s.Err(err).
+							Str("requestID", reqID).
+							Int64("height", block.Block.Height).
+							Str(tagServiceName, serviceName).
+							Str(tagProvider, provider.String()).
+							Msg("provider respond failed")
 					}
 				}()
 			}

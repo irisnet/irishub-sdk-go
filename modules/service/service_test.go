@@ -104,9 +104,9 @@ func (sts *ServiceTestSuite) TestService() {
 		ServiceFeeCap:     serviceFeeCap,
 		Timeout:           3,
 		SuperMode:         false,
-		Repeated:          true,
+		Repeated:          false,
 		RepeatedFrequency: 5,
-		RepeatedTotal:     -1,
+		RepeatedTotal:     1,
 	}
 	var requestContextID string
 	var exit = make(chan int, 0)

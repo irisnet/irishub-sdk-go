@@ -94,7 +94,7 @@ func (ots *OracleTestSuite) TestFeed() {
 	createFeedReq := rpc.FeedCreateRequest{
 		BaseTx:            ots.baseTx,
 		FeedName:          feedName,
-		LatestHistory:     5,
+		LatestHistory:     2,
 		Description:       "fetch USDT-CNY ",
 		ServiceName:       ots.serviceName,
 		Providers:         []string{ots.Account().Address.String()},
@@ -102,7 +102,7 @@ func (ots *OracleTestSuite) TestFeed() {
 		Timeout:           3,
 		ServiceFeeCap:     serviceFeeCap,
 		RepeatedFrequency: 5,
-		RepeatedTotal:     -1,
+		RepeatedTotal:     2,
 		AggregateFunc:     "avg",
 		ValueJsonPath:     "last",
 		ResponseThreshold: 1,
