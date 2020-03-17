@@ -40,7 +40,7 @@ func (s stakingClient) Delegate(valAddr string, amount sdk.DecCoin, baseTx sdk.B
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	amt, err := s.ConvertToMinCoin(amount)
+	amt, err := s.ToMinCoin(amount)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -70,7 +70,7 @@ func (s stakingClient) Undelegate(valAddr string, amount sdk.DecCoin, baseTx sdk
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	amt, err := s.ConvertToMinCoin(amount)
+	amt, err := s.ToMinCoin(amount)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -123,7 +123,7 @@ func (s stakingClient) Redelegate(srcValidatorAddr,
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	amt, err := s.ConvertToMinCoin(amount)
+	amt, err := s.ToMinCoin(amount)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}

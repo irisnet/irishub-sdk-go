@@ -50,7 +50,7 @@ func (s serviceClient) BindService(request rpc.ServiceBindingRequest, baseTx sdk
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	amt, err := s.ConvertToMinCoin(request.Deposit...)
+	amt, err := s.ToMinCoin(request.Deposit...)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -71,7 +71,7 @@ func (s serviceClient) UpdateServiceBinding(request rpc.UpdateServiceBindingRequ
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	amt, err := s.ConvertToMinCoin(request.Deposit...)
+	amt, err := s.ToMinCoin(request.Deposit...)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -129,7 +129,7 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest,
 		providers = append(providers, p)
 	}
 
-	amt, err := s.ConvertToMinCoin(request.ServiceFeeCap...)
+	amt, err := s.ToMinCoin(request.ServiceFeeCap...)
 	if err != nil {
 		return "", sdk.Wrap(err)
 	}
@@ -283,7 +283,7 @@ func (s serviceClient) UpdateRequestContext(request rpc.UpdateContextRequest, ba
 		providers = append(providers, p)
 	}
 
-	amt, err := s.ConvertToMinCoin(request.ServiceFeeCap...)
+	amt, err := s.ToMinCoin(request.ServiceFeeCap...)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}

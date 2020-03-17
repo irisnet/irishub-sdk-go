@@ -43,7 +43,7 @@ func createAbstractClient(cdc sdk.Codec, cfg sdk.SDKConfig, logger *log.Logger) 
 }
 
 func (ac *abstractClient) init() {
-	fees, err := ac.ConvertToMinCoin(ac.cfg.Fee...)
+	fees, err := ac.ToMinCoin(ac.cfg.Fee...)
 	if err != nil {
 		panic(err)
 	}
@@ -198,7 +198,7 @@ func (ac abstractClient) QueryToken(symbol string) (sdk.Token, error) {
 	return token, nil
 }
 
-func (ac abstractClient) ConvertToMinCoin(coins ...sdk.DecCoin) (dstCoins sdk.Coins, err error) {
+func (ac abstractClient) ToMinCoin(coins ...sdk.DecCoin) (dstCoins sdk.Coins, err error) {
 	for _, coin := range coins {
 		token, err := ac.QueryToken(coin.Denom)
 		if err != nil {
@@ -214,7 +214,7 @@ func (ac abstractClient) ConvertToMinCoin(coins ...sdk.DecCoin) (dstCoins sdk.Co
 	return dstCoins.Sort(), nil
 }
 
-func (ac abstractClient) ConvertToMainCoin(coins ...sdk.Coin) (dstCoins sdk.DecCoins, err error) {
+func (ac abstractClient) ToMainCoin(coins ...sdk.Coin) (dstCoins sdk.DecCoins, err error) {
 	for _, coin := range coins {
 		token, err := ac.QueryToken(coin.Denom)
 		if err != nil {
@@ -254,7 +254,7 @@ func (ac *abstractClient) prepare(baseTx sdk.BaseTx) error {
 	ac.WithPassword(baseTx.Password)
 	// first use baseTx params
 	if !baseTx.Fee.Empty() && baseTx.Fee.IsValid() {
-		fees, err := ac.ConvertToMinCoin(baseTx.Fee...)
+		fees, err := ac.ToMinCoin(baseTx.Fee...)
 		if err != nil {
 			return err
 		}

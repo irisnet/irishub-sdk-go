@@ -29,7 +29,7 @@ type CoinType struct {
 	Desc     string `json:"desc"`      //the description of CoinType
 }
 
-//ConvertToMainCoin return the main denom coin from args
+//ToMainCoin return the main denom coin from args
 func (ct CoinType) ConvertToMainCoin(coin Coin) (Coin, error) {
 	if !ct.hasUnit(coin.Denom) {
 		return coin, errors.New("coinType unit (%s) not defined" + coin.Denom)
@@ -48,7 +48,7 @@ func (ct CoinType) ConvertToMainCoin(coin Coin) (Coin, error) {
 	return NewCoin(ct.MainUnit.Denom, amt.RoundInt()), nil
 }
 
-//ConvertToMinCoin return the min denom coin from args
+//ToMinCoin return the min denom coin from args
 func (ct CoinType) ConvertToMinCoin(coin DecCoin) (newCoin Coin, err error) {
 	if !ct.hasUnit(coin.Denom) {
 		return newCoin, errors.New("coinType unit (%s) not defined" + coin.Denom)

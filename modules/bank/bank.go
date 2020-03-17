@@ -60,7 +60,7 @@ func (b bankClient) Send(to string, amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk
 		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
 	}
 
-	amt, err := b.ConvertToMinCoin(amount...)
+	amt, err := b.ToMinCoin(amount...)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -88,7 +88,7 @@ func (b bankClient) Burn(amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, 
 		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
 	}
 
-	amt, err := b.ConvertToMinCoin(amount...)
+	amt, err := b.ToMinCoin(amount...)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}

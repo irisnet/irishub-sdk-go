@@ -34,7 +34,7 @@ func (r randomClient) Request(request rpc.RandomRequest, baseTx sdk.BaseTx) (str
 		return "", sdk.Wrap(err)
 	}
 
-	amt, err := r.ConvertToMinCoin(request.ServiceFeeCap...)
+	amt, err := r.ToMinCoin(request.ServiceFeeCap...)
 	if err != nil {
 		return "", sdk.Wrap(err)
 	}

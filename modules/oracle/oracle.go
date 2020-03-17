@@ -42,7 +42,7 @@ func (o oracleClient) CreateFeed(request rpc.FeedCreateRequest) (sdk.ResultTx, s
 		providers = append(providers, p)
 	}
 
-	amt, err := o.ConvertToMinCoin(request.ServiceFeeCap...)
+	amt, err := o.ToMinCoin(request.ServiceFeeCap...)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -96,7 +96,7 @@ func (o oracleClient) CreateAndStartFeed(request rpc.FeedCreateRequest) (sdk.Res
 		providers = append(providers, p)
 	}
 
-	amt, err := o.ConvertToMinCoin(request.ServiceFeeCap...)
+	amt, err := o.ToMinCoin(request.ServiceFeeCap...)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -155,7 +155,7 @@ func (o oracleClient) EditFeed(request rpc.FeedEditRequest) (sdk.ResultTx, sdk.E
 		providers = append(providers, p)
 	}
 
-	amt, err := o.ConvertToMinCoin(request.ServiceFeeCap...)
+	amt, err := o.ToMinCoin(request.ServiceFeeCap...)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}

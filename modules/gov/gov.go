@@ -25,7 +25,7 @@ func (g govClient) Deposit(proposalID uint64, amount sdk.DecCoins, baseTx sdk.Ba
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	amt, err := g.ConvertToMinCoin(amount...)
+	amt, err := g.ToMinCoin(amount...)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}

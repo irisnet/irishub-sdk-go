@@ -41,8 +41,8 @@ type Query interface {
 }
 
 type TokenConvert interface {
-	ConvertToMinCoin(coins ...DecCoin) (Coins, error)
-	ConvertToMainCoin(coins ...Coin) (DecCoins, error)
+	ToMinCoin(coin ...DecCoin) (Coins, error)
+	ToMainCoin(coin ...Coin) (DecCoins, error)
 }
 
 type Logger interface {
