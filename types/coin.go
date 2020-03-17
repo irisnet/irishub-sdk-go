@@ -17,6 +17,10 @@ var (
 	reDenomCompiled = regexp.MustCompile(fmt.Sprintf(`^%s$`, reDenom))
 	reCoinCompiled  = regexp.MustCompile(fmt.Sprintf(`^(%s)%s(%s)$`, reAmount, reSpace, reDenom))
 
+	reDecAmt  = `^(0|([1-9]*))(\.\d+)?$`
+	reSpc     = `[[:space:]]*`
+	reDecCoin = regexp.MustCompile(fmt.Sprintf(`^(%s)%s(%s)$`, reAmount, reSpc, reDenom))
+
 	irisAtto       = "iris-atto"
 	minDenomSuffix = "-min"
 	iris           = "iris"
@@ -206,7 +210,7 @@ func (coins Coins) IsValid() bool {
 //
 // CONTRACT: Add will never return Coins where one Coin has a negative
 // amount. In other words, IsValid will always return true.
-func (coins Coins) Add(coinsB Coins) Coins {
+func (coins Coins) Add(coinsB ...Coin) Coins {
 	sum, hasNeg := coins.SafeAdd(coinsB)
 	if hasNeg {
 		panic("negative coin amount")
@@ -331,6 +335,35 @@ func (coins Coins) Sort() Coins {
 	return coins
 }
 
+// validate returns an error if the Coin has a negative amount or if
+// the denom is invalid.
+func validate(denom string, amount Int) error {
+	if err := ValidateDenom(denom); err != nil {
+		return err
+	}
+
+	if amount.IsNegative() {
+		return fmt.Errorf("negative coin amount: %v", amount)
+	}
+
+	return nil
+}
+
+// ValidateDenom validates a denomination string returning an error if it is
+// invalid.
+func ValidateDenom(denom string) error {
+	if !reDenomCompiled.MatchString(denom) {
+		return fmt.Errorf("invalid denom: %s", denom)
+	}
+	return nil
+}
+
+func mustValidateDenom(denom string) {
+	if err := ValidateDenom(denom); err != nil {
+		panic(err)
+	}
+}
+
 // ParseCoins will parse out a list of coins separated by commas.
 // If nothing is provided, it returns nil Coins.
 // Returned coins are sorted.
@@ -352,4 +385,26 @@ func ParseCoins(coinsStr string) (coins Coins, err error) {
 	coins.Sort()
 
 	return coins, nil
+}
+
+type findDupDescriptor interface {
+	GetDenomByIndex(int) string
+	Len() int
+}
+
+// findDup works on the assumption that coins is sorted
+func findDup(coins findDupDescriptor) int {
+	if coins.Len() <= 1 {
+		return -1
+	}
+
+	prevDenom := coins.GetDenomByIndex(0)
+	for i := 1; i < coins.Len(); i++ {
+		if coins.GetDenomByIndex(i) == prevDenom {
+			return i
+		}
+		prevDenom = coins.GetDenomByIndex(i)
+	}
+
+	return -1
 }

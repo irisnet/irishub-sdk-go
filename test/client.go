@@ -16,7 +16,7 @@ const (
 	Online  = true
 	Network = sdk.Testnet
 	Mode    = sdk.Commit
-	Fee     = "600000000000000000iris-atto"
+	Fee     = "0.6iris"
 	Gas     = 20000
 )
 
@@ -37,7 +37,7 @@ func NewMockClient() MockClient {
 			Password: "11111111",
 		},
 	}
-	fees, err := sdk.ParseCoins(Fee)
+	fees, err := sdk.ParseDecCoins(Fee)
 	if err != nil {
 		panic(err)
 	}

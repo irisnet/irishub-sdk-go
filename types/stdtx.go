@@ -158,6 +158,13 @@ func NewStdTx(msgs []Msg, fee StdFee, sigs []StdSignature, memo string) StdTx {
 //nolint
 // GetMsgs returns the all the transaction's messages.
 func (tx StdTx) GetMsgs() []Msg { return tx.Msgs }
+func (tx StdTx) GetSignBytes() []string {
+	var bz []string
+	for _, msg := range tx.Msgs {
+		bz = append(bz, string(msg.GetSignBytes()))
+	}
+	return bz
+}
 
 // ValidateBasic does a simple and lightweight validation check that doesn't
 // require access to any other information.
@@ -238,7 +245,7 @@ type BaseTx struct {
 	From     string        `json:"from"`
 	Password string        `json:"password"`
 	Gas      uint64        `json:"gas"`
-	Fee      Coins         `json:"fee"`
+	Fee      DecCoins      `json:"fee"`
 	Memo     string        `json:"memo"`
 	Mode     BroadcastMode `json:"broadcast_mode"`
 	Simulate bool          `json:"simulate"`

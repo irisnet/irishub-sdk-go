@@ -29,7 +29,7 @@ func Create(ac sdk.AbstractClient) rpc.Staking {
 }
 
 //Delegate is responsible for delegating liquid tokens to an validator
-func (s stakingClient) Delegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+func (s stakingClient) Delegate(valAddr string, amount sdk.DecCoin, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	delegator, err := s.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
@@ -40,10 +40,15 @@ func (s stakingClient) Delegate(valAddr string, amount sdk.Coin, baseTx sdk.Base
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
+	amt, err := s.ToMinCoin(amount)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
 	msg := MsgDelegate{
 		DelegatorAddr: delegator,
 		ValidatorAddr: validator,
-		Delegation:    amount,
+		Delegation:    amt[0],
 	}
 
 	s.Info().Str("delegator", delegator.String()).
@@ -54,7 +59,7 @@ func (s stakingClient) Delegate(valAddr string, amount sdk.Coin, baseTx sdk.Base
 }
 
 //Undelegate is responsible for undelegating from a validator
-func (s stakingClient) Undelegate(valAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+func (s stakingClient) Undelegate(valAddr string, amount sdk.DecCoin, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	delegator, err := s.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
@@ -65,11 +70,16 @@ func (s stakingClient) Undelegate(valAddr string, amount sdk.Coin, baseTx sdk.Ba
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
+	amt, err := s.ToMinCoin(amount)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
 	exRate := val.DelegatorShareExRate()
 	if exRate.IsZero() {
 		return sdk.ResultTx{}, sdk.Wrapf("zero exRate should not happen")
 	}
-	amountDec := sdk.NewDecFromInt(amount.Amount)
+	amountDec := sdk.NewDecFromInt(amt[0].Amount)
 	share := amountDec.Quo(exRate)
 
 	varAddr, err := sdk.ValAddressFromBech32(valAddr)
@@ -92,7 +102,7 @@ func (s stakingClient) Undelegate(valAddr string, amount sdk.Coin, baseTx sdk.Ba
 
 //Redelegate is responsible for redelegating illiquid tokens from one validator to another
 func (s stakingClient) Redelegate(srcValidatorAddr,
-	dstValidatorAddr string, amount sdk.Coin, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+	dstValidatorAddr string, amount sdk.DecCoin, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	delAddr, err := s.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
@@ -113,11 +123,16 @@ func (s stakingClient) Redelegate(srcValidatorAddr,
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
+	amt, err := s.ToMinCoin(amount)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
 	exRate := val.DelegatorShareExRate()
 	if exRate.IsZero() {
 		return sdk.ResultTx{}, sdk.Wrapf("zero exRate should not happen")
 	}
-	amountDec := sdk.NewDecFromInt(amount.Amount)
+	amountDec := sdk.NewDecFromInt(amt[0].Amount)
 	share := amountDec.Quo(exRate)
 
 	msg := MsgBeginRedelegate{

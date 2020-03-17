@@ -29,19 +29,19 @@ type OracleQuery interface {
 // FeedCreateRequest - struct for create a feed
 type FeedCreateRequest struct {
 	sdk.BaseTx
-	FeedName          string    `json:"feed_name"`
-	LatestHistory     uint64    `json:"latest_history"`
-	Description       string    `json:"description"`
-	ServiceName       string    `json:"service_name"`
-	Providers         []string  `json:"providers"`
-	Input             string    `json:"input"`
-	Timeout           int64     `json:"timeout"`
-	ServiceFeeCap     sdk.Coins `json:"service_fee_cap"`
-	RepeatedFrequency uint64    `json:"repeated_frequency"`
-	RepeatedTotal     int64     `json:"repeated_total"`
-	AggregateFunc     string    `json:"aggregate_func"`
-	ValueJsonPath     string    `json:"value_json_path"`
-	ResponseThreshold uint16    `json:"response_threshold"`
+	FeedName          string       `json:"feed_name"`
+	LatestHistory     uint64       `json:"latest_history"`
+	Description       string       `json:"description"`
+	ServiceName       string       `json:"service_name"`
+	Providers         []string     `json:"providers"`
+	Input             string       `json:"input"`
+	Timeout           int64        `json:"timeout"`
+	ServiceFeeCap     sdk.DecCoins `json:"service_fee_cap"`
+	RepeatedFrequency uint64       `json:"repeated_frequency"`
+	RepeatedTotal     int64        `json:"repeated_total"`
+	AggregateFunc     string       `json:"aggregate_func"`
+	ValueJsonPath     string       `json:"value_json_path"`
+	ResponseThreshold uint16       `json:"response_threshold"`
 }
 
 //______________________________________________________________________
@@ -49,15 +49,15 @@ type FeedCreateRequest struct {
 // FeedEditRequest - struct for edit a existed feed
 type FeedEditRequest struct {
 	sdk.BaseTx
-	FeedName          string    `json:"feed_name"`
-	Description       string    `json:"description"`
-	LatestHistory     uint64    `json:"latest_history"`
-	Providers         []string  `json:"providers"`
-	Timeout           int64     `json:"timeout"`
-	ServiceFeeCap     sdk.Coins `json:"service_fee_cap"`
-	RepeatedFrequency uint64    `json:"repeated_frequency"`
-	RepeatedTotal     int64     `json:"repeated_total"`
-	ResponseThreshold uint16    `json:"response_threshold"`
+	FeedName          string       `json:"feed_name"`
+	Description       string       `json:"description"`
+	LatestHistory     uint64       `json:"latest_history"`
+	Providers         []string     `json:"providers"`
+	Timeout           int64        `json:"timeout"`
+	ServiceFeeCap     sdk.DecCoins `json:"service_fee_cap"`
+	RepeatedFrequency uint64       `json:"repeated_frequency"`
+	RepeatedTotal     int64        `json:"repeated_total"`
+	ResponseThreshold uint16       `json:"response_threshold"`
 }
 
 //-----------------------------for query-----------------------------

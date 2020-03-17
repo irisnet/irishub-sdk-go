@@ -36,8 +36,9 @@ func (sts *StakingTestSuite) TestStaking() {
 	//test QueryValidators
 	validators, _ := sts.Staking().QueryValidators(1, 10)
 	validator := validators[0].OperatorAddress
-	amt, _ := sdk.NewIntFromString("20000000000000000000")
-	amount := sdk.NewCoin("iris-atto", amt)
+
+	amount, e := sdk.ParseDecCoin("20iris")
+	require.NoError(sts.T(), e)
 
 	//test Delegate
 	rs, err := sts.Staking().Delegate(validator, amount, baseTx)
@@ -62,8 +63,9 @@ func (sts *StakingTestSuite) TestStaking() {
 	require.NotEmpty(sts.T(), ds)
 
 	//test Undelegate
-	amt, _ = sdk.NewIntFromString("10000000000000000000")
-	amount = sdk.NewCoin("iris-atto", amt)
+	amount, e = sdk.ParseDecCoin("10iris")
+	require.NoError(sts.T(), e)
+
 	rs, err = sts.Staking().Undelegate(validator, amount, baseTx)
 	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), rs.Hash)

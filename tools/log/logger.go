@@ -53,12 +53,6 @@ func (l *Logger) SetOutput(w io.Writer) {
 
 func prettyWriter(w io.Writer) io.Writer {
 	output := zerolog.ConsoleWriter{Out: w, TimeFormat: time.RFC3339}
-	output.FormatTimestamp = func(i interface{}) string {
-		return strings.ToUpper(fmt.Sprintf("[%s]", i))
-	}
-	output.FormatLevel = func(i interface{}) string {
-		return strings.ToUpper(fmt.Sprintf("[%s]", i))
-	}
 	output.FormatMessage = func(i interface{}) string {
 		return fmt.Sprintf("****%s****", i)
 	}

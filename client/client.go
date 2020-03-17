@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"github.com/irisnet/irishub-sdk-go/modules/asset"
 	"io"
 
 	"github.com/irisnet/irishub-sdk-go/tools/log"
@@ -55,6 +56,7 @@ func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
 		slashing.Create(abstClient),
 		random.Create(abstClient),
 		keys.Create(abstClient.KeyManager),
+		asset.Create(abstClient),
 	)
 
 	return *client
@@ -105,6 +107,10 @@ func (s *SDKClient) Random() rpc.Random {
 
 func (s *SDKClient) Keys() rpc.Keys {
 	return s.modules[keys.ModuleName].(rpc.Keys)
+}
+
+func (s *SDKClient) Asset() rpc.Asset {
+	return s.modules[asset.ModuleName].(rpc.Asset)
 }
 
 func (s *SDKClient) SetOutput(w io.Writer) {
