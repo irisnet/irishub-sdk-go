@@ -74,7 +74,7 @@ func (r randomClient) Request(request rpc.RandomRequest, baseTx sdk.BaseTx) (str
 						randomNum = result.Value
 					}
 					request.Callback(requestID, randomNum, err)
-					_ = r.Unscribe(subscription)
+					_ = r.Unsubscribe(subscription)
 					return
 				}
 			}

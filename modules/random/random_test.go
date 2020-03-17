@@ -1,8 +1,9 @@
 package random_test
 
 import (
-	"github.com/irisnet/irishub-sdk-go/rpc"
 	"testing"
+
+	"github.com/irisnet/irishub-sdk-go/rpc"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"

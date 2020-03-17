@@ -175,11 +175,11 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest,
 			Msg("consumer received response transaction sent by provider")
 		//cancel subscription
 		if !request.Repeated {
-			_ = s.Unscribe(subscription)
+			_ = s.Unsubscribe(subscription)
 		} else {
 			reqCtx, err := s.QueryRequestContext(requestContextID)
 			if err != nil || reqCtx.State == "completed" {
-				_ = s.Unscribe(subscription)
+				_ = s.Unsubscribe(subscription)
 			}
 		}
 

@@ -5,16 +5,13 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/irisnet/irishub-sdk-go/tools/log"
-
-	"github.com/irisnet/irishub-sdk-go/tools/uuid"
-	"github.com/pkg/errors"
-
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	rpc "github.com/tendermint/tendermint/rpc/client"
 	tmtypes "github.com/tendermint/tendermint/types"
 
+	"github.com/irisnet/irishub-sdk-go/tools/log"
+	"github.com/irisnet/irishub-sdk-go/tools/uuid"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
@@ -31,20 +28,6 @@ func NewRPCClient(remote string, cdc sdk.Codec, log *log.Logger) sdk.TmClient {
 		cdc:    cdc,
 		Logger: log,
 	}
-}
-
-func (r rpcClient) Query(path string, data cmn.HexBytes) (res []byte, err error) {
-	result, err := r.ABCIQueryWithOptions(path, data, rpc.DefaultABCIQueryOptions)
-	if err != nil {
-		return res, err
-	}
-
-	resp := result.Response
-	if !resp.IsOK() {
-		return res, errors.Errorf(resp.Log)
-	}
-
-	return resp.Value, nil
 }
 
 func (r rpcClient) start() {
@@ -177,7 +160,7 @@ func (r rpcClient) subscribe(query string, callback func(data tmtypes.TMEventDat
 	return sdk.NewSubscription(ctx, query, subscriber), nil
 }
 
-func (r rpcClient) Unscribe(subscription sdk.Subscription) error {
+func (r rpcClient) Unsubscribe(subscription sdk.Subscription) error {
 	r.Info().
 		Str("query", subscription.Query).
 		Str("subscriber", subscription.ID).

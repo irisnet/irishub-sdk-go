@@ -7,23 +7,18 @@ import (
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 )
 
-type Queries interface {
-	Query(path string, data cmn.HexBytes) ([]byte, error)
-}
-
 type WSClient interface {
 	SubscribeNewBlock(callback EventNewBlockCallback) (Subscription, error)
 	SubscribeNewBlockWithQuery(builder *EventQueryBuilder, callback EventNewBlockCallback) (Subscription, error)
 	SubscribeTx(builder *EventQueryBuilder, callback EventTxCallback) (Subscription, error)
 	SubscribeNewBlockHeader(callback EventNewBlockHeaderCallback) (Subscription, error)
 	SubscribeValidatorSetUpdates(callback EventValidatorSetUpdatesCallback) (Subscription, error)
-	Unscribe(subscription Subscription) error
+	Unsubscribe(subscription Subscription) error
 }
 
 type TmClient interface {
-	tmclient.Client
+	tmclient.ABCIClient
 	WSClient
-	Queries
 }
 
 type TxManager interface {
