@@ -59,7 +59,7 @@ func (r randomClient) Request(request rpc.RandomRequest, baseTx sdk.BaseTx) (str
 	requestID := result.Tags.GetValue(tagRequestID)
 	if needWatch && !request.Oracle {
 		var subscription sdk.Subscription
-		subscription, err = r.SubscribeNewBlockWithQuery(nil, func(block sdk.EventDataNewBlock) {
+		subscription, err = r.SubscribeNewBlock(nil, func(block sdk.EventDataNewBlock) {
 			tags := block.ResultBeginBlock.Tags
 			r.Debug().
 				Int64("height", block.Block.Height).

@@ -14,8 +14,7 @@ type ServiceTx interface {
 
 	UpdateServiceBinding(request UpdateServiceBindingRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	InvokeService(request ServiceInvocationRequest,
-		callback ServiceInvokeHandler, baseTx sdk.BaseTx) (requestContextID string, err sdk.Error)
+	InvokeService(request ServiceInvocationRequest, baseTx sdk.BaseTx) (requestContextID string, err sdk.Error)
 
 	SetWithdrawAddress(withdrawAddress string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
@@ -39,11 +38,14 @@ type ServiceTx interface {
 	WithdrawTax(destAddress string,
 		amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	RegisterServiceListener(serviceRouter ServiceRouter, baseTx sdk.BaseTx) sdk.Error
+	RegisterServiceListener(serviceRouter ServiceRouter, baseTx sdk.BaseTx) (sdk.Subscription, sdk.Error)
 
 	RegisterSingleServiceListener(serviceName string,
 		respondHandler ServiceRespondHandler,
-		baseTx sdk.BaseTx) sdk.Error
+		baseTx sdk.BaseTx) (sdk.Subscription, sdk.Error)
+
+	RegisterServiceResponseListener(reqCtxID string,
+		callback ServiceInvokeHandler) (sdk.Subscription, sdk.Error)
 }
 
 type ServiceQuery interface {
@@ -149,6 +151,7 @@ type ServiceInvocationRequest struct {
 	Repeated          bool         `json:"repeated"`
 	RepeatedFrequency uint64       `json:"repeated_frequency"`
 	RepeatedTotal     int64        `json:"repeated_total"`
+	Handler           ServiceInvokeHandler
 }
 
 // UpdateContextRequest defines a message to update a request context

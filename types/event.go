@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	tmclient "github.com/tendermint/tendermint/rpc/client"
+
 	cmn "github.com/tendermint/tendermint/libs/common"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
@@ -19,23 +21,36 @@ const (
 	TxValue EventValue = "Tx"
 )
 
+type WSClient interface {
+	SubscribeNewBlock(builder *EventQueryBuilder, callback EventNewBlockCallback) (Subscription, Error)
+	SubscribeTx(builder *EventQueryBuilder, callback EventTxCallback) (Subscription, Error)
+	SubscribeNewBlockHeader(callback EventNewBlockHeaderCallback) (Subscription, Error)
+	SubscribeValidatorSetUpdates(callback EventValidatorSetUpdatesCallback) (Subscription, Error)
+	Resubscribe(subscription Subscription, handler EventHandler) Error
+	Unsubscribe(subscription Subscription) Error
+}
+
+type TmClient interface {
+	tmclient.ABCIClient
+	WSClient
+}
+
+type EventType string
 type EventKey string
 type EventValue string
+
 type Subscription struct {
-	Ctx   context.Context
-	Query string
-	ID    string
+	Ctx   context.Context `json:"-"`
+	Query string          `json:"query"`
+	ID    string          `json:"id"`
 }
 
-func NewSubscription(ctx context.Context, query, id string) Subscription {
-	return Subscription{
-		Ctx:   ctx,
-		Query: query,
-		ID:    id,
-	}
-}
+type EventHandler func(data EventData)
 
-//===============EventDataTx for SubscribeTx=================
+// EventData for SubscribeAny
+type EventData interface{}
+
+// EventDataTx for SubscribeTx
 type EventDataTx struct {
 	Hash   string   `json:"hash"`
 	Height int64    `json:"height"`
@@ -107,7 +122,7 @@ func (t Tags) String() string {
 
 type EventTxCallback func(EventDataTx)
 
-//===============EventDataNewBlock for SubscribeNewBlock=================
+//EventDataNewBlock for SubscribeNewBlock
 type EventDataNewBlock struct {
 	Block            Block            `json:"block"`
 	ResultBeginBlock ResultBeginBlock `json:"result_begin_block"`
@@ -146,7 +161,7 @@ type EventPubKey struct {
 
 type EventNewBlockCallback func(EventDataNewBlock)
 
-//===============EventDataNewBlockHeader for SubscribeNewBlockHeader=================
+//EventDataNewBlockHeader for SubscribeNewBlockHeader
 type EventDataNewBlockHeader struct {
 	Header tmtypes.Header `json:"header"`
 
@@ -156,7 +171,7 @@ type EventDataNewBlockHeader struct {
 
 type EventNewBlockHeaderCallback func(EventDataNewBlockHeader)
 
-//===============EventDataValidatorSetUpdates for SubscribeValidatorSetUpdates=================
+//EventDataValidatorSetUpdates for SubscribeValidatorSetUpdates
 type Validator struct {
 	Address          string `json:"address"`
 	PubKey           string `json:"pub_key"`
@@ -169,7 +184,7 @@ type EventDataValidatorSetUpdates struct {
 
 type EventValidatorSetUpdatesCallback func(EventDataValidatorSetUpdates)
 
-//===============EventQueryBuilder for build query string=================
+//EventQueryBuilder for build query string
 type condition struct {
 	key   EventKey
 	value EventValue

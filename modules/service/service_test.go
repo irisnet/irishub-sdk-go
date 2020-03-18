@@ -84,7 +84,8 @@ func (sts *ServiceTestSuite) TestService() {
 	input := `{"pair":"iris-usdt"}`
 	output := `{"last":"1:100"}`
 
-	err = sts.Service().RegisterSingleServiceListener(definition.ServiceName,
+	var sub1 sdk.Subscription
+	sub1, err = sts.Service().RegisterSingleServiceListener(definition.ServiceName,
 		func(input string) (string, string) {
 			sts.Info().
 				Str("input", input).
@@ -102,27 +103,28 @@ func (sts *ServiceTestSuite) TestService() {
 		Providers:         []string{sts.Account().Address.String()},
 		Input:             input,
 		ServiceFeeCap:     serviceFeeCap,
-		Timeout:           3,
+		Timeout:           1,
 		SuperMode:         false,
 		Repeated:          false,
-		RepeatedFrequency: 5,
+		RepeatedFrequency: 3,
 		RepeatedTotal:     1,
 	}
+
 	var requestContextID string
+	var sub2 sdk.Subscription
 	var exit = make(chan int, 0)
-	requestContextID, err = sts.Service().InvokeService(invocation, func(reqCtxID string, response string) {
+
+	requestContextID, err = sts.Service().InvokeService(invocation, baseTx)
+	sub2, err = sts.Service().RegisterServiceResponseListener(requestContextID, func(reqCtxID string, responses string) {
 		require.Equal(sts.T(), reqCtxID, requestContextID)
-		require.Equal(sts.T(), output, response)
+		require.Equal(sts.T(), output, responses)
 		sts.Info().
 			Str("requestContextID", requestContextID).
-			Str("response", response).
+			Str("response", responses).
 			Msg("consumer received response")
+		require.NoError(sts.T(), err)
 		exit <- 1
-	}, baseTx)
-
-	sts.Info().
-		Str("requestContextID", requestContextID).
-		Msg("ServiceRequest service success")
+	})
 	require.NoError(sts.T(), err)
 
 	request, err := sts.Service().QueryRequestContext(requestContextID)
@@ -131,6 +133,9 @@ func (sts *ServiceTestSuite) TestService() {
 	require.Equal(sts.T(), request.Input, invocation.Input)
 
 	<-exit
+	err = sts.Unsubscribe(sub1)
+	err = sts.Unsubscribe(sub2)
+	require.NoError(sts.T(), err)
 }
 
 func generateServiceName() string {
