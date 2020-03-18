@@ -12,7 +12,7 @@ import (
 
 const (
 	NodeURI = "localhost:26657"
-	ChainID = "irishub-test"
+	ChainID = "test"
 	Online  = true
 	Network = sdk.Testnet
 	Mode    = sdk.Commit
