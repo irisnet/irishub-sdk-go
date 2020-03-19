@@ -85,7 +85,7 @@ type Error interface {
 // GetError is used to covert irishub error to sdk error
 func GetError(codespace string, code uint32, log ...string) Error {
 	codeV1, ok := v17CodeMap[code]
-	if ok {
+	if !ok {
 		codeV1 = InvalidRequest
 	}
 	return sdkError{

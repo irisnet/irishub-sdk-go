@@ -99,15 +99,21 @@ func (s serviceClient) DisableServiceBinding(serviceName string, baseTx sdk.Base
 }
 
 // EnableServiceBinding enables the specified service binding
-func (s serviceClient) EnableServiceBinding(serviceName string, deposit sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+func (s serviceClient) EnableServiceBinding(serviceName string, deposit sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	provider, err := s.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
+
+	amt, err := s.ToMinCoin(deposit...)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
 	msg := MsgEnableService{
 		ServiceName: serviceName,
 		Provider:    provider,
-		Deposit:     deposit,
+		Deposit:     amt,
 	}
 	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }

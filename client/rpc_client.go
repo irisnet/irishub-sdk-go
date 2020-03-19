@@ -24,15 +24,12 @@ type rpcClient struct {
 
 func NewRPCClient(remote string, cdc sdk.Codec, log *log.Logger) sdk.TmClient {
 	client := rpc.NewHTTP(remote, "/websocket")
+	_ = client.Start()
 	return rpcClient{
 		Client: client,
 		Logger: log,
 		cdc:    cdc,
 	}
-}
-
-func (r rpcClient) start() {
-	_ = r.Start()
 }
 
 //=============================================================================
@@ -53,6 +50,9 @@ func (r rpcClient) SubscribeNewBlock(builder *sdk.EventQueryBuilder,
 
 //SubscribeTx implement WSClient interface
 func (r rpcClient) SubscribeTx(builder *sdk.EventQueryBuilder, callback sdk.EventTxCallback) (sdk.Subscription, sdk.Error) {
+	if builder == nil {
+		builder = sdk.NewEventQueryBuilder()
+	}
 	query := builder.AddCondition(sdk.Cond(sdk.TypeKey).EQ(sdk.TxValue)).Build()
 	return r.SubscribeAny(query, func(data sdk.EventData) {
 		callback(data.(sdk.EventDataTx))
@@ -97,8 +97,6 @@ func (r rpcClient) Unsubscribe(subscription sdk.Subscription) sdk.Error {
 func (r rpcClient) SubscribeAny(query string, handler sdk.EventHandler) (subscription sdk.Subscription, err sdk.Error) {
 	ctx := context.Background()
 	subscriber := getSubscriber()
-	r.start()
-
 	ch, e := r.Subscribe(ctx, subscriber, query, 0)
 	if e != nil {
 		return subscription, sdk.Wrap(e)
@@ -107,7 +105,7 @@ func (r rpcClient) SubscribeAny(query string, handler sdk.EventHandler) (subscri
 	r.Info().
 		Str("query", query).
 		Str("subscriber", subscriber).
-		Msg("begin to subscribe event")
+		Msg("subscribe event")
 
 	subscription = sdk.Subscription{
 		Ctx:   ctx,
@@ -120,16 +118,16 @@ func (r rpcClient) SubscribeAny(query string, handler sdk.EventHandler) (subscri
 			data := <-ch
 			switch data := data.Data.(type) {
 			case tmtypes.EventDataTx:
-				handler(r.toEventDataTx(data))
+				handler(r.parseTx(data))
 				return
 			case tmtypes.EventDataNewBlock:
-				handler(r.toEventDataNewBlock(data))
+				handler(r.parseNewBlock(data))
 				return
 			case tmtypes.EventDataNewBlockHeader:
-				handler(r.toEventDataNewBlockHeader(data))
+				handler(r.parseNewBlockHeader(data))
 				return
 			case tmtypes.EventDataValidatorSetUpdates:
-				handler(r.toEventValidatorSetUpdates(data))
+				handler(r.parseValidatorSetUpdates(data))
 				return
 			default:
 				handler(data)
@@ -139,16 +137,7 @@ func (r rpcClient) SubscribeAny(query string, handler sdk.EventHandler) (subscri
 	return
 }
 
-func getSubscriber() string {
-	subscriber := "irishub-sdk-go"
-	id, err := uuid.NewV1()
-	if err == nil {
-		subscriber = fmt.Sprintf("%s-%s", subscriber, id.String())
-	}
-	return subscriber
-}
-
-func (r rpcClient) toEventDataTx(data sdk.EventData) sdk.EventDataTx {
+func (r rpcClient) parseTx(data sdk.EventData) sdk.EventDataTx {
 	tx := data.(tmtypes.EventDataTx)
 	var stdTx sdk.StdTx
 	if err := r.cdc.UnmarshalBinaryLengthPrefixed(tx.Tx, &stdTx); err != nil {
@@ -170,7 +159,7 @@ func (r rpcClient) toEventDataTx(data sdk.EventData) sdk.EventDataTx {
 	}
 }
 
-func (r rpcClient) toEventDataNewBlock(data sdk.EventData) sdk.EventDataNewBlock {
+func (r rpcClient) parseNewBlock(data sdk.EventData) sdk.EventDataNewBlock {
 	block := data.(tmtypes.EventDataNewBlock)
 	var txs []sdk.StdTx
 	for _, tx := range block.Block.Data.Txs {
@@ -199,7 +188,7 @@ func (r rpcClient) toEventDataNewBlock(data sdk.EventData) sdk.EventDataNewBlock
 	}
 }
 
-func (r rpcClient) toEventDataNewBlockHeader(data sdk.EventData) sdk.EventDataNewBlockHeader {
+func (r rpcClient) parseNewBlockHeader(data sdk.EventData) sdk.EventDataNewBlockHeader {
 	blockHeader := data.(tmtypes.EventDataNewBlockHeader)
 	return sdk.EventDataNewBlockHeader{
 		Header: blockHeader.Header,
@@ -213,10 +202,22 @@ func (r rpcClient) toEventDataNewBlockHeader(data sdk.EventData) sdk.EventDataNe
 	}
 }
 
-func (r rpcClient) toEventValidatorSetUpdates(data sdk.EventData) sdk.EventDataValidatorSetUpdates {
+func (r rpcClient) parseValidatorSetUpdates(data sdk.EventData) sdk.EventDataValidatorSetUpdates {
 	validatorSet := data.(tmtypes.EventDataValidatorSetUpdates)
+
+	var validators []sdk.Validator
+	for _, v := range validatorSet.ValidatorUpdates {
+		valAddr, _ := sdk.ConsAddressFromHex(v.Address.String())
+		pubKey, _ := sdk.Bech32ifyConsPub(v.PubKey)
+		validators = append(validators, sdk.Validator{
+			Address:          valAddr.String(),
+			PubKey:           pubKey,
+			VotingPower:      v.VotingPower,
+			ProposerPriority: v.ProposerPriority,
+		})
+	}
 	return sdk.EventDataValidatorSetUpdates{
-		ValidatorUpdates: parseValidators(validatorSet.ValidatorUpdates),
+		ValidatorUpdates: validators,
 	}
 }
 
@@ -234,16 +235,11 @@ func parseValidatorUpdate(vp abcitypes.ValidatorUpdates) (validatorUpdates []sdk
 	return
 }
 
-func parseValidators(valSet []*tmtypes.Validator) (validators []sdk.Validator) {
-	for _, v := range valSet {
-		valAddr, _ := sdk.ConsAddressFromHex(v.Address.String())
-		pubKey, _ := sdk.Bech32ifyConsPub(v.PubKey)
-		validators = append(validators, sdk.Validator{
-			Address:          valAddr.String(),
-			PubKey:           pubKey,
-			VotingPower:      v.VotingPower,
-			ProposerPriority: v.ProposerPriority,
-		})
+func getSubscriber() string {
+	subscriber := "irishub-sdk-go"
+	id, err := uuid.NewV1()
+	if err == nil {
+		subscriber = fmt.Sprintf("%s-%s", subscriber, id.String())
 	}
-	return
+	return subscriber
 }

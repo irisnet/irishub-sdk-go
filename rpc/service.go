@@ -21,7 +21,7 @@ type ServiceTx interface {
 	DisableServiceBinding(serviceName string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
 	EnableServiceBinding(serviceName string,
-		deposit sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+		deposit sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
 	RefundServiceDeposit(serviceName string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
