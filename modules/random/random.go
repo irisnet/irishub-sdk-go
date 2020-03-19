@@ -57,27 +57,25 @@ func (r randomClient) Request(request rpc.RandomRequest, baseTx sdk.BaseTx) (str
 	}
 
 	requestID := result.Tags.GetValue(tagRequestID)
-	if needWatch && !request.Oracle {
+	if needWatch {
 		var subscription sdk.Subscription
-		subscription, err = r.SubscribeNewBlock(nil, func(block sdk.EventDataNewBlock) {
+		builder := sdk.NewEventQueryBuilder().
+			AddCondition(sdk.Cond(tagRequestID).Contains(sdk.EventValue(requestID)))
+		subscription, err = r.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
 			tags := block.ResultBeginBlock.Tags
+			//cancel subscribe
+			_ = r.Unsubscribe(subscription)
+
+			rand := tags.GetValue(tagRand)
+
 			r.Debug().
 				Int64("height", block.Block.Height).
 				Str("tags", tags.String()).
-				Msg("received block")
-			requestIDs := tags.GetValues(tagRequestID)
-			for _, reqID := range requestIDs {
-				if reqID == requestID {
-					result, err := r.QueryRandom(requestID)
-					var randomNum string
-					if err == nil {
-						randomNum = result.Value
-					}
-					request.Callback(requestID, randomNum, err)
-					_ = r.Unsubscribe(subscription)
-					return
-				}
-			}
+				Str("requestID", requestID).
+				Str("random", rand).
+				Msg("received random result")
+
+			request.Callback(requestID, rand, nil)
 		})
 	}
 	return requestID, nil

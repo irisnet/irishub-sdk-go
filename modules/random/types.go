@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	ModuleName          = "random"
-	tagRequestID        = "request-id"
-	tagRequestContextID = "request-context-id"
+	ModuleName   = "random"
+	tagRequestID = "request-id"
+	tagRand      = "rand"
 )
 
 var (

@@ -116,22 +116,31 @@ func (r rpcClient) SubscribeAny(query string, handler sdk.EventHandler) (subscri
 	go func() {
 		for {
 			data := <-ch
-			switch data := data.Data.(type) {
-			case tmtypes.EventDataTx:
-				handler(r.parseTx(data))
-				return
-			case tmtypes.EventDataNewBlock:
-				handler(r.parseNewBlock(data))
-				return
-			case tmtypes.EventDataNewBlockHeader:
-				handler(r.parseNewBlockHeader(data))
-				return
-			case tmtypes.EventDataValidatorSetUpdates:
-				handler(r.parseValidatorSetUpdates(data))
-				return
-			default:
-				handler(data)
-			}
+			go func() {
+				defer sdk.CatchPanic(func(errMsg string) {
+					r.Error().
+						Str("query", query).
+						Str("subscriber", subscriber).
+						Msgf("subscribe event failed:%s", errMsg)
+				})
+
+				switch data := data.Data.(type) {
+				case tmtypes.EventDataTx:
+					handler(r.parseTx(data))
+					return
+				case tmtypes.EventDataNewBlock:
+					handler(r.parseNewBlock(data))
+					return
+				case tmtypes.EventDataNewBlockHeader:
+					handler(r.parseNewBlockHeader(data))
+					return
+				case tmtypes.EventDataValidatorSetUpdates:
+					handler(r.parseValidatorSetUpdates(data))
+					return
+				default:
+					handler(data)
+				}
+			}()
 		}
 	}()
 	return

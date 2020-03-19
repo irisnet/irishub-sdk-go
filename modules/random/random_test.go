@@ -1,7 +1,9 @@
 package random_test
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
 
@@ -53,4 +55,12 @@ func (rts *RandomTestSuite) TestGenerate() {
 	memory[reqID] = ""
 	<-signal
 	require.NotEmpty(rts.T(), memory[reqID])
+}
+
+func (rts *RandomTestSuite) TestBlock() {
+	_, _ = rts.SubscribeNewBlock(nil, func(block sdk.EventDataNewBlock) {
+		fmt.Println(block.Block.Height)
+		panic("test panic")
+	})
+	time.Sleep(10 * time.Minute)
 }

@@ -54,6 +54,10 @@ func (ac abstractClient) Logger() *log.Logger {
 }
 
 func (ac *abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+	defer sdk.CatchPanic(func(errMsg string) {
+		ac.Logger().Error().
+			Msgf("broadcast msg failed:%s", errMsg)
+	})
 	//validate msg
 	for _, m := range msg {
 		if err := m.ValidateBasic(); err != nil {

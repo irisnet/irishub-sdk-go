@@ -199,3 +199,16 @@ var v17CodeMap = map[uint32]Code{
 	22: InvalidRequest,
 	23: InvalidRequest,
 }
+
+func CatchPanic(fn func(errMsg string)) {
+	if err := recover(); err != nil {
+		var msg string
+		switch e := err.(type) {
+		case error:
+			msg = e.Error()
+		case string:
+			msg = e
+		}
+		fn(msg)
+	}
+}
