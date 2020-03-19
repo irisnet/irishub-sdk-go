@@ -87,12 +87,13 @@ func (m Memory) Delete(name string) error {
 }
 
 func getKeystore() string {
+	pjName := "irishub-sdk-go"
 	path, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
-	path = filepath.Dir(path)
-	path = strings.TrimRight(path, "modules")
+	idx := strings.Index(path, pjName)
+	path = path[:idx+len(pjName)]
 	path = filepath.Join(path, "test/scripts/keystore1.json")
 	bz, err := ioutil.ReadFile(path)
 	if err != nil {

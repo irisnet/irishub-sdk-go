@@ -22,10 +22,10 @@ const (
 )
 
 type WSClient interface {
-	SubscribeNewBlock(builder *EventQueryBuilder, callback EventNewBlockCallback) (Subscription, Error)
-	SubscribeTx(builder *EventQueryBuilder, callback EventTxCallback) (Subscription, Error)
-	SubscribeNewBlockHeader(callback EventNewBlockHeaderCallback) (Subscription, Error)
-	SubscribeValidatorSetUpdates(callback EventValidatorSetUpdatesCallback) (Subscription, Error)
+	SubscribeNewBlock(builder *EventQueryBuilder, handler EventNewBlockHandler) (Subscription, Error)
+	SubscribeTx(builder *EventQueryBuilder, handler EventTxHandler) (Subscription, Error)
+	SubscribeNewBlockHeader(handler EventNewBlockHeaderHandler) (Subscription, Error)
+	SubscribeValidatorSetUpdates(handler EventValidatorSetUpdatesHandler) (Subscription, Error)
 	Resubscribe(subscription Subscription, handler EventHandler) Error
 	Unsubscribe(subscription Subscription) Error
 }
@@ -120,7 +120,7 @@ func (t Tags) String() string {
 	return buf.String()
 }
 
-type EventTxCallback func(EventDataTx)
+type EventTxHandler func(EventDataTx)
 
 //EventDataNewBlock for SubscribeNewBlock
 type EventDataNewBlock struct {
@@ -159,7 +159,7 @@ type EventPubKey struct {
 	Value string `json:"value"`
 }
 
-type EventNewBlockCallback func(EventDataNewBlock)
+type EventNewBlockHandler func(EventDataNewBlock)
 
 //EventDataNewBlockHeader for SubscribeNewBlockHeader
 type EventDataNewBlockHeader struct {
@@ -169,7 +169,7 @@ type EventDataNewBlockHeader struct {
 	ResultEndBlock   ResultEndBlock   `json:"result_end_block"`
 }
 
-type EventNewBlockHeaderCallback func(EventDataNewBlockHeader)
+type EventNewBlockHeaderHandler func(EventDataNewBlockHeader)
 
 //EventDataValidatorSetUpdates for SubscribeValidatorSetUpdates
 type Validator struct {
@@ -182,7 +182,7 @@ type EventDataValidatorSetUpdates struct {
 	ValidatorUpdates []Validator `json:"validator_updates"`
 }
 
-type EventValidatorSetUpdatesCallback func(EventDataValidatorSetUpdates)
+type EventValidatorSetUpdatesHandler func(EventDataValidatorSetUpdates)
 
 //EventQueryBuilder for build query string
 type condition struct {

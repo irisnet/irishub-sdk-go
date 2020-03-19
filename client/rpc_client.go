@@ -35,7 +35,7 @@ func NewRPCClient(remote string, cdc sdk.Codec, log *log.Logger) sdk.TmClient {
 //=============================================================================
 //SubscribeNewBlock implement WSClient interface
 func (r rpcClient) SubscribeNewBlock(builder *sdk.EventQueryBuilder,
-	callback sdk.EventNewBlockCallback) (sdk.Subscription, sdk.Error) {
+	handler sdk.EventNewBlockHandler) (sdk.Subscription, sdk.Error) {
 	if builder == nil {
 		builder = sdk.NewEventQueryBuilder()
 	}
@@ -44,32 +44,32 @@ func (r rpcClient) SubscribeNewBlock(builder *sdk.EventQueryBuilder,
 	query := builder.Build()
 
 	return r.SubscribeAny(query, func(data sdk.EventData) {
-		callback(data.(sdk.EventDataNewBlock))
+		handler(data.(sdk.EventDataNewBlock))
 	})
 }
 
 //SubscribeTx implement WSClient interface
-func (r rpcClient) SubscribeTx(builder *sdk.EventQueryBuilder, callback sdk.EventTxCallback) (sdk.Subscription, sdk.Error) {
+func (r rpcClient) SubscribeTx(builder *sdk.EventQueryBuilder, handler sdk.EventTxHandler) (sdk.Subscription, sdk.Error) {
 	if builder == nil {
 		builder = sdk.NewEventQueryBuilder()
 	}
 	query := builder.AddCondition(sdk.Cond(sdk.TypeKey).EQ(sdk.TxValue)).Build()
 	return r.SubscribeAny(query, func(data sdk.EventData) {
-		callback(data.(sdk.EventDataTx))
+		handler(data.(sdk.EventDataTx))
 	})
 }
 
-func (r rpcClient) SubscribeNewBlockHeader(callback sdk.EventNewBlockHeaderCallback) (sdk.Subscription, sdk.Error) {
+func (r rpcClient) SubscribeNewBlockHeader(handler sdk.EventNewBlockHeaderHandler) (sdk.Subscription, sdk.Error) {
 	query := tmtypes.QueryForEvent(tmtypes.EventNewBlockHeader).String()
 	return r.SubscribeAny(query, func(data sdk.EventData) {
-		callback(data.(sdk.EventDataNewBlockHeader))
+		handler(data.(sdk.EventDataNewBlockHeader))
 	})
 }
 
-func (r rpcClient) SubscribeValidatorSetUpdates(callback sdk.EventValidatorSetUpdatesCallback) (sdk.Subscription, sdk.Error) {
+func (r rpcClient) SubscribeValidatorSetUpdates(handler sdk.EventValidatorSetUpdatesHandler) (sdk.Subscription, sdk.Error) {
 	query := tmtypes.QueryForEvent(tmtypes.EventValidatorSetUpdates).String()
 	return r.SubscribeAny(query, func(data sdk.EventData) {
-		callback(data.(sdk.EventDataValidatorSetUpdates))
+		handler(data.(sdk.EventDataValidatorSetUpdates))
 	})
 }
 
