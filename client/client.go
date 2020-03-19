@@ -26,6 +26,7 @@ type SDKClient struct {
 
 	sdk.WSClient
 	sdk.TxManager
+	sdk.TokenConvert
 }
 
 func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
@@ -37,11 +38,12 @@ func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
 
 	abstClient := createAbstractClient(cdc, cfg, log.Default)
 	client := &SDKClient{
-		cdc:       cdc,
-		modules:   make(map[string]sdk.Module),
-		WSClient:  abstClient.TmClient,
-		TxManager: abstClient,
-		logger:    log.Default,
+		cdc:          cdc,
+		modules:      make(map[string]sdk.Module),
+		WSClient:     abstClient.TmClient,
+		TxManager:    abstClient,
+		TokenConvert: abstClient,
+		logger:       log.Default,
 	}
 
 	client.registerModule(

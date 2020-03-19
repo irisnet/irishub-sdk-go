@@ -30,13 +30,13 @@ type CoinType struct {
 }
 
 //ToMainCoin return the main denom coin from args
-func (ct CoinType) ConvertToMainCoin(coin Coin) (Coin, error) {
+func (ct CoinType) ConvertToMainCoin(coin Coin) (DecCoin, error) {
 	if !ct.hasUnit(coin.Denom) {
-		return coin, errors.New("coinType unit (%s) not defined" + coin.Denom)
+		return ZeroDecCoin, errors.New("coinType unit (%s) not defined" + coin.Denom)
 	}
 
 	if ct.isMainUnit(coin.Denom) {
-		return coin, nil
+		return ZeroDecCoin, nil
 	}
 
 	// dest amount = src amount * (10^(dest scale) / 10^(src scale))
@@ -45,7 +45,7 @@ func (ct CoinType) ConvertToMainCoin(coin Coin) (Coin, error) {
 	amount := NewDecFromInt(coin.Amount)
 
 	amt := amount.Mul(dstScale).Quo(srcScale)
-	return NewCoin(ct.MainUnit.Denom, amt.RoundInt()), nil
+	return NewDecCoinFromDec(ct.MainUnit.Denom, amt), nil
 }
 
 //ToMinCoin return the min denom coin from args

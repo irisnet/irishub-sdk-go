@@ -228,7 +228,7 @@ func (ac abstractClient) ToMainCoin(coins ...sdk.Coin) (dstCoins sdk.DecCoins, e
 		if err != nil {
 			return dstCoins, err
 		}
-		dstCoins = append(dstCoins, sdk.NewDecCoinFromCoin(mainCoin))
+		dstCoins = append(dstCoins, mainCoin)
 	}
 	return dstCoins.Sort(), nil
 }

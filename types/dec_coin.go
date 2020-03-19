@@ -8,6 +8,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+var ZeroDecCoin = DecCoin{}
+
 // ----------------------------------------------------------------------------
 // Decimal Coin
 // DecCoin defines a token with a denomination and a decimal amount.
