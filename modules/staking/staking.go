@@ -414,7 +414,7 @@ func (s stakingClient) QueryParams() (rpc.StakeParams, sdk.Error) {
 
 //
 func (s stakingClient) SubscribeValidatorInfoUpdates(validator string,
-	callback func(data rpc.EventDataMsgEditValidator)) sdk.Subscription {
+	callback func(data rpc.EventDataMsgEditValidator)) (sdk.Subscription, sdk.Error) {
 	var builder = sdk.NewEventQueryBuilder().
 		AddCondition(sdk.Cond(sdk.ActionKey).EQ("edit_validator"))
 
@@ -423,7 +423,7 @@ func (s stakingClient) SubscribeValidatorInfoUpdates(validator string,
 	if len(validator) != 0 {
 		builder.AddCondition(sdk.Cond("destination-validator").EQ(sdk.EventValue(validator)))
 	}
-	subscription, err := s.SubscribeTx(builder, func(tx sdk.EventDataTx) {
+	return s.SubscribeTx(builder, func(tx sdk.EventDataTx) {
 		for _, msg := range tx.Tx.Msgs {
 			msg, ok := msg.(MsgEditValidator)
 			if ok && validator == msg.ValidatorAddr.String() {
@@ -443,6 +443,4 @@ func (s stakingClient) SubscribeValidatorInfoUpdates(validator string,
 			}
 		}
 	})
-	s.Err(err).Msg("subscribe validator update event failed")
-	return subscription
 }

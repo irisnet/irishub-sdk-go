@@ -338,15 +338,9 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter,
 		return sdk.Subscription{}, sdk.Wrap(e)
 	}
 
-	defer func() {
-		if r := recover(); r != nil {
-			return
-		}
-	}()
-
 	builder := sdk.NewEventQueryBuilder().
 		AddCondition(sdk.Cond(tagProvider).Contains(sdk.EventValue(provider.String())))
-	subscription, err = s.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
+	return s.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
 		reqIDs := block.ResultEndBlock.Tags.GetValues(tagRequestID)
 		s.Debug().
 			Int64("height", block.Block.Height).
@@ -375,7 +369,6 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter,
 			}
 		}
 	})
-	return subscription, sdk.Wrap(err)
 }
 
 //RegisterSingleServiceListener is responsible for registering a single service handler
@@ -387,16 +380,10 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 		return sdk.Subscription{}, sdk.Wrap(e)
 	}
 
-	defer func() {
-		if r := recover(); r != nil {
-			return
-		}
-	}()
-
 	builder := sdk.NewEventQueryBuilder().
 		AddCondition(sdk.Cond(tagProvider).Contains(sdk.EventValue(provider.String()))).
 		AddCondition(sdk.Cond(tagServiceName).Contains(sdk.EventValue(serviceName)))
-	subscription, err = s.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
+	return s.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
 		reqIDs := block.ResultEndBlock.Tags.GetValues(tagRequestID)
 		s.Debug().
 			Int64("height", block.Block.Height).
@@ -436,7 +423,6 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 			}
 		}
 	})
-	return subscription, sdk.Wrap(err)
 }
 
 // QueryDefinition return a service definition of the specified name

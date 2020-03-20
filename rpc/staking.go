@@ -36,7 +36,7 @@ type StakingQueries interface {
 
 type StakingSubscriber interface {
 	SubscribeValidatorInfoUpdates(validator string,
-		callback func(data EventDataMsgEditValidator)) sdk.Subscription
+		handler func(data EventDataMsgEditValidator)) (sdk.Subscription, sdk.Error)
 }
 
 type Staking interface {
