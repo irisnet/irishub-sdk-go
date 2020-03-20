@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -362,11 +363,16 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter, 
 			}
 			if handler, ok := serviceRouter[request.ServiceName]; ok && provider.Equals(request.Provider) {
 				output, errMsg := handler(request.Input)
+				result := Result{Code: 200, Message: ""}
+				if len(errMsg) > 0 {
+					result = Result{Code: 500, Message: errMsg}
+				}
+				resultJson, _ := json.Marshal(result)
 				msg := MsgRespondService{
 					RequestID: reqID,
 					Provider:  provider,
 					Output:    output,
-					Error:     errMsg,
+					Result:    string(resultJson),
 				}
 				go func() {
 					if _, err = s.BuildAndSend([]sdk.Msg{msg}, baseTx); err != nil {
@@ -395,45 +401,55 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 	}()
 
 	builder := sdk.NewEventQueryBuilder().
-		AddCondition(sdk.Cond(tagProvider).Contains(sdk.EventValue(provider.String()))).
-		AddCondition(sdk.Cond(tagServiceName).Contains(sdk.EventValue(serviceName)))
+		AddCondition(sdk.Cond(ActionNewBatchRequest + tagProvider).Contains(sdk.EventValue(provider.String()))).
+		AddCondition(sdk.Cond(ActionNewBatchRequest + tagServiceName).Contains(sdk.EventValue(serviceName)))
 	_, err = s.SubscribeNewBlockWithQuery(builder, func(block sdk.EventDataNewBlock) {
-		reqIDs := block.ResultEndBlock.Tags.GetValues(tagRequestID)
+		compactRequsts := block.ResultEndBlock.Tags.GetValues(ActionNewBatchRequest + serviceName + "." + provider.String())
+
 		s.Debug().
 			Int64("height", block.Block.Height).
 			Str(tagServiceName, serviceName).
 			Str(tagProvider, provider.String()).
-			Strs("requestIDs", reqIDs).
+			Strs("requestIDs", compactRequsts).
 			Msg("received service request")
-		for _, reqID := range reqIDs {
-			request, err := s.QueryRequest(reqID)
-			if err != nil {
-				s.Err(err).
-					Str("requestID", reqID).
-					Int64("height", block.Block.Height).
-					Str(tagServiceName, serviceName).
-					Str(tagProvider, provider.String()).
-					Msg("service request don't exist")
-				continue
-			}
-			if provider.Equals(request.Provider) && request.ServiceName == serviceName {
-				output, errMsg := respondHandler(request.Input)
-				msg := MsgRespondService{
-					RequestID: reqID,
-					Provider:  provider,
-					Output:    output,
-					Error:     errMsg,
+		for _, crq := range compactRequsts {
+			var ids []string
+			_ = json.Unmarshal([]byte(crq), &ids)
+			for _, reqID := range ids {
+				request, err := s.QueryRequest(reqID)
+				if err != nil {
+					s.Err(err).
+						Str("requestID", reqID).
+						Int64("height", block.Block.Height).
+						Str(tagServiceName, serviceName).
+						Str(tagProvider, provider.String()).
+						Msg("service request don't exist")
+					continue
 				}
-				go func() {
-					if _, err = s.BuildAndSend([]sdk.Msg{msg}, baseTx); err != nil {
-						s.Err(err).
-							Str("requestID", reqID).
-							Int64("height", block.Block.Height).
-							Str(tagServiceName, serviceName).
-							Str(tagProvider, provider.String()).
-							Msg("provider respond failed")
+				if provider.Equals(request.Provider) && request.ServiceName == serviceName {
+					output, errMsg := respondHandler(request.Input)
+					result := Result{Code: 200, Message: ""}
+					if len(errMsg) > 0 {
+						result = Result{Code: 500, Message: errMsg}
 					}
-				}()
+					resultJson, _ := json.Marshal(result)
+					msg := MsgRespondService{
+						RequestID: reqID,
+						Provider:  provider,
+						Output:    output,
+						Result:    string(resultJson),
+					}
+					go func() {
+						if _, err = s.BuildAndSend([]sdk.Msg{msg}, baseTx); err != nil {
+							s.Err(err).
+								Str("requestID", reqID).
+								Int64("height", block.Block.Height).
+								Str(tagServiceName, serviceName).
+								Str(tagProvider, provider.String()).
+								Msg("provider respond failed")
+						}
+					}()
+				}
 			}
 		}
 	})

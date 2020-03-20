@@ -1,6 +1,7 @@
 package service
 
 import (
+	json2 "encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -21,7 +22,9 @@ const (
 	tagRespondService   = "respond_service"
 	tagRequestContextID = "request-context-id"
 
-	requestContextIDLen = 32 // length of the request context ID in bytes
+	ActionNewBatchRequest = "new-batch-request."
+
+	requestContextIDLen = 40 // length of the request context ID in bytes
 )
 
 var (
@@ -188,8 +191,8 @@ func (msg MsgRequestService) GetSigners() []sdk.AccAddress {
 type MsgRespondService struct {
 	RequestID string         `json:"request_id"`
 	Provider  sdk.AccAddress `json:"provider"`
+	Result    string         `json:"result"`
 	Output    string         `json:"output"`
-	Error     string         `json:"error"`
 }
 
 func (msg MsgRespondService) Type() string {
@@ -201,13 +204,33 @@ func (msg MsgRespondService) ValidateBasic() error {
 		return errors.New("provider missing")
 	}
 
-	if len(msg.Output) == 0 && len(msg.Error) == 0 {
-		return errors.New("either output or error should be specified, but neither was provided")
+	if len(msg.Result) == 0 {
+		return errors.New("result missing")
 	}
 
-	if len(msg.Output) > 0 && len(msg.Error) > 0 {
-		return errors.New("either output or error should be specified, but both were provided")
+	if err := ValidateResponseResult(msg.Result); err != nil {
+		return err
 	}
+
+	result, err := ParseResult(msg.Result)
+	if err != nil {
+		return err
+	}
+
+	if result.Code == 200 && len(msg.Output) == 0 {
+		return errors.New("output must be specified when the result code is 200")
+	}
+
+	if result.Code != 200 && len(msg.Output) != 0 {
+		return errors.New("output should not be specified when the result code is not 200")
+	}
+
+	if len(msg.Output) > 0 {
+		if !json2.Valid([]byte(msg.Output)) {
+			return errors.New("output is not valid JSON")
+		}
+	}
+
 	return nil
 }
 
@@ -846,6 +869,23 @@ func (e earnedFees) Convert() interface{} {
 		Address: e.Address,
 		Coins:   e.Coins,
 	}
+}
+
+// Result defines a struct for the response result
+type Result struct {
+	Code    uint16 `json:"code"`
+	Message string `json:"message"`
+}
+
+// ParseResult parses the given string to Result
+func ParseResult(result string) (Result, error) {
+	var r Result
+
+	if err := json2.Unmarshal([]byte(result), &r); err != nil {
+		return r, fmt.Errorf("failed to unmarshal the result: %s", err)
+	}
+
+	return r, nil
 }
 
 func registerCodec(cdc sdk.Codec) {
