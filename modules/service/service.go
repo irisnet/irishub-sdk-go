@@ -360,12 +360,12 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter,
 				continue
 			}
 			if handler, ok := serviceRouter[request.ServiceName]; ok && provider.Equals(request.Provider) {
-				output, errMsg := handler(request.Input)
+				output, result := handler(request.Input)
 				msg := MsgRespondService{
 					RequestID: reqID,
 					Provider:  provider,
 					Output:    output,
-					Error:     errMsg,
+					Result:    result,
 				}
 				go func() {
 					if _, err = s.BuildAndSend([]sdk.Msg{msg}, baseTx); err != nil {
@@ -416,12 +416,12 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 				continue
 			}
 			if provider.Equals(request.Provider) && request.ServiceName == serviceName {
-				output, errMsg := respondHandler(request.Input)
+				output, result := respondHandler(request.Input)
 				msg := MsgRespondService{
 					RequestID: reqID,
 					Provider:  provider,
 					Output:    output,
-					Error:     errMsg,
+					Result:    result,
 				}
 				go func() {
 					if _, err = s.BuildAndSend([]sdk.Msg{msg}, baseTx); err != nil {

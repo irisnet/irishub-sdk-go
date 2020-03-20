@@ -40,10 +40,10 @@ func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
 	client := &SDKClient{
 		cdc:          cdc,
 		modules:      make(map[string]sdk.Module),
+		logger:       log.Default,
 		WSClient:     abstClient.TmClient,
 		TxManager:    abstClient,
 		TokenConvert: abstClient,
-		logger:       log.Default,
 	}
 
 	client.registerModule(

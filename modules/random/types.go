@@ -2,6 +2,7 @@ package random
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
 
@@ -14,13 +15,16 @@ import (
 const (
 	ModuleName   = "random"
 	tagRequestID = "request-id"
-	tagRand      = "rand"
 )
 
 var (
 	//_ sdk.Msg = MsgUnjail{}
 
 	cdc = sdk.NewAminoCodec()
+
+	tagRand = func(reqID string) string {
+		return fmt.Sprintf("rand.%s", reqID)
+	}
 )
 
 func init() {

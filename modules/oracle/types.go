@@ -2,6 +2,7 @@ package oracle
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -13,6 +14,11 @@ import (
 
 const (
 	ModuleName = "oracle"
+	RUNNING    = "running"
+	PAUSED     = "paused"
+	COMPLETED  = "completed"
+
+	tagFeedName = "feed-name"
 )
 
 var (
@@ -22,6 +28,10 @@ var (
 	_ sdk.Msg = MsgEditFeed{}
 
 	cdc = sdk.NewAminoCodec()
+
+	tagFeedValue = func(feedName string) string {
+		return fmt.Sprintf("%s.%s", tagFeedName, feedName)
+	}
 )
 
 func init() {
@@ -280,8 +290,8 @@ type feedContexts []feedContext
 
 func (fcs feedContexts) Convert() interface{} {
 	result := make([]rpc.FeedContext, len(fcs))
-	for _, fc := range fcs {
-		result = append(result, fc.Convert().(rpc.FeedContext))
+	for i, fc := range fcs {
+		result[i] = fc.Convert().(rpc.FeedContext)
 	}
 	return result
 }
@@ -294,11 +304,11 @@ type feedValues []feedValue
 
 func (fvs feedValues) Convert() interface{} {
 	result := make([]rpc.FeedValue, len(fvs))
-	for _, fv := range fvs {
-		result = append(result, rpc.FeedValue{
+	for i, fv := range fvs {
+		result[i] = rpc.FeedValue{
 			Data:      fv.Data,
 			Timestamp: fv.Timestamp,
-		})
+		}
 	}
 	return result
 }

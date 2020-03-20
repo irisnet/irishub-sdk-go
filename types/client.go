@@ -32,6 +32,6 @@ type AbstractClient interface {
 	TxManager
 	Query
 	TokenConvert
-	WSClient
+	TmClient
 	Logger
 }

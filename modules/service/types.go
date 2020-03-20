@@ -1,6 +1,7 @@
 package service
 
 import (
+	json2 "encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -21,7 +22,9 @@ const (
 	tagRespondService   = "respond_service"
 	tagRequestContextID = "request-context-id"
 
-	requestContextIDLen = 32 // length of the request context ID in bytes
+	ActionNewBatchRequest = "new-batch-request."
+
+	requestContextIDLen = 40 // length of the request context ID in bytes
 )
 
 var (
@@ -188,8 +191,8 @@ func (msg MsgRequestService) GetSigners() []sdk.AccAddress {
 type MsgRespondService struct {
 	RequestID string         `json:"request_id"`
 	Provider  sdk.AccAddress `json:"provider"`
+	Result    string         `json:"result"`
 	Output    string         `json:"output"`
-	Error     string         `json:"error"`
 }
 
 func (msg MsgRespondService) Type() string {
@@ -201,13 +204,16 @@ func (msg MsgRespondService) ValidateBasic() error {
 		return errors.New("provider missing")
 	}
 
-	if len(msg.Output) == 0 && len(msg.Error) == 0 {
-		return errors.New("either output or error should be specified, but neither was provided")
+	if len(msg.Result) == 0 {
+		return errors.New("result missing")
 	}
 
-	if len(msg.Output) > 0 && len(msg.Error) > 0 {
-		return errors.New("either output or error should be specified, but both were provided")
+	if len(msg.Output) > 0 {
+		if !json2.Valid([]byte(msg.Output)) {
+			return errors.New("output is not valid JSON")
+		}
 	}
+
 	return nil
 }
 

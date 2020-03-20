@@ -83,6 +83,7 @@ func (sts *ServiceTestSuite) TestService() {
 
 	input := `{"pair":"iris-usdt"}`
 	output := `{"last":"1:100"}`
+	testResult := `{"code":200,"message":""}`
 
 	var sub1 sdk.Subscription
 	sub1, err = sts.Service().RegisterSingleServiceListener(definition.ServiceName,
@@ -91,7 +92,7 @@ func (sts *ServiceTestSuite) TestService() {
 				Str("input", input).
 				Str("output", output).
 				Msg("provider received request")
-			return output, ""
+			return output, testResult
 		}, baseTx)
 	require.NoError(sts.T(), err)
 

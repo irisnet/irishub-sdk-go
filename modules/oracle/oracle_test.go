@@ -36,6 +36,7 @@ func (ots *OracleTestSuite) SetupService() {
 	schemas := `{"input":{"type":"object"},"output":{"type":"object"},"error":{"type":"object"}}`
 	pricing := `{"price":[{"denom":"iris-atto","amount":"1000000000000000000"}]}`
 	output := `{"last":"100"}`
+	testResult := `{"code":200,"message":""}`
 	serviceName := generateServiceName()
 
 	baseTx := sdk.BaseTx{
@@ -74,7 +75,7 @@ func (ots *OracleTestSuite) SetupService() {
 			ots.Info().Str("input", input).
 				Str("output", output).
 				Msg("Service received request")
-			return output, ""
+			return output, testResult
 		}, baseTx)
 
 	require.NoError(ots.T(), err)
@@ -118,14 +119,28 @@ func (ots *OracleTestSuite) TestFeed() {
 	require.NoError(ots.T(), err)
 	require.NotEmpty(ots.T(), result.Hash)
 
-	for {
+	ch := make(chan string)
+	err = ots.Oracle().RegisterFeedListener(feedName, func(value string) {
+		log.Default.Info().
+			Str("feedName", feedName).
+			Str("feedValue", value).
+			Msg("received feed value")
+		ch <- value
+	})
+
+	require.NoError(ots.T(), err)
+
+	for v := range ch {
 		result, err := ots.Oracle().QueryFeedValue(feedName)
 		require.NoError(ots.T(), err)
+		require.Equal(ots.T(), v, result[0].Data)
+
 		if len(result) == int(createFeedReq.RepeatedTotal) {
 			goto stop
 		}
 	}
 stop:
+	close(ch)
 	ots.Info().Msg("test feed success")
 }
 

@@ -58,19 +58,39 @@ func (r randomClient) Request(request rpc.RandomRequest, baseTx sdk.BaseTx) (str
 
 	requestID := result.Tags.GetValue(tagRequestID)
 	if needWatch {
-		var subscription sdk.Subscription
-		builder := sdk.NewEventQueryBuilder().
+		unsubscribe := func(sub1, sub2 sdk.Subscription) {
+			_ = r.Unsubscribe(sub1)
+			_ = r.Unsubscribe(sub2)
+		}
+
+		var sub1, sub2 sdk.Subscription
+
+		blockBuilder := sdk.NewEventQueryBuilder().
 			AddCondition(sdk.Cond(tagRequestID).Contains(sdk.EventValue(requestID)))
-		subscription, err = r.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
-			tags := block.ResultBeginBlock.Tags
+		sub1, err = r.SubscribeNewBlock(blockBuilder, func(block sdk.EventDataNewBlock) {
 			//cancel subscribe
-			_ = r.Unsubscribe(subscription)
+			unsubscribe(sub1, sub2)
 
-			rand := tags.GetValue(tagRand)
-
+			rand := block.ResultBeginBlock.Tags.GetValue(tagRand(tagRequestID))
 			r.Debug().
 				Int64("height", block.Block.Height).
-				Str("tags", tags.String()).
+				Str("requestID", requestID).
+				Str("random", rand).
+				Msg("received random result")
+
+			request.Callback(requestID, rand, nil)
+		})
+
+		txBuilder := sdk.NewEventQueryBuilder().
+			AddCondition(sdk.Cond(tagRequestID).Contains(sdk.EventValue(requestID))).
+			AddCondition(sdk.Cond(sdk.ActionKey).EQ("respond_service"))
+		sub2, err = r.SubscribeTx(txBuilder, func(tx sdk.EventDataTx) {
+			//cancel subscribe
+			unsubscribe(sub1, sub2)
+
+			rand := tx.Result.Tags.GetValue(tagRand(tagRequestID))
+			r.Debug().
+				Int64("height", tx.Height).
 				Str("requestID", requestID).
 				Str("random", rand).
 				Msg("received random result")

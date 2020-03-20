@@ -32,6 +32,7 @@ type WSClient interface {
 
 type TmClient interface {
 	tmclient.ABCIClient
+	tmclient.SignClient
 	WSClient
 }
 

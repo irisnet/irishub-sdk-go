@@ -219,3 +219,63 @@ func (o oracleClient) QueryFeedValue(feedName string) ([]rpc.FeedValue, sdk.Erro
 	}
 	return fvs.Convert().([]rpc.FeedValue), nil
 }
+
+func (o oracleClient) RegisterFeedListener(feedName string, handler func(value string)) sdk.Error {
+	feed, err := o.QueryFeed(feedName)
+	if err != nil {
+		return err
+	}
+
+	isInValidState := func(state string) bool {
+		if state == COMPLETED || state == PAUSED || state == "" {
+			return true
+		}
+		return false
+	}
+
+	if isInValidState(feed.State) {
+		return sdk.Wrapf("feed:%s state is invalid:%s", feedName, feed.State)
+	}
+
+	unsubscribe := func(sub1, sub2 sdk.Subscription) {
+		f, err := o.QueryFeed(feedName)
+		if err != nil || isInValidState(f.State) {
+			_ = o.Unsubscribe(sub1)
+			_ = o.Unsubscribe(sub2)
+		}
+	}
+
+	var sub1, sub2 sdk.Subscription
+
+	blockBuilder := sdk.NewEventQueryBuilder().
+		AddCondition(sdk.Cond(tagFeedName).Contains(sdk.EventValue(feedName)))
+	sub1, err = o.SubscribeNewBlock(blockBuilder, func(block sdk.EventDataNewBlock) {
+		tagValue := tagFeedValue(feedName)
+		result := block.ResultEndBlock.Tags.GetValue(tagValue)
+
+		o.Info().Str("feed-value", result).
+			Msg("received feed value")
+		if len(result) != 0 {
+			handler(result)
+			unsubscribe(sub1, sub2)
+		}
+	})
+
+	txBuilder := sdk.NewEventQueryBuilder().
+		AddCondition(sdk.Cond(tagFeedName).Contains(sdk.EventValue(feedName))).
+		AddCondition(sdk.Cond(sdk.ActionKey).EQ("respond_service"))
+	sub2, err = o.SubscribeTx(txBuilder, func(tx sdk.EventDataTx) {
+		tagValue := tagFeedValue(feedName)
+		result := tx.Result.Tags.GetValue(tagValue)
+
+		o.Info().Str("feed-value", result).
+			Msg("received feed value")
+		if len(result) != 0 {
+			if len(result) != 0 {
+				handler(result)
+				unsubscribe(sub1, sub2)
+			}
+		}
+	})
+	return err
+}
