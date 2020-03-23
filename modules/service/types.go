@@ -1,9 +1,12 @@
 package service
 
 import (
+	"encoding/hex"
 	json2 "encoding/json"
 	"errors"
 	"fmt"
+	cmn "github.com/tendermint/tendermint/libs/common"
+	"strings"
 	"time"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
@@ -22,9 +25,7 @@ const (
 	tagRespondService   = "respond_service"
 	tagRequestContextID = "request-context-id"
 
-	ActionNewBatchRequest = "new-batch-request."
-
-	requestContextIDLen = 40 // length of the request context ID in bytes
+	actionNewBatchRequest = "new-batch-request"
 )
 
 var (
@@ -189,7 +190,7 @@ func (msg MsgRequestService) GetSigners() []sdk.AccAddress {
 
 // MsgRespondService defines a message to respond a service request
 type MsgRespondService struct {
-	RequestID string         `json:"request_id"`
+	RequestID cmn.HexBytes   `json:"request_id"`
 	Provider  sdk.AccAddress `json:"provider"`
 	Result    string         `json:"result"`
 	Output    string         `json:"output"`
@@ -462,11 +463,6 @@ func (msg MsgPauseRequestContext) ValidateBasic() error {
 	if len(msg.Consumer) == 0 {
 		return errors.New("consumer missing")
 	}
-
-	if len(msg.RequestContextID) != requestContextIDLen {
-		return errors.New(fmt.Sprintf("length of the request context ID must be %d in bytes", requestContextIDLen))
-	}
-
 	return nil
 }
 
@@ -501,11 +497,6 @@ func (msg MsgStartRequestContext) ValidateBasic() error {
 	if len(msg.Consumer) == 0 {
 		return errors.New("consumer missing")
 	}
-
-	if len(msg.RequestContextID) != requestContextIDLen {
-		return errors.New(fmt.Sprintf("length of the request context ID must be %d in bytes", requestContextIDLen))
-	}
-
 	return nil
 }
 
@@ -539,10 +530,6 @@ func (msg MsgKillRequestContext) GetSignBytes() []byte {
 func (msg MsgKillRequestContext) ValidateBasic() error {
 	if len(msg.Consumer) == 0 {
 		return errors.New("consumer missing")
-	}
-
-	if len(msg.RequestContextID) != requestContextIDLen {
-		return errors.New(fmt.Sprintf("length of the request context ID must be %d in bytes", requestContextIDLen))
 	}
 
 	return nil
@@ -583,10 +570,6 @@ func (msg MsgUpdateRequestContext) GetSignBytes() []byte {
 func (msg MsgUpdateRequestContext) ValidateBasic() error {
 	if len(msg.Consumer) == 0 {
 		return errors.New("consumer missing")
-	}
-
-	if len(msg.RequestContextID) != requestContextIDLen {
-		return errors.New(fmt.Sprintf("length of the request context ID must be %d in bytes", requestContextIDLen))
 	}
 
 	return nil
@@ -877,4 +860,13 @@ func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(request{}, "irishub/service/Request")
 	cdc.RegisterConcrete(response{}, "irishub/service/Response")
 	cdc.RegisterConcrete(earnedFees{}, "irishub/service/EarnedFees")
+}
+
+func actionTagKey(key ...string) sdk.EventKey {
+	return sdk.EventKey(strings.Join(key, "."))
+}
+
+func GenRequestID(requestID string) []byte {
+	v, _ := hex.DecodeString(requestID)
+	return v
 }

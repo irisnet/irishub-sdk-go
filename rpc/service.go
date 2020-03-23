@@ -72,7 +72,7 @@ type Service interface {
 }
 
 type ServiceInvokeHandler func(reqCtxID string, responses string)
-type ServiceRespondHandler func(input string) (output string, errMsg string)
+type ServiceRespondHandler func(input string) (output string, result string)
 type ServiceRouter map[string]ServiceRespondHandler
 
 // ServiceRequest defines a request which contains the detailed request data

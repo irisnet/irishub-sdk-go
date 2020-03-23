@@ -1,6 +1,8 @@
 package service
 
 import (
+	"encoding/json"
+
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -339,7 +341,7 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter,
 	}
 
 	builder := sdk.NewEventQueryBuilder().
-		AddCondition(sdk.Cond(tagProvider).Contains(sdk.EventValue(provider.String())))
+		AddCondition(sdk.Cond(actionNewBatchRequest + tagProvider).Contains(sdk.EventValue(provider.String())))
 	return s.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
 		reqIDs := block.ResultEndBlock.Tags.GetValues(tagRequestID)
 		s.Debug().
@@ -358,7 +360,7 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter,
 			if respondHandler, ok := serviceRouter[request.ServiceName]; ok && provider.Equals(request.Provider) {
 				output, result := respondHandler(request.Input)
 				msgs = append(msgs, MsgRespondService{
-					RequestID: reqID,
+					RequestID: GenRequestID(reqID),
 					Provider:  provider,
 					Output:    output,
 					Result:    result,
@@ -381,19 +383,36 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 	}
 
 	builder := sdk.NewEventQueryBuilder().
-		AddCondition(sdk.Cond(tagProvider).Contains(sdk.EventValue(provider.String()))).
-		AddCondition(sdk.Cond(tagServiceName).Contains(sdk.EventValue(serviceName)))
+		AddCondition(sdk.Cond(
+			actionTagKey(actionNewBatchRequest, tagProvider)).
+			Contains(sdk.EventValue(provider.String()))).
+		AddCondition(sdk.Cond(
+			actionTagKey(actionNewBatchRequest, tagServiceName)).
+			Contains(sdk.EventValue(serviceName)),
+		)
 	return s.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
-		reqIDs := block.ResultEndBlock.Tags.GetValues(tagRequestID)
+		idsKey := actionTagKey(actionNewBatchRequest, serviceName, provider.String())
+		idsStr := block.ResultEndBlock.Tags.GetValue(string(idsKey))
 		s.Debug().
 			Int64("height", block.Block.Height).
 			Str(tagServiceName, serviceName).
 			Str(tagProvider, provider.String()).
-			Strs("requestIDs", reqIDs).
+			Str("requestIDs", idsStr).
 			Msg("received service request")
 
 		var msgs []sdk.Msg
-		for _, reqID := range reqIDs {
+		var ids []string
+		if err := json.Unmarshal([]byte(idsStr), &ids); err != nil {
+			s.Err(err).
+				Str("requestID", idsStr).
+				Int64("height", block.Block.Height).
+				Str(tagServiceName, serviceName).
+				Str(tagProvider, provider.String()).
+				Msg("service request don't exist")
+			return
+		}
+
+		for _, reqID := range ids {
 			request, err := s.QueryRequest(reqID)
 			if err != nil {
 				s.Err(err).
@@ -407,7 +426,7 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 			if provider.Equals(request.Provider) && request.ServiceName == serviceName {
 				output, result := respondHandler(request.Input)
 				msgs = append(msgs, MsgRespondService{
-					RequestID: reqID,
+					RequestID: GenRequestID(reqID),
 					Provider:  provider,
 					Output:    output,
 					Result:    result,
@@ -470,9 +489,9 @@ func (s serviceClient) QueryBindings(serviceName string) ([]rpc.ServiceBinding, 
 // QueryRequest returns  the active request of the specified requestID
 func (s serviceClient) QueryRequest(requestID string) (rpc.ServiceRequest, sdk.Error) {
 	param := struct {
-		RequestID string
+		RequestID []byte
 	}{
-		RequestID: requestID,
+		RequestID: GenRequestID(requestID),
 	}
 
 	var request request
