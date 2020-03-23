@@ -3,9 +3,8 @@ package gov_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-
 	"github.com/irisnet/irishub-sdk-go/test"
+	"github.com/stretchr/testify/suite"
 )
 
 type GovTestSuite struct {

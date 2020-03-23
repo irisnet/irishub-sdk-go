@@ -1,14 +1,12 @@
 package random_test
 
 import (
-	"github.com/irisnet/irishub-sdk-go/rpc"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
-
+	"github.com/irisnet/irishub-sdk-go/rpc"
 	"github.com/irisnet/irishub-sdk-go/test"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/stretchr/testify/suite"
 )
 
 type RandomTestSuite struct {
@@ -39,8 +37,8 @@ func (rts *RandomTestSuite) TestGenerate() {
 	request := rpc.RandomRequest{
 		BlockInterval: 2,
 		Callback: func(reqID, randomNum string, err sdk.Error) {
-			require.NoError(rts.T(), err)
-			require.NoError(rts.T(), err)
+			rts.NoError(err)
+			rts.NoError(err)
 			memory[reqID] = randomNum
 			signal <- 1
 		},
@@ -48,8 +46,8 @@ func (rts *RandomTestSuite) TestGenerate() {
 	}
 
 	reqID, err := rts.Random().Request(request, baseTx)
-	require.NoError(rts.T(), err)
+	rts.NoError(err)
 	memory[reqID] = ""
 	<-signal
-	require.NotEmpty(rts.T(), memory)
+	rts.NotEmpty(memory)
 }
