@@ -347,25 +347,26 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter,
 			Str(tagProvider, provider.String()).
 			Strs("requestIDs", reqIDs).
 			Msg("received service request")
+		var msgs []sdk.Msg
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
 			if err != nil {
 				s.Err(err).Str("requestID", reqID).Msg("service request don't exist")
 				continue
 			}
-			if handler, ok := serviceRouter[request.ServiceName]; ok && provider.Equals(request.Provider) {
-				output, result := handler(request.Input)
-				msg := MsgRespondService{
+			if respondHandler, ok := serviceRouter[request.ServiceName]; ok && provider.Equals(request.Provider) {
+				output, result := respondHandler(request.Input)
+				msgs = append(msgs, MsgRespondService{
 					RequestID: reqID,
 					Provider:  provider,
 					Output:    output,
 					Result:    result,
-				}
-				go func() {
-					if _, err = s.BuildAndSend([]sdk.Msg{msg}, baseTx); err != nil {
-						s.Err(err).Str("requestID", reqID).Msg("provider respond failed")
-					}
-				}()
+				})
+			}
+		}
+		if len(msgs) > 0 {
+			if _, err = s.BuildAndSend(msgs, baseTx); err != nil {
+				s.Err(err).Msg("provider respond failed")
 			}
 		}
 	})
@@ -391,6 +392,8 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 			Str(tagProvider, provider.String()).
 			Strs("requestIDs", reqIDs).
 			Msg("received service request")
+
+		var msgs []sdk.Msg
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
 			if err != nil {
@@ -404,22 +407,17 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 			}
 			if provider.Equals(request.Provider) && request.ServiceName == serviceName {
 				output, result := respondHandler(request.Input)
-				msg := MsgRespondService{
+				msgs = append(msgs, MsgRespondService{
 					RequestID: reqID,
 					Provider:  provider,
 					Output:    output,
 					Result:    result,
-				}
-				go func() {
-					if _, err = s.BuildAndSend([]sdk.Msg{msg}, baseTx); err != nil {
-						s.Err(err).
-							Str("requestID", reqID).
-							Int64("height", block.Block.Height).
-							Str(tagServiceName, serviceName).
-							Str(tagProvider, provider.String()).
-							Msg("provider respond failed")
-					}
-				}()
+				})
+			}
+		}
+		if len(msgs) > 0 {
+			if _, err = s.BuildAndSend(msgs, baseTx); err != nil {
+				s.Err(err).Msg("provider respond failed")
 			}
 		}
 	})

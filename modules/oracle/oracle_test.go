@@ -103,7 +103,6 @@ func (ots *OracleTestSuite) TestFeed() {
 		Timeout:           3,
 		ServiceFeeCap:     serviceFeeCap,
 		RepeatedFrequency: 5,
-		RepeatedTotal:     2,
 		AggregateFunc:     "avg",
 		ValueJsonPath:     "last",
 		ResponseThreshold: 1,
@@ -119,11 +118,11 @@ func (ots *OracleTestSuite) TestFeed() {
 	require.NoError(ots.T(), err)
 	require.NotEmpty(ots.T(), result.Hash)
 
-	ch := make(chan string)
-	err = ots.Oracle().RegisterFeedListener(feedName, func(value string) {
+	ch := make(chan rpc.FeedValue)
+	err = ots.Oracle().RegisterFeedListener(feedName, func(value rpc.FeedValue) {
 		log.Default.Info().
 			Str("feedName", feedName).
-			Str("feedValue", value).
+			Str("feedValue", value.Data).
 			Msg("received feed value")
 		ch <- value
 	})
@@ -133,15 +132,21 @@ func (ots *OracleTestSuite) TestFeed() {
 	for v := range ch {
 		result, err := ots.Oracle().QueryFeedValue(feedName)
 		require.NoError(ots.T(), err)
-		require.Equal(ots.T(), v, result[0].Data)
+		require.EqualValues(ots.T(), v, result[0])
 
-		if len(result) == int(createFeedReq.RepeatedTotal) {
+		if len(result) == int(createFeedReq.LatestHistory) {
 			goto stop
 		}
 	}
 stop:
 	close(ch)
-	ots.Info().Msg("test feed success")
+	_, err = ots.Oracle().PauseFeed(feedName, ots.baseTx)
+	ots.NoError(err)
+
+	feed, err := ots.Oracle().QueryFeed(feedName)
+	ots.NoError(err)
+	ots.Equal("paused", feed.State)
+
 }
 
 func generateServiceName() string {

@@ -3,6 +3,7 @@ package client
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	cmn "github.com/tendermint/tendermint/libs/common"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
@@ -193,6 +194,8 @@ func (ac abstractClient) QueryToken(symbol string) (sdk.Token, error) {
 		Symbol: symbol,
 	}
 
+	//TODO will remove from v1.0
+	symbol = strings.TrimSuffix(symbol, "-min")
 	var token sdk.Token
 	if err := ac.QueryWithResponse("custom/asset/token", param, &token); err != nil {
 		return sdk.Token{}, err
