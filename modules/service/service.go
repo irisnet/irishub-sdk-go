@@ -3,6 +3,8 @@ package service
 import (
 	"encoding/json"
 
+	cmn "github.com/tendermint/tendermint/libs/common"
+
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -181,7 +183,7 @@ func (s serviceClient) RegisterServiceResponseListener(reqCtxID string,
 			Str("tx_hash", tx.Hash).
 			Int64("height", tx.Height).
 			Str("reqCtxID", reqCtxID).
-			Str("requestID", tx.Result.Tags.GetValue(tagRequestID)).
+			Str("reqCtxID", reqCtxID).
 			Msg("consumer received response transaction sent by provider")
 		reqCtx, err := s.QueryRequestContext(reqCtxID)
 		if err != nil || reqCtx.State == "completed" {
@@ -339,33 +341,23 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter,
 	if e != nil {
 		return sdk.Subscription{}, sdk.Wrap(e)
 	}
-
+	var serviceNames []string
+	for name, _ := range serviceRouter {
+		serviceNames = append(serviceNames, name)
+	}
 	builder := sdk.NewEventQueryBuilder().
-		AddCondition(sdk.Cond(actionNewBatchRequest + tagProvider).Contains(sdk.EventValue(provider.String())))
+		AddCondition(sdk.Cond(
+			actionTagKey(actionNewBatchRequest, tagProvider)).
+			Contains(sdk.EventValue(provider.String())))
 	return s.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
-		reqIDs := block.ResultEndBlock.Tags.GetValues(tagRequestID)
-		s.Debug().
-			Int64("height", block.Block.Height).
-			Str(tagProvider, provider.String()).
-			Strs("requestIDs", reqIDs).
-			Msg("received service request")
-
 		var msgs []sdk.Msg
-		for _, reqID := range reqIDs {
-			request, err := s.QueryRequest(reqID)
-			if err != nil {
-				s.Err(err).Str("requestID", reqID).Msg("service request don't exist")
-				continue
-			}
-			if respondHandler, ok := serviceRouter[request.ServiceName]; ok && provider.Equals(request.Provider) {
-				output, result := respondHandler(request.Input)
-				msgs = append(msgs, MsgRespondService{
-					RequestID: GenRequestID(reqID),
-					Provider:  provider,
-					Output:    output,
-					Result:    result,
-				})
-			}
+		for _, serviceName := range serviceNames {
+			msgs = append(msgs,
+				s.GenServiceResponseMsgs(block.ResultEndBlock.Tags,
+					serviceName,
+					provider,
+					serviceRouter[serviceName])...)
+
 		}
 		if _, err = s.SendMsgBatch(5, msgs, baseTx); err != nil {
 			s.Err(err).Msg("provider respond failed")
@@ -391,48 +383,7 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 			Contains(sdk.EventValue(serviceName)),
 		)
 	return s.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
-		idsKey := actionTagKey(actionNewBatchRequest, serviceName, provider.String())
-		idsStr := block.ResultEndBlock.Tags.GetValue(string(idsKey))
-		s.Debug().
-			Int64("height", block.Block.Height).
-			Str(tagServiceName, serviceName).
-			Str(tagProvider, provider.String()).
-			Str("requestIDs", idsStr).
-			Msg("received service request")
-
-		var msgs []sdk.Msg
-		var ids []string
-		if err := json.Unmarshal([]byte(idsStr), &ids); err != nil {
-			s.Err(err).
-				Str("requestID", idsStr).
-				Int64("height", block.Block.Height).
-				Str(tagServiceName, serviceName).
-				Str(tagProvider, provider.String()).
-				Msg("service request don't exist")
-			return
-		}
-
-		for _, reqID := range ids {
-			request, err := s.QueryRequest(reqID)
-			if err != nil {
-				s.Err(err).
-					Str("requestID", reqID).
-					Int64("height", block.Block.Height).
-					Str(tagServiceName, serviceName).
-					Str(tagProvider, provider.String()).
-					Msg("service request don't exist")
-				continue
-			}
-			if provider.Equals(request.Provider) && request.ServiceName == serviceName {
-				output, result := respondHandler(request.Input)
-				msgs = append(msgs, MsgRespondService{
-					RequestID: GenRequestID(reqID),
-					Provider:  provider,
-					Output:    output,
-					Result:    result,
-				})
-			}
-		}
+		msgs := s.GenServiceResponseMsgs(block.ResultEndBlock.Tags, serviceName, provider, respondHandler)
 		if _, err = s.SendMsgBatch(5, msgs, baseTx); err != nil {
 			s.Err(err).Msg("provider respond failed")
 		}
@@ -495,8 +446,11 @@ func (s serviceClient) QueryRequest(requestID string) (rpc.ServiceRequest, sdk.E
 	}
 
 	var request request
-	if err := s.QueryWithResponse("custom/service/request", param, &request); err != nil {
-		return rpc.ServiceRequest{}, sdk.Wrap(err)
+	if err := s.QueryWithResponse("custom/service/request", param, &request); request.Empty() {
+		request, err = s.queryRequestByTxQuery(requestID)
+		if err != nil {
+			return rpc.ServiceRequest{}, sdk.Wrap(err)
+		}
 	}
 	return request.Convert().(rpc.ServiceRequest), nil
 }
@@ -544,8 +498,11 @@ func (s serviceClient) QueryResponse(requestID string) (rpc.ServiceResponse, sdk
 	}
 
 	var response response
-	if err := s.QueryWithResponse("custom/service/response", param, &response); err != nil {
-		return rpc.ServiceResponse{}, sdk.Wrap(nil)
+	if err := s.QueryWithResponse("custom/service/response", param, &response); response.Empty() {
+		response, err = s.queryResponseByTxQuery(requestID)
+		if err != nil {
+			return rpc.ServiceResponse{}, sdk.Wrap(nil)
+		}
 	}
 	return response.Convert().(rpc.ServiceResponse), nil
 }
@@ -569,14 +526,17 @@ func (s serviceClient) QueryResponses(reqCtxID string, batchCounter uint64) ([]r
 // QueryRequestContext return the specified request context
 func (s serviceClient) QueryRequestContext(reqCtxID string) (rpc.RequestContext, sdk.Error) {
 	param := struct {
-		RequestContextID []byte
+		RequestContextID cmn.HexBytes
 	}{
 		RequestContextID: rpc.RequestContextIDToByte(reqCtxID),
 	}
 
 	var reqCtx requestContext
-	if err := s.QueryWithResponse("custom/service/context", param, &reqCtx); err != nil {
-		return rpc.RequestContext{}, sdk.Wrap(err)
+	if err := s.QueryWithResponse("custom/service/context", param, &reqCtx); reqCtx.Empty() {
+		reqCtx, err = s.queryRequestContextByTxQuery(reqCtxID)
+		if err != nil {
+			return rpc.RequestContext{}, sdk.Wrap(err)
+		}
 	}
 	return reqCtx.Convert().(rpc.RequestContext), nil
 }
@@ -600,4 +560,47 @@ func (s serviceClient) QueryFees(provider string) (rpc.EarnedFees, sdk.Error) {
 		return rpc.EarnedFees{}, sdk.Wrap(err)
 	}
 	return fee.Convert().(rpc.EarnedFees), nil
+}
+
+func (s serviceClient) GenServiceResponseMsgs(tags sdk.Tags, serviceName string, provider sdk.AccAddress, handler rpc.ServiceRespondHandler) (msgs []sdk.Msg) {
+	idsKey := actionTagKey(actionNewBatchRequest, serviceName, provider.String())
+	idsStr := tags.GetValue(string(idsKey))
+
+	s.Debug().
+		Str(tagServiceName, serviceName).
+		Str(tagProvider, provider.String()).
+		Str(tagRequestID, idsStr).
+		Msg("received service request")
+
+	var ids []string
+	if err := json.Unmarshal([]byte(idsStr), &ids); err != nil {
+		s.Err(err).
+			Str(tagRequestID, idsStr).
+			Str(tagServiceName, serviceName).
+			Str(tagProvider, provider.String()).
+			Msg("service request don't exist")
+		return
+	}
+
+	for _, reqID := range ids {
+		request, err := s.QueryRequest(reqID)
+		if err != nil {
+			s.Err(err).
+				Str(tagRequestID, reqID).
+				Str(tagServiceName, serviceName).
+				Str(tagProvider, provider.String()).
+				Msg("service request don't exist")
+			continue
+		}
+		if provider.Equals(request.Provider) && request.ServiceName == serviceName {
+			output, result := handler(reqID, request.Input)
+			msgs = append(msgs, MsgRespondService{
+				RequestID: GenRequestID(reqID),
+				Provider:  provider,
+				Output:    output,
+				Result:    result,
+			})
+		}
+	}
+	return msgs
 }

@@ -82,14 +82,28 @@ func (sts *ServiceTestSuite) TestService() {
 	testResult := `{"code":200,"message":""}`
 
 	var sub1 sdk.Subscription
-	sub1, err = sts.Service().RegisterSingleServiceListener(definition.ServiceName,
-		func(input string) (string, string) {
+	//sub1, err = sts.Service().RegisterSingleServiceListener(definition.ServiceName,
+	//	func(reqID,input string) (string, string) {
+	//		sts.Info().
+	//          Str("reqID", reqID).
+	//			Str("input", input).
+	//			Str("output", output).
+	//			Msg("provider received request")
+	//		return output, testResult
+	//	}, baseTx)
+
+	router := rpc.ServiceRouter{
+		definition.ServiceName: func(reqID, input string) (string, string) {
 			sts.Info().
+				Str("reqID", reqID).
 				Str("input", input).
 				Str("output", output).
 				Msg("provider received request")
 			return output, testResult
-		}, baseTx)
+		},
+	}
+	sub1, err = sts.Service().RegisterServiceListener(router, baseTx)
+
 	sts.NoError(err)
 
 	serviceFeeCap, e := sdk.ParseDecCoins("1iris")
@@ -122,6 +136,7 @@ func (sts *ServiceTestSuite) TestService() {
 		sts.NoError(err)
 		exit <- 1
 	})
+
 	sts.NoError(err)
 
 	request, err := sts.Service().QueryRequestContext(requestContextID)
@@ -132,6 +147,12 @@ func (sts *ServiceTestSuite) TestService() {
 	<-exit
 	err = sts.Unsubscribe(sub1)
 	err = sts.Unsubscribe(sub2)
+	sts.NoError(err)
+}
+
+func (sts *ServiceTestSuite) TestQueryRequestContext() {
+	reqCtxID := "E0F60DDA1140D90C1EEA4FD3D2C12570C042D346D80D288818A59103A8E3C6360000000000000000"
+	_, err := sts.Service().QueryRequestContext(reqCtxID)
 	sts.NoError(err)
 }
 

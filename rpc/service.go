@@ -72,11 +72,12 @@ type Service interface {
 }
 
 type ServiceInvokeHandler func(reqCtxID string, responses string)
-type ServiceRespondHandler func(input string) (output string, result string)
+type ServiceRespondHandler func(reqID, input string) (output string, result string)
 type ServiceRouter map[string]ServiceRespondHandler
 
 // ServiceRequest defines a request which contains the detailed request data
 type ServiceRequest struct {
+	ID                         string         `json:"id"`
 	ServiceName                string         `json:"service_name"`
 	Provider                   sdk.AccAddress `json:"provider"`
 	Consumer                   sdk.AccAddress `json:"consumer"`
@@ -94,7 +95,7 @@ type ServiceResponse struct {
 	Provider                   sdk.AccAddress `json:"provider"`
 	Consumer                   sdk.AccAddress `json:"consumer"`
 	Output                     string         `json:"output"`
-	Error                      string         `json:"error"`
+	Result                     string         `json:"error"`
 	RequestContextID           string         `json:"request_context_id"`
 	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
 }

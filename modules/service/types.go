@@ -26,6 +26,9 @@ const (
 	tagRequestContextID = "request-context-id"
 
 	actionNewBatchRequest = "new-batch-request"
+
+	requestIDLen = 58
+	contextIDLen = 40
 )
 
 var (
@@ -713,6 +716,7 @@ func (bs serviceBindings) Convert() interface{} {
 
 // request defines a request which contains the detailed request data
 type request struct {
+	ID                         string         `json:"id"`
 	ServiceName                string         `json:"service_name"`
 	Provider                   sdk.AccAddress `json:"provider"`
 	Consumer                   sdk.AccAddress `json:"consumer"`
@@ -725,8 +729,13 @@ type request struct {
 	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
 }
 
+func (r request) Empty() bool {
+	return len(r.ServiceName) == 0
+}
+
 func (r request) Convert() interface{} {
 	return rpc.ServiceRequest{
+		ID:                         r.ID,
 		ServiceName:                r.ServiceName,
 		Provider:                   r.Provider,
 		Consumer:                   r.Consumer,
@@ -755,9 +764,13 @@ type response struct {
 	Provider                   sdk.AccAddress `json:"provider"`
 	Consumer                   sdk.AccAddress `json:"consumer"`
 	Output                     string         `json:"output"`
-	Error                      string         `json:"error"`
+	Result                     string         `json:"error"`
 	RequestContextID           []byte         `json:"request_context_id"`
 	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
+}
+
+func (r response) Empty() bool {
+	return len(r.Provider) > 0
 }
 
 func (r response) Convert() interface{} {
@@ -765,7 +778,7 @@ func (r response) Convert() interface{} {
 		Provider:                   r.Provider,
 		Consumer:                   r.Consumer,
 		Output:                     r.Output,
-		Error:                      r.Error,
+		Result:                     r.Result,
 		RequestContextID:           rpc.RequestContextIDToString(r.RequestContextID),
 		RequestContextBatchCounter: r.RequestContextBatchCounter,
 	}
@@ -802,6 +815,11 @@ type requestContext struct {
 	ModuleName         string           `json:"module_name"`
 }
 
+// Empty returns true if empty
+func (r requestContext) Empty() bool {
+	return len(r.ServiceName) == 0
+}
+
 func (r requestContext) Convert() interface{} {
 	return rpc.RequestContext{
 		ServiceName:        r.ServiceName,
@@ -835,6 +853,15 @@ func (e earnedFees) Convert() interface{} {
 		Address: e.Address,
 		Coins:   e.Coins,
 	}
+}
+
+// CompactRequest defines a compact request with a request context ID
+type compactRequest struct {
+	RequestContextID           cmn.HexBytes
+	RequestContextBatchCounter uint64
+	Provider                   sdk.AccAddress
+	ServiceFee                 sdk.Coins
+	RequestHeight              int64
 }
 
 func registerCodec(cdc sdk.Codec) {

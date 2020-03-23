@@ -17,6 +17,8 @@ type Query interface {
 	QueryStore(key cmn.HexBytes, storeName string) (res []byte, err error)
 	QueryAccount(address string) (BaseAccount, error)
 	QueryAddress(name string) (addr AccAddress, err error)
+	QueryTx(hash string) (TxInfo, error)
+	QueryTxs(builder *EventQueryBuilder, page, size int) (SearchTxsResult, error)
 	QueryToken(symbol string) (Token, error)
 }
 
