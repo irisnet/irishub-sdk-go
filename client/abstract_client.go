@@ -96,6 +96,37 @@ func (ac *abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Re
 	return res, nil
 }
 
+func (ac *abstractClient) SendMsgBatch(batch int, msgs []sdk.Msg, baseTx sdk.BaseTx) (rs []sdk.ResultTx, err sdk.Error) {
+	splitMsgs := func(batch int, msgs []sdk.Msg) (segments [][]sdk.Msg) {
+		max := len(msgs)
+		if max < batch {
+			return [][]sdk.Msg{msgs}
+		}
+
+		quantity := max / batch
+		for i := 1; i <= batch; i++ {
+			start := (i - 1) * quantity
+			end := i * quantity
+			if i != batch {
+				segments = append(segments, msgs[start:end])
+			} else {
+				segments = append(segments, msgs[start:])
+			}
+		}
+		return segments
+	}
+
+	baseTx.Mode = sdk.Commit
+	for _, ms := range splitMsgs(batch, msgs) {
+		res, err := ac.BuildAndSend(ms, baseTx)
+		if err != nil {
+			return rs, sdk.Wrap(err)
+		}
+		rs = append(rs, res)
+	}
+	return rs, nil
+}
+
 func (ac abstractClient) Broadcast(signedTx sdk.StdTx, mode sdk.BroadcastMode) (sdk.ResultTx, sdk.Error) {
 	ac.Mode = mode
 	txByte, err := ac.Codec.MarshalBinaryLengthPrefixed(signedTx)

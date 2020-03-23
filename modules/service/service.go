@@ -347,6 +347,7 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter,
 			Str(tagProvider, provider.String()).
 			Strs("requestIDs", reqIDs).
 			Msg("received service request")
+
 		var msgs []sdk.Msg
 		for _, reqID := range reqIDs {
 			request, err := s.QueryRequest(reqID)
@@ -364,10 +365,8 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter,
 				})
 			}
 		}
-		if len(msgs) > 0 {
-			if _, err = s.BuildAndSend(msgs, baseTx); err != nil {
-				s.Err(err).Msg("provider respond failed")
-			}
+		if _, err = s.SendMsgBatch(5, msgs, baseTx); err != nil {
+			s.Err(err).Msg("provider respond failed")
 		}
 	})
 }
@@ -415,10 +414,8 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 				})
 			}
 		}
-		if len(msgs) > 0 {
-			if _, err = s.BuildAndSend(msgs, baseTx); err != nil {
-				s.Err(err).Msg("provider respond failed")
-			}
+		if _, err = s.SendMsgBatch(5, msgs, baseTx); err != nil {
+			s.Err(err).Msg("provider respond failed")
 		}
 	})
 }
