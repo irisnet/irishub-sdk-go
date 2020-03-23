@@ -4,13 +4,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/irisnet/irishub-sdk-go/adapter"
-
-	"github.com/irisnet/irishub-sdk-go/tools/log"
-
 	cmn "github.com/tendermint/tendermint/libs/common"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 
+	"github.com/irisnet/irishub-sdk-go/adapter"
+	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
@@ -56,6 +54,10 @@ func (ac abstractClient) Logger() *log.Logger {
 }
 
 func (ac *abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+	defer sdk.CatchPanic(func(errMsg string) {
+		ac.Logger().Error().
+			Msgf("broadcast msg failed:%s", errMsg)
+	})
 	//validate msg
 	for _, m := range msg {
 		if err := m.ValidateBasic(); err != nil {
@@ -104,16 +106,7 @@ func (ac abstractClient) Broadcast(signedTx sdk.StdTx, mode sdk.BroadcastMode) (
 }
 
 func (ac abstractClient) QueryWithResponse(path string, data interface{}, result sdk.Response) error {
-	var bz []byte
-	var err error
-	if data != nil {
-		bz, err = ac.Codec.MarshalJSON(data)
-		if err != nil {
-			return err
-		}
-	}
-
-	res, err := ac.TmClient.Query(path, bz)
+	res, err := ac.Query(path, data)
 	if err != nil {
 		return err
 	}
@@ -135,11 +128,21 @@ func (ac abstractClient) Query(path string, data interface{}) ([]byte, error) {
 		}
 	}
 
-	res, err := ac.TmClient.Query(path, bz)
+	opts := rpcclient.ABCIQueryOptions{
+		//Height: cliCtx.Height,
+		Prove: false,
+	}
+	result, err := ac.ABCIQueryWithOptions(path, bz, opts)
 	if err != nil {
 		return nil, err
 	}
-	return res, nil
+
+	resp := result.Response
+	if !resp.IsOK() {
+		return nil, errors.New(resp.Log)
+	}
+
+	return resp.Value, nil
 }
 
 func (ac abstractClient) QueryStore(key cmn.HexBytes, storeName string) (res []byte, err error) {
@@ -225,7 +228,7 @@ func (ac abstractClient) ToMainCoin(coins ...sdk.Coin) (dstCoins sdk.DecCoins, e
 		if err != nil {
 			return dstCoins, err
 		}
-		dstCoins = append(dstCoins, sdk.NewDecCoinFromCoin(mainCoin))
+		dstCoins = append(dstCoins, mainCoin)
 	}
 	return dstCoins.Sort(), nil
 }

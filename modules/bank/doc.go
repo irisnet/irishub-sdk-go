@@ -23,7 +23,7 @@
 //
 // Burn some coins from your account
 //
-//  client := sim.NewClient()
+//  client := test.NewClient()
 //  amt := types.NewIntWithDecimal(1, 18)
 //  coins := types.NewCoins(types.NewCoin("iris-atto", amt))
 //  baseTx := types.BaseTx{
@@ -37,19 +37,19 @@
 //
 // Set account memo
 //
-//  client := sim.NewClient()
+//  client := test.NewClient()
 //  result,err := client.Bank().SetMemoRegexp("testMemo", baseTx)
 //  fmt.Println(result)
 //
 // Query account information
 //
-//  client := sim.NewClient()
+//  client := test.NewClient()
 //  result,err := client.Bank().QueryAccount("faa1hp29kuh22vpjjlnctmyml5s75evsnsd8r4x0mm")
 //  fmt.Println(result)
 //
 // Query the token information
 //
-//  client := sim.NewClient()
+//  client := test.NewClient()
 //  result,err := client.Bank().QueryTokenStats("iris")
 //  fmt.Println(result)
 //

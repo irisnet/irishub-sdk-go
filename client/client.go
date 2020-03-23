@@ -2,22 +2,20 @@ package client
 
 import (
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/modules/asset"
 	"io"
 
-	"github.com/irisnet/irishub-sdk-go/tools/log"
-
-	"github.com/irisnet/irishub-sdk-go/modules/keys"
-
+	"github.com/irisnet/irishub-sdk-go/modules/asset"
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/distribution"
 	"github.com/irisnet/irishub-sdk-go/modules/gov"
+	"github.com/irisnet/irishub-sdk-go/modules/keys"
 	"github.com/irisnet/irishub-sdk-go/modules/oracle"
 	"github.com/irisnet/irishub-sdk-go/modules/random"
 	"github.com/irisnet/irishub-sdk-go/modules/service"
 	"github.com/irisnet/irishub-sdk-go/modules/slashing"
 	"github.com/irisnet/irishub-sdk-go/modules/staking"
 	"github.com/irisnet/irishub-sdk-go/rpc"
+	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
@@ -28,6 +26,7 @@ type SDKClient struct {
 
 	sdk.WSClient
 	sdk.TxManager
+	sdk.TokenConvert
 }
 
 func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
@@ -39,11 +38,12 @@ func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
 
 	abstClient := createAbstractClient(cdc, cfg, log.Default)
 	client := &SDKClient{
-		cdc:       cdc,
-		modules:   make(map[string]sdk.Module),
-		WSClient:  abstClient.TmClient,
-		TxManager: abstClient,
-		logger:    log.Default,
+		cdc:          cdc,
+		modules:      make(map[string]sdk.Module),
+		logger:       log.Default,
+		WSClient:     abstClient.TmClient,
+		TxManager:    abstClient,
+		TokenConvert: abstClient,
 	}
 
 	client.registerModule(

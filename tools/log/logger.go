@@ -2,12 +2,13 @@ package log
 
 import (
 	"fmt"
-	"github.com/rs/zerolog"
 	"io"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/rs/zerolog"
 )
 
 var Default *Logger

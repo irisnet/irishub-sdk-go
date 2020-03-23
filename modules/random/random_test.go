@@ -51,5 +51,5 @@ func (rts *RandomTestSuite) TestGenerate() {
 	require.NoError(rts.T(), err)
 	memory[reqID] = ""
 	<-signal
-	require.NotEmpty(rts.T(), memory[reqID])
+	require.NotEmpty(rts.T(), memory)
 }

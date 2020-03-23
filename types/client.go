@@ -1,30 +1,9 @@
 package types
 
 import (
-	cmn "github.com/tendermint/tendermint/libs/common"
-	tmclient "github.com/tendermint/tendermint/rpc/client"
-
 	"github.com/irisnet/irishub-sdk-go/tools/log"
+	cmn "github.com/tendermint/tendermint/libs/common"
 )
-
-type Queries interface {
-	Query(path string, data cmn.HexBytes) ([]byte, error)
-}
-
-type WSClient interface {
-	SubscribeNewBlock(callback EventNewBlockCallback) (Subscription, error)
-	SubscribeNewBlockWithQuery(builder *EventQueryBuilder, callback EventNewBlockCallback) (Subscription, error)
-	SubscribeTx(builder *EventQueryBuilder, callback EventTxCallback) (Subscription, error)
-	SubscribeNewBlockHeader(callback EventNewBlockHeaderCallback) (Subscription, error)
-	SubscribeValidatorSetUpdates(callback EventValidatorSetUpdatesCallback) (Subscription, error)
-	Unscribe(subscription Subscription) error
-}
-
-type TmClient interface {
-	tmclient.Client
-	WSClient
-	Queries
-}
 
 type TxManager interface {
 	BuildAndSend(msg []Msg, baseTx BaseTx) (ResultTx, Error)
@@ -53,6 +32,6 @@ type AbstractClient interface {
 	TxManager
 	Query
 	TokenConvert
-	WSClient
+	TmClient
 	Logger
 }

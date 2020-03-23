@@ -99,22 +99,27 @@ func (s serviceClient) DisableServiceBinding(serviceName string, baseTx sdk.Base
 }
 
 // EnableServiceBinding enables the specified service binding
-func (s serviceClient) EnableServiceBinding(serviceName string, deposit sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+func (s serviceClient) EnableServiceBinding(serviceName string, deposit sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	provider, err := s.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
+
+	amt, err := s.ToMinCoin(deposit...)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
 	msg := MsgEnableService{
 		ServiceName: serviceName,
 		Provider:    provider,
-		Deposit:     deposit,
+		Deposit:     amt,
 	}
 	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
-//InvokeService is responsible for invoke a new service and callback `callback`
-func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest,
-	callback rpc.ServiceInvokeHandler, baseTx sdk.BaseTx) (string, sdk.Error) {
+//InvokeService is responsible for invoke a new service and callback `handler`
+func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest, baseTx sdk.BaseTx) (string, sdk.Error) {
 	consumer, err := s.QueryAddress(baseTx.From)
 	if err != nil {
 		return "", sdk.Wrap(err)
@@ -155,46 +160,39 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest,
 		return "", sdk.Wrap(err)
 	}
 
-	requestContextID := result.Tags.GetValue(tagRequestContextID)
-	if callback == nil {
-		return requestContextID, nil
+	reqCtxID := result.Tags.GetValue(tagRequestContextID)
+	if request.Handler == nil {
+		return reqCtxID, nil
 	}
-	builder := sdk.NewEventQueryBuilder().
-		AddCondition(sdk.Cond(tagConsumer).EQ(sdk.EventValue(consumer.String()))).
-		AddCondition(sdk.Cond(tagServiceName).EQ(sdk.EventValue(request.ServiceName))).
-		AddCondition(sdk.Cond(sdk.ActionKey).EQ(tagRespondService)).
-		AddCondition(sdk.Cond(tagRequestContextID).EQ(sdk.EventValue(requestContextID)))
+	_, err = s.RegisterServiceResponseListener(reqCtxID, request.Handler)
+	return reqCtxID, sdk.Wrap(err)
+}
 
-	var subscription sdk.Subscription
-	subscription, err = s.SubscribeTx(builder, func(tx sdk.EventDataTx) {
+func (s serviceClient) RegisterServiceResponseListener(reqCtxID string,
+	callback rpc.ServiceInvokeHandler) (subscription sdk.Subscription, err sdk.Error) {
+	builder := sdk.NewEventQueryBuilder().
+		AddCondition(sdk.Cond(sdk.ActionKey).EQ(tagRespondService)).
+		AddCondition(sdk.Cond(tagRequestContextID).EQ(sdk.EventValue(reqCtxID)))
+
+	return s.SubscribeTx(builder, func(tx sdk.EventDataTx) {
 		s.Debug().
 			Str("tx_hash", tx.Hash).
 			Int64("height", tx.Height).
-			Str("requestContextID", requestContextID).
+			Str("reqCtxID", reqCtxID).
 			Str("requestID", tx.Result.Tags.GetValue(tagRequestID)).
 			Msg("consumer received response transaction sent by provider")
-		//cancel subscription
-		if !request.Repeated {
-			_ = s.Unscribe(subscription)
-		} else {
-			reqCtx, err := s.QueryRequestContext(requestContextID)
-			if err != nil || reqCtx.State == "completed" {
-				_ = s.Unscribe(subscription)
-			}
+		reqCtx, err := s.QueryRequestContext(reqCtxID)
+		if err != nil || reqCtx.State == "completed" {
+			_ = s.Unsubscribe(subscription)
 		}
 
 		for _, msg := range tx.Tx.Msgs {
 			msg, ok := msg.(MsgRespondService)
 			if ok {
-				callback(requestContextID, msg.Output)
+				callback(reqCtxID, msg.Output)
 			}
 		}
 	})
-	if err != nil {
-		return "", sdk.Wrap(err)
-	}
-
-	return requestContextID, nil
 }
 
 // SetWithdrawAddress sets a new withdrawal address for the specified service binding
@@ -333,21 +331,16 @@ func (s serviceClient) WithdrawTax(destAddress string, amount sdk.Coins, baseTx 
 }
 
 //RegisterServiceListener is responsible for registering a group of service handler
-func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter, baseTx sdk.BaseTx) sdk.Error {
-	provider, err := s.QueryAddress(baseTx.From)
-	if err != nil {
-		return sdk.Wrap(err)
+func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter,
+	baseTx sdk.BaseTx) (subscription sdk.Subscription, err sdk.Error) {
+	provider, e := s.QueryAddress(baseTx.From)
+	if e != nil {
+		return sdk.Subscription{}, sdk.Wrap(e)
 	}
-
-	defer func() {
-		if r := recover(); r != nil {
-			return
-		}
-	}()
 
 	builder := sdk.NewEventQueryBuilder().
 		AddCondition(sdk.Cond(tagProvider).Contains(sdk.EventValue(provider.String())))
-	_, err = s.SubscribeNewBlockWithQuery(builder, func(block sdk.EventDataNewBlock) {
+	return s.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
 		reqIDs := block.ResultEndBlock.Tags.GetValues(tagRequestID)
 		s.Debug().
 			Int64("height", block.Block.Height).
@@ -361,12 +354,12 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter, 
 				continue
 			}
 			if handler, ok := serviceRouter[request.ServiceName]; ok && provider.Equals(request.Provider) {
-				output, errMsg := handler(request.Input)
+				output, result := handler(request.Input)
 				msg := MsgRespondService{
 					RequestID: reqID,
 					Provider:  provider,
 					Output:    output,
-					Error:     errMsg,
+					Result:    result,
 				}
 				go func() {
 					if _, err = s.BuildAndSend([]sdk.Msg{msg}, baseTx); err != nil {
@@ -376,28 +369,21 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter, 
 			}
 		}
 	})
-	return sdk.Wrap(err)
 }
 
 //RegisterSingleServiceListener is responsible for registering a single service handler
 func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 	respondHandler rpc.ServiceRespondHandler,
-	baseTx sdk.BaseTx) sdk.Error {
-	provider, err := s.QueryAddress(baseTx.From)
-	if err != nil {
-		return sdk.Wrap(err)
+	baseTx sdk.BaseTx) (subscription sdk.Subscription, err sdk.Error) {
+	provider, e := s.QueryAddress(baseTx.From)
+	if e != nil {
+		return sdk.Subscription{}, sdk.Wrap(e)
 	}
-
-	defer func() {
-		if r := recover(); r != nil {
-			return
-		}
-	}()
 
 	builder := sdk.NewEventQueryBuilder().
 		AddCondition(sdk.Cond(tagProvider).Contains(sdk.EventValue(provider.String()))).
 		AddCondition(sdk.Cond(tagServiceName).Contains(sdk.EventValue(serviceName)))
-	_, err = s.SubscribeNewBlockWithQuery(builder, func(block sdk.EventDataNewBlock) {
+	return s.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
 		reqIDs := block.ResultEndBlock.Tags.GetValues(tagRequestID)
 		s.Debug().
 			Int64("height", block.Block.Height).
@@ -417,12 +403,12 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 				continue
 			}
 			if provider.Equals(request.Provider) && request.ServiceName == serviceName {
-				output, errMsg := respondHandler(request.Input)
+				output, result := respondHandler(request.Input)
 				msg := MsgRespondService{
 					RequestID: reqID,
 					Provider:  provider,
 					Output:    output,
-					Error:     errMsg,
+					Result:    result,
 				}
 				go func() {
 					if _, err = s.BuildAndSend([]sdk.Msg{msg}, baseTx); err != nil {
@@ -437,7 +423,6 @@ func (s serviceClient) RegisterSingleServiceListener(serviceName string,
 			}
 		}
 	})
-	return sdk.Wrap(err)
 }
 
 // QueryDefinition return a service definition of the specified name
@@ -520,12 +505,12 @@ func (s serviceClient) QueryRequests(serviceName string, provider sdk.AccAddress
 }
 
 // QueryRequestsByReqCtx returns all requests of the specified request context ID and batch counter
-func (s serviceClient) QueryRequestsByReqCtx(requestContextID string, batchCounter uint64) ([]rpc.ServiceRequest, sdk.Error) {
+func (s serviceClient) QueryRequestsByReqCtx(reqCtxID string, batchCounter uint64) ([]rpc.ServiceRequest, sdk.Error) {
 	param := struct {
 		RequestContextID []byte
 		BatchCounter     uint64
 	}{
-		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
+		RequestContextID: rpc.RequestContextIDToByte(reqCtxID),
 		BatchCounter:     batchCounter,
 	}
 
@@ -552,12 +537,12 @@ func (s serviceClient) QueryResponse(requestID string) (rpc.ServiceResponse, sdk
 }
 
 // QueryResponses returns all responses of the specified request context and batch counter
-func (s serviceClient) QueryResponses(requestContextID string, batchCounter uint64) ([]rpc.ServiceResponse, sdk.Error) {
+func (s serviceClient) QueryResponses(reqCtxID string, batchCounter uint64) ([]rpc.ServiceResponse, sdk.Error) {
 	param := struct {
 		RequestContextID []byte
 		BatchCounter     uint64
 	}{
-		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
+		RequestContextID: rpc.RequestContextIDToByte(reqCtxID),
 		BatchCounter:     batchCounter,
 	}
 	var rs responses
@@ -568,11 +553,11 @@ func (s serviceClient) QueryResponses(requestContextID string, batchCounter uint
 }
 
 // QueryRequestContext return the specified request context
-func (s serviceClient) QueryRequestContext(requestContextID string) (rpc.RequestContext, sdk.Error) {
+func (s serviceClient) QueryRequestContext(reqCtxID string) (rpc.RequestContext, sdk.Error) {
 	param := struct {
 		RequestContextID []byte
 	}{
-		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
+		RequestContextID: rpc.RequestContextIDToByte(reqCtxID),
 	}
 
 	var reqCtx requestContext
