@@ -17,14 +17,14 @@ type Query interface {
 	QueryStore(key cmn.HexBytes, storeName string) (res []byte, err error)
 	QueryAccount(address string) (BaseAccount, error)
 	QueryAddress(name string) (addr AccAddress, err error)
-	QueryTx(hash string) (TxInfo, error)
-	QueryTxs(builder *EventQueryBuilder, page, size int) (SearchTxsResult, error)
 	QueryToken(symbol string) (Token, error)
+	QueryTx(hash string) (TxDetail, error)
+	QueryTxs(builder *EventQueryBuilder, page, size int) (TxSearch, error)
 }
 
 type TokenConvert interface {
-	ToMinCoin(coin ...DecCoin) (Coins, error)
-	ToMainCoin(coin ...Coin) (DecCoins, error)
+	ToMinCoin(coin ...DecCoin) (Coins, Error)
+	ToMainCoin(coin ...Coin) (DecCoins, Error)
 }
 
 type Logger interface {

@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"math"
 	"strings"
 	"time"
 
@@ -239,32 +238,32 @@ func (ac abstractClient) QueryToken(symbol string) (sdk.Token, error) {
 	return token, nil
 }
 
-func (ac abstractClient) ToMinCoin(coins ...sdk.DecCoin) (dstCoins sdk.Coins, err error) {
+func (ac abstractClient) ToMinCoin(coins ...sdk.DecCoin) (dstCoins sdk.Coins, err sdk.Error) {
 	for _, coin := range coins {
 		token, err := ac.QueryToken(coin.Denom)
 		if err != nil {
-			return nil, err
+			return nil, sdk.Wrap(err)
 		}
 
 		minCoin, err := token.GetCoinType().ConvertToMinCoin(coin)
 		if err != nil {
-			return nil, err
+			return nil, sdk.Wrap(err)
 		}
 		dstCoins = append(dstCoins, minCoin)
 	}
 	return dstCoins.Sort(), nil
 }
 
-func (ac abstractClient) ToMainCoin(coins ...sdk.Coin) (dstCoins sdk.DecCoins, err error) {
+func (ac abstractClient) ToMainCoin(coins ...sdk.Coin) (dstCoins sdk.DecCoins, err sdk.Error) {
 	for _, coin := range coins {
 		token, err := ac.QueryToken(coin.Denom)
 		if err != nil {
-			return dstCoins, err
+			return dstCoins, sdk.Wrap(err)
 		}
 
 		mainCoin, err := token.GetCoinType().ConvertToMainCoin(coin)
 		if err != nil {
-			return dstCoins, err
+			return dstCoins, sdk.Wrap(err)
 		}
 		dstCoins = append(dstCoins, mainCoin)
 	}
@@ -402,57 +401,55 @@ func (ac abstractClient) broadcastTxAsync(tx []byte) (sdk.ResultTx, sdk.Error) {
 }
 
 // QueryTx returns the tx info
-func (ac abstractClient) QueryTx(hash string) (sdk.TxInfo, error) {
+func (ac abstractClient) QueryTx(hash string) (sdk.TxDetail, error) {
 	tx, err := hex.DecodeString(hash)
 	if err != nil {
-		return sdk.TxInfo{}, err
+		return sdk.TxDetail{}, err
 	}
 
 	res, err := ac.Tx(tx, true)
 	if err != nil {
-		return sdk.TxInfo{}, err
+		return sdk.TxDetail{}, err
 	}
 
 	resBlocks, err := ac.getBlocksForTxResults([]*ctypes.ResultTx{res})
 	if err != nil {
-		return sdk.TxInfo{}, err
+		return sdk.TxDetail{}, err
 	}
 	return ac.formatTxResult(res, resBlocks[res.Height])
 }
 
-func (ac abstractClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.SearchTxsResult, error) {
+func (ac abstractClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.TxSearch, error) {
 
 	query := builder.Build()
 	if len(query) == 0 {
-		return sdk.SearchTxsResult{}, errors.New("must declare at least one tag to search")
+		return sdk.TxSearch{}, errors.New("must declare at least one tag to search")
 	}
 
 	res, err := ac.TxSearch(query, true, page, size)
 	if err != nil {
-		return sdk.SearchTxsResult{}, err
+		return sdk.TxSearch{}, err
 	}
 
 	resBlocks, err := ac.getBlocksForTxResults(res.Txs)
 	if err != nil {
-		return sdk.SearchTxsResult{}, err
+		return sdk.TxSearch{}, err
 	}
 
-	var txs []sdk.TxInfo
+	var txs []sdk.TxDetail
 	for i, tx := range res.Txs {
 		txInfo, err := ac.formatTxResult(tx, resBlocks[res.Txs[i].Height])
 		if err != nil {
-			return sdk.SearchTxsResult{}, err
+			return sdk.TxSearch{}, err
 		}
 		txs = append(txs, txInfo)
 	}
 
-	return sdk.SearchTxsResult{
-		TotalCount: res.TotalCount,
-		Count:      len(txs),
-		PageNumber: page,
-		PageTotal:  int(math.Ceil(float64(res.TotalCount) / float64(size))),
-		Size:       size,
-		Txs:        txs,
+	return sdk.TxSearch{
+		Total: res.TotalCount,
+		Page:  page,
+		Size:  size,
+		Txs:   txs,
 	}, nil
 }
 
@@ -471,16 +468,16 @@ func (ac abstractClient) getBlocksForTxResults(resTxs []*ctypes.ResultTx) (map[i
 	return resBlocks, nil
 }
 
-func (ac abstractClient) formatTxResult(res *ctypes.ResultTx, resBlock *ctypes.ResultBlock) (sdk.TxInfo, error) {
+func (ac abstractClient) formatTxResult(res *ctypes.ResultTx, resBlock *ctypes.ResultBlock) (sdk.TxDetail, error) {
 
 	var tx sdk.StdTx
 	err := ac.cdc.UnmarshalBinaryLengthPrefixed(res.Tx, &tx)
 	if err != nil {
-		return sdk.TxInfo{}, err
+		return sdk.TxDetail{}, err
 	}
 
-	return sdk.TxInfo{
-		Hash:   res.Hash,
+	return sdk.TxDetail{
+		Hash:   res.Hash.String(),
 		Height: res.Height,
 		Tx:     tx,
 		Result: sdk.TxResult{

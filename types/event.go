@@ -131,26 +131,6 @@ type EventDataNewBlock struct {
 	ResultEndBlock   ResultEndBlock   `json:"result_end_block"`
 }
 
-type Block struct {
-	tmtypes.Header `json:"header"`
-	Data           `json:"data"`
-	Evidence       tmtypes.EvidenceData `json:"evidence"`
-	LastCommit     *tmtypes.Commit      `json:"last_commit"`
-}
-
-type Data struct {
-	Txs []StdTx `json:"txs"`
-}
-
-type ResultBeginBlock struct {
-	Tags Tags `json:"tags"`
-}
-
-type ResultEndBlock struct {
-	Tags             Tags              `json:"tags"`
-	ValidatorUpdates []ValidatorUpdate `json:"validator_updates"`
-}
-
 type ValidatorUpdate struct {
 	PubKey EventPubKey `json:"pub_key"`
 	Power  int64       `json:"power"`
