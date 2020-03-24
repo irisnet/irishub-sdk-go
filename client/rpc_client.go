@@ -154,6 +154,7 @@ func (r rpcClient) parseTx(data sdk.EventData) sdk.EventDataTx {
 	}
 	hash := cmn.HexBytes(tx.Tx.Hash()).String()
 	result := sdk.TxResult{
+		Code:      tx.Result.Code,
 		Log:       tx.Result.Log,
 		GasWanted: tx.Result.GasWanted,
 		GasUsed:   tx.Result.GasUsed,

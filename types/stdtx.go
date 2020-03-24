@@ -268,7 +268,8 @@ type TxInfo struct {
 	Hash      common.HexBytes `json:"hash"`
 	Height    int64           `json:"height"`
 	Tx        Tx              `json:"tx"`
-	Timestamp string          `json:"timestamp,omitempty"`
+	Result    TxResult        `json:"result"`
+	Timestamp string          `json:"timestamp"`
 }
 
 // SearchTxsResult defines a structure for querying txs pageable

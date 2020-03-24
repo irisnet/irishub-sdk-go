@@ -483,7 +483,13 @@ func (ac abstractClient) formatTxResult(res *ctypes.ResultTx, resBlock *ctypes.R
 		Hash:   res.Hash,
 		Height: res.Height,
 		Tx:     tx,
-		//Result:    MakeResponseHumanReadable(res.TxResult),
+		Result: sdk.TxResult{
+			Code:      res.TxResult.Code,
+			Log:       res.TxResult.Log,
+			GasWanted: res.TxResult.GasWanted,
+			GasUsed:   res.TxResult.GasUsed,
+			Tags:      sdk.ParseTags(res.TxResult.Tags),
+		},
 		Timestamp: resBlock.Block.Time.Format(time.RFC3339),
 	}, nil
 }
