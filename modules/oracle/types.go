@@ -52,7 +52,6 @@ type MsgCreateFeed struct {
 	Timeout           int64            `json:"timeout"`
 	ServiceFeeCap     sdk.Coins        `json:"service_fee_cap"`
 	RepeatedFrequency uint64           `json:"repeated_frequency"`
-	RepeatedTotal     int64            `json:"repeated_total"`
 	AggregateFunc     string           `json:"aggregate_func"`
 	ValueJsonPath     string           `json:"value_json_path"`
 	ResponseThreshold uint16           `json:"response_threshold"`
@@ -198,7 +197,6 @@ type MsgEditFeed struct {
 	Timeout           int64            `json:"timeout"`
 	ServiceFeeCap     sdk.Coins        `json:"service_fee_cap"`
 	RepeatedFrequency uint64           `json:"repeated_frequency"`
-	RepeatedTotal     int64            `json:"repeated_total"`
 	ResponseThreshold uint16           `json:"response_threshold"`
 	Creator           sdk.AccAddress   `json:"creator"`
 }
@@ -300,6 +298,14 @@ type feedValue struct {
 	Data      string    `json:"data"`
 	Timestamp time.Time `json:"timestamp"`
 }
+
+func (fv feedValue) Convert() interface{} {
+	return rpc.FeedValue{
+		Data:      fv.Data,
+		Timestamp: fv.Timestamp,
+	}
+}
+
 type feedValues []feedValue
 
 func (fvs feedValues) Convert() interface{} {

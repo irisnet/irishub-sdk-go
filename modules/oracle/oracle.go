@@ -58,7 +58,6 @@ func (o oracleClient) CreateFeed(request rpc.FeedCreateRequest) (sdk.ResultTx, s
 		Timeout:           request.Timeout,
 		ServiceFeeCap:     amt,
 		RepeatedFrequency: request.RepeatedFrequency,
-		RepeatedTotal:     request.RepeatedTotal,
 		AggregateFunc:     request.AggregateFunc,
 		ValueJsonPath:     request.ValueJsonPath,
 		ResponseThreshold: request.ResponseThreshold,
@@ -112,7 +111,6 @@ func (o oracleClient) CreateAndStartFeed(request rpc.FeedCreateRequest) (sdk.Res
 		Timeout:           request.Timeout,
 		ServiceFeeCap:     amt,
 		RepeatedFrequency: request.RepeatedFrequency,
-		RepeatedTotal:     request.RepeatedTotal,
 		AggregateFunc:     request.AggregateFunc,
 		ValueJsonPath:     request.ValueJsonPath,
 		ResponseThreshold: request.ResponseThreshold,
@@ -169,7 +167,6 @@ func (o oracleClient) EditFeed(request rpc.FeedEditRequest) (sdk.ResultTx, sdk.E
 		Timeout:           request.Timeout,
 		ServiceFeeCap:     amt,
 		RepeatedFrequency: request.RepeatedFrequency,
-		RepeatedTotal:     request.RepeatedTotal,
 		ResponseThreshold: request.ResponseThreshold,
 	}
 	return o.BuildAndSend([]sdk.Msg{msg}, request.BaseTx)
@@ -220,7 +217,7 @@ func (o oracleClient) QueryFeedValue(feedName string) ([]rpc.FeedValue, sdk.Erro
 	return fvs.Convert().([]rpc.FeedValue), nil
 }
 
-func (o oracleClient) RegisterFeedListener(feedName string, handler func(value string)) sdk.Error {
+func (o oracleClient) RegisterFeedListener(feedName string, handler func(value rpc.FeedValue)) sdk.Error {
 	feed, err := o.QueryFeed(feedName)
 	if err != nil {
 		return err
@@ -237,11 +234,17 @@ func (o oracleClient) RegisterFeedListener(feedName string, handler func(value s
 		return sdk.Wrapf("feed:%s state is invalid:%s", feedName, feed.State)
 	}
 
-	unsubscribe := func(sub1, sub2 sdk.Subscription) {
-		f, err := o.QueryFeed(feedName)
-		if err != nil || isInValidState(f.State) {
-			_ = o.Unsubscribe(sub1)
-			_ = o.Unsubscribe(sub2)
+	handleResult := func(value string, sub1, sub2 sdk.Subscription) {
+		o.Info().Str("feed-value", value).
+			Msg("received feed value")
+		var fv feedValue
+		if err := cdc.UnmarshalJSON([]byte(value), &fv); err == nil {
+			handler(fv.Convert().(rpc.FeedValue))
+			f, err := o.QueryFeed(feedName)
+			if err != nil || isInValidState(f.State) {
+				_ = o.Unsubscribe(sub1)
+				_ = o.Unsubscribe(sub2)
+			}
 		}
 	}
 
@@ -253,12 +256,7 @@ func (o oracleClient) RegisterFeedListener(feedName string, handler func(value s
 		tagValue := tagFeedValue(feedName)
 		result := block.ResultEndBlock.Tags.GetValue(tagValue)
 
-		o.Info().Str("feed-value", result).
-			Msg("received feed value")
-		if len(result) != 0 {
-			handler(result)
-			unsubscribe(sub1, sub2)
-		}
+		handleResult(result, sub1, sub2)
 	})
 
 	txBuilder := sdk.NewEventQueryBuilder().
@@ -268,14 +266,7 @@ func (o oracleClient) RegisterFeedListener(feedName string, handler func(value s
 		tagValue := tagFeedValue(feedName)
 		result := tx.Result.Tags.GetValue(tagValue)
 
-		o.Info().Str("feed-value", result).
-			Msg("received feed value")
-		if len(result) != 0 {
-			if len(result) != 0 {
-				handler(result)
-				unsubscribe(sub1, sub2)
-			}
-		}
+		handleResult(result, sub1, sub2)
 	})
 	return err
 }

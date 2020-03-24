@@ -3,10 +3,8 @@ package slashing_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/irisnet/irishub-sdk-go/test"
+	"github.com/stretchr/testify/suite"
 )
 
 type SlashingTestSuite struct {
@@ -25,16 +23,16 @@ func (sts *SlashingTestSuite) SetupTest() {
 
 func (sts *SlashingTestSuite) TestQueryParams() {
 	params, err := sts.Slashing().QueryParams()
-	require.NoError(sts.T(), err)
-	require.NotEmpty(sts.T(), params)
+	sts.NoError(err)
+	sts.NotEmpty(params)
 }
 
 func (sts *SlashingTestSuite) TestQueryValidatorSigningInfo() {
 	validators, err := sts.Staking().QueryValidators(1, 10)
-	require.NoError(sts.T(), err)
-	require.NotEmpty(sts.T(), validators)
+	sts.NoError(err)
+	sts.NotEmpty(validators)
 
 	signingInfo, err := sts.Slashing().QueryValidatorSigningInfo(validators[0].ConsensusPubkey)
-	require.NoError(sts.T(), err)
-	require.NotEmpty(sts.T(), signingInfo)
+	sts.NoError(err)
+	sts.NotEmpty(signingInfo)
 }

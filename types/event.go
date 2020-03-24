@@ -66,7 +66,8 @@ func (tx EventDataTx) MarshalJson() []byte {
 }
 
 type TxResult struct {
-	Log       string `json:"log,omitempty"`
+	Code      uint32 `json:"code"`
+	Log       string `json:"log"`
 	GasWanted int64  `json:"gas_wanted"`
 	GasUsed   int64  `json:"gas_used"`
 	Tags      Tags   `json:"tags"`

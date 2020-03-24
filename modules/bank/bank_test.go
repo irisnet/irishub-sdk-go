@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/irisnet/irishub-sdk-go/test"
@@ -27,19 +26,19 @@ func (bts *BankTestSuite) SetupTest() {
 
 func (bts BankTestSuite) TestGetAccount() {
 	acc, err := bts.Bank().QueryAccount(bts.Account().Address.String())
-	require.NoError(bts.T(), err)
+	bts.NoError(err)
 	fmt.Printf("%v", acc)
 }
 
 func (bts BankTestSuite) TestGetTokenStats() {
 	acc, err := bts.Bank().QueryTokenStats("iris")
-	require.NoError(bts.T(), err)
+	bts.NoError(err)
 	fmt.Printf("%v", acc)
 }
 
 func (bts BankTestSuite) TestSend() {
 	coins, err := types.ParseDecCoins("0.1iris")
-	require.NoError(bts.T(), err)
+	bts.NoError(err)
 	to := "faa1hp29kuh22vpjjlnctmyml5s75evsnsd8r4x0mm"
 	baseTx := types.BaseTx{
 		From:     bts.Account().Name,
@@ -50,13 +49,13 @@ func (bts BankTestSuite) TestSend() {
 	}
 
 	result, err := bts.Bank().Send(to, coins, baseTx)
-	require.NoError(bts.T(), err)
-	require.NotEmpty(bts.T(), result.Hash)
+	bts.NoError(err)
+	bts.NotEmpty(result.Hash)
 }
 
 func (bts BankTestSuite) TestBurn() {
 	amt, err := types.NewDecFromStr("0.1")
-	require.NoError(bts.T(), err)
+	bts.NoError(err)
 	coin := types.NewDecCoinFromDec("iris", amt)
 	coins := types.NewDecCoins(coin)
 	baseTx := types.BaseTx{
@@ -67,8 +66,8 @@ func (bts BankTestSuite) TestBurn() {
 		Password: bts.Account().Password,
 	}
 	result, err := bts.Bank().Burn(coins, baseTx)
-	require.NoError(bts.T(), err)
-	require.NotEmpty(bts.T(), result.Hash)
+	bts.NoError(err)
+	bts.NotEmpty(result.Hash)
 }
 
 func (bts BankTestSuite) TestSetMemoRegexp() {
@@ -80,10 +79,10 @@ func (bts BankTestSuite) TestSetMemoRegexp() {
 		Password: bts.Account().Password,
 	}
 	result, err := bts.Bank().SetMemoRegexp("testMemo", baseTx)
-	require.NoError(bts.T(), err)
-	require.NotEmpty(bts.T(), result.Hash)
+	bts.NoError(err)
+	bts.NotEmpty(result.Hash)
 
 	acc, err := bts.Bank().QueryAccount(bts.Account().Address.String())
-	require.NoError(bts.T(), err)
-	require.Equal(bts.T(), "testMemo", acc.MemoRegexp)
+	bts.NoError(err)
+	bts.Equal("testMemo", acc.MemoRegexp)
 }

@@ -6,13 +6,10 @@ import (
 	"time"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
-
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/irisnet/irishub-sdk-go/test"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/stretchr/testify/suite"
 )
 
 type OracleTestSuite struct {
@@ -56,19 +53,19 @@ func (ots *OracleTestSuite) SetupService() {
 	}
 
 	result, err := ots.Service().DefineService(definition, baseTx)
-	require.NoError(ots.T(), err)
-	require.NotEmpty(ots.T(), result.Hash)
+	ots.NoError(err)
+	ots.NotEmpty(result.Hash)
 
 	deposit, e := sdk.ParseDecCoins("20000iris")
-	require.NoError(ots.T(), e)
+	ots.NoError(e)
 	binding := rpc.ServiceBindingRequest{
 		ServiceName: definition.ServiceName,
 		Deposit:     deposit,
 		Pricing:     pricing,
 	}
 	result, err = ots.Service().BindService(binding, baseTx)
-	require.NoError(ots.T(), err)
-	require.NotEmpty(ots.T(), result.Hash)
+	ots.NoError(err)
+	ots.NotEmpty(result.Hash)
 
 	_, err = ots.Service().RegisterSingleServiceListener(serviceName,
 		func(input string) (string, string) {
@@ -78,7 +75,7 @@ func (ots *OracleTestSuite) SetupService() {
 			return output, testResult
 		}, baseTx)
 
-	require.NoError(ots.T(), err)
+	ots.NoError(err)
 
 	ots.serviceName = serviceName
 	ots.baseTx = baseTx
@@ -103,45 +100,50 @@ func (ots *OracleTestSuite) TestFeed() {
 		Timeout:           3,
 		ServiceFeeCap:     serviceFeeCap,
 		RepeatedFrequency: 5,
-		RepeatedTotal:     2,
 		AggregateFunc:     "avg",
 		ValueJsonPath:     "last",
 		ResponseThreshold: 1,
 	}
 	result, err := ots.Oracle().CreateFeed(createFeedReq)
-	require.NoError(ots.T(), err)
-	require.NotEmpty(ots.T(), result.Hash)
+	ots.NoError(err)
+	ots.NotEmpty(result.Hash)
 
 	_, err = ots.Oracle().QueryFeed(feedName)
-	require.NoError(ots.T(), err)
+	ots.NoError(err)
 
 	result, err = ots.Oracle().StartFeed(feedName, ots.baseTx)
-	require.NoError(ots.T(), err)
-	require.NotEmpty(ots.T(), result.Hash)
+	ots.NoError(err)
+	ots.NotEmpty(result.Hash)
 
-	ch := make(chan string)
-	err = ots.Oracle().RegisterFeedListener(feedName, func(value string) {
+	ch := make(chan rpc.FeedValue)
+	err = ots.Oracle().RegisterFeedListener(feedName, func(value rpc.FeedValue) {
 		log.Default.Info().
 			Str("feedName", feedName).
-			Str("feedValue", value).
+			Str("feedValue", value.Data).
 			Msg("received feed value")
 		ch <- value
 	})
 
-	require.NoError(ots.T(), err)
+	ots.NoError(err)
 
 	for v := range ch {
 		result, err := ots.Oracle().QueryFeedValue(feedName)
-		require.NoError(ots.T(), err)
-		require.Equal(ots.T(), v, result[0].Data)
+		ots.NoError(err)
+		ots.EqualValues(v, result[0])
 
-		if len(result) == int(createFeedReq.RepeatedTotal) {
+		if len(result) == int(createFeedReq.LatestHistory) {
 			goto stop
 		}
 	}
 stop:
 	close(ch)
-	ots.Info().Msg("test feed success")
+	_, err = ots.Oracle().PauseFeed(feedName, ots.baseTx)
+	ots.NoError(err)
+
+	feed, err := ots.Oracle().QueryFeed(feedName)
+	ots.NoError(err)
+	ots.Equal("paused", feed.State)
+
 }
 
 func generateServiceName() string {

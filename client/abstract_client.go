@@ -1,11 +1,16 @@
 package client
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"math"
+	"strings"
+	"time"
 
 	cmn "github.com/tendermint/tendermint/libs/common"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
+	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/irisnet/irishub-sdk-go/adapter"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
@@ -93,6 +98,37 @@ func (ac *abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Re
 		Str("tags", res.Tags.String()).
 		Msg("broadcastTx transaction success")
 	return res, nil
+}
+
+func (ac *abstractClient) SendMsgBatch(batch int, msgs []sdk.Msg, baseTx sdk.BaseTx) (rs []sdk.ResultTx, err sdk.Error) {
+	splitMsgs := func(batch int, msgs []sdk.Msg) (segments [][]sdk.Msg) {
+		max := len(msgs)
+		if max < batch {
+			return [][]sdk.Msg{msgs}
+		}
+
+		quantity := max / batch
+		for i := 1; i <= batch; i++ {
+			start := (i - 1) * quantity
+			end := i * quantity
+			if i != batch {
+				segments = append(segments, msgs[start:end])
+			} else {
+				segments = append(segments, msgs[start:])
+			}
+		}
+		return segments
+	}
+
+	baseTx.Mode = sdk.Commit
+	for _, ms := range splitMsgs(batch, msgs) {
+		res, err := ac.BuildAndSend(ms, baseTx)
+		if err != nil {
+			return rs, sdk.Wrap(err)
+		}
+		rs = append(rs, res)
+	}
+	return rs, nil
 }
 
 func (ac abstractClient) Broadcast(signedTx sdk.StdTx, mode sdk.BroadcastMode) (sdk.ResultTx, sdk.Error) {
@@ -193,6 +229,8 @@ func (ac abstractClient) QueryToken(symbol string) (sdk.Token, error) {
 		Symbol: symbol,
 	}
 
+	//TODO will remove from v1.0
+	symbol = strings.TrimSuffix(symbol, "-min")
 	var token sdk.Token
 	if err := ac.QueryWithResponse("custom/asset/token", param, &token); err != nil {
 		return sdk.Token{}, err
@@ -360,5 +398,98 @@ func (ac abstractClient) broadcastTxAsync(tx []byte) (sdk.ResultTx, sdk.Error) {
 
 	return sdk.ResultTx{
 		Hash: res.Hash.String(),
+	}, nil
+}
+
+// QueryTx returns the tx info
+func (ac abstractClient) QueryTx(hash string) (sdk.TxInfo, error) {
+	tx, err := hex.DecodeString(hash)
+	if err != nil {
+		return sdk.TxInfo{}, err
+	}
+
+	res, err := ac.Tx(tx, true)
+	if err != nil {
+		return sdk.TxInfo{}, err
+	}
+
+	resBlocks, err := ac.getBlocksForTxResults([]*ctypes.ResultTx{res})
+	if err != nil {
+		return sdk.TxInfo{}, err
+	}
+	return ac.formatTxResult(res, resBlocks[res.Height])
+}
+
+func (ac abstractClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.SearchTxsResult, error) {
+
+	query := builder.Build()
+	if len(query) == 0 {
+		return sdk.SearchTxsResult{}, errors.New("must declare at least one tag to search")
+	}
+
+	res, err := ac.TxSearch(query, true, page, size)
+	if err != nil {
+		return sdk.SearchTxsResult{}, err
+	}
+
+	resBlocks, err := ac.getBlocksForTxResults(res.Txs)
+	if err != nil {
+		return sdk.SearchTxsResult{}, err
+	}
+
+	var txs []sdk.TxInfo
+	for i, tx := range res.Txs {
+		txInfo, err := ac.formatTxResult(tx, resBlocks[res.Txs[i].Height])
+		if err != nil {
+			return sdk.SearchTxsResult{}, err
+		}
+		txs = append(txs, txInfo)
+	}
+
+	return sdk.SearchTxsResult{
+		TotalCount: res.TotalCount,
+		Count:      len(txs),
+		PageNumber: page,
+		PageTotal:  int(math.Ceil(float64(res.TotalCount) / float64(size))),
+		Size:       size,
+		Txs:        txs,
+	}, nil
+}
+
+func (ac abstractClient) getBlocksForTxResults(resTxs []*ctypes.ResultTx) (map[int64]*ctypes.ResultBlock, error) {
+	resBlocks := make(map[int64]*ctypes.ResultBlock)
+	for _, resTx := range resTxs {
+		if _, ok := resBlocks[resTx.Height]; !ok {
+			resBlock, err := ac.Block(&resTx.Height)
+			if err != nil {
+				return nil, err
+			}
+
+			resBlocks[resTx.Height] = resBlock
+		}
+	}
+	return resBlocks, nil
+}
+
+func (ac abstractClient) formatTxResult(res *ctypes.ResultTx, resBlock *ctypes.ResultBlock) (sdk.TxInfo, error) {
+
+	var tx sdk.StdTx
+	err := ac.cdc.UnmarshalBinaryLengthPrefixed(res.Tx, &tx)
+	if err != nil {
+		return sdk.TxInfo{}, err
+	}
+
+	return sdk.TxInfo{
+		Hash:   res.Hash,
+		Height: res.Height,
+		Tx:     tx,
+		Result: sdk.TxResult{
+			Code:      res.TxResult.Code,
+			Log:       res.TxResult.Log,
+			GasWanted: res.TxResult.GasWanted,
+			GasUsed:   res.TxResult.GasUsed,
+			Tags:      sdk.ParseTags(res.TxResult.Tags),
+		},
+		Timestamp: resBlock.Block.Time.Format(time.RFC3339),
 	}, nil
 }
