@@ -1,8 +1,11 @@
 package staking
 
 import (
+	"bytes"
 	"errors"
 	"time"
+
+	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
 
@@ -24,6 +27,63 @@ var (
 
 func init() {
 	registerCodec(cdc)
+}
+
+// MsgCreateValidator - struct for bonding transactions
+type MsgCreateValidator struct {
+	Description
+	Commission    CommissionMsg
+	DelegatorAddr sdk.AccAddress `json:"delegator_address"`
+	ValidatorAddr sdk.ValAddress `json:"validator_address"`
+	PubKey        crypto.PubKey  `json:"pubkey"`
+	Delegation    sdk.Coin       `json:"delegation"`
+}
+
+//nolint
+func (msg MsgCreateValidator) Type() string { return "create_validator" }
+
+// Return address(es) that must sign over msg.GetSignBytes()
+func (msg MsgCreateValidator) GetSigners() []sdk.AccAddress {
+	// delegator is first signer so delegator pays fees
+	addrs := []sdk.AccAddress{msg.DelegatorAddr}
+
+	if !bytes.Equal(msg.DelegatorAddr.Bytes(), msg.ValidatorAddr.Bytes()) {
+		// if validator addr is not same as delegator addr, validator must sign
+		// msg as well
+		addrs = append(addrs, sdk.AccAddress(msg.ValidatorAddr))
+	}
+	return addrs
+}
+
+// get the bytes for the message signer to sign on
+func (msg MsgCreateValidator) GetSignBytes() []byte {
+	pukKey, err := sdk.Bech32ifyConsPub(msg.PubKey)
+	if err != nil {
+		panic(err)
+	}
+
+	b, err := cdc.MarshalJSON(struct {
+		Description
+		Commission    CommissionMsg
+		DelegatorAddr sdk.AccAddress `json:"delegator_address"`
+		ValidatorAddr sdk.ValAddress `json:"validator_address"`
+		PubKey        string         `json:"pubkey"`
+		Delegation    sdk.Coin       `json:"delegation"`
+	}{
+		Description:   msg.Description,
+		ValidatorAddr: msg.ValidatorAddr,
+		PubKey:        pukKey,
+		Delegation:    msg.Delegation,
+	})
+	if err != nil {
+		panic(err)
+	}
+	return json.MustSort(b)
+}
+
+// quick validity check
+func (msg MsgCreateValidator) ValidateBasic() error {
+	return nil
 }
 
 //______________________________________________________________________
@@ -411,6 +471,14 @@ type Commission struct {
 	UpdateTime    time.Time `json:"update_time"`     // the last time the commission rate was changed
 }
 
+// CommissionMsg defines a commission message to be used for creating a
+// validator.
+type CommissionMsg struct {
+	Rate          sdk.Dec `json:"rate"`            // the commission rate charged to delegators
+	MaxRate       sdk.Dec `json:"max_rate"`        // maximum commission rate which validator can ever charge
+	MaxChangeRate sdk.Dec `json:"max_change_rate"` // maximum daily increase of the validator commission
+}
+
 type Pool struct {
 	LooseTokens  sdk.Dec `json:"loose_tokens"`  // tokens which are not bonded in a validator
 	BondedTokens sdk.Dec `json:"bonded_tokens"` // reserve of bonded tokens
@@ -444,6 +512,7 @@ func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(unbondingDelegation{}, "irishub/stake/UnbondingDelegation")
 	cdc.RegisterConcrete(redelegation{}, "irishub/stake/Redelegation")
 
+	cdc.RegisterConcrete(MsgCreateValidator{}, "irishub/stake/MsgCreateValidator")
 	cdc.RegisterConcrete(MsgEditValidator{}, "irishub/stake/MsgEditValidator")
 	cdc.RegisterConcrete(MsgDelegate{}, "irishub/stake/MsgDelegate")
 	cdc.RegisterConcrete(MsgUndelegate{}, "irishub/stake/BeginUnbonding") //TODO
