@@ -13,7 +13,6 @@ type TxContext struct {
 	ChainID       string
 	Memo          string
 	Fee           Coins
-	Online        bool
 	Network       Network
 	Mode          BroadcastMode
 	Simulate      bool
@@ -66,12 +65,6 @@ func (txCtx *TxContext) WithAccountNumber(accnum uint64) *TxContext {
 // WithAccountNumber returns a pointer of the context with a keyDao.
 func (txCtx *TxContext) WithKeyManager(keyManager KeyManager) *TxContext {
 	txCtx.KeyManager = keyManager
-	return txCtx
-}
-
-// WithOnline returns a pointer of the context with an online
-func (txCtx *TxContext) WithOnline(online bool) *TxContext {
-	txCtx.Online = online
 	return txCtx
 }
 
