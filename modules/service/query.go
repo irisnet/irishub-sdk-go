@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
@@ -25,8 +24,7 @@ func (s serviceClient) queryRequestContextByTxQuery(reqCtxID string) (requestCon
 
 	if int64(len(txInfo.Tx.GetMsgs())) > msgIndex {
 		msg := txInfo.Tx.GetMsgs()[msgIndex]
-		if msg.Type() == "request_service" {
-			msg := msg.(MsgRequestService)
+		if msg, ok := msg.(MsgRequestService); ok {
 			return requestContext{
 				ServiceName:        msg.ServiceName,
 				Providers:          msg.Providers,
@@ -73,8 +71,7 @@ func (s serviceClient) queryRequestByTxQuery(requestID string) (request, error) 
 		key := actionTagKey(actionNewBatchRequest, reqCtxID.String())
 		if string(tag.Key) == string(key) {
 			var requests []compactRequest
-			err := json.Unmarshal(tag.GetValue(), &requests)
-			if err != nil {
+			if err := json.Unmarshal(tag.GetValue(), &requests); err != nil {
 				return request{}, err
 			}
 			if len(requests) > int(batchRequestIndex) {
@@ -126,8 +123,7 @@ func (s serviceClient) queryResponseByTxQuery(requestID string) (response, error
 	}
 
 	for _, msg := range result.Txs[0].Tx.GetMsgs() {
-		if msg.Type() == "respond_service" {
-			responseMsg := msg.(MsgRespondService)
+		if responseMsg, ok := msg.(MsgRespondService); ok {
 			if responseMsg.RequestID.String() != requestID {
 				continue
 			}

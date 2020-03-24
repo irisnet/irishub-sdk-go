@@ -725,7 +725,7 @@ type request struct {
 	SuperMode                  bool           `json:"super_mode"`
 	RequestHeight              int64          `json:"request_height"`
 	ExpirationHeight           int64          `json:"expiration_height"`
-	RequestContextID           []byte         `json:"request_context_id"`
+	RequestContextID           cmn.HexBytes   `json:"request_context_id"`
 	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
 }
 
@@ -744,7 +744,7 @@ func (r request) Convert() interface{} {
 		SuperMode:                  r.SuperMode,
 		RequestHeight:              r.RequestHeight,
 		ExpirationHeight:           r.ExpirationHeight,
-		RequestContextID:           rpc.RequestContextIDToString(r.RequestContextID),
+		RequestContextID:           r.RequestContextID.String(),
 		RequestContextBatchCounter: r.RequestContextBatchCounter,
 	}
 }
@@ -770,7 +770,7 @@ type response struct {
 }
 
 func (r response) Empty() bool {
-	return len(r.Provider) > 0
+	return len(r.Provider) == 0
 }
 
 func (r response) Convert() interface{} {
@@ -893,7 +893,7 @@ func actionTagKey(key ...string) sdk.EventKey {
 	return sdk.EventKey(strings.Join(key, "."))
 }
 
-func GenRequestID(requestID string) []byte {
+func hexBytesFrom(requestID string) []byte {
 	v, _ := hex.DecodeString(requestID)
 	return v
 }

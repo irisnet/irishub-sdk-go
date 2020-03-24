@@ -71,8 +71,8 @@ type Service interface {
 	ServiceQuery
 }
 
-type ServiceInvokeHandler func(reqCtxID string, responses string)
-type ServiceRespondHandler func(reqID, input string) (output string, result string)
+type ServiceInvokeHandler func(reqCtxID, reqID, responses string)
+type ServiceRespondHandler func(reqCtxID, reqID, input string) (output string, result string)
 type ServiceRouter map[string]ServiceRespondHandler
 
 // ServiceRequest defines a request which contains the detailed request data

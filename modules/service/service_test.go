@@ -82,28 +82,20 @@ func (sts *ServiceTestSuite) TestService() {
 	testResult := `{"code":200,"message":""}`
 
 	var sub1 sdk.Subscription
-	//sub1, err = sts.Service().RegisterSingleServiceListener(definition.ServiceName,
-	//	func(reqID,input string) (string, string) {
-	//		sts.Info().
-	//          Str("reqID", reqID).
-	//			Str("input", input).
-	//			Str("output", output).
-	//			Msg("provider received request")
-	//		return output, testResult
-	//	}, baseTx)
-
 	router := rpc.ServiceRouter{
-		definition.ServiceName: func(reqID, input string) (string, string) {
+		definition.ServiceName: func(reqCtxID, reqID, input string) (string, string) {
 			sts.Info().
+				Str("reqCtxID", reqCtxID).
 				Str("reqID", reqID).
 				Str("input", input).
 				Str("output", output).
 				Msg("provider received request")
+			_, err := sts.Service().QueryResponse(reqID)
+			sts.NoError(err)
 			return output, testResult
 		},
 	}
 	sub1, err = sts.Service().RegisterServiceListener(router, baseTx)
-
 	sts.NoError(err)
 
 	serviceFeeCap, e := sdk.ParseDecCoins("1iris")
@@ -126,14 +118,21 @@ func (sts *ServiceTestSuite) TestService() {
 	var exit = make(chan int, 0)
 
 	requestContextID, err = sts.Service().InvokeService(invocation, baseTx)
-	sub2, err = sts.Service().RegisterServiceResponseListener(requestContextID, func(reqCtxID string, responses string) {
-		sts.Equal(reqCtxID, requestContextID)
-		sts.Equal(output, responses)
+	sub2, err = sts.Service().RegisterServiceResponseListener(requestContextID, func(reqCtxID, reqID, responses string) {
 		sts.Info().
-			Str("requestContextID", requestContextID).
+			Str("reqCtxID", reqCtxID).
+			Str("reqID", reqID).
 			Str("response", responses).
 			Msg("consumer received response")
+
+		sts.Equal(reqCtxID, requestContextID)
+		sts.Equal(output, responses)
+		request, err := sts.Service().QueryRequest(reqID)
 		sts.NoError(err)
+		sts.Equal(reqCtxID, request.RequestContextID)
+		sts.Equal(reqID, request.ID)
+		sts.Equal(input, request.Input)
+
 		exit <- 1
 	})
 
@@ -147,12 +146,6 @@ func (sts *ServiceTestSuite) TestService() {
 	<-exit
 	err = sts.Unsubscribe(sub1)
 	err = sts.Unsubscribe(sub2)
-	sts.NoError(err)
-}
-
-func (sts *ServiceTestSuite) TestQueryRequestContext() {
-	reqCtxID := "E0F60DDA1140D90C1EEA4FD3D2C12570C042D346D80D288818A59103A8E3C6360000000000000000"
-	_, err := sts.Service().QueryRequestContext(reqCtxID)
 	sts.NoError(err)
 }
 

@@ -183,7 +183,6 @@ func (s serviceClient) RegisterServiceResponseListener(reqCtxID string,
 			Str("tx_hash", tx.Hash).
 			Int64("height", tx.Height).
 			Str("reqCtxID", reqCtxID).
-			Str("reqCtxID", reqCtxID).
 			Msg("consumer received response transaction sent by provider")
 		reqCtx, err := s.QueryRequestContext(reqCtxID)
 		if err != nil || reqCtx.State == "completed" {
@@ -193,7 +192,7 @@ func (s serviceClient) RegisterServiceResponseListener(reqCtxID string,
 		for _, msg := range tx.Tx.Msgs {
 			msg, ok := msg.(MsgRespondService)
 			if ok {
-				callback(reqCtxID, msg.Output)
+				callback(reqCtxID, msg.RequestID.String(), msg.Output)
 			}
 		}
 	})
@@ -442,7 +441,7 @@ func (s serviceClient) QueryRequest(requestID string) (rpc.ServiceRequest, sdk.E
 	param := struct {
 		RequestID []byte
 	}{
-		RequestID: GenRequestID(requestID),
+		RequestID: hexBytesFrom(requestID),
 	}
 
 	var request request
@@ -593,9 +592,9 @@ func (s serviceClient) GenServiceResponseMsgs(tags sdk.Tags, serviceName string,
 			continue
 		}
 		if provider.Equals(request.Provider) && request.ServiceName == serviceName {
-			output, result := handler(reqID, request.Input)
+			output, result := handler(request.RequestContextID, reqID, request.Input)
 			msgs = append(msgs, MsgRespondService{
-				RequestID: GenRequestID(reqID),
+				RequestID: hexBytesFrom(reqID),
 				Provider:  provider,
 				Output:    output,
 				Result:    result,
