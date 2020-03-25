@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	tmclient "github.com/tendermint/tendermint/rpc/client"
 
@@ -112,14 +113,11 @@ func (t Tags) GetValue(key string) string {
 }
 
 func (t Tags) String() string {
-	var buf bytes.Buffer
-	for _, tag := range t {
-		if buf.Len() > 0 {
-			buf.WriteString(" ")
-		}
-		buf.WriteString(fmt.Sprintf("%s=%s", tag.Key, tag.Value))
+	var tags = make([]string, len(t))
+	for i, tag := range t {
+		tags[i] = fmt.Sprintf("%s=%s", tag.Key, tag.Value)
 	}
-	return buf.String()
+	return strings.Join(tags, ",")
 }
 
 type EventTxHandler func(EventDataTx)
@@ -211,7 +209,7 @@ func (c *condition) fill(v EventValue, op string) *condition {
 
 func (c *condition) String() string {
 	if len(c.key) == 0 || len(c.value) == 0 || len(c.op) == 0 {
-		panic("invalid condition")
+		return ""
 	}
 	return fmt.Sprintf("%s %s '%s'", c.key, c.op, c.value)
 }
@@ -230,7 +228,7 @@ func NewEventQueryBuilder() *EventQueryBuilder {
 //AddCondition is responsible for adding listening conditions
 func (eqb *EventQueryBuilder) AddCondition(c *condition) *EventQueryBuilder {
 	if c == nil {
-		panic("invalid condition")
+		return nil
 	}
 	eqb.conditions = append(eqb.conditions, c.String())
 	return eqb

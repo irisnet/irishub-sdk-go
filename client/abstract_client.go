@@ -87,8 +87,7 @@ func (ac *abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Re
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 	ac.Logger().Info().
-		Str("txhash", res.Hash).
-		Str("tags", res.Tags.String()).
+		Str("txHash", res.Hash).
 		Msg("broadcastTx transaction success")
 	return res, nil
 }

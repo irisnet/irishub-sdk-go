@@ -68,8 +68,9 @@ func (ots *OracleTestSuite) SetupService() {
 	ots.NotEmpty(result.Hash)
 
 	_, err = ots.Service().RegisterSingleServiceListener(serviceName,
-		func(input string) (string, string) {
+		func(reqCtxID, reqID, input string) (string, string) {
 			ots.Info().Str("input", input).
+				Str("reqCtxID", reqCtxID).
 				Str("output", output).
 				Msg("Service received request")
 			return output, testResult
