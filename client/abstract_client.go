@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"math"
 	"strings"
 	"time"
 
@@ -18,27 +17,21 @@ import (
 )
 
 type abstractClient struct {
-	*sdk.TxContext
 	sdk.TmClient
+	sdk.KeyManager
+
 	logger *log.Logger
 	cfg    sdk.SDKConfig
 	cdc    sdk.Codec
 }
 
 func createAbstractClient(cdc sdk.Codec, cfg sdk.SDKConfig, logger *log.Logger) *abstractClient {
-	ctx := sdk.TxContext{
-		Codec:      cdc,
-		ChainID:    cfg.ChainID,
-		Online:     cfg.Online,
-		KeyManager: adapter.NewDAOAdapter(cfg.KeyDAO, cfg.StoreType),
-		Network:    cfg.Network,
-	}
 	ac := abstractClient{
-		TxContext: &ctx,
-		TmClient:  NewRPCClient(cfg.NodeURI, cdc, logger),
-		logger:    logger,
-		cfg:       cfg,
-		cdc:       cdc,
+		KeyManager: adapter.NewDAOAdapter(cfg.KeyDAO, cfg.StoreType),
+		TmClient:   NewRPCClient(cfg.NodeURI, cdc, logger),
+		logger:     logger,
+		cfg:        cfg,
+		cdc:        cdc,
 	}
 
 	ac.init()
@@ -51,7 +44,6 @@ func (ac *abstractClient) init() {
 		panic(err)
 	}
 	ac.cfg.Fee = sdk.NewDecCoinsFromCoins(fees...)
-	ac.reset()
 }
 
 func (ac abstractClient) Logger() *log.Logger {
@@ -71,11 +63,12 @@ func (ac *abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Re
 	}
 	ac.Logger().Info().Msg("validate msg success")
 
-	if err := ac.prepare(baseTx); err != nil {
+	ctx, err := ac.prepare(baseTx)
+	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	tx, err := ac.BuildAndSign(baseTx.From, msg)
+	tx, err := ctx.BuildAndSign(baseTx.From, msg)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -83,19 +76,18 @@ func (ac *abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Re
 		Strs("data", tx.GetSignBytes()).
 		Msg("sign transaction success")
 
-	txByte, err := ac.Codec.MarshalBinaryLengthPrefixed(tx)
+	txByte, err := ac.cdc.MarshalBinaryLengthPrefixed(tx)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	res, err := ac.broadcastTx(txByte)
+	res, err := ac.broadcastTx(txByte, ctx.Mode)
 	if err != nil {
 		ac.Logger().Err(err).Msg("broadcastTx transaction failed")
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 	ac.Logger().Info().
-		Str("txhash", res.Hash).
-		Str("tags", res.Tags.String()).
+		Str("txHash", res.Hash).
 		Msg("broadcastTx transaction success")
 	return res, nil
 }
@@ -132,13 +124,12 @@ func (ac *abstractClient) SendMsgBatch(batch int, msgs []sdk.Msg, baseTx sdk.Bas
 }
 
 func (ac abstractClient) Broadcast(signedTx sdk.StdTx, mode sdk.BroadcastMode) (sdk.ResultTx, sdk.Error) {
-	ac.Mode = mode
-	txByte, err := ac.Codec.MarshalBinaryLengthPrefixed(signedTx)
+	txByte, err := ac.cdc.MarshalBinaryLengthPrefixed(signedTx)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	return ac.broadcastTx(txByte)
+	return ac.broadcastTx(txByte, mode)
 }
 
 func (ac abstractClient) QueryWithResponse(path string, data interface{}, result sdk.Response) error {
@@ -147,7 +138,7 @@ func (ac abstractClient) QueryWithResponse(path string, data interface{}, result
 		return err
 	}
 
-	if err := ac.Codec.UnmarshalJSON(res, result); err != nil {
+	if err := ac.cdc.UnmarshalJSON(res, result); err != nil {
 		return err
 	}
 
@@ -158,7 +149,7 @@ func (ac abstractClient) Query(path string, data interface{}) ([]byte, error) {
 	var bz []byte
 	var err error
 	if data != nil {
-		bz, err = ac.Codec.MarshalJSON(data)
+		bz, err = ac.cdc.MarshalJSON(data)
 		if err != nil {
 			return nil, err
 		}
@@ -239,32 +230,32 @@ func (ac abstractClient) QueryToken(symbol string) (sdk.Token, error) {
 	return token, nil
 }
 
-func (ac abstractClient) ToMinCoin(coins ...sdk.DecCoin) (dstCoins sdk.Coins, err error) {
+func (ac abstractClient) ToMinCoin(coins ...sdk.DecCoin) (dstCoins sdk.Coins, err sdk.Error) {
 	for _, coin := range coins {
 		token, err := ac.QueryToken(coin.Denom)
 		if err != nil {
-			return nil, err
+			return nil, sdk.Wrap(err)
 		}
 
 		minCoin, err := token.GetCoinType().ConvertToMinCoin(coin)
 		if err != nil {
-			return nil, err
+			return nil, sdk.Wrap(err)
 		}
 		dstCoins = append(dstCoins, minCoin)
 	}
 	return dstCoins.Sort(), nil
 }
 
-func (ac abstractClient) ToMainCoin(coins ...sdk.Coin) (dstCoins sdk.DecCoins, err error) {
+func (ac abstractClient) ToMainCoin(coins ...sdk.Coin) (dstCoins sdk.DecCoins, err sdk.Error) {
 	for _, coin := range coins {
 		token, err := ac.QueryToken(coin.Denom)
 		if err != nil {
-			return dstCoins, err
+			return dstCoins, sdk.Wrap(err)
 		}
 
 		mainCoin, err := token.GetCoinType().ConvertToMainCoin(coin)
 		if err != nil {
-			return dstCoins, err
+			return dstCoins, sdk.Wrap(err)
 		}
 		dstCoins = append(dstCoins, mainCoin)
 	}
@@ -272,66 +263,114 @@ func (ac abstractClient) ToMainCoin(coins ...sdk.Coin) (dstCoins sdk.DecCoins, e
 }
 
 func (ac abstractClient) QueryAddress(name string) (sdk.AccAddress, error) {
-	return (*ac.TxContext).KeyManager.Query(name)
+	return ac.KeyManager.Query(name)
 }
 
-func (ac *abstractClient) prepare(baseTx sdk.BaseTx) error {
-	//clear some params
-	ac.reset()
-	if ac.Online {
-		addr, err := ac.QueryAddress(baseTx.From)
-		if err != nil {
-			return err
-		}
-
-		account, err := ac.QueryAccount(addr.String())
-		if err != nil {
-			return err
-		}
-
-		ac.WithAccountNumber(account.AccountNumber).
-			WithSequence(account.Sequence)
+// QueryTx returns the tx info
+func (ac abstractClient) QueryTx(hash string) (sdk.ResultQueryTx, error) {
+	tx, err := hex.DecodeString(hash)
+	if err != nil {
+		return sdk.ResultQueryTx{}, err
 	}
-	ac.WithPassword(baseTx.Password)
-	// first use baseTx params
+
+	res, err := ac.Tx(tx, true)
+	if err != nil {
+		return sdk.ResultQueryTx{}, err
+	}
+
+	resBlocks, err := ac.getBlocksForTxResults([]*ctypes.ResultTx{res})
+	if err != nil {
+		return sdk.ResultQueryTx{}, err
+	}
+	return ac.formatTxResult(res, resBlocks[res.Height])
+}
+
+func (ac abstractClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.ResultSearchTxs, error) {
+
+	query := builder.Build()
+	if len(query) == 0 {
+		return sdk.ResultSearchTxs{}, errors.New("must declare at least one tag to search")
+	}
+
+	res, err := ac.TxSearch(query, true, page, size)
+	if err != nil {
+		return sdk.ResultSearchTxs{}, err
+	}
+
+	resBlocks, err := ac.getBlocksForTxResults(res.Txs)
+	if err != nil {
+		return sdk.ResultSearchTxs{}, err
+	}
+
+	var txs []sdk.ResultQueryTx
+	for i, tx := range res.Txs {
+		txInfo, err := ac.formatTxResult(tx, resBlocks[res.Txs[i].Height])
+		if err != nil {
+			return sdk.ResultSearchTxs{}, err
+		}
+		txs = append(txs, txInfo)
+	}
+
+	return sdk.ResultSearchTxs{
+		Total: res.TotalCount,
+		Txs:   txs,
+	}, nil
+}
+
+func (ac *abstractClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
+	fees, _ := ac.cfg.Fee.TruncateDecimal()
+	ctx := &sdk.TxContext{
+		Codec:      ac.cdc,
+		ChainID:    ac.cfg.ChainID,
+		KeyManager: ac.KeyManager,
+		Network:    ac.cfg.Network,
+		Fee:        fees,
+		Mode:       ac.cfg.Mode,
+		Simulate:   false,
+		Gas:        ac.cfg.Gas,
+	}
+
+	addr, err := ac.QueryAddress(baseTx.From)
+	if err != nil {
+		return nil, err
+	}
+
+	account, err := ac.QueryAccount(addr.String())
+	if err != nil {
+		return nil, err
+	}
+	ctx.WithAccountNumber(account.AccountNumber).
+		WithSequence(account.Sequence).
+		WithPassword(baseTx.Password)
+
 	if !baseTx.Fee.Empty() && baseTx.Fee.IsValid() {
 		fees, err := ac.ToMinCoin(baseTx.Fee...)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		ac.WithFee(fees)
+		ctx.WithFee(fees)
 	}
 
 	if len(baseTx.Mode) > 0 {
-		ac.WithMode(baseTx.Mode)
+		ctx.WithMode(baseTx.Mode)
 	}
 
 	if baseTx.Simulate {
-		ac.WithSimulate(baseTx.Simulate)
+		ctx.WithSimulate(baseTx.Simulate)
 	}
 
 	if baseTx.Gas > 0 {
-		ac.WithGas(baseTx.Gas)
+		ctx.WithGas(baseTx.Gas)
 	}
 
 	if len(baseTx.Memo) > 0 {
-		ac.WithMemo(baseTx.Memo)
+		ctx.WithMemo(baseTx.Memo)
 	}
-	return nil
+	return ctx, nil
 }
 
-func (ac *abstractClient) reset() {
-	fees, _ := ac.cfg.Fee.TruncateDecimal()
-	ac.WithAccountNumber(uint64(0)).
-		WithSequence(uint64(0)).
-		WithFee(fees).
-		WithMode(ac.cfg.Mode).
-		WithSimulate(false).
-		WithGas(ac.cfg.Gas)
-}
-
-func (ac abstractClient) broadcastTx(txBytes []byte) (sdk.ResultTx, sdk.Error) {
-	switch ac.Mode {
+func (ac abstractClient) broadcastTx(txBytes []byte, mode sdk.BroadcastMode) (sdk.ResultTx, sdk.Error) {
+	switch mode {
 	case sdk.Commit:
 		return ac.broadcastTxCommit(txBytes)
 	case sdk.Async:
@@ -340,13 +379,13 @@ func (ac abstractClient) broadcastTx(txBytes []byte) (sdk.ResultTx, sdk.Error) {
 		return ac.broadcastTxSync(txBytes)
 
 	}
-	return sdk.ResultTx{}, sdk.Wrapf("commit mode(%s) not supported", ac.Mode)
+	return sdk.ResultTx{}, sdk.Wrapf("commit mode(%s) not supported", ac.cfg.Mode)
 }
 
 // broadcastTxCommit broadcasts transaction bytes to a Tendermint node
 // and waits for a commit.
 func (ac abstractClient) broadcastTxCommit(tx []byte) (sdk.ResultTx, sdk.Error) {
-	res, err := ac.TmClient.BroadcastTxCommit(tx)
+	res, err := ac.BroadcastTxCommit(tx)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -373,7 +412,7 @@ func (ac abstractClient) broadcastTxCommit(tx []byte) (sdk.ResultTx, sdk.Error) 
 // BroadcastTxSync broadcasts transaction bytes to a Tendermint node
 // synchronously.
 func (ac abstractClient) broadcastTxSync(tx []byte) (sdk.ResultTx, sdk.Error) {
-	res, err := ac.TmClient.BroadcastTxSync(tx)
+	res, err := ac.BroadcastTxSync(tx)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -391,68 +430,13 @@ func (ac abstractClient) broadcastTxSync(tx []byte) (sdk.ResultTx, sdk.Error) {
 // BroadcastTxAsync broadcasts transaction bytes to a Tendermint node
 // asynchronously.
 func (ac abstractClient) broadcastTxAsync(tx []byte) (sdk.ResultTx, sdk.Error) {
-	res, err := ac.TmClient.BroadcastTxAsync(tx)
+	res, err := ac.BroadcastTxAsync(tx)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	return sdk.ResultTx{
 		Hash: res.Hash.String(),
-	}, nil
-}
-
-// QueryTx returns the tx info
-func (ac abstractClient) QueryTx(hash string) (sdk.TxInfo, error) {
-	tx, err := hex.DecodeString(hash)
-	if err != nil {
-		return sdk.TxInfo{}, err
-	}
-
-	res, err := ac.Tx(tx, true)
-	if err != nil {
-		return sdk.TxInfo{}, err
-	}
-
-	resBlocks, err := ac.getBlocksForTxResults([]*ctypes.ResultTx{res})
-	if err != nil {
-		return sdk.TxInfo{}, err
-	}
-	return ac.formatTxResult(res, resBlocks[res.Height])
-}
-
-func (ac abstractClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.SearchTxsResult, error) {
-
-	query := builder.Build()
-	if len(query) == 0 {
-		return sdk.SearchTxsResult{}, errors.New("must declare at least one tag to search")
-	}
-
-	res, err := ac.TxSearch(query, true, page, size)
-	if err != nil {
-		return sdk.SearchTxsResult{}, err
-	}
-
-	resBlocks, err := ac.getBlocksForTxResults(res.Txs)
-	if err != nil {
-		return sdk.SearchTxsResult{}, err
-	}
-
-	var txs []sdk.TxInfo
-	for i, tx := range res.Txs {
-		txInfo, err := ac.formatTxResult(tx, resBlocks[res.Txs[i].Height])
-		if err != nil {
-			return sdk.SearchTxsResult{}, err
-		}
-		txs = append(txs, txInfo)
-	}
-
-	return sdk.SearchTxsResult{
-		TotalCount: res.TotalCount,
-		Count:      len(txs),
-		PageNumber: page,
-		PageTotal:  int(math.Ceil(float64(res.TotalCount) / float64(size))),
-		Size:       size,
-		Txs:        txs,
 	}, nil
 }
 
@@ -471,16 +455,16 @@ func (ac abstractClient) getBlocksForTxResults(resTxs []*ctypes.ResultTx) (map[i
 	return resBlocks, nil
 }
 
-func (ac abstractClient) formatTxResult(res *ctypes.ResultTx, resBlock *ctypes.ResultBlock) (sdk.TxInfo, error) {
+func (ac abstractClient) formatTxResult(res *ctypes.ResultTx, resBlock *ctypes.ResultBlock) (sdk.ResultQueryTx, error) {
 
 	var tx sdk.StdTx
 	err := ac.cdc.UnmarshalBinaryLengthPrefixed(res.Tx, &tx)
 	if err != nil {
-		return sdk.TxInfo{}, err
+		return sdk.ResultQueryTx{}, err
 	}
 
-	return sdk.TxInfo{
-		Hash:   res.Hash,
+	return sdk.ResultQueryTx{
+		Hash:   res.Hash.String(),
 		Height: res.Height,
 		Tx:     tx,
 		Result: sdk.TxResult{

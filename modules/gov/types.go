@@ -26,6 +26,90 @@ func init() {
 	registerCodecForProposal(cdc)
 }
 
+// Type that represents Proposal Type as a byte
+type ProposalKind byte
+type UsageType byte
+
+type Param struct {
+	Subspace string `json:"subspace"`
+	Key      string `json:"key"`
+	Value    string `json:"value"`
+}
+
+type Params []Param
+
+//-----------------------------------------------------------
+// MsgSubmitProposal
+type MsgSubmitProposal struct {
+	Title          string         `json:"title"`           //  Title of the proposal
+	Description    string         `json:"description"`     //  Description of the proposal
+	ProposalType   ProposalKind   `json:"proposal_type"`   //  Type of proposal. Initial set {PlainTextProposal, SoftwareUpgradeProposal}
+	Proposer       sdk.AccAddress `json:"proposer"`        //  Address of the proposer
+	InitialDeposit sdk.Coins      `json:"initial_deposit"` //  Initial deposit paid by sender. Must be strictly positive.
+	Params         Params         `json:"params"`
+}
+
+//nolint
+func (msg MsgSubmitProposal) Type() string { return "submit_proposal" }
+
+// Implements Msg.
+func (msg MsgSubmitProposal) ValidateBasic() error {
+	return nil
+}
+
+// Implements Msg.
+func (msg MsgSubmitProposal) GetSignBytes() []byte {
+	b, err := cdc.MarshalJSON(msg)
+	if err != nil {
+		panic(err)
+	}
+	return json.MustSort(b)
+}
+
+// Implements Msg.
+func (msg MsgSubmitProposal) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Proposer}
+}
+
+type MsgSubmitSoftwareUpgradeProposal struct {
+	MsgSubmitProposal
+	Version      uint64  `json:"version"`
+	Software     string  `json:"software"`
+	SwitchHeight uint64  `json:"switch_height"`
+	Threshold    sdk.Dec `json:"threshold"`
+}
+
+func (msg MsgSubmitSoftwareUpgradeProposal) ValidateBasic() error {
+	return nil
+}
+
+func (msg MsgSubmitSoftwareUpgradeProposal) GetSignBytes() []byte {
+	b, err := cdc.MarshalJSON(msg)
+	if err != nil {
+		panic(err)
+	}
+	return json.MustSort(b)
+}
+
+type MsgSubmitCommunityTaxUsageProposal struct {
+	MsgSubmitProposal
+	Usage       UsageType      `json:"usage"`
+	DestAddress sdk.AccAddress `json:"dest_address"`
+	Amount      sdk.Coins      `json:"amount"`
+}
+
+func (msg MsgSubmitCommunityTaxUsageProposal) ValidateBasic() error {
+	return nil
+}
+
+func (msg MsgSubmitCommunityTaxUsageProposal) GetSignBytes() []byte {
+	b, err := cdc.MarshalJSON(msg)
+	if err != nil {
+		panic(err)
+	}
+	return json.MustSort(b)
+}
+
 //-----------------------------------------------------------
 // MsgDeposit
 type MsgDeposit struct {
@@ -225,6 +309,9 @@ func (ds deposits) Convert() interface{} {
 }
 
 func registerCodec(cdc sdk.Codec) {
+	cdc.RegisterConcrete(MsgSubmitProposal{}, "irishub/gov/MsgSubmitProposal")
+	cdc.RegisterConcrete(MsgSubmitCommunityTaxUsageProposal{}, "irishub/gov/MsgSubmitCommunityTaxUsageProposal")
+	cdc.RegisterConcrete(MsgSubmitSoftwareUpgradeProposal{}, "irishub/gov/MsgSubmitSoftwareUpgradeProposal")
 	cdc.RegisterConcrete(MsgDeposit{}, "irishub/gov/MsgDeposit")
 	cdc.RegisterConcrete(MsgVote{}, "irishub/gov/MsgVote")
 

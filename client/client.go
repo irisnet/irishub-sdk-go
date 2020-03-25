@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/irisnet/irishub-sdk-go/modules/tendermint"
+
 	"github.com/irisnet/irishub-sdk-go/modules/asset"
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/distribution"
@@ -57,6 +59,7 @@ func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
 		random.Create(abstClient),
 		keys.Create(abstClient.KeyManager),
 		asset.Create(abstClient),
+		tendermint.Create(abstClient),
 	)
 
 	return *client
@@ -111,6 +114,10 @@ func (s *SDKClient) Keys() rpc.Keys {
 
 func (s *SDKClient) Asset() rpc.Asset {
 	return s.modules[asset.ModuleName].(rpc.Asset)
+}
+
+func (s *SDKClient) Tendermint() rpc.Tendermint {
+	return s.modules[tendermint.ModuleName].(rpc.Tendermint)
 }
 
 func (s *SDKClient) SetOutput(w io.Writer) {

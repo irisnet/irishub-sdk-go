@@ -2,10 +2,7 @@ package client
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
-
-	abcitypes "github.com/tendermint/tendermint/abci/types"
 
 	cmn "github.com/tendermint/tendermint/libs/common"
 	rpc "github.com/tendermint/tendermint/rpc/client"
@@ -171,29 +168,14 @@ func (r rpcClient) parseTx(data sdk.EventData) sdk.EventDataTx {
 
 func (r rpcClient) parseNewBlock(data sdk.EventData) sdk.EventDataNewBlock {
 	block := data.(tmtypes.EventDataNewBlock)
-	var txs []sdk.StdTx
-	for _, tx := range block.Block.Data.Txs {
-		var stdTx sdk.StdTx
-		if err := r.cdc.UnmarshalBinaryLengthPrefixed(tx, &stdTx); err == nil {
-			txs = append(txs, stdTx)
-		}
-	}
-
 	return sdk.EventDataNewBlock{
-		Block: sdk.Block{
-			Header: block.Block.Header,
-			Data: sdk.Data{
-				Txs: txs,
-			},
-			Evidence:   block.Block.Evidence,
-			LastCommit: block.Block.LastCommit,
-		},
+		Block: sdk.ParseBlock(r.cdc, block.Block),
 		ResultBeginBlock: sdk.ResultBeginBlock{
 			Tags: sdk.ParseTags(block.ResultBeginBlock.Tags),
 		},
 		ResultEndBlock: sdk.ResultEndBlock{
 			Tags:             sdk.ParseTags(block.ResultEndBlock.Tags),
-			ValidatorUpdates: parseValidatorUpdate(block.ResultEndBlock.ValidatorUpdates),
+			ValidatorUpdates: sdk.ParseValidatorUpdate(block.ResultEndBlock.ValidatorUpdates),
 		},
 	}
 }
@@ -207,42 +189,16 @@ func (r rpcClient) parseNewBlockHeader(data sdk.EventData) sdk.EventDataNewBlock
 		},
 		ResultEndBlock: sdk.ResultEndBlock{
 			Tags:             sdk.ParseTags(blockHeader.ResultEndBlock.Tags),
-			ValidatorUpdates: parseValidatorUpdate(blockHeader.ResultEndBlock.ValidatorUpdates),
+			ValidatorUpdates: sdk.ParseValidatorUpdate(blockHeader.ResultEndBlock.ValidatorUpdates),
 		},
 	}
 }
 
 func (r rpcClient) parseValidatorSetUpdates(data sdk.EventData) sdk.EventDataValidatorSetUpdates {
 	validatorSet := data.(tmtypes.EventDataValidatorSetUpdates)
-
-	var validators []sdk.Validator
-	for _, v := range validatorSet.ValidatorUpdates {
-		valAddr, _ := sdk.ConsAddressFromHex(v.Address.String())
-		pubKey, _ := sdk.Bech32ifyConsPub(v.PubKey)
-		validators = append(validators, sdk.Validator{
-			Address:          valAddr.String(),
-			PubKey:           pubKey,
-			VotingPower:      v.VotingPower,
-			ProposerPriority: v.ProposerPriority,
-		})
-	}
 	return sdk.EventDataValidatorSetUpdates{
-		ValidatorUpdates: validators,
+		ValidatorUpdates: sdk.ParseValidators(validatorSet.ValidatorUpdates),
 	}
-}
-
-func parseValidatorUpdate(vp abcitypes.ValidatorUpdates) (validatorUpdates []sdk.ValidatorUpdate) {
-	for _, validator := range vp {
-		var pubKey = sdk.EventPubKey{
-			Type:  validator.PubKey.Type,
-			Value: base64.StdEncoding.EncodeToString(validator.PubKey.Data),
-		}
-		validatorUpdates = append(validatorUpdates, sdk.ValidatorUpdate{
-			PubKey: pubKey,
-			Power:  validator.Power,
-		})
-	}
-	return
 }
 
 func getSubscriber() string {

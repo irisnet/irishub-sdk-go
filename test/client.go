@@ -13,7 +13,6 @@ import (
 const (
 	NodeURI = "localhost:26657"
 	ChainID = "test"
-	Online  = true
 	Network = sdk.Testnet
 	Mode    = sdk.Commit
 	Fee     = "0.6iris"
@@ -50,7 +49,6 @@ func NewMockClient() MockClient {
 		Fee:       fees,
 		KeyDAO:    sdk.NewDefaultKeyDAO(&Memory{}),
 		Mode:      Mode,
-		Online:    Online,
 		StoreType: sdk.Key,
 		Level:     "debug",
 	})

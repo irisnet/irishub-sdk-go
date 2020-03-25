@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/tendermint/tendermint/libs/common"
-
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/multisig"
 
@@ -263,21 +261,17 @@ type ResultTx struct {
 	Height    int64  `json:"height"`
 }
 
-// TxInfo is used to prepare info to display
-type TxInfo struct {
-	Hash      common.HexBytes `json:"hash"`
-	Height    int64           `json:"height"`
-	Tx        Tx              `json:"tx"`
-	Result    TxResult        `json:"result"`
-	Timestamp string          `json:"timestamp"`
+// ResultQueryTx is used to prepare info to display
+type ResultQueryTx struct {
+	Hash      string   `json:"hash"`
+	Height    int64    `json:"height"`
+	Tx        Tx       `json:"tx"`
+	Result    TxResult `json:"result"`
+	Timestamp string   `json:"timestamp"`
 }
 
-// SearchTxsResult defines a structure for querying txs pageable
-type SearchTxsResult struct {
-	TotalCount int      `json:"total_count"` // Count of all txs
-	Count      int      `json:"count"`       // Count of txs in current page
-	PageNumber int      `json:"page_number"` // Index of current page, start from 1
-	PageTotal  int      `json:"page_total"`  // Count of total pages
-	Size       int      `json:"size"`        // Max count txs per page
-	Txs        []TxInfo `json:"txs"`         // List of txs in current page
+// ResultSearchTxs defines a structure for querying txs pageable
+type ResultSearchTxs struct {
+	Total int             `json:"total"` // Count of all txs
+	Txs   []ResultQueryTx `json:"txs"`   // List of txs in current page
 }
