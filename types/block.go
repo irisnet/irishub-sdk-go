@@ -61,7 +61,7 @@ func ParseValidatorUpdate(updates []abci.ValidatorUpdate) []ValidatorUpdate {
 	var vUpdates []ValidatorUpdate
 	for _, v := range updates {
 		vUpdates = append(vUpdates, ValidatorUpdate{
-			PubKey: EventPubKey{
+			PubKey: PubKey{
 				Type:  v.PubKey.Type,
 				Value: base64.StdEncoding.EncodeToString(v.PubKey.Data),
 			},
@@ -97,19 +97,20 @@ func ParseBlockResult(res *ctypes.ResultBlockResults) BlockResult {
 	}
 }
 
-// Validators for a height
-type ResultValidators struct {
-	BlockHeight int64       `json:"block_height"`
-	Validators  []Validator `json:"validators"`
-}
-
 func ParseValidators(vs []*tmtypes.Validator) []Validator {
 	var validators = make([]Validator, len(vs))
 	for i, v := range vs {
-		valAddr, _ := ConsAddressFromHex(v.Address.String())
-		pubKey, _ := Bech32ifyConsPub(v.PubKey)
+		bech32Addr, _ := ConsAddressFromHex(v.Address.String())
+		bech32PubKey, _ := Bech32ifyConsPub(v.PubKey)
+
+		var pubKey PubKey
+		if bz, err := codec.MarshalJSON(v.PubKey); err == nil {
+			_ = codec.UnmarshalJSON(bz, &pubKey)
+		}
 		validators[i] = Validator{
-			Address:          valAddr.String(),
+			Bech32Address:    bech32Addr.String(),
+			Bech32PubKey:     bech32PubKey,
+			Address:          v.Address.String(),
 			PubKey:           pubKey,
 			VotingPower:      v.VotingPower,
 			ProposerPriority: v.ProposerPriority,

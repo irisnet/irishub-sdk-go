@@ -3,10 +3,6 @@ package types
 import (
 	"errors"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/crypto/multisig"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
-
 	"github.com/tendermint/tendermint/crypto"
 )
 
@@ -117,27 +113,4 @@ func (acc *BaseAccount) SetMemoRegexp(regexp string) {
 
 func (acc *BaseAccount) Convert() interface{} {
 	return acc
-}
-
-func RegisterCodec(cdc Codec) {
-	cdc.RegisterInterface((*Account)(nil))
-	cdc.RegisterInterface((*Msg)(nil))
-	cdc.RegisterConcrete(&BaseAccount{}, "irishub/bank/Account")
-	cdc.RegisterConcrete(StdTx{}, "irishub/bank/StdTx")
-	// These are all written here instead of
-	cdc.RegisterInterface((*crypto.PubKey)(nil))
-	cdc.RegisterConcrete(ed25519.PubKeyEd25519{},
-		ed25519.PubKeyAminoName)
-	cdc.RegisterConcrete(secp256k1.PubKeySecp256k1{},
-		secp256k1.PubKeyAminoName)
-	cdc.RegisterConcrete(multisig.PubKeyMultisigThreshold{},
-		multisig.PubKeyMultisigThresholdAminoRoute)
-
-	cdc.RegisterInterface((*crypto.PrivKey)(nil))
-	cdc.RegisterConcrete(ed25519.PrivKeyEd25519{},
-		ed25519.PrivKeyAminoName)
-	cdc.RegisterConcrete(secp256k1.PrivKeySecp256k1{},
-		secp256k1.PrivKeyAminoName)
-
-	//cryptoAmino.RegisterAmino(cdc)
 }

@@ -130,11 +130,11 @@ type EventDataNewBlock struct {
 }
 
 type ValidatorUpdate struct {
-	PubKey EventPubKey `json:"pub_key"`
-	Power  int64       `json:"power"`
+	PubKey PubKey `json:"pub_key"`
+	Power  int64  `json:"power"`
 }
 
-type EventPubKey struct {
+type PubKey struct {
 	Type  string `json:"type"`
 	Value string `json:"value"`
 }
@@ -153,8 +153,10 @@ type EventNewBlockHeaderHandler func(EventDataNewBlockHeader)
 
 //EventDataValidatorSetUpdates for SubscribeValidatorSetUpdates
 type Validator struct {
+	Bech32Address    string `json:"bech32_address"`
+	Bech32PubKey     string `json:"bech32_pubkey"`
 	Address          string `json:"address"`
-	PubKey           string `json:"pub_key"`
+	PubKey           PubKey `json:"pub_key"`
 	VotingPower      int64  `json:"voting_power"`
 	ProposerPriority int64  `json:"proposer_priority"`
 }

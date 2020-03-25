@@ -56,15 +56,15 @@ func (tts *TendermintTestSuite) TestQueryTx() {
 
 	builder := sdk.NewEventQueryBuilder().
 		AddCondition(sdk.Cond(sdk.EventKey("tx.hash")).EQ(sdk.EventValue(result.Hash)))
-	txs, err := tts.Tendermint().QueryTxs(builder, 1, 10)
+	txs, err := tts.Tendermint().SearchTxs(builder, 1, 10)
 	tts.NoError(err)
 	tts.Equal(1, txs.Total)
 	tts.Len(txs.Txs, 1)
 	tts.Equal(result.Hash, txs.Txs[0].Hash)
 }
 
-func (tts *TendermintTestSuite) TestQueryValidatorSet() {
-	result, err := tts.Tendermint().QueryValidatorSet(1)
+func (tts *TendermintTestSuite) TestQueryValidators() {
+	result, err := tts.Tendermint().QueryValidators(1)
 	tts.NoError(err)
 	tts.Len(result.Validators, 1)
 }

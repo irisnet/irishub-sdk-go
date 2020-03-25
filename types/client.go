@@ -18,8 +18,8 @@ type Query interface {
 	QueryAccount(address string) (BaseAccount, error)
 	QueryAddress(name string) (addr AccAddress, err error)
 	QueryToken(symbol string) (Token, error)
-	QueryTx(hash string) (TxDetail, error)
-	QueryTxs(builder *EventQueryBuilder, page, size int) (TxSearch, error)
+	QueryTx(hash string) (ResultQueryTx, error)
+	QueryTxs(builder *EventQueryBuilder, page, size int) (ResultSearchTxs, error)
 }
 
 type TokenConvert interface {

@@ -267,54 +267,52 @@ func (ac abstractClient) QueryAddress(name string) (sdk.AccAddress, error) {
 }
 
 // QueryTx returns the tx info
-func (ac abstractClient) QueryTx(hash string) (sdk.TxDetail, error) {
+func (ac abstractClient) QueryTx(hash string) (sdk.ResultQueryTx, error) {
 	tx, err := hex.DecodeString(hash)
 	if err != nil {
-		return sdk.TxDetail{}, err
+		return sdk.ResultQueryTx{}, err
 	}
 
 	res, err := ac.Tx(tx, true)
 	if err != nil {
-		return sdk.TxDetail{}, err
+		return sdk.ResultQueryTx{}, err
 	}
 
 	resBlocks, err := ac.getBlocksForTxResults([]*ctypes.ResultTx{res})
 	if err != nil {
-		return sdk.TxDetail{}, err
+		return sdk.ResultQueryTx{}, err
 	}
 	return ac.formatTxResult(res, resBlocks[res.Height])
 }
 
-func (ac abstractClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.TxSearch, error) {
+func (ac abstractClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.ResultSearchTxs, error) {
 
 	query := builder.Build()
 	if len(query) == 0 {
-		return sdk.TxSearch{}, errors.New("must declare at least one tag to search")
+		return sdk.ResultSearchTxs{}, errors.New("must declare at least one tag to search")
 	}
 
 	res, err := ac.TxSearch(query, true, page, size)
 	if err != nil {
-		return sdk.TxSearch{}, err
+		return sdk.ResultSearchTxs{}, err
 	}
 
 	resBlocks, err := ac.getBlocksForTxResults(res.Txs)
 	if err != nil {
-		return sdk.TxSearch{}, err
+		return sdk.ResultSearchTxs{}, err
 	}
 
-	var txs []sdk.TxDetail
+	var txs []sdk.ResultQueryTx
 	for i, tx := range res.Txs {
 		txInfo, err := ac.formatTxResult(tx, resBlocks[res.Txs[i].Height])
 		if err != nil {
-			return sdk.TxSearch{}, err
+			return sdk.ResultSearchTxs{}, err
 		}
 		txs = append(txs, txInfo)
 	}
 
-	return sdk.TxSearch{
+	return sdk.ResultSearchTxs{
 		Total: res.TotalCount,
-		Page:  page,
-		Size:  size,
 		Txs:   txs,
 	}, nil
 }
@@ -457,15 +455,15 @@ func (ac abstractClient) getBlocksForTxResults(resTxs []*ctypes.ResultTx) (map[i
 	return resBlocks, nil
 }
 
-func (ac abstractClient) formatTxResult(res *ctypes.ResultTx, resBlock *ctypes.ResultBlock) (sdk.TxDetail, error) {
+func (ac abstractClient) formatTxResult(res *ctypes.ResultTx, resBlock *ctypes.ResultBlock) (sdk.ResultQueryTx, error) {
 
 	var tx sdk.StdTx
 	err := ac.cdc.UnmarshalBinaryLengthPrefixed(res.Tx, &tx)
 	if err != nil {
-		return sdk.TxDetail{}, err
+		return sdk.ResultQueryTx{}, err
 	}
 
-	return sdk.TxDetail{
+	return sdk.ResultQueryTx{
 		Hash:   res.Hash.String(),
 		Height: res.Height,
 		Tx:     tx,

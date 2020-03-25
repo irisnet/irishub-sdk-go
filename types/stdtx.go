@@ -261,8 +261,8 @@ type ResultTx struct {
 	Height    int64  `json:"height"`
 }
 
-// TxDetail is used to prepare info to display
-type TxDetail struct {
+// ResultQueryTx is used to prepare info to display
+type ResultQueryTx struct {
 	Hash      string   `json:"hash"`
 	Height    int64    `json:"height"`
 	Tx        Tx       `json:"tx"`
@@ -270,10 +270,8 @@ type TxDetail struct {
 	Timestamp string   `json:"timestamp"`
 }
 
-// TxSearch defines a structure for querying txs pageable
-type TxSearch struct {
-	Total int        `json:"total"` // Count of all txs
-	Page  int        `json:"page"`  // Index of current page, start from 1
-	Size  int        `json:"size"`  // Max count txs per page
-	Txs   []TxDetail `json:"txs"`   // List of txs in current page
+// ResultSearchTxs defines a structure for querying txs pageable
+type ResultSearchTxs struct {
+	Total int             `json:"total"` // Count of all txs
+	Txs   []ResultQueryTx `json:"txs"`   // List of txs in current page
 }

@@ -44,28 +44,28 @@ func (t tmClient) QueryBlockResult(height int64) (sdk.BlockResult, sdk.Error) {
 	return sdk.ParseBlockResult(blockResult), nil
 }
 
-func (t tmClient) QueryTx(hash string) (sdk.TxDetail, sdk.Error) {
+func (t tmClient) QueryTx(hash string) (sdk.ResultQueryTx, sdk.Error) {
 	tx, err := t.AbstractClient.QueryTx(hash)
 	if err != nil {
-		return sdk.TxDetail{}, sdk.Wrap(err)
+		return sdk.ResultQueryTx{}, sdk.Wrap(err)
 	}
 	return tx, nil
 }
 
-func (t tmClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.TxSearch, sdk.Error) {
+func (t tmClient) SearchTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.ResultSearchTxs, sdk.Error) {
 	txs, err := t.AbstractClient.QueryTxs(builder, page, size)
 	if err != nil {
-		return sdk.TxSearch{}, sdk.Wrap(err)
+		return sdk.ResultSearchTxs{}, sdk.Wrap(err)
 	}
 	return txs, nil
 }
 
-func (t tmClient) QueryValidatorSet(height int64) (sdk.ResultValidators, sdk.Error) {
+func (t tmClient) QueryValidators(height int64) (rpc.ResultQueryValidators, sdk.Error) {
 	rs, err := t.Validators(&height)
 	if err != nil {
-		return sdk.ResultValidators{}, sdk.Wrap(err)
+		return rpc.ResultQueryValidators{}, sdk.Wrap(err)
 	}
-	return sdk.ResultValidators{
+	return rpc.ResultQueryValidators{
 		BlockHeight: rs.BlockHeight,
 		Validators:  sdk.ParseValidators(rs.Validators),
 	}, nil
