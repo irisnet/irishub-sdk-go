@@ -38,9 +38,9 @@ type ServiceTx interface {
 	WithdrawTax(destAddress string,
 		amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	RegisterServiceListener(serviceRouter ServiceRouter, baseTx sdk.BaseTx) (sdk.Subscription, sdk.Error)
+	RegisterServiceRequestListener(serviceRouter ServiceRouter, baseTx sdk.BaseTx) (sdk.Subscription, sdk.Error)
 
-	RegisterSingleServiceListener(serviceName string,
+	RegisterSingleServiceRequestListener(serviceName string,
 		respondHandler ServiceRespondHandler,
 		baseTx sdk.BaseTx) (sdk.Subscription, sdk.Error)
 

@@ -333,8 +333,8 @@ func (s serviceClient) WithdrawTax(destAddress string, amount sdk.Coins, baseTx 
 	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
-//RegisterServiceListener is responsible for registering a group of service handler
-func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter,
+//RegisterServiceRequestListener is responsible for registering a group of service handler
+func (s serviceClient) RegisterServiceRequestListener(serviceRouter rpc.ServiceRouter,
 	baseTx sdk.BaseTx) (subscription sdk.Subscription, err sdk.Error) {
 	provider, e := s.QueryAddress(baseTx.From)
 	if e != nil {
@@ -364,8 +364,8 @@ func (s serviceClient) RegisterServiceListener(serviceRouter rpc.ServiceRouter,
 	})
 }
 
-//RegisterSingleServiceListener is responsible for registering a single service handler
-func (s serviceClient) RegisterSingleServiceListener(serviceName string,
+//RegisterSingleServiceRequestListener is responsible for registering a single service handler
+func (s serviceClient) RegisterSingleServiceRequestListener(serviceName string,
 	respondHandler rpc.ServiceRespondHandler,
 	baseTx sdk.BaseTx) (subscription sdk.Subscription, err sdk.Error) {
 	provider, e := s.QueryAddress(baseTx.From)

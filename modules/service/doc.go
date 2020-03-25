@@ -9,7 +9,8 @@
 // As a quick start:
 //
 //	schemas := `{"input":{"type":"object"},"output":{"type":"object"},"error":{"type":"object"}}`
-//	pricing := `{"price":[{"denom":"iris-atto","amount":"1000000000000000000"}]}`
+//	pricing := `{"price":"1iris"}`
+//  testResult := `{"code":200,"message":""}`
 //
 //	baseTx := sdk.BaseTx{
 //		From: "test1",
@@ -59,13 +60,13 @@
 //	input := `{"pair":"iris-usdt"}`
 //	output := `{"last":"1:100"}`
 //
-//	err = sts.Service().RegisterSingleServiceListener(definition.ServiceName,
-//		func(input string) (string, string) {
+//	err = sts.Service().RegisterSingleServiceRequestListener(definition.ServiceName,
+//		func(reqCtxID, reqID, input string) (string, string) {
 //			sts.Info().
 //				Str("input", input).
 //				Str("output", output).
 //				Msg("provider received request")
-//			return output, ""
+//			return output, testResult
 //		}, baseTx)
 //	require.NoError(sts.T(), err)
 //
@@ -83,7 +84,7 @@
 //	}
 //	var requestContextID string
 //	var exit = make(chan int, 0)
-//	requestContextID, err = sts.Service().InvokeService(invocation, func(reqCtxID string, response string) {
+//	requestContextID, err = sts.Service().InvokeService(invocation, func(reqCtxID, reqID, responses string) {
 //		require.Equal(sts.T(), reqCtxID, requestContextID)
 //		require.Equal(sts.T(), output, response)
 //		sts.Info().

@@ -96,7 +96,7 @@ func (sts *ServiceTestSuite) TestService() {
 			return output, testResult
 		},
 	}
-	sub1, err = sts.Service().RegisterServiceListener(router, baseTx)
+	sub1, err = sts.Service().RegisterServiceRequestListener(router, baseTx)
 	require.NoError(sts.T(), err)
 
 	serviceFeeCap, e := sdk.ParseDecCoins("1iris")

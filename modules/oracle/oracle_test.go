@@ -68,7 +68,7 @@ func (ots *OracleTestSuite) SetupService() {
 	require.NoError(ots.T(), err)
 	require.NotEmpty(ots.T(), result.Hash)
 
-	_, err = ots.Service().RegisterSingleServiceListener(serviceName,
+	_, err = ots.Service().RegisterSingleServiceRequestListener(serviceName,
 		func(reqCtxID, reqID, input string) (string, string) {
 			ots.Info().Str("input", input).
 				Str("reqCtxID", reqCtxID).
