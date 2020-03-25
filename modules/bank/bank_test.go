@@ -2,6 +2,7 @@ package bank_test
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -26,13 +27,13 @@ func (bts *BankTestSuite) SetupTest() {
 
 func (bts BankTestSuite) TestGetAccount() {
 	acc, err := bts.Bank().QueryAccount(bts.Account().Address.String())
-	bts.NoError(err)
+	require.NoError(bts.T(), err)
 	fmt.Printf("%v", acc)
 }
 
 func (bts BankTestSuite) TestGetTokenStats() {
 	acc, err := bts.Bank().QueryTokenStats("iris")
-	bts.NoError(err)
+	require.NoError(bts.T(), err)
 	fmt.Printf("%v", acc)
 }
 
@@ -49,13 +50,13 @@ func (bts BankTestSuite) TestSend() {
 	}
 
 	result, err := bts.Bank().Send(to, coins, baseTx)
-	bts.NoError(err)
-	bts.NotEmpty(result.Hash)
+	require.NoError(bts.T(), err)
+	require.NotEmpty(bts.T(), result.Hash)
 }
 
 func (bts BankTestSuite) TestBurn() {
 	amt, err := types.NewDecFromStr("0.1")
-	bts.NoError(err)
+	require.NoError(bts.T(), err)
 	coin := types.NewDecCoinFromDec("iris", amt)
 	coins := types.NewDecCoins(coin)
 	baseTx := types.BaseTx{
@@ -66,8 +67,8 @@ func (bts BankTestSuite) TestBurn() {
 		Password: bts.Account().Password,
 	}
 	result, err := bts.Bank().Burn(coins, baseTx)
-	bts.NoError(err)
-	bts.NotEmpty(result.Hash)
+	require.NoError(bts.T(), err)
+	require.NotEmpty(bts.T(), result.Hash)
 }
 
 func (bts BankTestSuite) TestSetMemoRegexp() {
@@ -79,10 +80,10 @@ func (bts BankTestSuite) TestSetMemoRegexp() {
 		Password: bts.Account().Password,
 	}
 	result, err := bts.Bank().SetMemoRegexp("testMemo", baseTx)
-	bts.NoError(err)
-	bts.NotEmpty(result.Hash)
+	require.NoError(bts.T(), err)
+	require.NotEmpty(bts.T(), result.Hash)
 
 	acc, err := bts.Bank().QueryAccount(bts.Account().Address.String())
-	bts.NoError(err)
-	bts.Equal("testMemo", acc.MemoRegexp)
+	require.NoError(bts.T(), err)
+	require.Equal(bts.T(), "testMemo", acc.MemoRegexp)
 }

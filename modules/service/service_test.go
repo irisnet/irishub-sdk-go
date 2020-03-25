@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 
@@ -29,7 +30,7 @@ func (sts *ServiceTestSuite) SetupTest() {
 
 func (sts *ServiceTestSuite) TestService() {
 	schemas := `{"input":{"type":"object"},"output":{"type":"object"},"error":{"type":"object"}}`
-	pricing := `{"price":[{"denom":"iris-atto","amount":"1000000000000000000"}]}`
+	pricing := `{"price":"1iris"}`
 
 	baseTx := sdk.BaseTx{
 		From:     sts.Account().Name,
@@ -48,34 +49,34 @@ func (sts *ServiceTestSuite) TestService() {
 	}
 
 	result, err := sts.Service().DefineService(definition, baseTx)
-	sts.NoError(err)
-	sts.NotEmpty(result.Hash)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), result.Hash)
 
 	defi, err := sts.Service().QueryDefinition(definition.ServiceName)
-	sts.NoError(err)
-	sts.Equal(definition.ServiceName, defi.Name)
-	sts.Equal(definition.Description, defi.Description)
-	sts.EqualValues(definition.Tags, defi.Tags)
-	sts.Equal(definition.AuthorDescription, defi.AuthorDescription)
-	sts.Equal(definition.Schemas, defi.Schemas)
-	sts.Equal(sts.Account().Address, defi.Author)
+	require.NoError(sts.T(), err)
+	require.Equal(sts.T(), definition.ServiceName, defi.Name)
+	require.Equal(sts.T(), definition.Description, defi.Description)
+	require.EqualValues(sts.T(), definition.Tags, defi.Tags)
+	require.Equal(sts.T(), definition.AuthorDescription, defi.AuthorDescription)
+	require.Equal(sts.T(), definition.Schemas, defi.Schemas)
+	require.Equal(sts.T(), sts.Account().Address, defi.Author)
 
 	deposit, e := sdk.ParseDecCoins("20000iris")
-	sts.NoError(e)
+	require.NoError(sts.T(), e)
 	binding := rpc.ServiceBindingRequest{
 		ServiceName: definition.ServiceName,
 		Deposit:     deposit,
 		Pricing:     pricing,
 	}
 	result, err = sts.Service().BindService(binding, baseTx)
-	sts.NoError(err)
-	sts.NotEmpty(result.Hash)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), result.Hash)
 
 	bindResp, err := sts.Service().QueryBinding(definition.ServiceName, sts.Account().Address)
-	sts.NoError(err)
-	sts.Equal(binding.ServiceName, bindResp.ServiceName)
-	sts.Equal(sts.Account().Address, bindResp.Provider)
-	sts.Equal(binding.Pricing, bindResp.Pricing)
+	require.NoError(sts.T(), err)
+	require.Equal(sts.T(), binding.ServiceName, bindResp.ServiceName)
+	require.Equal(sts.T(), sts.Account().Address, bindResp.Provider)
+	require.Equal(sts.T(), binding.Pricing, bindResp.Pricing)
 
 	input := `{"pair":"iris-usdt"}`
 	output := `{"last":"1:100"}`
@@ -91,15 +92,15 @@ func (sts *ServiceTestSuite) TestService() {
 				Str("output", output).
 				Msg("provider received request")
 			_, err := sts.Service().QueryResponse(reqID)
-			sts.NoError(err)
+			require.NoError(sts.T(), err)
 			return output, testResult
 		},
 	}
 	sub1, err = sts.Service().RegisterServiceListener(router, baseTx)
-	sts.NoError(err)
+	require.NoError(sts.T(), err)
 
 	serviceFeeCap, e := sdk.ParseDecCoins("1iris")
-	sts.NoError(e)
+	require.NoError(sts.T(), e)
 
 	invocation := rpc.ServiceInvocationRequest{
 		ServiceName:       definition.ServiceName,
@@ -125,28 +126,34 @@ func (sts *ServiceTestSuite) TestService() {
 			Str("response", responses).
 			Msg("consumer received response")
 
-		sts.Equal(reqCtxID, requestContextID)
-		sts.Equal(output, responses)
+		require.Equal(sts.T(), reqCtxID, requestContextID)
+		require.Equal(sts.T(), output, responses)
 		request, err := sts.Service().QueryRequest(reqID)
-		sts.NoError(err)
-		sts.Equal(reqCtxID, request.RequestContextID)
-		sts.Equal(reqID, request.ID)
-		sts.Equal(input, request.Input)
+		require.NoError(sts.T(), err)
+		require.Equal(sts.T(), reqCtxID, request.RequestContextID)
+		require.Equal(sts.T(), reqID, request.ID)
+		require.Equal(sts.T(), input, request.Input)
 
 		exit <- 1
 	})
 
-	sts.NoError(err)
+	require.NoError(sts.T(), err)
 
 	request, err := sts.Service().QueryRequestContext(requestContextID)
-	sts.NoError(err)
-	sts.Equal(request.ServiceName, invocation.ServiceName)
-	sts.Equal(request.Input, invocation.Input)
+	require.NoError(sts.T(), err)
+	require.Equal(sts.T(), request.ServiceName, invocation.ServiceName)
+	require.Equal(sts.T(), request.Input, invocation.Input)
 
-	<-exit
-	err = sts.Unsubscribe(sub1)
-	err = sts.Unsubscribe(sub2)
-	sts.NoError(err)
+	for {
+		select {
+		case <-exit:
+			err = sts.Unsubscribe(sub1)
+			err = sts.Unsubscribe(sub2)
+			require.NoError(sts.T(), err)
+		case <-time.After(1 * time.Minute):
+			require.Panics(sts.T(), func() {}, "test service timeout")
+		}
+	}
 }
 
 func generateServiceName() string {

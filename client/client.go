@@ -36,13 +36,13 @@ func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
 	sdk.SetNetwork(cfg.Network)
 
 	//create logger
-	log.Default = log.NewLogger(cfg.Level)
+	logger := log.NewLogger(cfg.Level)
 
-	abstClient := createAbstractClient(cdc, cfg, log.Default)
+	abstClient := createAbstractClient(cdc, cfg, logger)
 	client := &SDKClient{
 		cdc:          cdc,
 		modules:      make(map[string]sdk.Module),
-		logger:       log.Default,
+		logger:       logger,
 		WSClient:     abstClient.TmClient,
 		TxManager:    abstClient,
 		TokenConvert: abstClient,

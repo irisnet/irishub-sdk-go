@@ -1,6 +1,7 @@
 package distribution_test
 
 import (
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/irisnet/irishub-sdk-go/test"
@@ -24,8 +25,8 @@ func (dts *DistrTestSuite) SetupTest() {
 
 func (dts *DistrTestSuite) TestQueryRewards() {
 	r, err := dts.Distr().QueryRewards(dts.Account().Address.String())
-	dts.NoError(err)
-	dts.NotEmpty(r)
+	require.NoError(dts.T(), err)
+	require.NotEmpty(dts.T(), r)
 }
 
 func (dts *DistrTestSuite) TestSetWithdrawAddr() {
@@ -38,8 +39,8 @@ func (dts *DistrTestSuite) TestSetWithdrawAddr() {
 	}
 
 	rs, err := dts.Distr().SetWithdrawAddr(dts.Account().Address.String(), baseTx)
-	dts.NoError(err)
-	dts.NotEmpty(rs.Hash)
+	require.NoError(dts.T(), err)
+	require.NotEmpty(dts.T(), rs.Hash)
 }
 
 func (dts *DistrTestSuite) TestWithdrawRewards() {
@@ -52,6 +53,6 @@ func (dts *DistrTestSuite) TestWithdrawRewards() {
 	}
 
 	rs, err := dts.Distr().WithdrawRewards(true, "", baseTx)
-	dts.NoError(err)
-	dts.NotEmpty(rs.Hash)
+	require.NoError(dts.T(), err)
+	require.NotEmpty(dts.T(), rs.Hash)
 }
