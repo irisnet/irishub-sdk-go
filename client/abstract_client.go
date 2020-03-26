@@ -23,6 +23,7 @@ type abstractClient struct {
 	logger *log.Logger
 	cfg    sdk.SDKConfig
 	cdc    sdk.Codec
+	l      *Locker
 }
 
 func createAbstractClient(cdc sdk.Codec, cfg sdk.SDKConfig, logger *log.Logger) *abstractClient {
@@ -32,6 +33,7 @@ func createAbstractClient(cdc sdk.Codec, cfg sdk.SDKConfig, logger *log.Logger) 
 		logger:     logger,
 		cfg:        cfg,
 		cdc:        cdc,
+		l:          NewLocker(16),
 	}
 
 	ac.init()
@@ -46,7 +48,7 @@ func (ac *abstractClient) init() {
 	ac.cfg.Fee = sdk.NewDecCoinsFromCoins(fees...)
 }
 
-func (ac abstractClient) Logger() *log.Logger {
+func (ac *abstractClient) Logger() *log.Logger {
 	return ac.logger
 }
 
@@ -62,6 +64,10 @@ func (ac *abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Re
 		}
 	}
 	ac.Logger().Info().Msg("validate msg success")
+
+	//lock the account
+	ac.l.Lock(baseTx.From)
+	defer ac.l.Unlock(baseTx.From)
 
 	ctx, err := ac.prepare(baseTx)
 	if err != nil {
@@ -479,4 +485,45 @@ func (ac abstractClient) formatTxResult(res *ctypes.ResultTx, resBlock *ctypes.R
 		},
 		Timestamp: resBlock.Block.Time.Format(time.RFC3339),
 	}, nil
+}
+
+type Locker struct {
+	shards []chan int
+	size   int
+}
+
+func NewLocker(size int) *Locker {
+	shards := make([]chan int, size)
+	for i := 0; i < size; i++ {
+		shards[i] = make(chan int, 1)
+	}
+	return &Locker{
+		shards: shards,
+		size:   size,
+	}
+}
+
+func (l *Locker) Lock(key string) {
+	ch := l.getShard(key)
+	ch <- 1
+}
+
+func (l *Locker) Unlock(key string) {
+	ch := l.getShard(key)
+	<-ch
+}
+
+func (l *Locker) getShard(key string) chan int {
+	index := uint(indexFor(key)) % uint(l.size)
+	return l.shards[index]
+}
+
+func indexFor(key string) uint32 {
+	hash := uint32(2166136261)
+	const prime32 = uint32(16777619)
+	for i := 0; i < len(key); i++ {
+		hash *= prime32
+		hash ^= uint32(key[i])
+	}
+	return hash
 }
