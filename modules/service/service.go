@@ -71,7 +71,7 @@ func (s serviceClient) BindService(request rpc.ServiceBindingRequest, baseTx sdk
 }
 
 //UpdateServiceBinding updates the specified service binding
-func (s serviceClient) UpdateServiceBinding(request rpc.UpdateServiceBindingRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+func (s serviceClient) UpdateServiceBinding(request rpc.ServiceBindingUpdateRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	provider, err := s.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
@@ -350,14 +350,14 @@ func (s serviceClient) WithdrawTax(destAddress string, amount sdk.DecCoins, base
 }
 
 //RegisterServiceRequestListener is responsible for registering a group of service handler
-func (s serviceClient) RegisterServiceRequestListener(serviceRouter rpc.ServiceRouter,
+func (s serviceClient) RegisterServiceRequestListener(serviceRegistry rpc.ServiceRegistry,
 	baseTx sdk.BaseTx) (subscription sdk.Subscription, err sdk.Error) {
 	provider, e := s.QueryAddress(baseTx.From)
 	if e != nil {
 		return sdk.Subscription{}, sdk.Wrap(e)
 	}
 	var serviceNames []string
-	for name, _ := range serviceRouter {
+	for name, _ := range serviceRegistry {
 		serviceNames = append(serviceNames, name)
 	}
 	builder := sdk.NewEventQueryBuilder().
@@ -371,7 +371,7 @@ func (s serviceClient) RegisterServiceRequestListener(serviceRouter rpc.ServiceR
 				s.GenServiceResponseMsgs(block.ResultEndBlock.Tags,
 					serviceName,
 					provider,
-					serviceRouter[serviceName])...)
+					serviceRegistry[serviceName])...)
 
 		}
 		if msgs == nil || len(msgs) == 0 {

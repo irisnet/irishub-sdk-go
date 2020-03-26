@@ -85,7 +85,7 @@ func (sts *ServiceTestSuite) TestService() {
 	testResult := `{"code":200,"message":""}`
 
 	var sub1 sdk.Subscription
-	router := rpc.ServiceRouter{
+	router := rpc.ServiceRegistry{
 		definition.ServiceName: func(reqCtxID, reqID, input string) (string, string) {
 			sts.Info().
 				Str("reqCtxID", reqCtxID).

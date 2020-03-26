@@ -11,7 +11,7 @@ type ServiceTx interface {
 
 	BindService(request ServiceBindingRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	UpdateServiceBinding(request UpdateServiceBindingRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	UpdateServiceBinding(request ServiceBindingUpdateRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
 	InvokeService(request ServiceInvocationRequest, baseTx sdk.BaseTx) (requestContextID string, err sdk.Error)
 
@@ -37,7 +37,7 @@ type ServiceTx interface {
 	WithdrawTax(destAddress string,
 		amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	RegisterServiceRequestListener(serviceRouter ServiceRouter, baseTx sdk.BaseTx) (sdk.Subscription, sdk.Error)
+	RegisterServiceRequestListener(serviceRegistry ServiceRegistry, baseTx sdk.BaseTx) (sdk.Subscription, sdk.Error)
 
 	RegisterSingleServiceRequestListener(serviceName string,
 		respondHandler ServiceRespondHandler,
@@ -72,7 +72,7 @@ type Service interface {
 
 type ServiceInvokeHandler func(reqCtxID, reqID, responses string)
 type ServiceRespondHandler func(reqCtxID, reqID, input string) (output string, result string)
-type ServiceRouter map[string]ServiceRespondHandler
+type ServiceRegistry map[string]ServiceRespondHandler
 
 // ServiceRequest defines a request which contains the detailed request data
 type ServiceRequest struct {
@@ -124,8 +124,8 @@ type ServiceBindingRequest struct {
 	MinRespTime uint64       `json:"min_resp_time"`
 }
 
-// UpdateServiceBindingRequest defines a message to update a service binding
-type UpdateServiceBindingRequest struct {
+// ServiceBindingUpdateRequest defines a message to update a service binding
+type ServiceBindingUpdateRequest struct {
 	ServiceName string       `json:"service_name"`
 	Deposit     sdk.DecCoins `json:"deposit"`
 	Pricing     string       `json:"pricing"`
