@@ -81,7 +81,7 @@ func (ac *abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Re
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	res, err := ac.broadcastTx(txByte, ctx.Mode)
+	res, err := ac.broadcastTx(txByte, ctx.Mode())
 	if err != nil {
 		ac.Logger().Err(err).Msg("broadcastTx transaction failed")
 		return sdk.ResultTx{}, sdk.Wrap(err)
@@ -323,16 +323,15 @@ func (ac abstractClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int
 
 func (ac *abstractClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
 	fees, _ := ac.cfg.Fee.TruncateDecimal()
-	ctx := &sdk.TxContext{
-		Codec:      ac.cdc,
-		ChainID:    ac.cfg.ChainID,
-		KeyManager: ac.KeyManager,
-		Network:    ac.cfg.Network,
-		Fee:        fees,
-		Mode:       ac.cfg.Mode,
-		Simulate:   false,
-		Gas:        ac.cfg.Gas,
-	}
+	ctx := &sdk.TxContext{}
+	ctx.WithCodec(ac.cdc).
+		WithChainID(ac.cfg.ChainID).
+		WithKeyManager(ac.KeyManager).
+		WithNetwork(ac.cfg.Network).
+		WithFee(fees).
+		WithMode(ac.cfg.Mode).
+		WithSimulate(false).
+		WithGas(ac.cfg.Gas)
 
 	addr, err := ac.QueryAddress(baseTx.From)
 	if err != nil {
