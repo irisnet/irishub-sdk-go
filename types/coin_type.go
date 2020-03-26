@@ -40,9 +40,9 @@ func (ct CoinType) ConvertToMainCoin(coin Coin) (DecCoin, error) {
 	}
 
 	// dest amount = src amount * (10^(dest scale) / 10^(src scale))
-	dstScale := NewDecFromInt(ct.MainUnit.GetScaleFactor())
-	srcScale := NewDecFromInt(ct.MinUnit.GetScaleFactor())
-	amount := NewDecFromInt(coin.Amount)
+	dstScale := NewDecimalFromInt(ct.MainUnit.GetScaleFactor())
+	srcScale := NewDecimalFromInt(ct.MinUnit.GetScaleFactor())
+	amount := NewDecimalFromInt(coin.Amount)
 
 	amt := amount.Mul(dstScale).Quo(srcScale)
 	return NewDecCoinFromDec(ct.MainUnit.Denom, amt), nil
@@ -60,8 +60,8 @@ func (ct CoinType) ConvertToMinCoin(coin DecCoin) (newCoin Coin, err error) {
 	}
 
 	// dest amount = src amount * (10^(dest scale) / 10^(src scale))
-	srcScale := NewDecFromInt(ct.MainUnit.GetScaleFactor())
-	dstScale := NewDecFromInt(ct.MinUnit.GetScaleFactor())
+	srcScale := NewDecimalFromInt(ct.MainUnit.GetScaleFactor())
+	dstScale := NewDecimalFromInt(ct.MinUnit.GetScaleFactor())
 	amount := coin.Amount
 
 	amt := amount.Mul(dstScale).Quo(srcScale)

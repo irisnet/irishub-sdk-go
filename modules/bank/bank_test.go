@@ -55,7 +55,7 @@ func (bts BankTestSuite) TestSend() {
 }
 
 func (bts BankTestSuite) TestBurn() {
-	amt, err := types.NewDecFromStr("0.1")
+	amt, err := types.NewDecimalFromStr("0.1")
 	require.NoError(bts.T(), err)
 	coin := types.NewDecCoinFromDec("iris", amt)
 	coins := types.NewDecCoins(coin)

@@ -14,11 +14,11 @@ var ZeroDecCoin = DecCoin{}
 // Decimal Coin
 // DecCoin defines a token with a denomination and a decimal amount.
 //
-// NOTE: The amount field is an Dec which implements the custom method
+// NOTE: The amount field is an Decimal which implements the custom method
 // signatures required by gogoproto.
 type DecCoin struct {
-	Denom  string `json:"denom"`
-	Amount Dec    `json:"amount"`
+	Denom  string  `json:"denom"`
+	Amount Decimal `json:"amount"`
 }
 
 // NewDecCoin creates a new DecCoin instance from an Int.
@@ -29,12 +29,12 @@ func NewDecCoin(denom string, amount Int) DecCoin {
 
 	return DecCoin{
 		Denom:  denom,
-		Amount: amount.ToDec(),
+		Amount: amount.ToDecimal(),
 	}
 }
 
-// NewDecCoinFromDec creates a new DecCoin instance from a Dec.
-func NewDecCoinFromDec(denom string, amount Dec) DecCoin {
+// NewDecCoinFromDec creates a new DecCoin instance from a Decimal.
+func NewDecCoinFromDec(denom string, amount Decimal) DecCoin {
 	mustValidateDenom(denom)
 
 	if amount.IsNegative() {
@@ -55,7 +55,7 @@ func NewDecCoinFromCoin(coin Coin) DecCoin {
 
 	return DecCoin{
 		Denom:  coin.Denom,
-		Amount: coin.Amount.ToDec(),
+		Amount: coin.Amount.ToDecimal(),
 	}
 }
 
@@ -123,7 +123,7 @@ func (coin DecCoin) Sub(coinB DecCoin) DecCoin {
 // change. Note, the change may be zero.
 func (coin DecCoin) TruncateDecimal() (Coin, DecCoin) {
 	truncated := coin.Amount.TruncateInt()
-	change := coin.Amount.Sub(truncated.ToDec())
+	change := coin.Amount.Sub(truncated.ToDecimal())
 	return NewCoin(coin.Denom, truncated), NewDecCoinFromDec(coin.Denom, change)
 }
 
@@ -331,7 +331,7 @@ func (coins DecCoins) Intersect(coinsB DecCoins) DecCoins {
 	for i, coin := range coins {
 		minCoin := DecCoin{
 			Denom:  coin.Denom,
-			Amount: MinDec(coin.Amount, coinsB.AmountOf(coin.Denom)),
+			Amount: MinDecimal(coin.Amount, coinsB.AmountOf(coin.Denom)),
 		}
 		res[i] = minCoin
 	}
@@ -361,7 +361,7 @@ func (coins DecCoins) IsAnyNegative() bool {
 // MulDec multiplies all the coins by a decimal.
 //
 // CONTRACT: No zero coins will be returned.
-func (coins DecCoins) MulDec(d Dec) DecCoins {
+func (coins DecCoins) MulDec(d Decimal) DecCoins {
 	var res DecCoins
 	for _, coin := range coins {
 		product := DecCoin{
@@ -381,7 +381,7 @@ func (coins DecCoins) MulDec(d Dec) DecCoins {
 // panics if d is zero.
 //
 // CONTRACT: No zero coins will be returned.
-func (coins DecCoins) MulDecTruncate(d Dec) DecCoins {
+func (coins DecCoins) MulDecTruncate(d Decimal) DecCoins {
 	var res DecCoins
 
 	for _, coin := range coins {
@@ -401,7 +401,7 @@ func (coins DecCoins) MulDecTruncate(d Dec) DecCoins {
 // QuoDec divides all the decimal coins by a decimal. It panics if d is zero.
 //
 // CONTRACT: No zero coins will be returned.
-func (coins DecCoins) QuoDec(d Dec) DecCoins {
+func (coins DecCoins) QuoDec(d Decimal) DecCoins {
 	if d.IsZero() {
 		panic("invalid zero decimal")
 	}
@@ -425,7 +425,7 @@ func (coins DecCoins) QuoDec(d Dec) DecCoins {
 // panics if d is zero.
 //
 // CONTRACT: No zero coins will be returned.
-func (coins DecCoins) QuoDecTruncate(d Dec) DecCoins {
+func (coins DecCoins) QuoDecTruncate(d Decimal) DecCoins {
 	if d.IsZero() {
 		panic("invalid zero decimal")
 	}
@@ -451,19 +451,19 @@ func (coins DecCoins) Empty() bool {
 }
 
 // AmountOf returns the amount of a denom from deccoins
-func (coins DecCoins) AmountOf(denom string) Dec {
+func (coins DecCoins) AmountOf(denom string) Decimal {
 	mustValidateDenom(denom)
 
 	switch len(coins) {
 	case 0:
-		return ZeroDec()
+		return ZeroDecimal()
 
 	case 1:
 		coin := coins[0]
 		if coin.Denom == denom {
 			return coin.Amount
 		}
-		return ZeroDec()
+		return ZeroDecimal()
 
 	default:
 		midIdx := len(coins) / 2 // 2:1, 3:1, 4:2
@@ -611,7 +611,7 @@ func ParseDecCoin(coinStr string) (coin DecCoin, err error) {
 
 	amountStr, denomStr := matches[1], matches[3]
 
-	amount, err := NewDecFromStr(amountStr)
+	amount, err := NewDecimalFromStr(amountStr)
 	if err != nil {
 		return DecCoin{}, errors.Wrap(err, fmt.Sprintf("failed to parse decimal coin amount: %s", amountStr))
 	}
