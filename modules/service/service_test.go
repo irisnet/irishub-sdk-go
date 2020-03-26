@@ -68,6 +68,7 @@ func (sts *ServiceTestSuite) TestService() {
 		ServiceName: definition.ServiceName,
 		Deposit:     deposit,
 		Pricing:     pricing,
+		MinRespTime: 1,
 	}
 	result, err = sts.Service().BindService(binding, baseTx)
 	require.NoError(sts.T(), err)
@@ -173,7 +174,7 @@ loop:
 	_, err = sts.Service().SetWithdrawAddress(addr, baseTx)
 	require.NoError(sts.T(), err)
 
-	d, e := sdk.NewDecFromStr("0.01")
+	d, e := sdk.NewDecimalFromStr("0.01")
 	require.NoError(sts.T(), e)
 	amount := sdk.NewDecCoins(sdk.NewDecCoinFromDec("iris", d))
 	_, err = sts.Service().WithdrawTax(addr, amount, baseTx)

@@ -121,6 +121,7 @@ type ServiceBindingRequest struct {
 	ServiceName string       `json:"service_name"`
 	Deposit     sdk.DecCoins `json:"deposit"`
 	Pricing     string       `json:"pricing"`
+	MinRespTime uint64       `json:"min_resp_time"`
 }
 
 // UpdateServiceBindingRequest defines a message to update a service binding

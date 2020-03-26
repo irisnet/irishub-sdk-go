@@ -63,6 +63,7 @@ func (ots *OracleTestSuite) SetupService() {
 		ServiceName: definition.ServiceName,
 		Deposit:     deposit,
 		Pricing:     pricing,
+		MinRespTime: 1,
 	}
 	result, err = ots.Service().BindService(binding, baseTx)
 	require.NoError(ots.T(), err)

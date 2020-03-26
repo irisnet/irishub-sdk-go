@@ -65,6 +65,7 @@ func (s serviceClient) BindService(request rpc.ServiceBindingRequest, baseTx sdk
 		Provider:    provider,
 		Deposit:     amt,
 		Pricing:     request.Pricing,
+		MinRespTime: request.MinRespTime,
 	}
 	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }

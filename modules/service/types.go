@@ -108,6 +108,7 @@ type MsgBindService struct {
 	Provider    sdk.AccAddress `json:"provider"`
 	Deposit     sdk.Coins      `json:"deposit"`
 	Pricing     string         `json:"pricing"`
+	MinRespTime uint64         `json:"min_resp_time"`
 }
 
 func (msg MsgBindService) Type() string {
