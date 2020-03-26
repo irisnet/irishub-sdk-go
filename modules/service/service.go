@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"strings"
 
 	cmn "github.com/tendermint/tendermint/libs/common"
 
@@ -184,16 +185,24 @@ func (s serviceClient) RegisterServiceResponseListener(reqCtxID string,
 			Int64("height", tx.Height).
 			Str("reqCtxID", reqCtxID).
 			Msg("consumer received response transaction sent by provider")
-		reqCtx, err := s.QueryRequestContext(reqCtxID)
-		if err != nil || reqCtx.State == "completed" {
-			_ = s.Unsubscribe(subscription)
-		}
-
 		for _, msg := range tx.Tx.Msgs {
 			msg, ok := msg.(MsgRespondService)
 			if ok {
-				callback(reqCtxID, msg.RequestID.String(), msg.Output)
+				reqCtxID2, _, _, _, err := splitRequestID(msg.RequestID.String())
+				if err != nil {
+					s.Err(err).
+						Str("requestID", msg.RequestID.String()).
+						Msg("invalid requestID")
+					continue
+				}
+				if reqCtxID2.String() == strings.ToUpper(reqCtxID) {
+					callback(reqCtxID, msg.RequestID.String(), msg.Output)
+				}
 			}
+		}
+		reqCtx, err := s.QueryRequestContext(reqCtxID)
+		if err != nil || reqCtx.State == "completed" {
+			_ = s.Unsubscribe(subscription)
 		}
 	})
 }
@@ -236,7 +245,7 @@ func (s serviceClient) StartRequestContext(requestContextID string, baseTx sdk.B
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 	msg := MsgStartRequestContext{
-		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
+		RequestContextID: hexBytesFrom(requestContextID),
 		Consumer:         consumer,
 	}
 	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
@@ -249,7 +258,7 @@ func (s serviceClient) PauseRequestContext(requestContextID string, baseTx sdk.B
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 	msg := MsgPauseRequestContext{
-		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
+		RequestContextID: hexBytesFrom(requestContextID),
 		Consumer:         consumer,
 	}
 	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
@@ -262,7 +271,7 @@ func (s serviceClient) KillRequestContext(requestContextID string, baseTx sdk.Ba
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 	msg := MsgKillRequestContext{
-		RequestContextID: rpc.RequestContextIDToByte(requestContextID),
+		RequestContextID: hexBytesFrom(requestContextID),
 		Consumer:         consumer,
 	}
 	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
@@ -290,7 +299,7 @@ func (s serviceClient) UpdateRequestContext(request rpc.UpdateContextRequest, ba
 	}
 
 	msg := MsgUpdateRequestContext{
-		RequestContextID:  rpc.RequestContextIDToByte(request.RequestContextID),
+		RequestContextID:  hexBytesFrom(request.RequestContextID),
 		Providers:         providers,
 		ServiceFeeCap:     amt,
 		Timeout:           request.Timeout,
@@ -315,7 +324,7 @@ func (s serviceClient) WithdrawEarnedFees(baseTx sdk.BaseTx) (sdk.ResultTx, sdk.
 }
 
 // WithdrawTax withdraws the service tax to the speicified destination address by the trustee
-func (s serviceClient) WithdrawTax(destAddress string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+func (s serviceClient) WithdrawTax(destAddress string, amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	trustee, err := s.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
@@ -325,10 +334,16 @@ func (s serviceClient) WithdrawTax(destAddress string, amount sdk.Coins, baseTx 
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrapf("%s invalid address", destAddress)
 	}
+
+	amt, err := s.ToMinCoin(amount...)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
 	msg := MsgWithdrawTax{
 		Trustee:     trustee,
 		DestAddress: receipt,
-		Amount:      amount,
+		Amount:      amt,
 	}
 	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
@@ -357,6 +372,9 @@ func (s serviceClient) RegisterServiceRequestListener(serviceRouter rpc.ServiceR
 					provider,
 					serviceRouter[serviceName])...)
 
+		}
+		if msgs == nil || len(msgs) == 0 {
+			return
 		}
 		if _, err = s.SendMsgBatch(5, msgs, baseTx); err != nil {
 			s.Err(err).Msg("provider respond failed")
@@ -474,10 +492,10 @@ func (s serviceClient) QueryRequests(serviceName string, provider sdk.AccAddress
 // QueryRequestsByReqCtx returns all requests of the specified request context ID and batch counter
 func (s serviceClient) QueryRequestsByReqCtx(reqCtxID string, batchCounter uint64) ([]rpc.ServiceRequest, sdk.Error) {
 	param := struct {
-		RequestContextID []byte
+		RequestContextID cmn.HexBytes
 		BatchCounter     uint64
 	}{
-		RequestContextID: rpc.RequestContextIDToByte(reqCtxID),
+		RequestContextID: hexBytesFrom(reqCtxID),
 		BatchCounter:     batchCounter,
 	}
 
@@ -509,10 +527,10 @@ func (s serviceClient) QueryResponse(requestID string) (rpc.ServiceResponse, sdk
 // QueryResponses returns all responses of the specified request context and batch counter
 func (s serviceClient) QueryResponses(reqCtxID string, batchCounter uint64) ([]rpc.ServiceResponse, sdk.Error) {
 	param := struct {
-		RequestContextID []byte
+		RequestContextID cmn.HexBytes
 		BatchCounter     uint64
 	}{
-		RequestContextID: rpc.RequestContextIDToByte(reqCtxID),
+		RequestContextID: hexBytesFrom(reqCtxID),
 		BatchCounter:     batchCounter,
 	}
 	var rs responses
@@ -527,7 +545,7 @@ func (s serviceClient) QueryRequestContext(reqCtxID string) (rpc.RequestContext,
 	param := struct {
 		RequestContextID cmn.HexBytes
 	}{
-		RequestContextID: rpc.RequestContextIDToByte(reqCtxID),
+		RequestContextID: hexBytesFrom(reqCtxID),
 	}
 
 	var reqCtx requestContext
@@ -564,6 +582,9 @@ func (s serviceClient) QueryFees(provider string) (rpc.EarnedFees, sdk.Error) {
 func (s serviceClient) GenServiceResponseMsgs(tags sdk.Tags, serviceName string, provider sdk.AccAddress, handler rpc.ServiceRespondHandler) (msgs []sdk.Msg) {
 	idsKey := actionTagKey(actionNewBatchRequest, serviceName, provider.String())
 	idsStr := tags.GetValue(string(idsKey))
+	if len(idsStr) == 0 {
+		return
+	}
 
 	s.Debug().
 		Str(tagServiceName, serviceName).

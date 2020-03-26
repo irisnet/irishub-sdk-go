@@ -2,9 +2,10 @@ package service_test
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	"github.com/irisnet/irishub-sdk-go/test"
@@ -99,7 +100,7 @@ func (sts *ServiceTestSuite) TestService() {
 	sub1, err = sts.Service().RegisterServiceRequestListener(router, baseTx)
 	require.NoError(sts.T(), err)
 
-	serviceFeeCap, e := sdk.ParseDecCoins("1iris")
+	serviceFeeCap, e := sdk.ParseDecCoins("200iris")
 	require.NoError(sts.T(), e)
 
 	invocation := rpc.ServiceInvocationRequest{
@@ -109,9 +110,9 @@ func (sts *ServiceTestSuite) TestService() {
 		ServiceFeeCap:     serviceFeeCap,
 		Timeout:           1,
 		SuperMode:         false,
-		Repeated:          false,
+		Repeated:          true,
 		RepeatedFrequency: 3,
-		RepeatedTotal:     1,
+		RepeatedTotal:     -1,
 	}
 
 	var requestContextID string
@@ -136,13 +137,7 @@ func (sts *ServiceTestSuite) TestService() {
 
 		exit <- 1
 	})
-
 	require.NoError(sts.T(), err)
-
-	request, err := sts.Service().QueryRequestContext(requestContextID)
-	require.NoError(sts.T(), err)
-	require.Equal(sts.T(), request.ServiceName, invocation.ServiceName)
-	require.Equal(sts.T(), request.Input, invocation.Input)
 
 	for {
 		select {
@@ -150,10 +145,46 @@ func (sts *ServiceTestSuite) TestService() {
 			err = sts.Unsubscribe(sub1)
 			err = sts.Unsubscribe(sub2)
 			require.NoError(sts.T(), err)
+			goto loop
 		case <-time.After(1 * time.Minute):
 			require.Panics(sts.T(), func() {}, "test service timeout")
 		}
 	}
+
+loop:
+	_, err = sts.Service().PauseRequestContext(requestContextID, baseTx)
+	require.NoError(sts.T(), err)
+
+	_, err = sts.Service().StartRequestContext(requestContextID, baseTx)
+	require.NoError(sts.T(), err)
+
+	request, err := sts.Service().QueryRequestContext(requestContextID)
+	require.NoError(sts.T(), err)
+	require.Equal(sts.T(), request.ServiceName, invocation.ServiceName)
+	require.Equal(sts.T(), request.Input, invocation.Input)
+
+	_, err = sts.Service().WithdrawEarnedFees(baseTx)
+	require.NoError(sts.T(), err)
+
+	addr, _, err := sts.Keys().Add("service_test", "1234567890")
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), addr)
+
+	_, err = sts.Service().SetWithdrawAddress(addr, baseTx)
+	require.NoError(sts.T(), err)
+
+	d, e := sdk.NewDecFromStr("0.01")
+	require.NoError(sts.T(), e)
+	amount := sdk.NewDecCoins(sdk.NewDecCoinFromDec("iris", d))
+	_, err = sts.Service().WithdrawTax(addr, amount, baseTx)
+	require.NoError(sts.T(), err)
+
+	acc, err := sts.Bank().QueryAccount(addr)
+	require.NoError(sts.T(), err)
+
+	balance, err := sts.ToMainCoin(acc.GetCoins()...)
+	require.NoError(sts.T(), err)
+	require.EqualValues(sts.T(), amount, balance)
 }
 
 func generateServiceName() string {

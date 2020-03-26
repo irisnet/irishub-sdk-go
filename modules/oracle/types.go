@@ -3,6 +3,7 @@ package oracle
 import (
 	"errors"
 	"fmt"
+	cmn "github.com/tendermint/tendermint/libs/common"
 	"strings"
 	"time"
 
@@ -240,7 +241,7 @@ type feed struct {
 	AggregateFunc    string         `json:"aggregate_func"`
 	ValueJsonPath    string         `json:"value_json_path"`
 	LatestHistory    uint64         `json:"latest_history"`
-	RequestContextID []byte         `json:"request_context_id"`
+	RequestContextID cmn.HexBytes   `json:"request_context_id"`
 	Creator          sdk.AccAddress `json:"creator"`
 }
 
@@ -269,7 +270,7 @@ func (fc feedContext) Convert() interface{} {
 			AggregateFunc:    fc.Feed.AggregateFunc,
 			ValueJsonPath:    fc.Feed.ValueJsonPath,
 			LatestHistory:    fc.Feed.LatestHistory,
-			RequestContextID: rpc.RequestContextIDToString(fc.Feed.RequestContextID),
+			RequestContextID: fc.Feed.RequestContextID.String(),
 			Creator:          fc.Feed.Creator.String(),
 		},
 		ServiceName:       fc.ServiceName,

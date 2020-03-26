@@ -112,6 +112,10 @@ func (ac *abstractClient) SendMsgBatch(batch int, msgs []sdk.Msg, baseTx sdk.Bas
 		return segments
 	}
 
+	if msgs == nil || len(msgs) == 0 {
+		return rs, sdk.Wrapf("must have at least one message in list")
+	}
+
 	baseTx.Mode = sdk.Commit
 	for _, ms := range splitMsgs(batch, msgs) {
 		res, err := ac.BuildAndSend(ms, baseTx)

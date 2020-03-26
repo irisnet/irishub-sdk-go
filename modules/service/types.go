@@ -444,7 +444,7 @@ func (msg MsgRefundServiceDeposit) GetSigners() []sdk.AccAddress {
 
 // MsgPauseRequestContext defines a message to suspend a request context
 type MsgPauseRequestContext struct {
-	RequestContextID []byte         `json:"request_context_id"`
+	RequestContextID cmn.HexBytes   `json:"request_context_id"`
 	Consumer         sdk.AccAddress `json:"consumer"`
 }
 
@@ -478,7 +478,7 @@ func (msg MsgPauseRequestContext) GetSigners() []sdk.AccAddress {
 
 // MsgStartRequestContext defines a message to resume a request context
 type MsgStartRequestContext struct {
-	RequestContextID []byte         `json:"request_context_id"`
+	RequestContextID cmn.HexBytes   `json:"request_context_id"`
 	Consumer         sdk.AccAddress `json:"consumer"`
 }
 
@@ -512,7 +512,7 @@ func (msg MsgStartRequestContext) GetSigners() []sdk.AccAddress {
 
 // MsgKillRequestContext defines a message to terminate a request context
 type MsgKillRequestContext struct {
-	RequestContextID []byte         `json:"request_context_id"`
+	RequestContextID cmn.HexBytes   `json:"request_context_id"`
 	Consumer         sdk.AccAddress `json:"consumer"`
 }
 
@@ -547,7 +547,7 @@ func (msg MsgKillRequestContext) GetSigners() []sdk.AccAddress {
 
 // MsgUpdateRequestContext defines a message to update a request context
 type MsgUpdateRequestContext struct {
-	RequestContextID  []byte           `json:"request_context_id"`
+	RequestContextID  cmn.HexBytes     `json:"request_context_id"`
 	Providers         []sdk.AccAddress `json:"providers"`
 	ServiceFeeCap     sdk.Coins        `json:"service_fee_cap"`
 	Timeout           int64            `json:"timeout"`
@@ -765,7 +765,7 @@ type response struct {
 	Consumer                   sdk.AccAddress `json:"consumer"`
 	Output                     string         `json:"output"`
 	Result                     string         `json:"error"`
-	RequestContextID           []byte         `json:"request_context_id"`
+	RequestContextID           cmn.HexBytes   `json:"request_context_id"`
 	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
 }
 
@@ -779,7 +779,7 @@ func (r response) Convert() interface{} {
 		Consumer:                   r.Consumer,
 		Output:                     r.Output,
 		Result:                     r.Result,
-		RequestContextID:           rpc.RequestContextIDToString(r.RequestContextID),
+		RequestContextID:           r.RequestContextID.String(),
 		RequestContextBatchCounter: r.RequestContextBatchCounter,
 	}
 }
@@ -893,7 +893,7 @@ func actionTagKey(key ...string) sdk.EventKey {
 	return sdk.EventKey(strings.Join(key, "."))
 }
 
-func hexBytesFrom(requestID string) []byte {
+func hexBytesFrom(requestID string) cmn.HexBytes {
 	v, _ := hex.DecodeString(requestID)
-	return v
+	return cmn.HexBytes(v)
 }

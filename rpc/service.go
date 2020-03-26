@@ -1,7 +1,6 @@
 package rpc
 
 import (
-	"encoding/hex"
 	"time"
 
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -36,7 +35,7 @@ type ServiceTx interface {
 	WithdrawEarnedFees(baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
 	WithdrawTax(destAddress string,
-		amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+		amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
 	RegisterServiceRequestListener(serviceRouter ServiceRouter, baseTx sdk.BaseTx) (sdk.Subscription, sdk.Error)
 
@@ -190,16 +189,4 @@ type RequestContext struct {
 type EarnedFees struct {
 	Address sdk.AccAddress `json:"address"`
 	Coins   sdk.Coins      `json:"coins"`
-}
-
-func RequestContextIDToString(reqCtxID []byte) string {
-	return hex.EncodeToString(reqCtxID)
-}
-
-func RequestContextIDToByte(reqCtxID string) []byte {
-	dst, err := hex.DecodeString(reqCtxID)
-	if err != nil {
-		panic(err)
-	}
-	return dst
 }
