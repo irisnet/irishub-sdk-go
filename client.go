@@ -1,12 +1,11 @@
-package client
+package iris
 
 import (
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/modules"
+
 	"io"
 
-	"github.com/irisnet/irishub-sdk-go/modules/tendermint"
-
+	"github.com/irisnet/irishub-sdk-go/modules"
 	"github.com/irisnet/irishub-sdk-go/modules/asset"
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/distribution"
@@ -17,6 +16,7 @@ import (
 	"github.com/irisnet/irishub-sdk-go/modules/service"
 	"github.com/irisnet/irishub-sdk-go/modules/slashing"
 	"github.com/irisnet/irishub-sdk-go/modules/staking"
+	"github.com/irisnet/irishub-sdk-go/modules/tendermint"
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"

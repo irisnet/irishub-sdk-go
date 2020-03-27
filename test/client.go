@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/irisnet/irishub-sdk-go/client"
+	iris "github.com/irisnet/irishub-sdk-go"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
@@ -20,7 +20,7 @@ const (
 )
 
 type MockClient struct {
-	client.SDKClient
+	iris.SDKClient
 	user MockAccount
 }
 
@@ -41,7 +41,7 @@ func NewMockClient() MockClient {
 		panic(err)
 	}
 
-	c := client.NewSDKClient(sdk.SDKConfig{
+	c := iris.NewSDKClient(sdk.SDKConfig{
 		NodeURI:   NodeURI,
 		Network:   Network,
 		ChainID:   ChainID,
@@ -50,7 +50,7 @@ func NewMockClient() MockClient {
 		KeyDAO:    sdk.NewDefaultKeyDAO(&Memory{}),
 		Mode:      Mode,
 		StoreType: sdk.Key,
-		Level:     "debug",
+		Level:     "info",
 	})
 
 	//init account
