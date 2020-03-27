@@ -23,6 +23,7 @@ type abstractClient struct {
 	logger *log.Logger
 	cfg    sdk.SDKConfig
 	cdc    sdk.Codec
+	l      *Locker
 }
 
 func createAbstractClient(cdc sdk.Codec, cfg sdk.SDKConfig, logger *log.Logger) *abstractClient {
@@ -32,6 +33,7 @@ func createAbstractClient(cdc sdk.Codec, cfg sdk.SDKConfig, logger *log.Logger) 
 		logger:     logger,
 		cfg:        cfg,
 		cdc:        cdc,
+		l:          NewLocker(16),
 	}
 
 	ac.init()
@@ -46,7 +48,7 @@ func (ac *abstractClient) init() {
 	ac.cfg.Fee = sdk.NewDecCoinsFromCoins(fees...)
 }
 
-func (ac abstractClient) Logger() *log.Logger {
+func (ac *abstractClient) Logger() *log.Logger {
 	return ac.logger
 }
 
@@ -62,6 +64,10 @@ func (ac *abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Re
 		}
 	}
 	ac.Logger().Info().Msg("validate msg success")
+
+	//lock the account
+	ac.l.Lock(baseTx.From)
+	defer ac.l.Unlock(baseTx.From)
 
 	ctx, err := ac.prepare(baseTx)
 	if err != nil {
@@ -81,7 +87,7 @@ func (ac *abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Re
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	res, err := ac.broadcastTx(txByte, ctx.Mode)
+	res, err := ac.broadcastTx(txByte, ctx.Mode())
 	if err != nil {
 		ac.Logger().Err(err).Msg("broadcastTx transaction failed")
 		return sdk.ResultTx{}, sdk.Wrap(err)
@@ -110,6 +116,10 @@ func (ac *abstractClient) SendMsgBatch(batch int, msgs []sdk.Msg, baseTx sdk.Bas
 			}
 		}
 		return segments
+	}
+
+	if msgs == nil || len(msgs) == 0 {
+		return rs, sdk.Wrapf("must have at least one message in list")
 	}
 
 	baseTx.Mode = sdk.Commit
@@ -319,16 +329,15 @@ func (ac abstractClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int
 
 func (ac *abstractClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
 	fees, _ := ac.cfg.Fee.TruncateDecimal()
-	ctx := &sdk.TxContext{
-		Codec:      ac.cdc,
-		ChainID:    ac.cfg.ChainID,
-		KeyManager: ac.KeyManager,
-		Network:    ac.cfg.Network,
-		Fee:        fees,
-		Mode:       ac.cfg.Mode,
-		Simulate:   false,
-		Gas:        ac.cfg.Gas,
-	}
+	ctx := &sdk.TxContext{}
+	ctx.WithCodec(ac.cdc).
+		WithChainID(ac.cfg.ChainID).
+		WithKeyManager(ac.KeyManager).
+		WithNetwork(ac.cfg.Network).
+		WithFee(fees).
+		WithMode(ac.cfg.Mode).
+		WithSimulate(false).
+		WithGas(ac.cfg.Gas)
 
 	addr, err := ac.QueryAddress(baseTx.From)
 	if err != nil {
@@ -476,4 +485,45 @@ func (ac abstractClient) formatTxResult(res *ctypes.ResultTx, resBlock *ctypes.R
 		},
 		Timestamp: resBlock.Block.Time.Format(time.RFC3339),
 	}, nil
+}
+
+type Locker struct {
+	shards []chan int
+	size   int
+}
+
+func NewLocker(size int) *Locker {
+	shards := make([]chan int, size)
+	for i := 0; i < size; i++ {
+		shards[i] = make(chan int, 1)
+	}
+	return &Locker{
+		shards: shards,
+		size:   size,
+	}
+}
+
+func (l *Locker) Lock(key string) {
+	ch := l.getShard(key)
+	ch <- 1
+}
+
+func (l *Locker) Unlock(key string) {
+	ch := l.getShard(key)
+	<-ch
+}
+
+func (l *Locker) getShard(key string) chan int {
+	index := uint(indexFor(key)) % uint(l.size)
+	return l.shards[index]
+}
+
+func indexFor(key string) uint32 {
+	hash := uint32(2166136261)
+	const prime32 = uint32(16777619)
+	for i := 0; i < len(key); i++ {
+		hash *= prime32
+		hash ^= uint32(key[i])
+	}
+	return hash
 }

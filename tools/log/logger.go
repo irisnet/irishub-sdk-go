@@ -11,10 +11,10 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var Default *Logger
+var defaultLogger *Logger
 
 func init() {
-	Default = NewLogger("info")
+	defaultLogger = NewLogger("info")
 }
 
 type Logger struct {
@@ -40,9 +40,10 @@ func NewLogger(level string) *Logger {
 		With().
 		Caller().
 		Timestamp().Logger()
-	return &Logger{
-		log,
-	}
+
+	logger := &Logger{log}
+	defaultLogger = logger
+	return logger
 }
 
 func (l *Logger) SetOutput(w io.Writer) {
@@ -50,6 +51,10 @@ func (l *Logger) SetOutput(w io.Writer) {
 		Level(l.GetLevel()).
 		With().
 		Timestamp().Logger()
+}
+
+func GetLogger() *Logger {
+	return defaultLogger
 }
 
 func prettyWriter(w io.Writer) io.Writer {

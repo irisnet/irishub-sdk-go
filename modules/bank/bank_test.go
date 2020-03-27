@@ -2,9 +2,12 @@ package bank_test
 
 import (
 	"fmt"
-	"testing"
-
+	"github.com/irisnet/irishub-sdk-go/rpc"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"math/rand"
+	"sync"
+	"testing"
 
 	"github.com/irisnet/irishub-sdk-go/test"
 	"github.com/irisnet/irishub-sdk-go/types"
@@ -26,13 +29,13 @@ func (bts *BankTestSuite) SetupTest() {
 
 func (bts BankTestSuite) TestGetAccount() {
 	acc, err := bts.Bank().QueryAccount(bts.Account().Address.String())
-	bts.NoError(err)
+	require.NoError(bts.T(), err)
 	fmt.Printf("%v", acc)
 }
 
 func (bts BankTestSuite) TestGetTokenStats() {
 	acc, err := bts.Bank().QueryTokenStats("iris")
-	bts.NoError(err)
+	require.NoError(bts.T(), err)
 	fmt.Printf("%v", acc)
 }
 
@@ -49,13 +52,13 @@ func (bts BankTestSuite) TestSend() {
 	}
 
 	result, err := bts.Bank().Send(to, coins, baseTx)
-	bts.NoError(err)
-	bts.NotEmpty(result.Hash)
+	require.NoError(bts.T(), err)
+	require.NotEmpty(bts.T(), result.Hash)
 }
 
 func (bts BankTestSuite) TestBurn() {
-	amt, err := types.NewDecFromStr("0.1")
-	bts.NoError(err)
+	amt, err := types.NewDecimalFromStr("0.1")
+	require.NoError(bts.T(), err)
 	coin := types.NewDecCoinFromDec("iris", amt)
 	coins := types.NewDecCoins(coin)
 	baseTx := types.BaseTx{
@@ -66,8 +69,8 @@ func (bts BankTestSuite) TestBurn() {
 		Password: bts.Account().Password,
 	}
 	result, err := bts.Bank().Burn(coins, baseTx)
-	bts.NoError(err)
-	bts.NotEmpty(result.Hash)
+	require.NoError(bts.T(), err)
+	require.NotEmpty(bts.T(), result.Hash)
 }
 
 func (bts BankTestSuite) TestSetMemoRegexp() {
@@ -79,10 +82,67 @@ func (bts BankTestSuite) TestSetMemoRegexp() {
 		Password: bts.Account().Password,
 	}
 	result, err := bts.Bank().SetMemoRegexp("testMemo", baseTx)
-	bts.NoError(err)
-	bts.NotEmpty(result.Hash)
+	require.NoError(bts.T(), err)
+	require.NotEmpty(bts.T(), result.Hash)
 
 	acc, err := bts.Bank().QueryAccount(bts.Account().Address.String())
-	bts.NoError(err)
-	bts.Equal("testMemo", acc.MemoRegexp)
+	require.NoError(bts.T(), err)
+	require.Equal(bts.T(), "testMemo", acc.MemoRegexp)
+}
+
+func (bts BankTestSuite) TestMultiSend() {
+	baseTx := types.BaseTx{
+		From:     bts.Account().Name,
+		Gas:      20000,
+		Memo:     "test",
+		Mode:     types.Commit,
+		Password: bts.Account().Password,
+	}
+
+	coins, e := types.ParseDecCoins("100iris")
+	require.NoError(bts.T(), e)
+
+	bank := bts.Bank()
+
+	var accNum = 5
+	var acc = make([]string, accNum)
+	var receipts = make([]rpc.Receipt, accNum)
+	for i := 0; i < accNum; i++ {
+		acc[i] = fmt.Sprintf("%s%d", "testBank", i)
+		addr, _, err := bts.Keys().Add(acc[i], "1234567890")
+
+		require.NoError(bts.T(), err)
+		require.NotEmpty(bts.T(), addr)
+
+		receipts[i] = rpc.Receipt{
+			Address: addr,
+			Amount:  coins,
+		}
+	}
+
+	_, err := bank.MultiSend(receipts, baseTx)
+	require.NoError(bts.T(), err)
+
+	coins, e = types.ParseDecCoins("1iris")
+	require.NoError(bts.T(), e)
+
+	to := "faa1leqs0fg0nsav2u3vdt4gat0mpascl52kl2huel"
+
+	var wait sync.WaitGroup
+	for i := 1; i <= 10; i++ {
+		wait.Add(1)
+		index := rand.Intn(accNum)
+		go func() {
+			defer wait.Done()
+			_, err := bank.Send(to, coins, types.BaseTx{
+				From:     acc[index],
+				Gas:      20000,
+				Memo:     "test",
+				Mode:     types.Commit,
+				Password: "1234567890",
+			})
+			require.NoError(bts.T(), err)
+		}()
+	}
+	wait.Wait()
 }

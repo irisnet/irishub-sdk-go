@@ -1,6 +1,7 @@
 package staking_test
 
 import (
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -37,53 +38,53 @@ func (sts *StakingTestSuite) TestStaking() {
 	validator := validators[0].OperatorAddress
 
 	amount, e := sdk.ParseDecCoin("20iris")
-	sts.NoError(e)
+	require.NoError(sts.T(), e)
 
 	//test Delegate
 	rs, err := sts.Staking().Delegate(validator, amount, baseTx)
-	sts.NoError(err)
-	sts.NotEmpty(rs.Hash)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), rs.Hash)
 
 	//test QueryDelegation
 	delegator := sts.Account().Address.String()
 	d, err := sts.Staking().QueryDelegation(delegator, validator)
-	sts.NoError(err)
-	sts.Equal(validator, d.ValidatorAddr)
-	sts.Equal(delegator, d.DelegatorAddr)
+	require.NoError(sts.T(), err)
+	require.Equal(sts.T(), validator, d.ValidatorAddr)
+	require.Equal(sts.T(), delegator, d.DelegatorAddr)
 
 	//test QueryDelegations
 	ds, err := sts.Staking().QueryDelegations(delegator)
-	sts.NoError(err)
-	sts.NotEmpty(ds)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), ds)
 
 	//test QueryDelegationsTo
 	ds, err = sts.Staking().QueryDelegationsTo(validator)
-	sts.NoError(err)
-	sts.NotEmpty(ds)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), ds)
 
 	//test Undelegate
 	amount, e = sdk.ParseDecCoin("10iris")
-	sts.NoError(e)
+	require.NoError(sts.T(), e)
 
 	rs, err = sts.Staking().Undelegate(validator, amount, baseTx)
-	sts.NoError(err)
-	sts.NotEmpty(rs.Hash)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), rs.Hash)
 
 	//test QueryUnbondingDelegation
 	ubd, err := sts.Staking().QueryUnbondingDelegation(delegator, validator)
-	sts.NoError(err)
-	sts.Equal(validator, ubd.ValidatorAddr)
-	sts.Equal(delegator, ubd.DelegatorAddr)
+	require.NoError(sts.T(), err)
+	require.Equal(sts.T(), validator, ubd.ValidatorAddr)
+	require.Equal(sts.T(), delegator, ubd.DelegatorAddr)
 
 	//test QueryUnbondingDelegations
 	ubds, err := sts.Staking().QueryUnbondingDelegations(delegator)
-	sts.NoError(err)
-	sts.NotEmpty(ubds)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), ubds)
 
 	//test QueryUnbondingDelegationsFrom
 	uds, err := sts.Staking().QueryUnbondingDelegationsFrom(validator)
-	sts.NoError(err)
-	sts.NotEmpty(uds)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), uds)
 }
 
 //func (sts *StakingTestSuite) TestDelegate() {
@@ -205,12 +206,12 @@ func (sts *StakingTestSuite) TestStaking() {
 
 func (sts *StakingTestSuite) TestQueryPool() {
 	p, err := sts.Staking().QueryPool()
-	sts.NoError(err)
-	sts.NotEmpty(p)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), p)
 }
 
 func (sts *StakingTestSuite) TestQueryParams() {
 	p, err := sts.Staking().QueryParams()
-	sts.NoError(err)
-	sts.NotEmpty(p)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), p)
 }

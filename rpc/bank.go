@@ -10,9 +10,15 @@ type Bank interface {
 	QueryAccount(address string) (sdk.BaseAccount, sdk.Error)
 	QueryTokenStats(tokenID string) (TokenStats, sdk.Error)
 	Send(to string, amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	MultiSend(receipts []Receipt, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 	Burn(amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 	SetMemoRegexp(memoRegexp string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 	SubscribeSendTx(from, to string, callback EventMsgSendCallback) sdk.Subscription
+}
+
+type Receipt struct {
+	Address string       `json:"address"`
+	Amount  sdk.DecCoins `json:"amount"`
 }
 
 type TokenStats struct {

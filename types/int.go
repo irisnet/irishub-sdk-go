@@ -285,6 +285,11 @@ func (i Int) ToDec() Dec {
 	return NewDecFromInt(i)
 }
 
+// ToDec converts Int to Dec
+func (i Int) ToDecimal() Decimal {
+	return NewDecimalFromInt(i)
+}
+
 // Testing purpose random Int generator
 func randomInt(i Int) Int {
 	return NewIntFromBigInt(random(i.BigInt()))

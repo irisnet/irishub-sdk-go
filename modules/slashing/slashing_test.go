@@ -1,6 +1,7 @@
 package slashing_test
 
 import (
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/irisnet/irishub-sdk-go/test"
@@ -23,16 +24,16 @@ func (sts *SlashingTestSuite) SetupTest() {
 
 func (sts *SlashingTestSuite) TestQueryParams() {
 	params, err := sts.Slashing().QueryParams()
-	sts.NoError(err)
-	sts.NotEmpty(params)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), params)
 }
 
 func (sts *SlashingTestSuite) TestQueryValidatorSigningInfo() {
 	validators, err := sts.Staking().QueryValidators(1, 10)
-	sts.NoError(err)
-	sts.NotEmpty(validators)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), validators)
 
 	signingInfo, err := sts.Slashing().QueryValidatorSigningInfo(validators[0].ConsensusPubkey)
-	sts.NoError(err)
-	sts.NotEmpty(signingInfo)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), signingInfo)
 }

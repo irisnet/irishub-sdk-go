@@ -81,6 +81,31 @@ func (b bankClient) Send(to string, amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk
 	return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
+func (b bankClient) MultiSend(receipts []rpc.Receipt, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+	sender, err := b.QueryAddress(baseTx.From)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
+	}
+
+	var inputs = make([]Input, len(receipts))
+	var outputs = make([]Output, len(receipts))
+	for i, receipt := range receipts {
+		amt, err := b.ToMinCoin(receipt.Amount...)
+		if err != nil {
+			return sdk.ResultTx{}, sdk.Wrap(err)
+		}
+
+		outAddr, e := sdk.AccAddressFromBech32(receipt.Address)
+		if e != nil {
+			return sdk.ResultTx{}, sdk.Wrapf(fmt.Sprintf("%s invalid address", receipt.Address))
+		}
+		inputs[i] = NewInput(sender, amt)
+		outputs[i] = NewOutput(outAddr, amt)
+	}
+	msg := NewMsgSend(inputs, outputs)
+	return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
+}
+
 //Send is responsible for burning some tokens from `From` account
 func (b bankClient) Burn(amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	sender, err := b.QueryAddress(baseTx.From)
@@ -112,12 +137,12 @@ func (b bankClient) SubscribeSendTx(from, to string, callback rpc.EventMsgSendCa
 
 	from = strings.TrimSpace(from)
 	if len(from) != 0 {
-		builder.AddCondition(sdk.Cond(sdk.SenderKey).EQ(sdk.EventValue(from)))
+		builder.AddCondition(sdk.Cond(sdk.SenderKey).Contains(sdk.EventValue(from)))
 	}
 
 	to = strings.TrimSpace(to)
 	if len(to) != 0 {
-		builder.AddCondition(sdk.Cond(sdk.RecipientKey).EQ(sdk.EventValue(to)))
+		builder.AddCondition(sdk.Cond(sdk.RecipientKey).Contains(sdk.EventValue(to)))
 	}
 
 	subscription, _ := b.SubscribeTx(builder, func(data sdk.EventDataTx) {

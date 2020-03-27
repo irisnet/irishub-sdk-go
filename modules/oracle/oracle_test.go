@@ -2,6 +2,7 @@ package oracle_test
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 
@@ -31,7 +32,7 @@ func (ots *OracleTestSuite) SetupTest() {
 
 func (ots *OracleTestSuite) SetupService() {
 	schemas := `{"input":{"type":"object"},"output":{"type":"object"},"error":{"type":"object"}}`
-	pricing := `{"price":[{"denom":"iris-atto","amount":"1000000000000000000"}]}`
+	pricing := `{"price":"1iris"}`
 	output := `{"last":"100"}`
 	testResult := `{"code":200,"message":""}`
 	serviceName := generateServiceName()
@@ -53,21 +54,22 @@ func (ots *OracleTestSuite) SetupService() {
 	}
 
 	result, err := ots.Service().DefineService(definition, baseTx)
-	ots.NoError(err)
-	ots.NotEmpty(result.Hash)
+	require.NoError(ots.T(), err)
+	require.NotEmpty(ots.T(), result.Hash)
 
 	deposit, e := sdk.ParseDecCoins("20000iris")
-	ots.NoError(e)
+	require.NoError(ots.T(), e)
 	binding := rpc.ServiceBindingRequest{
 		ServiceName: definition.ServiceName,
 		Deposit:     deposit,
 		Pricing:     pricing,
+		MinRespTime: 1,
 	}
 	result, err = ots.Service().BindService(binding, baseTx)
-	ots.NoError(err)
-	ots.NotEmpty(result.Hash)
+	require.NoError(ots.T(), err)
+	require.NotEmpty(ots.T(), result.Hash)
 
-	_, err = ots.Service().RegisterSingleServiceListener(serviceName,
+	_, err = ots.Service().RegisterSingleServiceRequestListener(serviceName,
 		func(reqCtxID, reqID, input string) (string, string) {
 			ots.Info().Str("input", input).
 				Str("reqCtxID", reqCtxID).
@@ -76,7 +78,7 @@ func (ots *OracleTestSuite) SetupService() {
 			return output, testResult
 		}, baseTx)
 
-	ots.NoError(err)
+	require.NoError(ots.T(), err)
 
 	ots.serviceName = serviceName
 	ots.baseTx = baseTx
@@ -106,19 +108,19 @@ func (ots *OracleTestSuite) TestFeed() {
 		ResponseThreshold: 1,
 	}
 	result, err := ots.Oracle().CreateFeed(createFeedReq)
-	ots.NoError(err)
-	ots.NotEmpty(result.Hash)
+	require.NoError(ots.T(), err)
+	require.NotEmpty(ots.T(), result.Hash)
 
 	_, err = ots.Oracle().QueryFeed(feedName)
-	ots.NoError(err)
+	require.NoError(ots.T(), err)
 
 	result, err = ots.Oracle().StartFeed(feedName, ots.baseTx)
-	ots.NoError(err)
-	ots.NotEmpty(result.Hash)
+	require.NoError(ots.T(), err)
+	require.NotEmpty(ots.T(), result.Hash)
 
 	ch := make(chan rpc.FeedValue)
 	err = ots.Oracle().RegisterFeedListener(feedName, func(value rpc.FeedValue) {
-		log.Default.Info().
+		ots.Info().
 			Str("feedName", feedName).
 			Str("feedValue", value.Data).
 			Msg("received feed value")
@@ -126,24 +128,28 @@ func (ots *OracleTestSuite) TestFeed() {
 	})
 
 	ots.NoError(err)
+	for {
+		select {
+		case v := <-ch:
+			result, err := ots.Oracle().QueryFeedValue(feedName)
+			require.NoError(ots.T(), err)
+			require.EqualValues(ots.T(), v, result[0])
 
-	for v := range ch {
-		result, err := ots.Oracle().QueryFeedValue(feedName)
-		ots.NoError(err)
-		ots.EqualValues(v, result[0])
-
-		if len(result) == int(createFeedReq.LatestHistory) {
-			goto stop
+			if len(result) == int(createFeedReq.LatestHistory) {
+				goto stop
+			}
+		case <-time.After(1 * time.Minute):
+			require.Panics(ots.T(), func() {}, "test oracle timeout")
 		}
 	}
 stop:
 	close(ch)
 	_, err = ots.Oracle().PauseFeed(feedName, ots.baseTx)
-	ots.NoError(err)
+	require.NoError(ots.T(), err)
 
 	feed, err := ots.Oracle().QueryFeed(feedName)
-	ots.NoError(err)
-	ots.Equal("paused", feed.State)
+	require.NoError(ots.T(), err)
+	require.Equal(ots.T(), "paused", feed.State)
 
 }
 

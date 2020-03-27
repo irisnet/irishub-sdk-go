@@ -1,6 +1,7 @@
 package random_test
 
 import (
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
@@ -37,8 +38,8 @@ func (rts *RandomTestSuite) TestGenerate() {
 	request := rpc.RandomRequest{
 		BlockInterval: 2,
 		Callback: func(reqID, randomNum string, err sdk.Error) {
-			rts.NoError(err)
-			rts.NoError(err)
+			require.NoError(rts.T(), err)
+			require.NoError(rts.T(), err)
 			memory[reqID] = randomNum
 			signal <- 1
 		},
@@ -46,8 +47,8 @@ func (rts *RandomTestSuite) TestGenerate() {
 	}
 
 	reqID, err := rts.Random().Request(request, baseTx)
-	rts.NoError(err)
+	require.NoError(rts.T(), err)
 	memory[reqID] = ""
 	<-signal
-	rts.NotEmpty(memory)
+	require.NotEmpty(rts.T(), memory)
 }
