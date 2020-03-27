@@ -42,7 +42,7 @@ func (a assetClient) QueryTokens(owner string) (sdk.Tokens, error) {
 	if err := a.QueryWithResponse("custom/asset/tokens", param, &tokens); err != nil {
 		return sdk.Tokens{}, err
 	}
-	sdk.CacheTokens(tokens...)
+	a.SaveTokens(tokens...)
 	return tokens, nil
 }
 

@@ -1,6 +1,7 @@
 package modules
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/irisnet/irishub-sdk-go/tools/cache"
@@ -9,7 +10,7 @@ import (
 )
 
 type localToken struct {
-	q sdk.Query
+	q sdk.Queries
 	*log.Logger
 	cache.Cache
 }
@@ -20,7 +21,7 @@ func (l localToken) QueryToken(symbol string) (sdk.Token, error) {
 		return sdk.IRIS, nil
 	}
 
-	token, err := l.Get(symbol)
+	token, err := l.Get(l.keyWithPrefix(symbol))
 	if err == nil {
 		return token.(sdk.Token), nil
 	}
@@ -37,14 +38,20 @@ func (l localToken) QueryToken(symbol string) (sdk.Token, error) {
 		return sdk.Token{}, err
 	}
 
-	err1 := l.Set(symbol, t)
-	err2 := l.Set(t.GetMinUnit(), t)
-	if err1 != nil || err2 != nil {
-		l.Err(err).
-			Str("symbol", symbol).
-			Msg("cache token failed")
-	}
+	l.SaveTokens(t)
 	return t, nil
+}
+
+func (l localToken) SaveTokens(tokens ...sdk.Token) {
+	for _, t := range tokens {
+		err1 := l.Set(l.keyWithPrefix(t.Symbol), t)
+		err2 := l.Set(l.keyWithPrefix(t.GetMinUnit()), t)
+		if err1 != nil || err2 != nil {
+			l.Warn().
+				Str("symbol", t.Symbol).
+				Msg("cache token failed")
+		}
+	}
 }
 
 func (l localToken) ToMinCoin(coins ...sdk.DecCoin) (dstCoins sdk.Coins, err sdk.Error) {
@@ -77,4 +84,8 @@ func (l localToken) ToMainCoin(coins ...sdk.Coin) (dstCoins sdk.DecCoins, err sd
 		dstCoins = append(dstCoins, mainCoin)
 	}
 	return dstCoins.Sort(), nil
+}
+
+func (l localToken) keyWithPrefix(symbol string) string {
+	return fmt.Sprintf("token:%s", symbol)
 }

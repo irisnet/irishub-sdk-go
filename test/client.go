@@ -50,7 +50,6 @@ func NewMockClient() MockClient {
 		KeyDAO:    sdk.NewDefaultKeyDAO(&Memory{}),
 		Mode:      Mode,
 		StoreType: sdk.Key,
-		Caching:   true,
 		Level:     "debug",
 	})
 

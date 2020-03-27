@@ -1,6 +1,7 @@
 package modules
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/irisnet/irishub-sdk-go/tools/cache"
@@ -10,7 +11,7 @@ import (
 
 // Must be used with locker, otherwise there are thread safety issues
 type localAccount struct {
-	sdk.Query
+	sdk.Queries
 	*log.Logger
 	cache.Cache
 
@@ -32,7 +33,7 @@ func (l localAccount) Refresh(address string) (sdk.BaseAccount, sdk.Error) {
 }
 
 func (l localAccount) QueryAndRefreshAccount(address string) (sdk.BaseAccount, sdk.Error) {
-	account, err := l.Cache.Get(address)
+	account, err := l.Cache.Get(l.keyWithPrefix(address))
 	if err != nil {
 		return l.Refresh(address)
 	}
@@ -40,6 +41,10 @@ func (l localAccount) QueryAndRefreshAccount(address string) (sdk.BaseAccount, s
 	acc := account.(sdk.BaseAccount)
 	acc.Sequence += 1
 	l.saveAccount(acc)
+
+	l.Debug().
+		Str("address", address).
+		Msg("query account from cache")
 	return acc, nil
 }
 
@@ -59,32 +64,59 @@ func (l localAccount) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) 
 	if err := l.QueryWithResponse("custom/acc/account", param, &account); err != nil {
 		return sdk.BaseAccount{}, sdk.Wrap(err)
 	}
-	l.Info().
+	l.Debug().
 		Str("address", address).
 		Msg("query account from chain")
 	return account, nil
 }
 
 func (l localAccount) QueryAddress(name string) (sdk.AccAddress, sdk.Error) {
+	addr, err := l.Cache.Get(l.keyWithPrefix(name))
+	if err == nil {
+		address, err := sdk.AccAddressFromBech32(addr.(string))
+		if err != nil {
+			l.Warn().
+				Str("name", name).
+				Msg("invalid address")
+			_ = l.Remove(l.keyWithPrefix(name))
+		} else {
+			return address, nil
+		}
+	}
+
 	address, err := l.keyManager.Query(name)
 	if err != nil {
-		l.Err(err).
+		l.Warn().
 			Str("name", name).
 			Msg("can't find account")
 		return address, sdk.Wrap(err)
 	}
+
+	if err := l.SetWithExpire(l.keyWithPrefix(name), address.String(), l.expiration); err != nil {
+		l.Warn().
+			Str("name", name).
+			Msg("cache user failed")
+	}
+	l.Debug().
+		Str("name", name).
+		Str("address", address.String()).
+		Msg("query user from cache")
 	return address, nil
 }
 
 func (l localAccount) saveAccount(account sdk.BaseAccount) {
 	address := account.Address.String()
-	if err := l.SetWithExpire(address, account, l.expiration); err != nil {
-		l.Err(err).
+	if err := l.SetWithExpire(l.keyWithPrefix(address), account, l.expiration); err != nil {
+		l.Warn().
 			Str("address", address).
-			Msg("save or update cache failed")
+			Msg("cache account failed")
 		return
 	}
-	l.Info().
+	l.Debug().
 		Str("address", address).
 		Msgf("cache account %s", l.expiration.String())
+}
+
+func (l localAccount) keyWithPrefix(address string) string {
+	return fmt.Sprintf("account:%s", address)
 }

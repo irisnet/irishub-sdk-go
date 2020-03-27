@@ -41,7 +41,7 @@ func NewBaseClient(cdc sdk.Codec, cfg sdk.SDKConfig, logger *log.Logger) *baseCl
 
 	c := cache.NewLRU(100)
 	base.localAccount = localAccount{
-		Query:      base,
+		Queries:    base,
 		Logger:     base.Logger(),
 		Cache:      c,
 		keyManager: base.KeyManager,
@@ -108,8 +108,10 @@ retry:
 
 	res, e := base.broadcastTx(txByte, ctx.Mode())
 	if e != nil {
-		if sdk.Code(e.Code()) == sdk.InvalidSequence &&
-			base.enabled {
+		if sdk.Code(e.Code()) == sdk.InvalidSequence {
+			base.Logger().Warn().
+				Str("address", ctx.Address()).
+				Msg("account information cached has error,will sync from chain and try to send transaction again")
 			_, _ = base.Refresh(ctx.Address())
 			goto retry
 		}
