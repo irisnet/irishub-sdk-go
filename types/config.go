@@ -25,9 +25,6 @@ type SDKConfig struct {
 	//
 	StoreType StoreType
 
-	// Whether to enable caching
-	Caching bool
-
 	//log level(trace|debug|info|warn|error|fatal|panic)
 	Level string
 }

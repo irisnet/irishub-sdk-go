@@ -12,7 +12,7 @@ import (
 )
 
 type serviceClient struct {
-	sdk.AbstractClient
+	sdk.BaseClient
 	*log.Logger
 }
 
@@ -24,10 +24,10 @@ func (s serviceClient) Name() string {
 	return ModuleName
 }
 
-func Create(ac sdk.AbstractClient) rpc.Service {
+func Create(ac sdk.BaseClient) rpc.Service {
 	return serviceClient{
-		AbstractClient: ac,
-		Logger:         ac.Logger(),
+		BaseClient: ac,
+		Logger:     ac.Logger(),
 	}
 }
 

@@ -8,14 +8,14 @@ import (
 )
 
 type randomClient struct {
-	sdk.AbstractClient
+	sdk.BaseClient
 	*log.Logger
 }
 
-func Create(ac sdk.AbstractClient) rpc.Random {
+func Create(ac sdk.BaseClient) rpc.Random {
 	return randomClient{
-		AbstractClient: ac,
-		Logger:         ac.Logger(),
+		BaseClient: ac,
+		Logger:     ac.Logger(),
 	}
 }
 

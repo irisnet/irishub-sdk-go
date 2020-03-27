@@ -10,14 +10,14 @@ import (
 )
 
 type bankClient struct {
-	sdk.AbstractClient
+	sdk.BaseClient
 	*log.Logger
 }
 
-func Create(ac sdk.AbstractClient) rpc.Bank {
+func Create(ac sdk.BaseClient) rpc.Bank {
 	return bankClient{
-		AbstractClient: ac,
-		Logger:         ac.Logger(),
+		BaseClient: ac,
+		Logger:     ac.Logger(),
 	}
 }
 
@@ -31,7 +31,7 @@ func (b bankClient) Name() string {
 
 // QueryAccount return account information specified address
 func (b bankClient) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) {
-	account, err := b.AbstractClient.QueryAccount(address)
+	account, err := b.BaseClient.QueryAccount(address)
 	if err != nil {
 		return sdk.BaseAccount{}, sdk.Wrap(err)
 	}

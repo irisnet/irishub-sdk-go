@@ -7,14 +7,14 @@ import (
 )
 
 type govClient struct {
-	sdk.AbstractClient
+	sdk.BaseClient
 	*log.Logger
 }
 
-func Create(ac sdk.AbstractClient) rpc.Gov {
+func Create(ac sdk.BaseClient) rpc.Gov {
 	return govClient{
-		AbstractClient: ac,
-		Logger:         ac.Logger(),
+		BaseClient: ac,
+		Logger:     ac.Logger(),
 	}
 }
 

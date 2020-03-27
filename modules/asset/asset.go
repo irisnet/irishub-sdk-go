@@ -7,14 +7,14 @@ import (
 )
 
 type assetClient struct {
-	sdk.AbstractClient
+	sdk.BaseClient
 	*log.Logger
 }
 
-func Create(ac sdk.AbstractClient) rpc.Asset {
+func Create(ac sdk.BaseClient) rpc.Asset {
 	return assetClient{
-		AbstractClient: ac,
-		Logger:         ac.Logger(),
+		BaseClient: ac,
+		Logger:     ac.Logger(),
 	}
 }
 
@@ -27,7 +27,7 @@ func (a assetClient) Name() string {
 }
 
 func (a assetClient) QueryToken(symbol string) (sdk.Token, error) {
-	return a.AbstractClient.QueryToken(symbol)
+	return a.BaseClient.QueryToken(symbol)
 }
 
 func (a assetClient) QueryTokens(owner string) (sdk.Tokens, error) {

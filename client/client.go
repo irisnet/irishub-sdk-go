@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"github.com/irisnet/irishub-sdk-go/modules"
 	"io"
 
 	"github.com/irisnet/irishub-sdk-go/modules/tendermint"
@@ -38,28 +39,28 @@ func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
 	//create logger
 	logger := log.NewLogger(cfg.Level)
 
-	abstClient := createAbstractClient(cdc, cfg, logger)
+	baseClient := modules.NewBaseClient(cdc, cfg, logger)
 	client := &SDKClient{
 		cdc:          cdc,
 		modules:      make(map[string]sdk.Module),
 		logger:       logger,
-		WSClient:     abstClient.TmClient,
-		TxManager:    abstClient,
-		TokenConvert: abstClient,
+		WSClient:     baseClient.TmClient,
+		TxManager:    baseClient,
+		TokenConvert: baseClient,
 	}
 
 	client.registerModule(
-		bank.Create(abstClient),
-		service.Create(abstClient),
-		oracle.Create(abstClient),
-		staking.Create(abstClient),
-		distribution.Create(abstClient),
-		gov.Create(abstClient),
-		slashing.Create(abstClient),
-		random.Create(abstClient),
-		keys.Create(abstClient.KeyManager),
-		asset.Create(abstClient),
-		tendermint.Create(abstClient),
+		bank.Create(baseClient),
+		service.Create(baseClient),
+		oracle.Create(baseClient),
+		staking.Create(baseClient),
+		distribution.Create(baseClient),
+		gov.Create(baseClient),
+		slashing.Create(baseClient),
+		random.Create(baseClient),
+		keys.Create(baseClient.KeyManager),
+		asset.Create(baseClient),
+		tendermint.Create(baseClient),
 	)
 
 	return *client

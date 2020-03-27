@@ -32,7 +32,7 @@ type Msg interface {
 	// doesn't require access to any other information.
 	ValidateBasic() error
 
-	// Get the canonical byte representation of the Msg.
+	// QueryAndRefreshAccount the canonical byte representation of the Msg.
 	GetSignBytes() []byte
 
 	// Signers returns the addrs of signers that must sign.

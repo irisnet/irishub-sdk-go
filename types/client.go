@@ -15,8 +15,8 @@ type Query interface {
 	QueryWithResponse(path string, data interface{}, result Response) error
 	Query(path string, data interface{}) ([]byte, error)
 	QueryStore(key cmn.HexBytes, storeName string) (res []byte, err error)
-	QueryAccount(address string) (BaseAccount, error)
-	QueryAddress(name string) (addr AccAddress, err error)
+	QueryAccount(address string) (BaseAccount, Error)
+	QueryAddress(name string) (AccAddress, Error)
 	QueryToken(symbol string) (Token, error)
 	QueryTx(hash string) (ResultQueryTx, error)
 	QueryTxs(builder *EventQueryBuilder, page, size int) (ResultSearchTxs, error)
@@ -31,7 +31,7 @@ type Logger interface {
 	Logger() *log.Logger
 }
 
-type AbstractClient interface {
+type BaseClient interface {
 	TxManager
 	Query
 	TokenConvert

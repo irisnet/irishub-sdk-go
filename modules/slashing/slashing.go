@@ -10,14 +10,14 @@ import (
 )
 
 type slashingClient struct {
-	sdk.AbstractClient
+	sdk.BaseClient
 	*log.Logger
 }
 
-func Create(ac sdk.AbstractClient) rpc.Slashing {
+func Create(ac sdk.BaseClient) rpc.Slashing {
 	return slashingClient{
-		AbstractClient: ac,
-		Logger:         ac.Logger(),
+		BaseClient: ac,
+		Logger:     ac.Logger(),
 	}
 }
 
