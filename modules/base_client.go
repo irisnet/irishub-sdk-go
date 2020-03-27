@@ -86,6 +86,7 @@ func (base *baseClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Resu
 	//lock the account
 	base.l.Lock(baseTx.From)
 	defer base.l.Unlock(baseTx.From)
+	var tryCnt = 0
 
 retry:
 	ctx, err := base.prepare(baseTx)
@@ -109,8 +110,13 @@ retry:
 	res, e := base.broadcastTx(txByte, ctx.Mode())
 	if e != nil {
 		if sdk.Code(e.Code()) == sdk.InvalidSequence {
+			if tryCnt++; tryCnt >= 3 {
+				return res, e
+			}
+
 			base.Logger().Warn().
 				Str("address", ctx.Address()).
+				Int("tryCnt", tryCnt).
 				Msg("account information cached has error,will sync from chain and try to send transaction again")
 			_, _ = base.Refresh(ctx.Address())
 			goto retry

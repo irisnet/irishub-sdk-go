@@ -38,14 +38,18 @@ func (l localAccount) QueryAndRefreshAccount(address string) (sdk.BaseAccount, s
 		return l.Refresh(address)
 	}
 
-	acc := account.(sdk.BaseAccount)
-	acc.Sequence += 1
-	l.saveAccount(acc)
+	acc := account.(accountInfo)
+	baseAcc := sdk.BaseAccount{
+		Address:       sdk.MustAccAddressFromBech32(address),
+		AccountNumber: acc.N,
+		Sequence:      acc.S + 1,
+	}
+	l.saveAccount(baseAcc)
 
 	l.Debug().
 		Str("address", address).
 		Msg("query account from cache")
-	return acc, nil
+	return baseAcc, nil
 }
 
 func (l localAccount) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) {
@@ -106,7 +110,11 @@ func (l localAccount) QueryAddress(name string) (sdk.AccAddress, sdk.Error) {
 
 func (l localAccount) saveAccount(account sdk.BaseAccount) {
 	address := account.Address.String()
-	if err := l.SetWithExpire(l.keyWithPrefix(address), account, l.expiration); err != nil {
+	info := accountInfo{
+		N: account.AccountNumber,
+		S: account.Sequence,
+	}
+	if err := l.SetWithExpire(l.keyWithPrefix(address), info, l.expiration); err != nil {
 		l.Warn().
 			Str("address", address).
 			Msg("cache account failed")
@@ -119,4 +127,9 @@ func (l localAccount) saveAccount(account sdk.BaseAccount) {
 
 func (l localAccount) keyWithPrefix(address string) string {
 	return fmt.Sprintf("account:%s", address)
+}
+
+type accountInfo struct {
+	N uint64 `json:"n"`
+	S uint64 `json:"s"`
 }

@@ -121,6 +121,8 @@ func (sts *ServiceTestSuite) TestService() {
 	var exit = make(chan int, 0)
 
 	requestContextID, err = sts.Service().InvokeService(invocation, baseTx)
+	require.NoError(sts.T(), err)
+
 	sub2, err = sts.Service().RegisterServiceResponseListener(requestContextID, func(reqCtxID, reqID, responses string) {
 		sts.Info().
 			Str("reqCtxID", reqCtxID).
