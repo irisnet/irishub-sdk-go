@@ -6,18 +6,20 @@ import (
 
 // TxContext implements a transaction context created in SDK modules.
 type TxContext struct {
-	codec         Codec
+	address       string
 	accountNumber uint64
 	sequence      uint64
-	gas           uint64
-	chainID       string
-	memo          string
-	fee           Coins
-	network       Network
-	mode          BroadcastMode
-	simulate      bool
 	password      string
-	keyManager    KeyManager
+
+	gas        uint64
+	chainID    string
+	memo       string
+	fee        Coins
+	network    Network
+	mode       BroadcastMode
+	simulate   bool
+	codec      Codec
+	keyManager KeyManager
 }
 
 // WithCodec returns a pointer of the context with an updated codec.
@@ -26,7 +28,7 @@ func (txCtx *TxContext) WithCodec(cdc Codec) *TxContext {
 	return txCtx
 }
 
-// WithCodec returns a pointer of the context with an updated codec.
+// Codec returns codec.
 func (txCtx *TxContext) Codec() Codec {
 	return txCtx.codec
 }
@@ -37,7 +39,7 @@ func (txCtx *TxContext) WithChainID(chainID string) *TxContext {
 	return txCtx
 }
 
-// WithChainID returns a pointer of the context with an updated ChainID.
+// ChainID returns the chainID of the current chain.
 func (txCtx *TxContext) ChainID() string {
 	return txCtx.chainID
 }
@@ -48,7 +50,7 @@ func (txCtx *TxContext) WithGas(gas uint64) *TxContext {
 	return txCtx
 }
 
-// WithGas returns a pointer of the context with an updated Gas.
+// Gas returns the gas of the transaction.
 func (txCtx *TxContext) Gas() uint64 {
 	return txCtx.gas
 }
@@ -59,7 +61,7 @@ func (txCtx *TxContext) WithFee(fee Coins) *TxContext {
 	return txCtx
 }
 
-// WithFee returns a pointer of the context with an updated Fee.
+// Fee returns the fee of the transaction.
 func (txCtx *TxContext) Fee() Coins {
 	return txCtx.fee
 }
@@ -70,7 +72,7 @@ func (txCtx *TxContext) WithSequence(sequence uint64) *TxContext {
 	return txCtx
 }
 
-// WithSequence returns a pointer of the context with an updated sequence number.
+// Sequence returns the sequence of the account.
 func (txCtx *TxContext) Sequence() uint64 {
 	return txCtx.sequence
 }
@@ -81,7 +83,7 @@ func (txCtx *TxContext) WithMemo(memo string) *TxContext {
 	return txCtx
 }
 
-// WithMemo returns a pointer of the context with an updated memo.
+// Memo returns memo.
 func (txCtx *TxContext) Memo() string {
 	return txCtx.memo
 }
@@ -92,7 +94,7 @@ func (txCtx *TxContext) WithAccountNumber(accnum uint64) *TxContext {
 	return txCtx
 }
 
-// WithAccountNumber returns a pointer of the context with an account number.
+// AccountNumber returns accountNumber.
 func (txCtx *TxContext) AccountNumber() uint64 {
 	return txCtx.accountNumber
 }
@@ -103,7 +105,7 @@ func (txCtx *TxContext) WithKeyManager(keyManager KeyManager) *TxContext {
 	return txCtx
 }
 
-// WithAccountNumber returns a pointer of the context with a keyDao.
+// KeyManager returns keyManager.
 func (txCtx *TxContext) KeyManager() KeyManager {
 	return txCtx.keyManager
 }
@@ -114,7 +116,7 @@ func (txCtx *TxContext) WithNetwork(network Network) *TxContext {
 	return txCtx
 }
 
-// WithNetwork returns a pointer of the context with a Network.
+// Network returns network.
 func (txCtx *TxContext) Network() Network {
 	return txCtx.network
 }
@@ -125,7 +127,7 @@ func (txCtx *TxContext) WithMode(mode BroadcastMode) *TxContext {
 	return txCtx
 }
 
-// WithMode returns a pointer of the context with a Mode.
+// Mode returns mode.
 func (txCtx *TxContext) Mode() BroadcastMode {
 	return txCtx.mode
 }
@@ -136,7 +138,7 @@ func (txCtx *TxContext) WithSimulate(simulate bool) *TxContext {
 	return txCtx
 }
 
-// WithRPC returns a pointer of the context with a simulate.
+// Simulate returns simulate.
 func (txCtx *TxContext) Simulate() bool {
 	return txCtx.simulate
 }
@@ -147,9 +149,20 @@ func (txCtx *TxContext) WithPassword(password string) *TxContext {
 	return txCtx
 }
 
-// WithRPC returns a pointer of the context with a password.
+// Password returns password.
 func (txCtx *TxContext) Password() string {
 	return txCtx.password
+}
+
+// WithAddress returns a pointer of the context with a password.
+func (txCtx *TxContext) WithAddress(address string) *TxContext {
+	txCtx.address = address
+	return txCtx
+}
+
+// Address returns the address.
+func (txCtx *TxContext) Address() string {
+	return txCtx.address
 }
 
 func (txCtx *TxContext) BuildAndSign(name string, msgs []Msg) (StdTx, error) {

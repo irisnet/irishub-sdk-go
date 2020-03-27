@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bluele/gcache"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
@@ -23,7 +24,9 @@ type abstractClient struct {
 	logger *log.Logger
 	cfg    sdk.SDKConfig
 	cdc    sdk.Codec
-	l      *Locker
+
+	l       *Locker
+	account localAccount
 }
 
 func createAbstractClient(cdc sdk.Codec, cfg sdk.SDKConfig, logger *log.Logger) *abstractClient {
@@ -36,6 +39,15 @@ func createAbstractClient(cdc sdk.Codec, cfg sdk.SDKConfig, logger *log.Logger) 
 		l:          NewLocker(16),
 	}
 
+	account := localAccount{
+		Query:      ac,
+		Logger:     ac.Logger(),
+		keyManager: ac.KeyManager,
+		cache:      gcache.New(20).LRU().Build(),
+		expiration: 1 * time.Minute,
+		enabled:    ac.cfg.Caching,
+	}
+	ac.account = account
 	ac.init()
 	return &ac
 }
@@ -69,6 +81,7 @@ func (ac *abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Re
 	ac.l.Lock(baseTx.From)
 	defer ac.l.Unlock(baseTx.From)
 
+retry:
 	ctx, err := ac.prepare(baseTx)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
@@ -87,14 +100,20 @@ func (ac *abstractClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Re
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	res, err := ac.broadcastTx(txByte, ctx.Mode())
-	if err != nil {
-		ac.Logger().Err(err).Msg("broadcastTx transaction failed")
-		return sdk.ResultTx{}, sdk.Wrap(err)
+	res, e := ac.broadcastTx(txByte, ctx.Mode())
+	if e != nil {
+		if sdk.Code(e.Code()) == sdk.InvalidSequence &&
+			ac.account.enabled {
+			_, _ = ac.account.Sync(ctx.Address())
+			goto retry
+		}
+		ac.Logger().Err(e).Msg("broadcastTx transaction failed")
+		return sdk.ResultTx{}, sdk.Wrap(e)
 	}
 	ac.Logger().Info().
 		Str("txHash", res.Hash).
 		Msg("broadcastTx transaction success")
+
 	return res, nil
 }
 
@@ -202,22 +221,11 @@ func (ac abstractClient) QueryStore(key cmn.HexBytes, storeName string) (res []b
 }
 
 func (ac abstractClient) QueryAccount(address string) (sdk.BaseAccount, error) {
-	addr, err := sdk.AccAddressFromBech32(address)
-	if err != nil {
-		return sdk.BaseAccount{}, err
-	}
+	return ac.account.GetAndIncr(address)
+}
 
-	param := struct {
-		Address sdk.AccAddress
-	}{
-		Address: addr,
-	}
-
-	var account sdk.BaseAccount
-	if err := ac.QueryWithResponse("custom/acc/account", param, &account); err != nil {
-		return sdk.BaseAccount{}, err
-	}
-	return account, nil
+func (ac abstractClient) QueryAddress(name string) (sdk.AccAddress, error) {
+	return ac.account.GetFromUserName(name)
 }
 
 func (ac abstractClient) QueryToken(symbol string) (sdk.Token, error) {
@@ -270,10 +278,6 @@ func (ac abstractClient) ToMainCoin(coins ...sdk.Coin) (dstCoins sdk.DecCoins, e
 		dstCoins = append(dstCoins, mainCoin)
 	}
 	return dstCoins.Sort(), nil
-}
-
-func (ac abstractClient) QueryAddress(name string) (sdk.AccAddress, error) {
-	return ac.KeyManager.Query(name)
 }
 
 // QueryTx returns the tx info
@@ -343,8 +347,9 @@ func (ac *abstractClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
 	if err != nil {
 		return nil, err
 	}
+	ctx.WithAddress(addr.String())
 
-	account, err := ac.QueryAccount(addr.String())
+	account, err := ac.account.GetAndIncr(addr.String())
 	if err != nil {
 		return nil, err
 	}
@@ -485,6 +490,86 @@ func (ac abstractClient) formatTxResult(res *ctypes.ResultTx, resBlock *ctypes.R
 		},
 		Timestamp: resBlock.Block.Time.Format(time.RFC3339),
 	}, nil
+}
+
+// Must be used with Locker, otherwise there are thread safety issues
+type localAccount struct {
+	sdk.Query
+	*log.Logger
+	keyManager sdk.KeyManager
+	cache      gcache.Cache
+	expiration time.Duration
+	enabled    bool
+}
+
+func (l localAccount) Sync(address string) (sdk.BaseAccount, sdk.Error) {
+	account, err := l.Get(address)
+	if err != nil {
+		l.Err(err).
+			Str("address", address).
+			Msg("update cache failed")
+		return sdk.BaseAccount{}, sdk.Wrap(err)
+	}
+
+	if err := l.cache.SetWithExpire(address, account, l.expiration); err != nil {
+		l.Err(err).
+			Str("address", address).
+			Msg("update cache failed")
+		return sdk.BaseAccount{}, sdk.Wrap(err)
+	}
+	l.Info().
+		Str("address", address).
+		Msgf("cache account %s", l.expiration.String())
+	return account, nil
+}
+
+func (l localAccount) GetAndIncr(address string) (sdk.BaseAccount, sdk.Error) {
+	if !l.enabled {
+		return l.Get(address)
+	}
+
+	account, err := l.cache.Get(address)
+	if err != nil {
+		return l.Sync(address)
+	}
+
+	acc := account.(sdk.BaseAccount)
+	acc.Sequence += 1
+	if err := l.cache.SetWithExpire(address, acc, l.expiration); err != nil {
+		l.Err(err).
+			Str("address", address).
+			Msg("update cache failed")
+	}
+	l.Info().
+		Str("address", address).
+		Msg("query account from cache success")
+	return acc, nil
+}
+
+func (l localAccount) Get(address string) (sdk.BaseAccount, sdk.Error) {
+	addr, err := sdk.AccAddressFromBech32(address)
+	if err != nil {
+		return sdk.BaseAccount{}, sdk.Wrap(err)
+	}
+
+	param := struct {
+		Address sdk.AccAddress
+	}{
+		Address: addr,
+	}
+
+	var account sdk.BaseAccount
+	if err := l.QueryWithResponse("custom/acc/account", param, &account); err != nil {
+		return sdk.BaseAccount{}, sdk.Wrap(err)
+	}
+	l.Info().
+		Str("address", address).
+		Msg("query account from chain success")
+	return account, nil
+}
+
+func (l localAccount) GetFromUserName(name string) (sdk.AccAddress, error) {
+	return l.keyManager.Query(name)
 }
 
 type Locker struct {

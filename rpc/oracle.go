@@ -78,7 +78,6 @@ type FeedContext struct {
 	Timeout           int64     `json:"timeout"`
 	ServiceFeeCap     sdk.Coins `json:"service_fee_cap"`
 	RepeatedFrequency uint64    `json:"repeated_frequency"`
-	RepeatedTotal     int64     `json:"repeated_total"`
 	ResponseThreshold uint16    `json:"response_threshold"`
 	State             string    `json:"state"`
 }
