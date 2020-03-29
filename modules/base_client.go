@@ -1,19 +1,22 @@
 package modules
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"time"
-
-	cmn "github.com/tendermint/tendermint/libs/common"
-	rpcclient "github.com/tendermint/tendermint/rpc/client"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/irisnet/irishub-sdk-go/adapter"
 	"github.com/irisnet/irishub-sdk-go/tools/cache"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	cmn "github.com/tendermint/tendermint/libs/common"
+	rpcclient "github.com/tendermint/tendermint/rpc/client"
+)
+
+const (
+	concurrency       = 16
+	cacheCapacity     = 100
+	cacheExpirePeriod = 1 * time.Minute
 )
 
 type baseClient struct {
@@ -36,16 +39,16 @@ func NewBaseClient(cdc sdk.Codec, cfg sdk.SDKConfig, logger *log.Logger) *baseCl
 		logger:     logger,
 		cfg:        cfg,
 		cdc:        cdc,
-		l:          NewLocker(16),
+		l:          NewLocker(concurrency),
 	}
 
-	c := cache.NewLRU(100)
+	c := cache.NewLRU(cacheCapacity)
 	base.localAccount = localAccount{
 		Queries:    base,
 		Logger:     base.Logger(),
 		Cache:      c,
 		keyManager: base.KeyManager,
-		expiration: 1 * time.Minute,
+		expiration: cacheExpirePeriod,
 	}
 
 	base.localToken = localToken{
@@ -234,57 +237,6 @@ func (base baseClient) QueryStore(key cmn.HexBytes, storeName string) (res []byt
 	return resp.Value, nil
 }
 
-// QueryTx returns the tx info
-func (base baseClient) QueryTx(hash string) (sdk.ResultQueryTx, error) {
-	tx, err := hex.DecodeString(hash)
-	if err != nil {
-		return sdk.ResultQueryTx{}, err
-	}
-
-	res, err := base.Tx(tx, true)
-	if err != nil {
-		return sdk.ResultQueryTx{}, err
-	}
-
-	resBlocks, err := base.getResultBlocks([]*ctypes.ResultTx{res})
-	if err != nil {
-		return sdk.ResultQueryTx{}, err
-	}
-	return base.parseTxResult(res, resBlocks[res.Height])
-}
-
-func (base baseClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.ResultSearchTxs, error) {
-
-	query := builder.Build()
-	if len(query) == 0 {
-		return sdk.ResultSearchTxs{}, errors.New("must declare at least one tag to search")
-	}
-
-	res, err := base.TxSearch(query, true, page, size)
-	if err != nil {
-		return sdk.ResultSearchTxs{}, err
-	}
-
-	resBlocks, err := base.getResultBlocks(res.Txs)
-	if err != nil {
-		return sdk.ResultSearchTxs{}, err
-	}
-
-	var txs []sdk.ResultQueryTx
-	for i, tx := range res.Txs {
-		txInfo, err := base.parseTxResult(tx, resBlocks[res.Txs[i].Height])
-		if err != nil {
-			return sdk.ResultSearchTxs{}, err
-		}
-		txs = append(txs, txInfo)
-	}
-
-	return sdk.ResultSearchTxs{
-		Total: res.TotalCount,
-		Txs:   txs,
-	}, nil
-}
-
 func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
 	fees, _ := base.cfg.Fee.TruncateDecimal()
 	ctx := &sdk.TxContext{}
@@ -337,115 +289,6 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
 	return ctx, nil
 }
 
-func (base baseClient) broadcastTx(txBytes []byte, mode sdk.BroadcastMode) (sdk.ResultTx, sdk.Error) {
-	switch mode {
-	case sdk.Commit:
-		return base.broadcastTxCommit(txBytes)
-	case sdk.Async:
-		return base.broadcastTxAsync(txBytes)
-	case sdk.Sync:
-		return base.broadcastTxSync(txBytes)
-
-	}
-	return sdk.ResultTx{}, sdk.Wrapf("commit mode(%s) not supported", base.cfg.Mode)
-}
-
-// broadcastTxCommit broadcasts transaction bytes to a Tendermint node
-// and waits for a commit.
-func (base baseClient) broadcastTxCommit(tx []byte) (sdk.ResultTx, sdk.Error) {
-	res, err := base.BroadcastTxCommit(tx)
-	if err != nil {
-		return sdk.ResultTx{}, sdk.Wrap(err)
-	}
-
-	if !res.CheckTx.IsOK() {
-		return sdk.ResultTx{}, sdk.GetError(res.CheckTx.Codespace,
-			res.CheckTx.Code, res.CheckTx.Log)
-	}
-
-	if !res.DeliverTx.IsOK() {
-		return sdk.ResultTx{}, sdk.GetError(res.DeliverTx.Codespace,
-			res.DeliverTx.Code, res.DeliverTx.Log)
-	}
-
-	return sdk.ResultTx{
-		GasWanted: res.DeliverTx.GasWanted,
-		GasUsed:   res.DeliverTx.GasUsed,
-		Tags:      sdk.ParseTags(res.DeliverTx.Tags),
-		Hash:      res.Hash.String(),
-		Height:    res.Height,
-	}, nil
-}
-
-// BroadcastTxSync broadcasts transaction bytes to a Tendermint node
-// synchronously.
-func (base baseClient) broadcastTxSync(tx []byte) (sdk.ResultTx, sdk.Error) {
-	res, err := base.BroadcastTxSync(tx)
-	if err != nil {
-		return sdk.ResultTx{}, sdk.Wrap(err)
-	}
-
-	if res.Code != 0 {
-		return sdk.ResultTx{}, sdk.GetError(sdk.RootCodespace,
-			res.Code, res.Log)
-	}
-
-	return sdk.ResultTx{
-		Hash: res.Hash.String(),
-	}, nil
-}
-
-// BroadcastTxAsync broadcasts transaction bytes to a Tendermint node
-// asynchronously.
-func (base baseClient) broadcastTxAsync(tx []byte) (sdk.ResultTx, sdk.Error) {
-	res, err := base.BroadcastTxAsync(tx)
-	if err != nil {
-		return sdk.ResultTx{}, sdk.Wrap(err)
-	}
-
-	return sdk.ResultTx{
-		Hash: res.Hash.String(),
-	}, nil
-}
-
-func (base baseClient) getResultBlocks(resTxs []*ctypes.ResultTx) (map[int64]*ctypes.ResultBlock, error) {
-	resBlocks := make(map[int64]*ctypes.ResultBlock)
-	for _, resTx := range resTxs {
-		if _, ok := resBlocks[resTx.Height]; !ok {
-			resBlock, err := base.Block(&resTx.Height)
-			if err != nil {
-				return nil, err
-			}
-
-			resBlocks[resTx.Height] = resBlock
-		}
-	}
-	return resBlocks, nil
-}
-
-func (base baseClient) parseTxResult(res *ctypes.ResultTx, resBlock *ctypes.ResultBlock) (sdk.ResultQueryTx, error) {
-
-	var tx sdk.StdTx
-	err := base.cdc.UnmarshalBinaryLengthPrefixed(res.Tx, &tx)
-	if err != nil {
-		return sdk.ResultQueryTx{}, err
-	}
-
-	return sdk.ResultQueryTx{
-		Hash:   res.Hash.String(),
-		Height: res.Height,
-		Tx:     tx,
-		Result: sdk.TxResult{
-			Code:      res.TxResult.Code,
-			Log:       res.TxResult.Log,
-			GasWanted: res.TxResult.GasWanted,
-			GasUsed:   res.TxResult.GasUsed,
-			Tags:      sdk.ParseTags(res.TxResult.Tags),
-		},
-		Timestamp: resBlock.Block.Time.Format(time.RFC3339),
-	}, nil
-}
-
 type locker struct {
 	shards []chan int
 	size   int
@@ -473,11 +316,11 @@ func (l *locker) Unlock(key string) {
 }
 
 func (l *locker) getShard(key string) chan int {
-	index := uint(indexFor(key)) % uint(l.size)
+	index := uint(l.indexFor(key)) % uint(l.size)
 	return l.shards[index]
 }
 
-func indexFor(key string) uint32 {
+func (l *locker) indexFor(key string) uint32 {
 	hash := uint32(2166136261)
 	const prime32 = uint32(16777619)
 	for i := 0; i < len(key); i++ {
