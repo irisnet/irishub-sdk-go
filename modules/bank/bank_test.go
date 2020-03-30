@@ -148,6 +148,5 @@ func (bts BankTestSuite) TestMultiSend() {
 	}
 	wait.Wait()
 	end := time.Now()
-	time.Sleep(5 * time.Second)
-	fmt.Println(fmt.Sprintf("total senconds:%f", end.Sub(begin).Seconds()))
+	fmt.Println(fmt.Sprintf("total senconds:%s", end.Sub(begin).String()))
 }
