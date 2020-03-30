@@ -203,7 +203,7 @@ func (base baseClient) Query(path string, data interface{}) ([]byte, error) {
 }
 
 func (base baseClient) QueryStore(key cmn.HexBytes, storeName string) (res []byte, err error) {
-	path := fmt.Sprintf("/store/%s/%s", storeName, "subspace")
+	path := fmt.Sprintf("/store/%s/%s", storeName, "key")
 	opts := rpcclient.ABCIQueryOptions{
 		//Height: cliCtx.Height,
 		Prove: false,

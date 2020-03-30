@@ -36,4 +36,5 @@ func (sts *SlashingTestSuite) TestQueryValidatorSigningInfo() {
 	signingInfo, err := sts.Slashing().QueryValidatorSigningInfo(validators[0].ConsensusPubkey)
 	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), signingInfo)
+	require.NotEmpty(sts.T(), signingInfo.IndexOffset)
 }
