@@ -14,6 +14,7 @@ import (
 
 const (
 	memoRegexpLengthLimit = 50
+	maxMsgLen             = 5
 	ModuleName            = "bank"
 )
 

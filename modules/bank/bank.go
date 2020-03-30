@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
+	utils "github.com/irisnet/irishub-sdk-go/tools"
 	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
@@ -81,10 +82,14 @@ func (b bankClient) Send(to string, amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk
 	return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
-func (b bankClient) MultiSend(receipts []rpc.Receipt, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+func (b bankClient) MultiSend(receipts rpc.Receipts, baseTx sdk.BaseTx) (resTxs []sdk.ResultTx, err sdk.Error) {
 	sender, err := b.QueryAddress(baseTx.From)
 	if err != nil {
-		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
+		return nil, sdk.Wrapf("%s not found", baseTx.From)
+	}
+
+	if len(receipts) > maxMsgLen {
+		return b.SendBatch(sender, receipts, baseTx)
 	}
 
 	var inputs = make([]Input, len(receipts))
@@ -92,18 +97,57 @@ func (b bankClient) MultiSend(receipts []rpc.Receipt, baseTx sdk.BaseTx) (sdk.Re
 	for i, receipt := range receipts {
 		amt, err := b.ToMinCoin(receipt.Amount...)
 		if err != nil {
-			return sdk.ResultTx{}, sdk.Wrap(err)
+			return nil, sdk.Wrap(err)
 		}
 
 		outAddr, e := sdk.AccAddressFromBech32(receipt.Address)
 		if e != nil {
-			return sdk.ResultTx{}, sdk.Wrapf(fmt.Sprintf("%s invalid address", receipt.Address))
+			return nil, sdk.Wrapf(fmt.Sprintf("%s invalid address", receipt.Address))
 		}
+
 		inputs[i] = NewInput(sender, amt)
 		outputs[i] = NewOutput(outAddr, amt)
 	}
+
 	msg := NewMsgSend(inputs, outputs)
-	return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
+	res, err := b.BuildAndSend([]sdk.Msg{msg}, baseTx)
+	if err != nil {
+		return nil, sdk.Wrap(err)
+	}
+
+	resTxs = append(resTxs, res)
+	return
+}
+
+func (b bankClient) SendBatch(sender sdk.AccAddress,
+	receipts rpc.Receipts, baseTx sdk.BaseTx) (resTxs []sdk.ResultTx, err sdk.Error) {
+	batchReceipts := utils.SplitArray(maxMsgLen, receipts)
+	for batch, receipts := range batchReceipts {
+		rs := receipts.(rpc.Receipts)
+		var inputs = make([]Input, len(rs))
+		var outputs = make([]Output, len(rs))
+		for i, receipt := range rs {
+			amt, err := b.ToMinCoin(receipt.Amount...)
+			if err != nil {
+				return nil, sdk.Wrap(err)
+			}
+
+			outAddr, e := sdk.AccAddressFromBech32(receipt.Address)
+			if e != nil {
+				return nil, sdk.Wrapf(fmt.Sprintf("%s invalid address", receipt.Address))
+			}
+
+			inputs[i] = NewInput(sender, amt)
+			outputs[i] = NewOutput(outAddr, amt)
+		}
+		msg := NewMsgSend(inputs, outputs)
+		res, err := b.BuildAndSend([]sdk.Msg{msg}, baseTx)
+		if err != nil {
+			return nil, sdk.WrapWithMessage(err, "bulk sending transactions failed with errors starting at [%s]", batch*maxMsgLen)
+		}
+		resTxs = append(resTxs, res)
+	}
+	return resTxs, nil
 }
 
 //Send is responsible for burning some tokens from `From` account

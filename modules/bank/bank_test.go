@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/irisnet/irishub-sdk-go/test"
 	"github.com/irisnet/irishub-sdk-go/types"
@@ -99,12 +100,12 @@ func (bts BankTestSuite) TestMultiSend() {
 		Password: bts.Account().Password,
 	}
 
-	coins, e := types.ParseDecCoins("100iris")
+	coins, e := types.ParseDecCoins("1000iris")
 	require.NoError(bts.T(), e)
 
 	bank := bts.Bank()
 
-	var accNum = 5
+	var accNum = 11
 	var acc = make([]string, accNum)
 	var receipts = make([]rpc.Receipt, accNum)
 	for i := 0; i < accNum; i++ {
@@ -128,8 +129,9 @@ func (bts BankTestSuite) TestMultiSend() {
 
 	to := "faa1leqs0fg0nsav2u3vdt4gat0mpascl52kl2huel"
 
+	begin := time.Now()
 	var wait sync.WaitGroup
-	for i := 1; i <= 10; i++ {
+	for i := 1; i <= 1000; i++ {
 		wait.Add(1)
 		index := rand.Intn(accNum)
 		go func() {
@@ -138,11 +140,14 @@ func (bts BankTestSuite) TestMultiSend() {
 				From:     acc[index],
 				Gas:      20000,
 				Memo:     "test",
-				Mode:     types.Commit,
+				Mode:     types.Async,
 				Password: "1234567890",
 			})
 			require.NoError(bts.T(), err)
 		}()
 	}
 	wait.Wait()
+	end := time.Now()
+	time.Sleep(5 * time.Second)
+	fmt.Println(fmt.Sprintf("total senconds:%f", end.Sub(begin).Seconds()))
 }

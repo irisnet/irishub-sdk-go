@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/multisig"
 
@@ -39,6 +38,16 @@ type Msg interface {
 	// CONTRACT: All signatures must be present to be valid.
 	// CONTRACT: Returns addrs in some deterministic order.
 	GetSigners() []AccAddress
+}
+
+type Msgs []Msg
+
+func (m Msgs) Len() int {
+	return len(m)
+}
+
+func (m Msgs) Sub(begin, end int) SplitAble {
+	return m[begin:end]
 }
 
 // Transactions objects must fulfill the Tx

@@ -3,6 +3,7 @@ package modules
 import (
 	"errors"
 	"fmt"
+	"github.com/irisnet/irishub-sdk-go/tools"
 	"time"
 
 	"github.com/irisnet/irishub-sdk-go/adapter"
@@ -134,35 +135,16 @@ retry:
 	return res, nil
 }
 
-func (base *baseClient) SendMsgBatch(batch int, msgs []sdk.Msg, baseTx sdk.BaseTx) (rs []sdk.ResultTx, err sdk.Error) {
-	splitMsgs := func(batch int, msgs []sdk.Msg) (segments [][]sdk.Msg) {
-		max := len(msgs)
-		if max < batch {
-			return [][]sdk.Msg{msgs}
-		}
-
-		quantity := max / batch
-		for i := 1; i <= batch; i++ {
-			start := (i - 1) * quantity
-			end := i * quantity
-			if i != batch {
-				segments = append(segments, msgs[start:end])
-			} else {
-				segments = append(segments, msgs[start:])
-			}
-		}
-		return segments
-	}
-
+func (base *baseClient) SendMsgBatch(batch int, msgs sdk.Msgs, baseTx sdk.BaseTx) (rs []sdk.ResultTx, err sdk.Error) {
 	if msgs == nil || len(msgs) == 0 {
 		return rs, sdk.Wrapf("must have at least one message in list")
 	}
 
-	baseTx.Mode = sdk.Commit
-	for _, ms := range splitMsgs(batch, msgs) {
-		res, err := base.BuildAndSend(ms, baseTx)
+	for _, ms := range tools.SplitArray(batch, msgs) {
+		mss := ms.(sdk.Msgs)
+		res, err := base.BuildAndSend(mss, baseTx)
 		if err != nil {
-			return rs, sdk.Wrap(err)
+			return rs, sdk.WrapWithMessage(err, "bulk sending transactions failed with errors starting at [%s]", batch*batch)
 		}
 		rs = append(rs, res)
 	}
