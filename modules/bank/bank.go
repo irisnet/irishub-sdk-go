@@ -143,7 +143,7 @@ func (b bankClient) SendBatch(sender sdk.AccAddress,
 		msg := NewMsgSend(inputs, outputs)
 		res, err := b.BuildAndSend([]sdk.Msg{msg}, baseTx)
 		if err != nil {
-			return nil, sdk.WrapWithMessage(err, "bulk sending transactions failed with errors starting at [%s]", batch*maxMsgLen)
+			return nil, sdk.WrapWithMessage(err, "bulk sending transactions failed with errors starting at [%d]", batch*maxMsgLen)
 		}
 		resTxs = append(resTxs, res)
 	}

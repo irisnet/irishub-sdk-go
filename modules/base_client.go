@@ -146,7 +146,7 @@ func (base *baseClient) SendMsgBatch(batch int, msgs sdk.Msgs, baseTx sdk.BaseTx
 		mss := ms.(sdk.Msgs)
 		res, err := base.BuildAndSend(mss, baseTx)
 		if err != nil {
-			return rs, sdk.WrapWithMessage(err, "bulk sending transactions failed with errors starting at [%s]", i*batch)
+			return rs, sdk.WrapWithMessage(err, "bulk sending transactions failed with errors starting at [%d]", i*batch)
 		}
 		rs = append(rs, res)
 	}
