@@ -140,11 +140,11 @@ func (base *baseClient) SendMsgBatch(batch int, msgs sdk.Msgs, baseTx sdk.BaseTx
 		return rs, sdk.Wrapf("must have at least one message in list")
 	}
 
-	for _, ms := range tools.SplitArray(batch, msgs) {
+	for i, ms := range tools.SplitArray(batch, msgs) {
 		mss := ms.(sdk.Msgs)
 		res, err := base.BuildAndSend(mss, baseTx)
 		if err != nil {
-			return rs, sdk.WrapWithMessage(err, "bulk sending transactions failed with errors starting at [%s]", batch*batch)
+			return rs, sdk.WrapWithMessage(err, "bulk sending transactions failed with errors starting at [%s]", i*batch)
 		}
 		rs = append(rs, res)
 	}
