@@ -114,14 +114,16 @@ retry:
 	res, e := base.broadcastTx(txByte, ctx.Mode())
 	if e != nil {
 		if sdk.Code(e.Code()) == sdk.InvalidSequence {
-			if tryCnt++; tryCnt >= 3 {
-				return res, e
-			}
-
 			base.Logger().Warn().
 				Str("address", ctx.Address()).
 				Int("tryCnt", tryCnt).
 				Msg("account information cached has error,will sync from chain and try to send transaction again")
+
+			if tryCnt++; tryCnt >= 3 {
+				_ = base.Remove(ctx.Address())
+				return res, e
+			}
+
 			_, _ = base.Refresh(ctx.Address())
 			goto retry
 		}

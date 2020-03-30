@@ -32,6 +32,10 @@ func (l localAccount) Refresh(address string) (sdk.BaseAccount, sdk.Error) {
 	return account, nil
 }
 
+func (l localAccount) RemoveAccount(address string) bool {
+	return l.Cache.Remove(address)
+}
+
 func (l localAccount) QueryAndRefreshAccount(address string) (sdk.BaseAccount, sdk.Error) {
 	account, err := l.Cache.Get(l.keyWithPrefix(address))
 	if err != nil {
