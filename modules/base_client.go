@@ -120,7 +120,7 @@ retry:
 				Msg("account information cached has error,will sync from chain and try to send transaction again")
 
 			if tryCnt++; tryCnt >= 3 {
-				_ = base.Remove(ctx.Address())
+				_ = base.RemoveAccount(ctx.Address())
 				return res, e
 			}
 

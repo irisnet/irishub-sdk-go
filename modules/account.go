@@ -33,7 +33,7 @@ func (l localAccount) Refresh(address string) (sdk.BaseAccount, sdk.Error) {
 }
 
 func (l localAccount) RemoveAccount(address string) bool {
-	return l.Cache.Remove(address)
+	return l.Cache.Remove(l.keyWithPrefix(address))
 }
 
 func (l localAccount) QueryAndRefreshAccount(address string) (sdk.BaseAccount, sdk.Error) {
