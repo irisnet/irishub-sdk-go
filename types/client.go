@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/irisnet/irishub-sdk-go/tools/log"
+	"github.com/irisnet/irishub-sdk-go/utils/log"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 

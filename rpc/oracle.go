@@ -18,7 +18,7 @@ type OracleTx interface {
 	CreateAndStartFeed(request FeedCreateRequest) (result sdk.ResultTx, err sdk.Error)
 	PauseFeed(feedName string, baseTx sdk.BaseTx) (result sdk.ResultTx, err sdk.Error)
 	EditFeed(request FeedEditRequest) (result sdk.ResultTx, err sdk.Error)
-	RegisterFeedListener(feedName string, handler func(value FeedValue)) sdk.Error
+	SubscribeFeedValue(feedName string, callback func(value FeedValue)) sdk.Error
 }
 
 type OracleQuery interface {

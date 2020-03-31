@@ -1,4 +1,4 @@
-package tools
+package utils
 
 import (
 	sdk "github.com/irisnet/irishub-sdk-go/types"

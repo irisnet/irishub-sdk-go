@@ -3,8 +3,8 @@ package random
 import (
 	"github.com/irisnet/irishub-sdk-go/rpc"
 
-	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/log"
 )
 
 type randomClient struct {
@@ -58,47 +58,56 @@ func (r randomClient) Request(request rpc.RandomRequest, baseTx sdk.BaseTx) (str
 
 	requestID := result.Tags.GetValue(tagRequestID)
 	if needWatch {
-		unsubscribe := func(sub1, sub2 sdk.Subscription) {
-			_ = r.Unsubscribe(sub1)
-			_ = r.Unsubscribe(sub2)
-		}
-
-		var sub1, sub2 sdk.Subscription
-
-		blockBuilder := sdk.NewEventQueryBuilder().
-			AddCondition(sdk.Cond(tagRequestID).Contains(sdk.EventValue(requestID)))
-		sub1, err = r.SubscribeNewBlock(blockBuilder, func(block sdk.EventDataNewBlock) {
-			//cancel subscribe
-			unsubscribe(sub1, sub2)
-
-			rand := block.ResultBeginBlock.Tags.GetValue(tagRand(tagRequestID))
-			r.Debug().
-				Int64("height", block.Block.Height).
-				Str("requestID", requestID).
-				Str("random", rand).
-				Msg("received random result")
-
-			request.Callback(requestID, rand, nil)
-		})
-
-		txBuilder := sdk.NewEventQueryBuilder().
-			AddCondition(sdk.Cond(tagRequestID).Contains(sdk.EventValue(requestID))).
-			AddCondition(sdk.Cond(sdk.ActionKey).EQ("respond_service"))
-		sub2, err = r.SubscribeTx(txBuilder, func(tx sdk.EventDataTx) {
-			//cancel subscribe
-			unsubscribe(sub1, sub2)
-
-			rand := tx.Result.Tags.GetValue(tagRand(tagRequestID))
-			r.Debug().
-				Int64("height", tx.Height).
-				Str("requestID", requestID).
-				Str("random", rand).
-				Msg("received random result")
-
-			request.Callback(requestID, rand, nil)
-		})
+		_, err := r.SubscribeRandom(requestID, request.Callback)
+		r.Err(err).
+			Str(tagRequestID, requestID).
+			Msg("subscribe random failed")
 	}
 	return requestID, nil
+}
+
+func (r randomClient) SubscribeRandom(requestID string,
+	callback rpc.EventRequestRandomCallback) (sdk.Subscription, sdk.Error) {
+	unsubscribe := func(sub1, sub2 sdk.Subscription) {
+		_ = r.Unsubscribe(sub1)
+		_ = r.Unsubscribe(sub2)
+	}
+
+	var sub1, sub2 sdk.Subscription
+
+	blockBuilder := sdk.NewEventQueryBuilder().
+		AddCondition(sdk.Cond(tagRequestID).Contains(sdk.EventValue(requestID)))
+	sub1, err := r.SubscribeNewBlock(blockBuilder, func(block sdk.EventDataNewBlock) {
+		//cancel subscribe
+		unsubscribe(sub1, sub2)
+
+		rand := block.ResultBeginBlock.Tags.GetValue(tagRand(tagRequestID))
+		r.Debug().
+			Int64("height", block.Block.Height).
+			Str("requestID", requestID).
+			Str("random", rand).
+			Msg("received random result")
+
+		callback(requestID, rand, nil)
+	})
+
+	txBuilder := sdk.NewEventQueryBuilder().
+		AddCondition(sdk.Cond(tagRequestID).Contains(sdk.EventValue(requestID))).
+		AddCondition(sdk.Cond(sdk.ActionKey).EQ("respond_service"))
+	sub2, err = r.SubscribeTx(txBuilder, func(tx sdk.EventDataTx) {
+		//cancel subscribe
+		unsubscribe(sub1, sub2)
+
+		rand := tx.Result.Tags.GetValue(tagRand(tagRequestID))
+		r.Debug().
+			Int64("height", tx.Height).
+			Str("requestID", requestID).
+			Str("random", rand).
+			Msg("received random result")
+
+		callback(requestID, rand, nil)
+	})
+	return sub1, err
 }
 
 // QueryRandom returns the random information of the specified reqID

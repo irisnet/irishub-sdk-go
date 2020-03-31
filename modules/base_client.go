@@ -3,13 +3,14 @@ package modules
 import (
 	"errors"
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/tools"
 	"time"
 
+	"github.com/irisnet/irishub-sdk-go/utils"
+
 	"github.com/irisnet/irishub-sdk-go/adapter"
-	"github.com/irisnet/irishub-sdk-go/tools/cache"
-	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/cache"
+	"github.com/irisnet/irishub-sdk-go/utils/log"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 )
@@ -18,6 +19,7 @@ const (
 	concurrency       = 16
 	cacheCapacity     = 100
 	cacheExpirePeriod = 1 * time.Minute
+	timeout           = 5 * time.Second
 )
 
 type baseClient struct {
@@ -27,13 +29,13 @@ type baseClient struct {
 	localToken
 
 	logger *log.Logger
-	cfg    sdk.SDKConfig
+	cfg    sdk.ClientConfig
 	cdc    sdk.Codec
 
 	l *locker
 }
 
-func NewBaseClient(cdc sdk.Codec, cfg sdk.SDKConfig, logger *log.Logger) *baseClient {
+func NewBaseClient(cdc sdk.Codec, cfg sdk.ClientConfig, logger *log.Logger) *baseClient {
 	base := baseClient{
 		KeyManager: adapter.NewDAOAdapter(cfg.KeyDAO, cfg.StoreType),
 		TmClient:   NewRPCClient(cfg.NodeURI, cdc, logger),
@@ -68,6 +70,9 @@ func (base *baseClient) init() {
 		panic(err)
 	}
 	base.cfg.Fee = sdk.NewDecCoinsFromCoins(fees...)
+	if base.cfg.Timeout.Nanoseconds() <= 0 {
+		base.cfg.Timeout = timeout
+	}
 }
 
 func (base *baseClient) Logger() *log.Logger {
@@ -142,7 +147,7 @@ func (base *baseClient) SendMsgBatch(batch int, msgs sdk.Msgs, baseTx sdk.BaseTx
 		return rs, sdk.Wrapf("must have at least one message in list")
 	}
 
-	for i, ms := range tools.SplitArray(batch, msgs) {
+	for i, ms := range utils.SplitArray(batch, msgs) {
 		mss := ms.(sdk.Msgs)
 		res, err := base.BuildAndSend(mss, baseTx)
 		if err != nil {

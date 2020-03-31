@@ -5,28 +5,29 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
-	iris "github.com/irisnet/irishub-sdk-go"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
+	sdk "github.com/irisnet/irishub-sdk-go"
+	"github.com/irisnet/irishub-sdk-go/types"
 )
 
 const (
 	NodeURI = "localhost:26657"
 	ChainID = "test"
-	Network = sdk.Testnet
-	Mode    = sdk.Commit
+	Network = types.Testnet
+	Mode    = types.Commit
 	Fee     = "0.6iris"
 	Gas     = 20000
 )
 
 type MockClient struct {
-	iris.SDKClient
+	sdk.Client
 	user MockAccount
 }
 
 type MockAccount struct {
 	Name, Password string
-	Address        sdk.AccAddress
+	Address        types.AccAddress
 }
 
 func NewMockClient() MockClient {
@@ -36,20 +37,21 @@ func NewMockClient() MockClient {
 			Password: "11111111",
 		},
 	}
-	fees, err := sdk.ParseDecCoins(Fee)
+	fees, err := types.ParseDecCoins(Fee)
 	if err != nil {
 		panic(err)
 	}
 
-	c := iris.NewSDKClient(sdk.SDKConfig{
+	c := sdk.NewClient(types.ClientConfig{
 		NodeURI:   NodeURI,
 		Network:   Network,
 		ChainID:   ChainID,
 		Gas:       Gas,
 		Fee:       fees,
-		KeyDAO:    sdk.NewDefaultKeyDAO(&Memory{}),
+		KeyDAO:    types.NewDefaultKeyDAO(&Memory{}),
 		Mode:      Mode,
-		StoreType: sdk.Key,
+		StoreType: types.Key,
+		Timeout:   5 * time.Second,
 		Level:     "info",
 	})
 
@@ -60,22 +62,22 @@ func NewMockClient() MockClient {
 		panic(err)
 	}
 
-	tc.SDKClient = c
-	tc.user.Address = sdk.MustAccAddressFromBech32(address)
+	tc.Client = c
+	tc.user.Address = types.MustAccAddressFromBech32(address)
 	return tc
 }
 func (tc MockClient) Account() MockAccount {
 	return tc.user
 }
 
-type Memory map[string]sdk.Store
+type Memory map[string]types.Store
 
-func (m Memory) Write(name string, store sdk.Store) error {
+func (m Memory) Write(name string, store types.Store) error {
 	m[name] = store
 	return nil
 }
 
-func (m Memory) Read(name string) (sdk.Store, error) {
+func (m Memory) Read(name string) (types.Store, error) {
 	return m[name], nil
 }
 

@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
-	utils "github.com/irisnet/irishub-sdk-go/tools"
-	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	utils "github.com/irisnet/irishub-sdk-go/utils"
+	"github.com/irisnet/irishub-sdk-go/utils/log"
 )
 
 type bankClient struct {

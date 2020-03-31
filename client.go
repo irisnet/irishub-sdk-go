@@ -1,4 +1,4 @@
-package iris
+package sdk
 
 import (
 	"fmt"
@@ -18,11 +18,11 @@ import (
 	"github.com/irisnet/irishub-sdk-go/modules/staking"
 	"github.com/irisnet/irishub-sdk-go/modules/tendermint"
 	"github.com/irisnet/irishub-sdk-go/rpc"
-	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/log"
 )
 
-type SDKClient struct {
+type Client struct {
 	cdc     sdk.Codec
 	modules map[string]sdk.Module
 	logger  *log.Logger
@@ -32,7 +32,7 @@ type SDKClient struct {
 	sdk.TokenConvert
 }
 
-func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
+func NewClient(cfg sdk.ClientConfig) Client {
 	cdc := sdk.NewAminoCodec()
 	sdk.SetNetwork(cfg.Network)
 
@@ -40,7 +40,7 @@ func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
 	logger := log.NewLogger(cfg.Level)
 
 	baseClient := modules.NewBaseClient(cdc, cfg, logger)
-	client := &SDKClient{
+	client := &Client{
 		cdc:          cdc,
 		modules:      make(map[string]sdk.Module),
 		logger:       logger,
@@ -66,7 +66,7 @@ func NewSDKClient(cfg sdk.SDKConfig) SDKClient {
 	return *client
 }
 
-func (s *SDKClient) registerModule(modules ...sdk.Module) {
+func (s *Client) registerModule(modules ...sdk.Module) {
 	for _, m := range modules {
 		if _, existed := s.modules[m.Name()]; existed {
 			panic(fmt.Sprintf("module[%s] has existed", m.Name()))
@@ -77,50 +77,50 @@ func (s *SDKClient) registerModule(modules ...sdk.Module) {
 	sdk.RegisterCodec(s.cdc)
 }
 
-func (s *SDKClient) Bank() rpc.Bank {
+func (s *Client) Bank() rpc.Bank {
 	return s.modules[bank.ModuleName].(rpc.Bank)
 }
 
-func (s *SDKClient) Distr() rpc.Distribution {
+func (s *Client) Distr() rpc.Distribution {
 	return s.modules[distribution.ModuleName].(rpc.Distribution)
 }
 
-func (s *SDKClient) Service() rpc.Service {
+func (s *Client) Service() rpc.Service {
 	return s.modules[service.ModuleName].(rpc.Service)
 }
 
-func (s *SDKClient) Oracle() rpc.Oracle {
+func (s *Client) Oracle() rpc.Oracle {
 	return s.modules[oracle.ModuleName].(rpc.Oracle)
 }
 
-func (s *SDKClient) Staking() rpc.Staking {
+func (s *Client) Staking() rpc.Staking {
 	return s.modules[staking.ModuleName].(rpc.Staking)
 }
 
-func (s *SDKClient) Gov() rpc.Gov {
+func (s *Client) Gov() rpc.Gov {
 	return s.modules[gov.ModuleName].(rpc.Gov)
 }
 
-func (s *SDKClient) Slashing() rpc.Slashing {
+func (s *Client) Slashing() rpc.Slashing {
 	return s.modules[slashing.ModuleName].(rpc.Slashing)
 }
 
-func (s *SDKClient) Random() rpc.Random {
+func (s *Client) Random() rpc.Random {
 	return s.modules[random.ModuleName].(rpc.Random)
 }
 
-func (s *SDKClient) Keys() rpc.Keys {
+func (s *Client) Keys() rpc.Keys {
 	return s.modules[keys.ModuleName].(rpc.Keys)
 }
 
-func (s *SDKClient) Asset() rpc.Asset {
+func (s *Client) Asset() rpc.Asset {
 	return s.modules[asset.ModuleName].(rpc.Asset)
 }
 
-func (s *SDKClient) Tendermint() rpc.Tendermint {
+func (s *Client) Tendermint() rpc.Tendermint {
 	return s.modules[tendermint.ModuleName].(rpc.Tendermint)
 }
 
-func (s *SDKClient) SetOutput(w io.Writer) {
+func (s *Client) SetOutput(w io.Writer) {
 	s.logger.SetOutput(w)
 }

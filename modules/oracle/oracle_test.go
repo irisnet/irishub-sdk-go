@@ -8,8 +8,8 @@ import (
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	"github.com/irisnet/irishub-sdk-go/test"
-	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/log"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -69,7 +69,7 @@ func (ots *OracleTestSuite) SetupService() {
 	require.NoError(ots.T(), err)
 	require.NotEmpty(ots.T(), result.Hash)
 
-	_, err = ots.Service().RegisterSingleServiceRequestListener(serviceName,
+	_, err = ots.Service().SubscribeSingleServiceRequest(serviceName,
 		func(reqCtxID, reqID, input string) (string, string) {
 			ots.Info().Str("input", input).
 				Str("reqCtxID", reqCtxID).
@@ -119,7 +119,7 @@ func (ots *OracleTestSuite) TestFeed() {
 	require.NotEmpty(ots.T(), result.Hash)
 
 	ch := make(chan rpc.FeedValue)
-	err = ots.Oracle().RegisterFeedListener(feedName, func(value rpc.FeedValue) {
+	err = ots.Oracle().SubscribeFeedValue(feedName, func(value rpc.FeedValue) {
 		ots.Info().
 			Str("feedName", feedName).
 			Str("feedValue", value.Data).

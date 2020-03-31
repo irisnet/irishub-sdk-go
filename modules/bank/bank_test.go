@@ -3,15 +3,14 @@ package bank_test
 import (
 	"fmt"
 	"github.com/irisnet/irishub-sdk-go/rpc"
+	"github.com/irisnet/irishub-sdk-go/test"
+	"github.com/irisnet/irishub-sdk-go/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"math/rand"
 	"sync"
 	"testing"
 	"time"
-
-	"github.com/irisnet/irishub-sdk-go/test"
-	"github.com/irisnet/irishub-sdk-go/types"
 )
 
 type BankTestSuite struct {
@@ -72,6 +71,9 @@ func (bts BankTestSuite) TestBurn() {
 	result, err := bts.Bank().Burn(coins, baseTx)
 	require.NoError(bts.T(), err)
 	require.NotEmpty(bts.T(), result.Hash)
+
+	var du time.Duration
+	fmt.Println(du.Nanoseconds())
 }
 
 func (bts BankTestSuite) TestSetMemoRegexp() {
@@ -131,7 +133,7 @@ func (bts BankTestSuite) TestMultiSend() {
 
 	begin := time.Now()
 	var wait sync.WaitGroup
-	for i := 1; i <= 1000; i++ {
+	for i := 1; i <= 100; i++ {
 		wait.Add(1)
 		index := rand.Intn(accNum)
 		go func() {
@@ -140,7 +142,7 @@ func (bts BankTestSuite) TestMultiSend() {
 				From:     acc[index],
 				Gas:      20000,
 				Memo:     "test",
-				Mode:     types.Async,
+				Mode:     types.Commit,
 				Password: "1234567890",
 			})
 			require.NoError(bts.T(), err)

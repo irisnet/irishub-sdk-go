@@ -9,17 +9,30 @@ import (
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
-func (base baseClient) broadcastTx(txBytes []byte, mode sdk.BroadcastMode) (sdk.ResultTx, sdk.Error) {
-	switch mode {
-	case sdk.Commit:
-		return base.broadcastTxCommit(txBytes)
-	case sdk.Async:
-		return base.broadcastTxAsync(txBytes)
-	case sdk.Sync:
-		return base.broadcastTxSync(txBytes)
+func (base baseClient) broadcastTx(txBytes []byte, mode sdk.BroadcastMode) (res sdk.ResultTx, err sdk.Error) {
+	ch := make(chan sdk.ResultTx, 1)
+
+	go func() {
+		switch mode {
+		case sdk.Commit:
+			res, err = base.broadcastTxCommit(txBytes)
+		case sdk.Async:
+			res, err = base.broadcastTxAsync(txBytes)
+		case sdk.Sync:
+			res, err = base.broadcastTxSync(txBytes)
+		default:
+			err = sdk.Wrapf("commit mode(%s) not supported", base.cfg.Mode)
+		}
+		ch <- res
+	}()
+
+	select {
+	case result := <-ch:
+		return result, err
+	case <-time.After(base.cfg.Timeout):
+		return res, sdk.Wrap(errors.New("commit transaction timed out"))
 
 	}
-	return sdk.ResultTx{}, sdk.Wrapf("commit mode(%s) not supported", base.cfg.Mode)
 }
 
 // broadcastTxCommit broadcasts transaction bytes to a Tendermint node

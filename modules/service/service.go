@@ -7,8 +7,8 @@ import (
 	cmn "github.com/tendermint/tendermint/libs/common"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
-	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/log"
 )
 
 type serviceClient struct {
@@ -167,15 +167,15 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest, baseT
 	}
 
 	reqCtxID := result.Tags.GetValue(tagRequestContextID)
-	if request.Handler == nil {
+	if request.Callback == nil {
 		return reqCtxID, nil
 	}
-	_, err = s.RegisterServiceResponseListener(reqCtxID, request.Handler)
+	_, err = s.SubscribeServiceResponse(reqCtxID, request.Callback)
 	return reqCtxID, sdk.Wrap(err)
 }
 
-func (s serviceClient) RegisterServiceResponseListener(reqCtxID string,
-	callback rpc.ServiceInvokeHandler) (subscription sdk.Subscription, err sdk.Error) {
+func (s serviceClient) SubscribeServiceResponse(reqCtxID string,
+	callback rpc.ServiceInvokeCallback) (subscription sdk.Subscription, err sdk.Error) {
 	builder := sdk.NewEventQueryBuilder().
 		AddCondition(sdk.Cond(sdk.ActionKey).EQ(tagRespondService)).
 		AddCondition(sdk.Cond(tagRequestContextID).EQ(sdk.EventValue(reqCtxID)))
@@ -349,8 +349,8 @@ func (s serviceClient) WithdrawTax(destAddress string, amount sdk.DecCoins, base
 	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
-//RegisterServiceRequestListener is responsible for registering a group of service handler
-func (s serviceClient) RegisterServiceRequestListener(serviceRegistry rpc.ServiceRegistry,
+//SubscribeServiceRequest is responsible for registering a group of service handler
+func (s serviceClient) SubscribeServiceRequest(serviceRegistry rpc.ServiceRegistry,
 	baseTx sdk.BaseTx) (subscription sdk.Subscription, err sdk.Error) {
 	provider, e := s.QueryAddress(baseTx.From)
 	if e != nil {
@@ -383,9 +383,9 @@ func (s serviceClient) RegisterServiceRequestListener(serviceRegistry rpc.Servic
 	})
 }
 
-//RegisterSingleServiceRequestListener is responsible for registering a single service handler
-func (s serviceClient) RegisterSingleServiceRequestListener(serviceName string,
-	respondHandler rpc.ServiceRespondHandler,
+//SubscribeSingleServiceRequest is responsible for registering a single service handler
+func (s serviceClient) SubscribeSingleServiceRequest(serviceName string,
+	callback rpc.ServiceRespondCallback,
 	baseTx sdk.BaseTx) (subscription sdk.Subscription, err sdk.Error) {
 	provider, e := s.QueryAddress(baseTx.From)
 	if e != nil {
@@ -401,7 +401,7 @@ func (s serviceClient) RegisterSingleServiceRequestListener(serviceName string,
 			Contains(sdk.EventValue(serviceName)),
 		)
 	return s.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
-		msgs := s.GenServiceResponseMsgs(block.ResultEndBlock.Tags, serviceName, provider, respondHandler)
+		msgs := s.GenServiceResponseMsgs(block.ResultEndBlock.Tags, serviceName, provider, callback)
 		if _, err = s.SendMsgBatch(5, msgs, baseTx); err != nil {
 			s.Err(err).Msg("provider respond failed")
 		}
@@ -580,7 +580,7 @@ func (s serviceClient) QueryFees(provider string) (rpc.EarnedFees, sdk.Error) {
 	return fee.Convert().(rpc.EarnedFees), nil
 }
 
-func (s serviceClient) GenServiceResponseMsgs(tags sdk.Tags, serviceName string, provider sdk.AccAddress, handler rpc.ServiceRespondHandler) (msgs []sdk.Msg) {
+func (s serviceClient) GenServiceResponseMsgs(tags sdk.Tags, serviceName string, provider sdk.AccAddress, handler rpc.ServiceRespondCallback) (msgs []sdk.Msg) {
 	idsKey := actionTagKey(actionNewBatchRequest, serviceName, provider.String())
 	idsStr := tags.GetValue(string(idsKey))
 	if len(idsStr) == 0 {

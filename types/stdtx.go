@@ -7,7 +7,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/multisig"
 
-	json2 "github.com/irisnet/irishub-sdk-go/tools/json"
+	json2 "github.com/irisnet/irishub-sdk-go/utils/json"
 )
 
 const (

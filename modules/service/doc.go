@@ -60,7 +60,7 @@
 //	input := `{"pair":"iris-usdt"}`
 //	output := `{"last":"1:100"}`
 //
-//	err = sts.Service().RegisterSingleServiceRequestListener(definition.ServiceName,
+//	err = sts.Service().SubscribeSingleServiceRequest(definition.ServiceName,
 //		func(reqCtxID, reqID, input string) (string, string) {
 //			sts.Info().
 //				Str("input", input).

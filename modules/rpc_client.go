@@ -8,9 +8,9 @@ import (
 	rpc "github.com/tendermint/tendermint/rpc/client"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	"github.com/irisnet/irishub-sdk-go/tools/log"
-	"github.com/irisnet/irishub-sdk-go/tools/uuid"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/log"
+	"github.com/irisnet/irishub-sdk-go/utils/uuid"
 )
 
 type rpcClient struct {

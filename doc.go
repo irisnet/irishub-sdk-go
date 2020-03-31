@@ -10,7 +10,7 @@
 // 		panic(err)
 // 	}
 //
-// 	client := client.NewSDKClient(types.SDKConfig{
+// 	client := sdk.NewClient(types.SDKConfig{
 // 		NodeURI:   NodeURI,
 // 		Network:   Network,
 // 		ChainID:   ChainID,
@@ -51,4 +51,4 @@
 // 	func (dao TestKeyDAO) Delete(name string) error {
 // 		return nil
 // 	}
-package iris
+package sdk

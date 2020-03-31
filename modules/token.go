@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/irisnet/irishub-sdk-go/tools/cache"
-	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/cache"
+	"github.com/irisnet/irishub-sdk-go/utils/log"
 )
 
 type localToken struct {

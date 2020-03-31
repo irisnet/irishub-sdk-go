@@ -1,6 +1,8 @@
 package types
 
-type SDKConfig struct {
+import "time"
+
+type ClientConfig struct {
 	// IRISHub node rpc address
 	NodeURI string
 
@@ -24,6 +26,9 @@ type SDKConfig struct {
 
 	//
 	StoreType StoreType
+
+	//Transaction broadcast timeout
+	Timeout time.Duration
 
 	//log level(trace|debug|info|warn|error|fatal|panic)
 	Level string

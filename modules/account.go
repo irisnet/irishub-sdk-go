@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/irisnet/irishub-sdk-go/tools/cache"
-	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/cache"
+	"github.com/irisnet/irishub-sdk-go/utils/log"
 )
 
 // Must be used with locker, otherwise there are thread safety issues

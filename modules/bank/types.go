@@ -8,8 +8,8 @@ import (
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
 
-	json2 "github.com/irisnet/irishub-sdk-go/tools/json"
 	"github.com/irisnet/irishub-sdk-go/types"
+	json2 "github.com/irisnet/irishub-sdk-go/utils/json"
 )
 
 const (
