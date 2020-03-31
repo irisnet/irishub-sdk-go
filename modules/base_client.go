@@ -124,7 +124,7 @@ resize:
 			return rs, err
 		}
 
-		if len(txByte) > 1000 {
+		if len(txByte) > 4000 {
 			base.Logger().Warn().
 				Int("MaxMsgsLen", batch).
 				Msg("the transaction content is too large and will be re-sent in batches")
@@ -132,7 +132,7 @@ resize:
 			// filter out transactions that have been sent
 			msgs = msgs[i*batch:]
 			// reset the maximum number of msg in each transaction
-			batch--
+			batch = batch / 2
 			_ = base.RemoveAccount(ctx.Address())
 			goto resize
 		}
