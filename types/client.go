@@ -7,7 +7,7 @@ import (
 
 type TxManager interface {
 	BuildAndSend(msg []Msg, baseTx BaseTx) (ResultTx, Error)
-	SendMsgBatch(batch int, msgs Msgs, baseTx BaseTx) ([]ResultTx, Error)
+	SendMsgBatch(msgs Msgs, baseTx BaseTx) ([]ResultTx, Error)
 	Broadcast(signedTx StdTx, mode BroadcastMode) (ResultTx, Error)
 }
 

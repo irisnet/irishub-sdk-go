@@ -32,7 +32,6 @@ const (
 	Abstain    VoteOption = "Abstain"
 )
 
-//=========================basicProposal========================================================
 type Proposal interface {
 	GetProposalID() uint64
 	GetTitle() string
@@ -122,12 +121,10 @@ type TallyResult struct {
 	SystemVotingPower string `json:"system_voting_power,omitempty"`
 }
 
-//==========================PlainTextProposal=======================================================
 type PlainTextProposal struct {
 	Proposal
 }
 
-//==========================ParameterProposal=======================================================
 type Param struct {
 	Subspace string `json:"subspace"`
 	Key      string `json:"key"`
@@ -140,7 +137,6 @@ type ParameterProposal struct {
 	Params []Param `json:"params"`
 }
 
-//==========================CommunityTaxUsageProposal===============================================
 type TaxUsage struct {
 	Usage       string `json:"usage"`
 	DestAddress string `json:"dest_address"`
@@ -152,7 +148,6 @@ type CommunityTaxUsageProposal struct {
 	TaxUsage TaxUsage `json:"tax_usage"`
 }
 
-//==========================SoftwareUpgradeProposal===============================================
 type ProtocolDefinition struct {
 	Version   uint64 `json:"version"`
 	Software  string `json:"software"`
@@ -165,7 +160,6 @@ type SoftwareUpgradeProposal struct {
 	ProtocolDefinition
 }
 
-//============================for query=================================================================
 type ProposalRequest struct {
 	Voter          string
 	Depositor      string

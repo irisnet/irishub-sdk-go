@@ -20,6 +20,8 @@ const (
 	cacheCapacity     = 100
 	cacheExpirePeriod = 1 * time.Minute
 	timeout           = 5 * time.Second
+	tryThreshold      = 3
+	maxMsgsCnt        = 10
 )
 
 type baseClient struct {
@@ -80,14 +82,27 @@ func (base *baseClient) Logger() *log.Logger {
 }
 
 func (base *baseClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+	res, err := base.SendMsgBatch(msg, baseTx)
+	if err != nil || len(res) == 0 {
+		return sdk.ResultTx{}, sdk.WrapWithMessage(err, "send transaction failed")
+	}
+
+	return res[0], nil
+}
+
+func (base *baseClient) SendMsgBatch(msgs sdk.Msgs, baseTx sdk.BaseTx) (rs []sdk.ResultTx, err sdk.Error) {
+	if msgs == nil || len(msgs) == 0 {
+		return rs, sdk.Wrapf("must have at least one message in list")
+	}
+
 	defer sdk.CatchPanic(func(errMsg string) {
 		base.Logger().Error().
 			Msgf("broadcast msg failed:%s", errMsg)
 	})
 	//validate msg
-	for _, m := range msg {
+	for _, m := range msgs {
 		if err := m.ValidateBasic(); err != nil {
-			return sdk.ResultTx{}, sdk.Wrap(err)
+			return rs, sdk.Wrap(err)
 		}
 	}
 	base.Logger().Info().Msg("validate msg success")
@@ -95,64 +110,55 @@ func (base *baseClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Resu
 	//lock the account
 	base.l.Lock(baseTx.From)
 	defer base.l.Unlock(baseTx.From)
+
+	batch := maxMsgsCnt
 	var tryCnt = 0
 
-retry:
-	ctx, err := base.prepare(baseTx)
-	if err != nil {
-		return sdk.ResultTx{}, sdk.Wrap(err)
-	}
-
-	tx, err := ctx.BuildAndSign(baseTx.From, msg)
-	if err != nil {
-		return sdk.ResultTx{}, sdk.Wrap(err)
-	}
-	base.Logger().Info().
-		Strs("data", tx.GetSignBytes()).
-		Msg("sign transaction success")
-
-	txByte, err := base.cdc.MarshalBinaryLengthPrefixed(tx)
-	if err != nil {
-		return sdk.ResultTx{}, sdk.Wrap(err)
-	}
-
-	res, e := base.broadcastTx(txByte, ctx.Mode())
-	if e != nil {
-		if sdk.Code(e.Code()) == sdk.InvalidSequence {
-			base.Logger().Warn().
-				Str("address", ctx.Address()).
-				Int("tryCnt", tryCnt).
-				Msg("account information cached has error,will sync from chain and try to send transaction again")
-
-			if tryCnt++; tryCnt >= 3 {
-				_ = base.RemoveAccount(ctx.Address())
-				return res, e
-			}
-
-			_, _ = base.Refresh(ctx.Address())
-			goto retry
-		}
-		base.Logger().Err(e).Msg("broadcastTx transaction failed")
-		return sdk.ResultTx{}, sdk.Wrap(e)
-	}
-	base.Logger().Info().
-		Str("txHash", res.Hash).
-		Msg("broadcastTx transaction success")
-
-	return res, nil
-}
-
-func (base *baseClient) SendMsgBatch(batch int, msgs sdk.Msgs, baseTx sdk.BaseTx) (rs []sdk.ResultTx, err sdk.Error) {
-	if msgs == nil || len(msgs) == 0 {
-		return rs, sdk.Wrapf("must have at least one message in list")
-	}
-
+resize:
 	for i, ms := range utils.SplitArray(batch, msgs) {
 		mss := ms.(sdk.Msgs)
-		res, err := base.BuildAndSend(mss, baseTx)
+
+	retry:
+		txByte, ctx, err := base.buildTx(mss, baseTx)
 		if err != nil {
-			return rs, sdk.WrapWithMessage(err, "bulk sending transactions failed with errors starting at [%d]", i*batch)
+			return rs, err
 		}
+
+		if len(txByte) > 1000 {
+			base.Logger().Warn().
+				Int("MaxMsgsLen", batch).
+				Msg("the transaction content is too large and will be re-sent in batches")
+
+			// filter out transactions that have been sent
+			msgs = msgs[i*batch:]
+			// reset the maximum number of msg in each transaction
+			batch--
+			_ = base.RemoveAccount(ctx.Address())
+			goto resize
+		}
+
+		res, err := base.broadcastTx(txByte, ctx.Mode())
+		if err != nil {
+			if sdk.Code(err.Code()) == sdk.InvalidSequence {
+				base.Logger().Warn().
+					Str("address", ctx.Address()).
+					Int("tryCnt", tryCnt).
+					Msg("account information cached has error,will sync from chain and try to send transaction again")
+
+				if tryCnt++; tryCnt >= tryThreshold {
+					return rs, err
+				}
+				_ = base.RemoveAccount(ctx.Address())
+				goto retry
+			}
+			base.Logger().
+				Err(err).
+				Msg("broadcastTx transaction failed")
+			return rs, err
+		}
+		base.Logger().Info().
+			Str("txHash", res.Hash).
+			Msg("broadcastTx transaction success")
 		rs = append(rs, res)
 	}
 	return rs, nil

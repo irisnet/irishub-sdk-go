@@ -9,6 +9,27 @@ import (
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
+func (base *baseClient) buildTx(msg []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *sdk.TxContext, sdk.Error) {
+	ctx, err := base.prepare(baseTx)
+	if err != nil {
+		return nil, ctx, sdk.Wrap(err)
+	}
+
+	tx, err := ctx.BuildAndSign(baseTx.From, msg)
+	if err != nil {
+		return nil, ctx, sdk.Wrap(err)
+	}
+	base.Logger().Info().
+		Strs("data", tx.GetSignBytes()).
+		Msg("sign transaction success")
+
+	txByte, err := base.cdc.MarshalBinaryLengthPrefixed(tx)
+	if err != nil {
+		return nil, ctx, sdk.Wrap(err)
+	}
+	return txByte, ctx, nil
+}
+
 func (base baseClient) broadcastTx(txBytes []byte, mode sdk.BroadcastMode) (res sdk.ResultTx, err sdk.Error) {
 	ch := make(chan sdk.ResultTx, 1)
 

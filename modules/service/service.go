@@ -377,7 +377,7 @@ func (s serviceClient) SubscribeServiceRequest(serviceRegistry rpc.ServiceRegist
 		if msgs == nil || len(msgs) == 0 {
 			return
 		}
-		if _, err = s.SendMsgBatch(5, msgs, baseTx); err != nil {
+		if _, err = s.SendMsgBatch(msgs, baseTx); err != nil {
 			s.Err(err).Msg("provider respond failed")
 		}
 	})
@@ -402,7 +402,7 @@ func (s serviceClient) SubscribeSingleServiceRequest(serviceName string,
 		)
 	return s.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
 		msgs := s.GenServiceResponseMsgs(block.ResultEndBlock.Tags, serviceName, provider, callback)
-		if _, err = s.SendMsgBatch(5, msgs, baseTx); err != nil {
+		if _, err = s.SendMsgBatch(msgs, baseTx); err != nil {
 			s.Err(err).Msg("provider respond failed")
 		}
 	})
