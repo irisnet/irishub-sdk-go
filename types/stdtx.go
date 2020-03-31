@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/multisig"
 
-	json2 "github.com/irisnet/irishub-sdk-go/tools/json"
+	json2 "github.com/irisnet/irishub-sdk-go/utils/json"
 )
 
 const (
@@ -32,13 +31,23 @@ type Msg interface {
 	// doesn't require access to any other information.
 	ValidateBasic() error
 
-	// Get the canonical byte representation of the Msg.
+	// QueryAndRefreshAccount the canonical byte representation of the Msg.
 	GetSignBytes() []byte
 
 	// Signers returns the addrs of signers that must sign.
 	// CONTRACT: All signatures must be present to be valid.
 	// CONTRACT: Returns addrs in some deterministic order.
 	GetSigners() []AccAddress
+}
+
+type Msgs []Msg
+
+func (m Msgs) Len() int {
+	return len(m)
+}
+
+func (m Msgs) Sub(begin, end int) SplitAble {
+	return m[begin:end]
 }
 
 // Transactions objects must fulfill the Tx

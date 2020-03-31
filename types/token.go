@@ -16,25 +16,7 @@ var (
 		Mintable:      true,
 		Owner:         "",
 	}
-	cachedToken = make(map[string]Token)
 )
-
-func init() {
-	CacheTokens(IRIS)
-}
-
-func CacheTokens(tokens ...Token) {
-	for _, token := range tokens {
-		if _, ok := cachedToken[token.Symbol]; !ok {
-			cachedToken[token.Symbol] = token
-			cachedToken[token.GetMinUnit()] = token
-		}
-	}
-}
-func GetToken(name string) (token Token, existed bool) {
-	token, existed = cachedToken[name]
-	return
-}
 
 type Token struct {
 	Symbol        string `json:"symbol"`

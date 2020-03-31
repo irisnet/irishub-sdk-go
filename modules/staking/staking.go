@@ -4,12 +4,12 @@ import (
 	"strings"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
-	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/log"
 )
 
 type stakingClient struct {
-	sdk.AbstractClient
+	sdk.BaseClient
 	*log.Logger
 }
 
@@ -21,10 +21,10 @@ func (s stakingClient) Name() string {
 	return ModuleName
 }
 
-func Create(ac sdk.AbstractClient) rpc.Staking {
+func Create(ac sdk.BaseClient) rpc.Staking {
 	return stakingClient{
-		AbstractClient: ac,
-		Logger:         ac.Logger(),
+		BaseClient: ac,
+		Logger:     ac.Logger(),
 	}
 }
 

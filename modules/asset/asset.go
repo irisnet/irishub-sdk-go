@@ -2,19 +2,19 @@ package asset
 
 import (
 	"github.com/irisnet/irishub-sdk-go/rpc"
-	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/log"
 )
 
 type assetClient struct {
-	sdk.AbstractClient
+	sdk.BaseClient
 	*log.Logger
 }
 
-func Create(ac sdk.AbstractClient) rpc.Asset {
+func Create(ac sdk.BaseClient) rpc.Asset {
 	return assetClient{
-		AbstractClient: ac,
-		Logger:         ac.Logger(),
+		BaseClient: ac,
+		Logger:     ac.Logger(),
 	}
 }
 
@@ -27,7 +27,7 @@ func (a assetClient) Name() string {
 }
 
 func (a assetClient) QueryToken(symbol string) (sdk.Token, error) {
-	return a.AbstractClient.QueryToken(symbol)
+	return a.BaseClient.QueryToken(symbol)
 }
 
 func (a assetClient) QueryTokens(owner string) (sdk.Tokens, error) {
@@ -42,7 +42,7 @@ func (a assetClient) QueryTokens(owner string) (sdk.Tokens, error) {
 	if err := a.QueryWithResponse("custom/asset/tokens", param, &tokens); err != nil {
 		return sdk.Tokens{}, err
 	}
-	sdk.CacheTokens(tokens...)
+	a.SaveTokens(tokens...)
 	return tokens, nil
 }
 

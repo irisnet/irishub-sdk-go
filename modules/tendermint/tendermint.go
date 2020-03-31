@@ -10,13 +10,13 @@ const (
 )
 
 type tmClient struct {
-	sdk.AbstractClient
+	sdk.BaseClient
 	cdc sdk.Codec
 }
 
-func Create(ac sdk.AbstractClient) rpc.Tendermint {
+func Create(ac sdk.BaseClient) rpc.Tendermint {
 	return tmClient{
-		AbstractClient: ac,
+		BaseClient: ac,
 	}
 }
 
@@ -45,7 +45,7 @@ func (t tmClient) QueryBlockResult(height int64) (sdk.BlockResult, sdk.Error) {
 }
 
 func (t tmClient) QueryTx(hash string) (sdk.ResultQueryTx, sdk.Error) {
-	tx, err := t.AbstractClient.QueryTx(hash)
+	tx, err := t.BaseClient.QueryTx(hash)
 	if err != nil {
 		return sdk.ResultQueryTx{}, sdk.Wrap(err)
 	}
@@ -53,7 +53,7 @@ func (t tmClient) QueryTx(hash string) (sdk.ResultQueryTx, sdk.Error) {
 }
 
 func (t tmClient) SearchTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.ResultSearchTxs, sdk.Error) {
-	txs, err := t.AbstractClient.QueryTxs(builder, page, size)
+	txs, err := t.BaseClient.QueryTxs(builder, page, size)
 	if err != nil {
 		return sdk.ResultSearchTxs{}, sdk.Wrap(err)
 	}

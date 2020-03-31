@@ -41,13 +41,13 @@
 //  result,err := client.Bank().SetMemoRegexp("testMemo", baseTx)
 //  fmt.Println(result)
 //
-// Query account information
+// Queries account information
 //
 //  client := test.NewClient()
 //  result,err := client.Bank().QueryAccount("faa1hp29kuh22vpjjlnctmyml5s75evsnsd8r4x0mm")
 //  fmt.Println(result)
 //
-// Query the token information
+// Queries the token information
 //
 //  client := test.NewClient()
 //  result,err := client.Bank().QueryTokenStats("iris")

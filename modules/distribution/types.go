@@ -5,8 +5,8 @@ import (
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
 
-	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/json"
 )
 
 const (

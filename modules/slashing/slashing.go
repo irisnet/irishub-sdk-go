@@ -5,19 +5,19 @@ import (
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
 
-	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/log"
 )
 
 type slashingClient struct {
-	sdk.AbstractClient
+	sdk.BaseClient
 	*log.Logger
 }
 
-func Create(ac sdk.AbstractClient) rpc.Slashing {
+func Create(ac sdk.BaseClient) rpc.Slashing {
 	return slashingClient{
-		AbstractClient: ac,
-		Logger:         ac.Logger(),
+		BaseClient: ac,
+		Logger:     ac.Logger(),
 	}
 }
 
@@ -67,7 +67,7 @@ func (s slashingClient) queryParamsV100() (rpc.SlashingParams, error) {
 }
 
 func (s slashingClient) querySigningInfoV017(pk crypto.PubKey) (rpc.ValidatorSigningInfo, sdk.Error) {
-	key := append([]byte{0x01}, pk.Bytes()...)
+	key := append([]byte{0x01}, pk.Address().Bytes()...)
 	res, err := s.QueryStore(key, s.Name())
 	if err != nil {
 		return rpc.ValidatorSigningInfo{}, sdk.Wrap(err)

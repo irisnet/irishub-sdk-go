@@ -7,8 +7,8 @@ import (
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
 
-	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/json"
 )
 
 const (
@@ -203,7 +203,7 @@ const (
 )
 
 // String to proposalType byte.  Returns ff if invalid.
-func VoteOptionFromString(option rpc.VoteOption) (VoteOption, error) {
+func VoteOptionFromString(option rpc.VoteOption) (VoteOption, sdk.Error) {
 	switch option {
 	case rpc.Yes:
 		return OptionYes, nil
@@ -214,7 +214,7 @@ func VoteOptionFromString(option rpc.VoteOption) (VoteOption, error) {
 	case rpc.NoWithVeto:
 		return OptionNoWithVeto, nil
 	default:
-		return OptionEmpty, errors.New(fmt.Sprintf("'%s' is not a valid vote option", option))
+		return OptionEmpty, sdk.Wrapf(fmt.Sprintf("'%s' is not a valid vote option", option))
 	}
 }
 

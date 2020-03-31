@@ -114,6 +114,11 @@ func Wrap(err error) Error {
 	}
 }
 
+func WrapWithMessage(err error, format string, args ...interface{}) Error {
+	desc := fmt.Sprintf(format, args...)
+	return Wrap(errors.WithMessage(err, desc))
+}
+
 // Wrapf extends given error with an additional information.
 //
 // This function works like Wrap function with additional functionality of

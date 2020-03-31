@@ -14,8 +14,8 @@ import (
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"golang.org/x/crypto/pbkdf2"
 
-	"github.com/irisnet/irishub-sdk-go/tools"
-	"github.com/irisnet/irishub-sdk-go/tools/uuid"
+	"github.com/irisnet/irishub-sdk-go/utils"
+	"github.com/irisnet/irishub-sdk-go/utils/uuid"
 )
 
 func NewKeyStoreKeyManager(keystore string, auth string) (KeyManager, error) {
@@ -52,11 +52,11 @@ func (m *keyManager) recoveryFromKeyStore(keystore string, auth string) error {
 }
 
 func generateKeyStore(privateKey crypto.PrivKey, password string) (Keystore, error) {
-	salt, err := tools.GenerateRandomBytes(32)
+	salt, err := utils.GenerateRandomBytes(32)
 	if err != nil {
 		return Keystore{}, err
 	}
-	iv, err := tools.GenerateRandomBytes(16)
+	iv, err := utils.GenerateRandomBytes(16)
 	if err != nil {
 		return Keystore{}, err
 	}

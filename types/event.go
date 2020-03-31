@@ -27,7 +27,6 @@ type WSClient interface {
 	SubscribeTx(builder *EventQueryBuilder, handler EventTxHandler) (Subscription, Error)
 	SubscribeNewBlockHeader(handler EventNewBlockHeaderHandler) (Subscription, Error)
 	SubscribeValidatorSetUpdates(handler EventValidatorSetUpdatesHandler) (Subscription, Error)
-	Resubscribe(subscription Subscription, handler EventHandler) Error
 	Unsubscribe(subscription Subscription) Error
 }
 

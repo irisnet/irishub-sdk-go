@@ -11,3 +11,8 @@ type Module interface {
 type Response interface {
 	Convert() interface{}
 }
+
+type SplitAble interface {
+	Len() int
+	Sub(begin, end int) SplitAble
+}

@@ -9,8 +9,8 @@ import (
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	"github.com/irisnet/irishub-sdk-go/test"
-	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/log"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -98,7 +98,7 @@ func (sts *ServiceTestSuite) TestService() {
 			return output, testResult
 		},
 	}
-	sub1, err = sts.Service().RegisterServiceRequestListener(router, baseTx)
+	sub1, err = sts.Service().SubscribeServiceRequest(router, baseTx)
 	require.NoError(sts.T(), err)
 
 	serviceFeeCap, e := sdk.ParseDecCoins("200iris")
@@ -121,7 +121,9 @@ func (sts *ServiceTestSuite) TestService() {
 	var exit = make(chan int, 0)
 
 	requestContextID, err = sts.Service().InvokeService(invocation, baseTx)
-	sub2, err = sts.Service().RegisterServiceResponseListener(requestContextID, func(reqCtxID, reqID, responses string) {
+	require.NoError(sts.T(), err)
+
+	sub2, err = sts.Service().SubscribeServiceResponse(requestContextID, func(reqCtxID, reqID, responses string) {
 		sts.Info().
 			Str("reqCtxID", reqCtxID).
 			Str("reqID", reqID).

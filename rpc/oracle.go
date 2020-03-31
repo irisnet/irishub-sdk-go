@@ -18,7 +18,7 @@ type OracleTx interface {
 	CreateAndStartFeed(request FeedCreateRequest) (result sdk.ResultTx, err sdk.Error)
 	PauseFeed(feedName string, baseTx sdk.BaseTx) (result sdk.ResultTx, err sdk.Error)
 	EditFeed(request FeedEditRequest) (result sdk.ResultTx, err sdk.Error)
-	RegisterFeedListener(feedName string, handler func(value FeedValue)) sdk.Error
+	SubscribeFeedValue(feedName string, callback func(value FeedValue)) sdk.Error
 }
 
 type OracleQuery interface {
@@ -78,7 +78,6 @@ type FeedContext struct {
 	Timeout           int64     `json:"timeout"`
 	ServiceFeeCap     sdk.Coins `json:"service_fee_cap"`
 	RepeatedFrequency uint64    `json:"repeated_frequency"`
-	RepeatedTotal     int64     `json:"repeated_total"`
 	ResponseThreshold uint16    `json:"response_threshold"`
 	State             string    `json:"state"`
 }

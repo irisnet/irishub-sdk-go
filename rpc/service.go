@@ -37,14 +37,14 @@ type ServiceTx interface {
 	WithdrawTax(destAddress string,
 		amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	RegisterServiceRequestListener(serviceRegistry ServiceRegistry, baseTx sdk.BaseTx) (sdk.Subscription, sdk.Error)
+	SubscribeServiceRequest(serviceRegistry ServiceRegistry, baseTx sdk.BaseTx) (sdk.Subscription, sdk.Error)
 
-	RegisterSingleServiceRequestListener(serviceName string,
-		respondHandler ServiceRespondHandler,
+	SubscribeSingleServiceRequest(serviceName string,
+		callback ServiceRespondCallback,
 		baseTx sdk.BaseTx) (sdk.Subscription, sdk.Error)
 
-	RegisterServiceResponseListener(reqCtxID string,
-		callback ServiceInvokeHandler) (sdk.Subscription, sdk.Error)
+	SubscribeServiceResponse(reqCtxID string,
+		callback ServiceInvokeCallback) (sdk.Subscription, sdk.Error)
 }
 
 type ServiceQuery interface {
@@ -70,9 +70,9 @@ type Service interface {
 	ServiceQuery
 }
 
-type ServiceInvokeHandler func(reqCtxID, reqID, responses string)
-type ServiceRespondHandler func(reqCtxID, reqID, input string) (output string, result string)
-type ServiceRegistry map[string]ServiceRespondHandler
+type ServiceInvokeCallback func(reqCtxID, reqID, responses string)
+type ServiceRespondCallback func(reqCtxID, reqID, input string) (output string, result string)
+type ServiceRegistry map[string]ServiceRespondCallback
 
 // ServiceRequest defines a request which contains the detailed request data
 type ServiceRequest struct {
@@ -152,7 +152,7 @@ type ServiceInvocationRequest struct {
 	Repeated          bool         `json:"repeated"`
 	RepeatedFrequency uint64       `json:"repeated_frequency"`
 	RepeatedTotal     int64        `json:"repeated_total"`
-	Handler           ServiceInvokeHandler
+	Callback          ServiceInvokeCallback
 }
 
 // UpdateContextRequest defines a message to update a request context

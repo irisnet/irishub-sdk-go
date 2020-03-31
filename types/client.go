@@ -1,25 +1,41 @@
 package types
 
 import (
-	"github.com/irisnet/irishub-sdk-go/tools/log"
+	"github.com/irisnet/irishub-sdk-go/utils/log"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 type TxManager interface {
 	BuildAndSend(msg []Msg, baseTx BaseTx) (ResultTx, Error)
-	SendMsgBatch(batch int, msgs []Msg, baseTx BaseTx) ([]ResultTx, Error)
+	SendMsgBatch(batch int, msgs Msgs, baseTx BaseTx) ([]ResultTx, Error)
 	Broadcast(signedTx StdTx, mode BroadcastMode) (ResultTx, Error)
 }
 
-type Query interface {
+type Queries interface {
+	StoreQuery
+	AccountQuery
+	TxQuery
+}
+
+type StoreQuery interface {
 	QueryWithResponse(path string, data interface{}, result Response) error
 	Query(path string, data interface{}) ([]byte, error)
 	QueryStore(key cmn.HexBytes, storeName string) (res []byte, err error)
-	QueryAccount(address string) (BaseAccount, error)
-	QueryAddress(name string) (addr AccAddress, err error)
-	QueryToken(symbol string) (Token, error)
+}
+
+type AccountQuery interface {
+	QueryAccount(address string) (BaseAccount, Error)
+	QueryAddress(name string) (AccAddress, Error)
+}
+
+type TxQuery interface {
 	QueryTx(hash string) (ResultQueryTx, error)
 	QueryTxs(builder *EventQueryBuilder, page, size int) (ResultSearchTxs, error)
+}
+
+type TokenManager interface {
+	QueryToken(symbol string) (Token, error)
+	SaveTokens(tokens ...Token)
 }
 
 type TokenConvert interface {
@@ -31,9 +47,10 @@ type Logger interface {
 	Logger() *log.Logger
 }
 
-type AbstractClient interface {
+type BaseClient interface {
 	TxManager
-	Query
+	TokenManager
+	Queries
 	TokenConvert
 	TmClient
 	Logger

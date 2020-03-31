@@ -2,12 +2,12 @@ package oracle
 
 import (
 	"github.com/irisnet/irishub-sdk-go/rpc"
-	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/log"
 )
 
 type oracleClient struct {
-	sdk.AbstractClient
+	sdk.BaseClient
 	*log.Logger
 }
 
@@ -19,10 +19,10 @@ func (o oracleClient) Name() string {
 	return ModuleName
 }
 
-func Create(ac sdk.AbstractClient) rpc.Oracle {
+func Create(ac sdk.BaseClient) rpc.Oracle {
 	return oracleClient{
-		AbstractClient: ac,
-		Logger:         ac.Logger(),
+		BaseClient: ac,
+		Logger:     ac.Logger(),
 	}
 }
 
@@ -217,7 +217,7 @@ func (o oracleClient) QueryFeedValue(feedName string) ([]rpc.FeedValue, sdk.Erro
 	return fvs.Convert().([]rpc.FeedValue), nil
 }
 
-func (o oracleClient) RegisterFeedListener(feedName string, handler func(value rpc.FeedValue)) sdk.Error {
+func (o oracleClient) SubscribeFeedValue(feedName string, handler func(value rpc.FeedValue)) sdk.Error {
 	feed, err := o.QueryFeed(feedName)
 	if err != nil {
 		return err

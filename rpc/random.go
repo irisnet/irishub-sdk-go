@@ -9,6 +9,7 @@ type Random interface {
 	Request(request RandomRequest, baseTx sdk.BaseTx) (reqID string, err sdk.Error)
 	QueryRandom(reqID string) (ResponseRandom, sdk.Error)
 	QueryRequests(height int64) ([]RequestRandom, sdk.Error)
+	SubscribeRandom(requestID string, callback EventRequestRandomCallback) (sdk.Subscription, sdk.Error)
 }
 
 type RandomRequest struct {

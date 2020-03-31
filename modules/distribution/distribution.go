@@ -2,12 +2,12 @@ package distribution
 
 import (
 	"github.com/irisnet/irishub-sdk-go/rpc"
-	"github.com/irisnet/irishub-sdk-go/tools/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/log"
 )
 
 type distributionClient struct {
-	sdk.AbstractClient
+	sdk.BaseClient
 	*log.Logger
 }
 
@@ -19,10 +19,10 @@ func (d distributionClient) Name() string {
 	return ModuleName
 }
 
-func Create(ac sdk.AbstractClient) rpc.Distribution {
+func Create(ac sdk.BaseClient) rpc.Distribution {
 	return distributionClient{
-		AbstractClient: ac,
-		Logger:         ac.Logger(),
+		BaseClient: ac,
+		Logger:     ac.Logger(),
 	}
 }
 

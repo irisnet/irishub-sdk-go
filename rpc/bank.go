@@ -10,7 +10,7 @@ type Bank interface {
 	QueryAccount(address string) (sdk.BaseAccount, sdk.Error)
 	QueryTokenStats(tokenID string) (TokenStats, sdk.Error)
 	Send(to string, amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
-	MultiSend(receipts []Receipt, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	MultiSend(receipts Receipts, baseTx sdk.BaseTx) ([]sdk.ResultTx, sdk.Error)
 	Burn(amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 	SetMemoRegexp(memoRegexp string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 	SubscribeSendTx(from, to string, callback EventMsgSendCallback) sdk.Subscription
@@ -19,6 +19,16 @@ type Bank interface {
 type Receipt struct {
 	Address string       `json:"address"`
 	Amount  sdk.DecCoins `json:"amount"`
+}
+
+type Receipts []Receipt
+
+func (r Receipts) Len() int {
+	return len(r)
+}
+
+func (r Receipts) Sub(begin, end int) sdk.SplitAble {
+	return r[begin:end]
 }
 
 type TokenStats struct {

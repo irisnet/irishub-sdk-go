@@ -8,8 +8,8 @@ import (
 
 	cmn "github.com/tendermint/tendermint/libs/common"
 
-	"github.com/irisnet/irishub-sdk-go/tools/json"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/json"
 )
 
 const (

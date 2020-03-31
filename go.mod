@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
+	github.com/bluele/gcache v0.0.0-20190518031135-bc40bd653833
 	github.com/btcsuite/btcd v0.20.1-beta
 	github.com/btcsuite/btcutil v1.0.1
 	github.com/cosmos/go-bip39 v0.0.0-20180819234021-555e2067c45d
