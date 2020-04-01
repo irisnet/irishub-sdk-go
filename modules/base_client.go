@@ -65,10 +65,11 @@ func NewBaseClient(cdc sdk.Codec, cfg sdk.ClientConfig, logger *log.Logger) *bas
 	}
 
 	base.paramsQuery = paramsQuery{
-		Queries: base,
-		Logger:  base.Logger(),
-		Cache:   c,
-		cdc:     cdc,
+		Queries:    base,
+		Logger:     base.Logger(),
+		Cache:      c,
+		cdc:        cdc,
+		expiration: cacheExpirePeriod,
 	}
 
 	base.init()

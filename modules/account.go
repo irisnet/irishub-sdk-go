@@ -19,10 +19,10 @@ type accountQuery struct {
 	expiration time.Duration
 }
 
-func (l accountQuery) QueryAndRefreshAccount(address string) (sdk.BaseAccount, sdk.Error) {
-	account, err := l.Cache.Get(l.prefixKey(address))
+func (a accountQuery) QueryAndRefreshAccount(address string) (sdk.BaseAccount, sdk.Error) {
+	account, err := a.Get(a.prefixKey(address))
 	if err != nil {
-		return l.refresh(address)
+		return a.refresh(address)
 	}
 
 	acc := account.(accountInfo)
@@ -31,15 +31,15 @@ func (l accountQuery) QueryAndRefreshAccount(address string) (sdk.BaseAccount, s
 		AccountNumber: acc.N,
 		Sequence:      acc.S + 1,
 	}
-	l.saveAccount(baseAcc)
+	a.saveAccount(baseAcc)
 
-	l.Debug().
+	a.Debug().
 		Str("address", address).
 		Msg("query account from cache")
 	return baseAcc, nil
 }
 
-func (l accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) {
+func (a accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) {
 	addr, err := sdk.AccAddressFromBech32(address)
 	if err != nil {
 		return sdk.BaseAccount{}, sdk.Wrap(err)
@@ -52,84 +52,84 @@ func (l accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) 
 	}
 
 	var account sdk.BaseAccount
-	if err := l.QueryWithResponse("custom/acc/account", param, &account); err != nil {
+	if err := a.QueryWithResponse("custom/acc/account", param, &account); err != nil {
 		return sdk.BaseAccount{}, sdk.Wrap(err)
 	}
-	l.Debug().
+	a.Debug().
 		Str("address", address).
 		Msg("query account from chain")
 	return account, nil
 }
 
-func (l accountQuery) QueryAddress(name string) (sdk.AccAddress, sdk.Error) {
-	addr, err := l.Cache.Get(l.prefixKey(name))
+func (a accountQuery) QueryAddress(name string) (sdk.AccAddress, sdk.Error) {
+	addr, err := a.Get(a.prefixKey(name))
 	if err == nil {
 		address, err := sdk.AccAddressFromBech32(addr.(string))
 		if err != nil {
-			l.Warn().
+			a.Warn().
 				Str("name", name).
 				Msg("invalid address")
-			_ = l.Remove(l.prefixKey(name))
+			_ = a.Remove(a.prefixKey(name))
 		} else {
 			return address, nil
 		}
 	}
 
-	address, err := l.keyManager.Query(name)
+	address, err := a.keyManager.Query(name)
 	if err != nil {
-		l.Warn().
+		a.Warn().
 			Str("name", name).
 			Msg("can't find account")
 		return address, sdk.Wrap(err)
 	}
 
-	if err := l.SetWithExpire(l.prefixKey(name), address.String(), l.expiration); err != nil {
-		l.Warn().
+	if err := a.SetWithExpire(a.prefixKey(name), address.String(), a.expiration); err != nil {
+		a.Warn().
 			Str("name", name).
 			Msg("cache user failed")
 	}
-	l.Debug().
+	a.Debug().
 		Str("name", name).
 		Str("address", address.String()).
 		Msg("query user from cache")
 	return address, nil
 }
 
-func (l accountQuery) removeCache(address string) bool {
-	return l.Cache.Remove(l.prefixKey(address))
+func (a accountQuery) removeCache(address string) bool {
+	return a.Remove(a.prefixKey(address))
 }
 
-func (l accountQuery) refresh(address string) (sdk.BaseAccount, sdk.Error) {
-	account, err := l.QueryAccount(address)
+func (a accountQuery) refresh(address string) (sdk.BaseAccount, sdk.Error) {
+	account, err := a.QueryAccount(address)
 	if err != nil {
-		l.Err(err).
+		a.Err(err).
 			Str("address", address).
 			Msg("update cache failed")
 		return sdk.BaseAccount{}, sdk.Wrap(err)
 	}
 
-	l.saveAccount(account)
+	a.saveAccount(account)
 	return account, nil
 }
 
-func (l accountQuery) saveAccount(account sdk.BaseAccount) {
+func (a accountQuery) saveAccount(account sdk.BaseAccount) {
 	address := account.Address.String()
 	info := accountInfo{
 		N: account.AccountNumber,
 		S: account.Sequence,
 	}
-	if err := l.SetWithExpire(l.prefixKey(address), info, l.expiration); err != nil {
-		l.Warn().
+	if err := a.SetWithExpire(a.prefixKey(address), info, a.expiration); err != nil {
+		a.Warn().
 			Str("address", address).
 			Msg("cache account failed")
 		return
 	}
-	l.Debug().
+	a.Debug().
 		Str("address", address).
-		Msgf("cache account %s", l.expiration.String())
+		Msgf("cache account %s", a.expiration.String())
 }
 
-func (l accountQuery) prefixKey(address string) string {
+func (a accountQuery) prefixKey(address string) string {
 	return fmt.Sprintf("account:%s", address)
 }
 

@@ -2,6 +2,8 @@ package modules
 
 import (
 	"fmt"
+	"time"
+
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/utils/cache"
 	"github.com/irisnet/irishub-sdk-go/utils/log"
@@ -11,7 +13,8 @@ type paramsQuery struct {
 	sdk.Queries
 	*log.Logger
 	cache.Cache
-	cdc sdk.Codec
+	cdc        sdk.Codec
+	expiration time.Duration
 }
 
 func (p paramsQuery) prefixKey(module string) string {
@@ -19,7 +22,7 @@ func (p paramsQuery) prefixKey(module string) string {
 }
 
 func (p paramsQuery) QueryParams(module string, res sdk.Response) sdk.Error {
-	param, err := p.Cache.Get(p.prefixKey(module))
+	param, err := p.Get(p.prefixKey(module))
 	if err == nil {
 		bz := param.([]byte)
 		err = p.cdc.UnmarshalJSON(bz, res)
@@ -46,7 +49,7 @@ func (p paramsQuery) QueryParams(module string, res sdk.Response) sdk.Error {
 		return sdk.Wrap(err)
 	}
 
-	if err := p.Cache.Set(p.prefixKey(module), bz); err != nil {
+	if err := p.SetWithExpire(p.prefixKey(module), bz, p.expiration); err != nil {
 		p.Warn().
 			Str("module", module).
 			Msg("params cache failed")
