@@ -153,7 +153,7 @@ resize:
 				base.Logger().Warn().
 					Str("address", ctx.Address()).
 					Int("tryCnt", tryCnt).
-					Msg("account information cached has error,will sync from chain and try to send transaction again")
+					Msg("cached account information outdated, retrying ...")
 
 				_ = base.removeCache(ctx.Address())
 				if tryCnt++; tryCnt >= tryThreshold {
