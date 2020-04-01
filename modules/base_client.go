@@ -313,7 +313,7 @@ func (base *baseClient) ValidateTxSize(txSize int, msgs []sdk.Msg) sdk.Error {
 		}
 
 		if uint64(txSize) > param.TxSizeLimit {
-			return sdk.Wrapf("the transaction content is too large, the actual length: %d, the expectation is less than: %d", txSize, param.TxSizeLimit)
+			return sdk.Wrapf("tx size too large, expected: <= %d, got %d", param.TxSizeLimit, txSize)
 		}
 		return nil
 
@@ -327,7 +327,7 @@ func (base *baseClient) ValidateTxSize(txSize int, msgs []sdk.Msg) sdk.Error {
 	}
 
 	if uint64(txSize) > param.TxSizeLimit {
-		return sdk.Wrapf("the transaction content is too large, the actual length: %d, the expectation is less than: %d", txSize, param.TxSizeLimit)
+		return sdk.Wrapf("tx size too large, expected: <= %d, got %d", param.TxSizeLimit, txSize)
 	}
 	return nil
 }
