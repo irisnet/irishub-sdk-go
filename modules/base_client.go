@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/irisnet/irishub-sdk-go/utils"
-
 	"github.com/irisnet/irishub-sdk-go/adapter"
+	"github.com/irisnet/irishub-sdk-go/modules/bank"
+	"github.com/irisnet/irishub-sdk-go/modules/service"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils"
 	"github.com/irisnet/irishub-sdk-go/utils/cache"
 	"github.com/irisnet/irishub-sdk-go/utils/log"
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -27,8 +28,9 @@ const (
 type baseClient struct {
 	sdk.TmClient
 	sdk.KeyManager
-	localAccount
-	localToken
+	accountQuery
+	tokenQuery
+	paramsQuery
 
 	logger *log.Logger
 	cfg    sdk.ClientConfig
@@ -48,7 +50,7 @@ func NewBaseClient(cdc sdk.Codec, cfg sdk.ClientConfig, logger *log.Logger) *bas
 	}
 
 	c := cache.NewLRU(cacheCapacity)
-	base.localAccount = localAccount{
+	base.accountQuery = accountQuery{
 		Queries:    base,
 		Logger:     base.Logger(),
 		Cache:      c,
@@ -56,10 +58,17 @@ func NewBaseClient(cdc sdk.Codec, cfg sdk.ClientConfig, logger *log.Logger) *bas
 		expiration: cacheExpirePeriod,
 	}
 
-	base.localToken = localToken{
+	base.tokenQuery = tokenQuery{
 		q:      base,
 		Logger: base.Logger(),
 		Cache:  c,
+	}
+
+	base.paramsQuery = paramsQuery{
+		Queries: base,
+		Logger:  base.Logger(),
+		Cache:   c,
+		cdc:     cdc,
 	}
 
 	base.init()
@@ -124,7 +133,7 @@ resize:
 			return rs, err
 		}
 
-		if len(txByte) > 4000 {
+		if err := base.ValidateTx(len(txByte), mss); err != nil {
 			base.Logger().Warn().
 				Int("MaxMsgsLen", batch).
 				Msg("the transaction content is too large and will be re-sent in batches")
@@ -133,7 +142,7 @@ resize:
 			msgs = msgs[i*batch:]
 			// reset the maximum number of msg in each transaction
 			batch = batch / 2
-			_ = base.RemoveAccount(ctx.Address())
+			_ = base.removeCache(ctx.Address())
 			goto resize
 		}
 
@@ -145,12 +154,13 @@ resize:
 					Int("tryCnt", tryCnt).
 					Msg("account information cached has error,will sync from chain and try to send transaction again")
 
+				_ = base.removeCache(ctx.Address())
 				if tryCnt++; tryCnt >= tryThreshold {
 					return rs, err
 				}
-				_ = base.RemoveAccount(ctx.Address())
 				goto retry
 			}
+
 			base.Logger().
 				Err(err).
 				Msg("broadcastTx transaction failed")
@@ -282,6 +292,42 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
 		ctx.WithMemo(baseTx.Memo)
 	}
 	return ctx, nil
+}
+
+func (base *baseClient) ValidateTx(txSize int, msgs []sdk.Msg) sdk.Error {
+	var isServiceTx bool
+	for _, msg := range msgs {
+		if msg.Route() == service.ModuleName {
+			isServiceTx = true
+			break
+		}
+	}
+	if isServiceTx {
+		var param service.Params
+
+		err := base.QueryParams(service.ModuleName, &param)
+		if err != nil {
+			panic(err)
+		}
+
+		if uint64(txSize) > param.TxSizeLimit {
+			return sdk.Wrapf("the transaction content is too large,The transaction content is too large, the actual value:  %d, the expectation is less than: %d", txSize, param.TxSizeLimit)
+		}
+		return nil
+
+	}
+
+	var param bank.Params
+
+	err := base.QueryParams("auth", &param)
+	if err != nil {
+		panic(err)
+	}
+
+	if uint64(txSize) > param.TxSizeLimit {
+		return sdk.Wrapf("the transaction content is too large,The transaction content is too large, the actual value:  %d, the expectation is less than: %d", txSize, param.TxSizeLimit)
+	}
+	return nil
 }
 
 type locker struct {

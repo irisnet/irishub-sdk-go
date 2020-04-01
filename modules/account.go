@@ -10,7 +10,7 @@ import (
 )
 
 // Must be used with locker, otherwise there are thread safety issues
-type localAccount struct {
+type accountQuery struct {
 	sdk.Queries
 	*log.Logger
 	cache.Cache
@@ -19,27 +19,10 @@ type localAccount struct {
 	expiration time.Duration
 }
 
-func (l localAccount) Refresh(address string) (sdk.BaseAccount, sdk.Error) {
-	account, err := l.QueryAccount(address)
-	if err != nil {
-		l.Err(err).
-			Str("address", address).
-			Msg("update cache failed")
-		return sdk.BaseAccount{}, sdk.Wrap(err)
-	}
-
-	l.saveAccount(account)
-	return account, nil
-}
-
-func (l localAccount) RemoveAccount(address string) bool {
-	return l.Cache.Remove(l.keyWithPrefix(address))
-}
-
-func (l localAccount) QueryAndRefreshAccount(address string) (sdk.BaseAccount, sdk.Error) {
+func (l accountQuery) QueryAndRefreshAccount(address string) (sdk.BaseAccount, sdk.Error) {
 	account, err := l.Cache.Get(l.keyWithPrefix(address))
 	if err != nil {
-		return l.Refresh(address)
+		return l.refresh(address)
 	}
 
 	acc := account.(accountInfo)
@@ -56,7 +39,7 @@ func (l localAccount) QueryAndRefreshAccount(address string) (sdk.BaseAccount, s
 	return baseAcc, nil
 }
 
-func (l localAccount) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) {
+func (l accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) {
 	addr, err := sdk.AccAddressFromBech32(address)
 	if err != nil {
 		return sdk.BaseAccount{}, sdk.Wrap(err)
@@ -78,7 +61,7 @@ func (l localAccount) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) 
 	return account, nil
 }
 
-func (l localAccount) QueryAddress(name string) (sdk.AccAddress, sdk.Error) {
+func (l accountQuery) QueryAddress(name string) (sdk.AccAddress, sdk.Error) {
 	addr, err := l.Cache.Get(l.keyWithPrefix(name))
 	if err == nil {
 		address, err := sdk.AccAddressFromBech32(addr.(string))
@@ -112,7 +95,24 @@ func (l localAccount) QueryAddress(name string) (sdk.AccAddress, sdk.Error) {
 	return address, nil
 }
 
-func (l localAccount) saveAccount(account sdk.BaseAccount) {
+func (l accountQuery) removeCache(address string) bool {
+	return l.Cache.Remove(l.keyWithPrefix(address))
+}
+
+func (l accountQuery) refresh(address string) (sdk.BaseAccount, sdk.Error) {
+	account, err := l.QueryAccount(address)
+	if err != nil {
+		l.Err(err).
+			Str("address", address).
+			Msg("update cache failed")
+		return sdk.BaseAccount{}, sdk.Wrap(err)
+	}
+
+	l.saveAccount(account)
+	return account, nil
+}
+
+func (l accountQuery) saveAccount(account sdk.BaseAccount) {
 	address := account.Address.String()
 	info := accountInfo{
 		N: account.AccountNumber,
@@ -129,7 +129,7 @@ func (l localAccount) saveAccount(account sdk.BaseAccount) {
 		Msgf("cache account %s", l.expiration.String())
 }
 
-func (l localAccount) keyWithPrefix(address string) string {
+func (l accountQuery) keyWithPrefix(address string) string {
 	return fmt.Sprintf("account:%s", address)
 }
 

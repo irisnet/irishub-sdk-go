@@ -24,7 +24,7 @@ func (s serviceClient) queryRequestContextByTxQuery(reqCtxID string) (requestCon
 
 	if int64(len(txInfo.Tx.GetMsgs())) > msgIndex {
 		msg := txInfo.Tx.GetMsgs()[msgIndex]
-		if msg, ok := msg.(MsgRequestService); ok {
+		if msg, ok := msg.(MsgCallService); ok {
 			return requestContext{
 				ServiceName:        msg.ServiceName,
 				Providers:          msg.Providers,

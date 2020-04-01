@@ -40,6 +40,8 @@ func NewMsgSend(in []Input, out []Output) MsgSend {
 	return MsgSend{Inputs: in, Outputs: out}
 }
 
+func (msg MsgSend) Route() string { return ModuleName }
+
 // Implements Msg.
 func (msg MsgSend) Type() string { return "send" }
 
@@ -200,7 +202,7 @@ func NewMsgBurn(owner types.AccAddress, coins types.Coins) MsgBurn {
 
 // Implements Msg.
 // nolint
-func (msg MsgBurn) Route() string { return "bank" }
+func (msg MsgBurn) Route() string { return ModuleName }
 func (msg MsgBurn) Type() string  { return "burn" }
 
 // Implements Msg.
@@ -242,6 +244,8 @@ func NewMsgSetMemoRegexp(owner types.AccAddress, memoRegexp string) MsgSetMemoRe
 	return MsgSetMemoRegexp{Owner: owner, MemoRegexp: memoRegexp}
 }
 
+func (msg MsgSetMemoRegexp) Route() string { return ModuleName }
+
 // Implements Msg.
 // nolint
 func (msg MsgSetMemoRegexp) Type() string { return "set-memo-regexp" }
@@ -274,6 +278,16 @@ func (msg MsgSetMemoRegexp) GetSigners() []types.AccAddress {
 	return []types.AccAddress{msg.Owner}
 }
 
+// params defines the high level settings for auth
+type Params struct {
+	GasPriceThreshold types.Int `json:"gas_price_threshold"` // gas price threshold
+	TxSizeLimit       uint64    `json:"tx_size"`             // tx size limit
+}
+
+func (p Params) Convert() interface{} {
+	return p
+}
+
 type tokenStats struct {
 	LooseTokens  types.Coins `json:"loose_tokens"`
 	BondedTokens types.Coins `json:"bonded_tokens"`
@@ -294,4 +308,6 @@ func registerCodec(cdc types.Codec) {
 	cdc.RegisterConcrete(MsgSend{}, "irishub/bank/Send")
 	cdc.RegisterConcrete(MsgBurn{}, "irishub/bank/Burn")
 	cdc.RegisterConcrete(MsgSetMemoRegexp{}, "irishub/bank/SetMemoRegexp")
+
+	cdc.RegisterConcrete(&Params{}, "irishub/Auth/Params")
 }

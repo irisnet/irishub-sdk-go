@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	ModuleName = "staking"
+	ModuleName = "stake"
 )
 
 var (
@@ -40,7 +40,8 @@ type MsgCreateValidator struct {
 }
 
 //nolint
-func (msg MsgCreateValidator) Type() string { return "create_validator" }
+func (msg MsgCreateValidator) Route() string { return ModuleName }
+func (msg MsgCreateValidator) Type() string  { return "create_validator" }
 
 // Return address(es) that must sign over msg.GetSignBytes()
 func (msg MsgCreateValidator) GetSigners() []sdk.AccAddress {
@@ -95,6 +96,8 @@ type MsgDelegate struct {
 	Delegation    sdk.Coin       `json:"delegation"`
 }
 
+func (msg MsgDelegate) Route() string { return ModuleName }
+
 //nolint
 func (msg MsgDelegate) Type() string { return "delegate" }
 func (msg MsgDelegate) GetSigners() []sdk.AccAddress {
@@ -134,6 +137,7 @@ type MsgUndelegate struct {
 }
 
 //nolint
+func (msg MsgUndelegate) Route() string                { return ModuleName }
 func (msg MsgUndelegate) Type() string                 { return "begin_unbonding" }
 func (msg MsgUndelegate) GetSigners() []sdk.AccAddress { return []sdk.AccAddress{msg.DelegatorAddr} }
 
@@ -189,7 +193,8 @@ func NewMsgBeginRedelegate(delAddr sdk.AccAddress, valSrcAddr,
 }
 
 //nolint
-func (msg MsgBeginRedelegate) Type() string { return "begin_redelegate" }
+func (msg MsgBeginRedelegate) Route() string { return ModuleName }
+func (msg MsgBeginRedelegate) Type() string  { return "begin_redelegate" }
 func (msg MsgBeginRedelegate) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.DelegatorAddr}
 }
@@ -246,7 +251,8 @@ type MsgEditValidator struct {
 }
 
 //nolint
-func (msg MsgEditValidator) Type() string { return "edit_validator" }
+func (msg MsgEditValidator) Route() string { return ModuleName }
+func (msg MsgEditValidator) Type() string  { return "edit_validator" }
 func (msg MsgEditValidator) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.AccAddress(msg.ValidatorAddr)}
 }

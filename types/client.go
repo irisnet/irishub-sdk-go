@@ -15,6 +15,11 @@ type Queries interface {
 	StoreQuery
 	AccountQuery
 	TxQuery
+	ParamQuery
+}
+
+type ParamQuery interface {
+	QueryParams(module string, res Response) Error
 }
 
 type StoreQuery interface {

@@ -97,7 +97,7 @@ func (s serviceClient) DisableServiceBinding(serviceName string, baseTx sdk.Base
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
-	msg := MsgDisableService{
+	msg := MsgDisableServiceBinding{
 		ServiceName: serviceName,
 		Provider:    provider,
 	}
@@ -116,7 +116,7 @@ func (s serviceClient) EnableServiceBinding(serviceName string, deposit sdk.DecC
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	msg := MsgEnableService{
+	msg := MsgEnableServiceBinding{
 		ServiceName: serviceName,
 		Provider:    provider,
 		Deposit:     amt,
@@ -145,7 +145,7 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest, baseT
 		return "", sdk.Wrap(err)
 	}
 
-	msg := MsgRequestService{
+	msg := MsgCallService{
 		ServiceName:       request.ServiceName,
 		Providers:         providers,
 		Consumer:          consumer,
