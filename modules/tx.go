@@ -70,7 +70,8 @@ func (base *baseClient) buildTx(msg []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *sdk.
 	if err != nil {
 		return nil, ctx, sdk.Wrap(err)
 	}
-	base.Logger().Info().
+
+	base.Logger().Debug().
 		Strs("data", tx.GetSignBytes()).
 		Msg("sign transaction success")
 
@@ -78,6 +79,7 @@ func (base *baseClient) buildTx(msg []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *sdk.
 	if err != nil {
 		return nil, ctx, sdk.Wrap(err)
 	}
+
 	return txByte, ctx, nil
 }
 

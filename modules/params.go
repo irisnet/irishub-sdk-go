@@ -14,12 +14,12 @@ type paramsQuery struct {
 	cdc sdk.Codec
 }
 
-func (p paramsQuery) PrefixKey(module string) string {
+func (p paramsQuery) prefixKey(module string) string {
 	return fmt.Sprintf("params:%s", module)
 }
 
 func (p paramsQuery) QueryParams(module string, res sdk.Response) sdk.Error {
-	param, err := p.Cache.Get(p.PrefixKey(module))
+	param, err := p.Cache.Get(p.prefixKey(module))
 	if err == nil {
 		bz := param.([]byte)
 		err = p.cdc.UnmarshalJSON(bz, res)
@@ -46,7 +46,7 @@ func (p paramsQuery) QueryParams(module string, res sdk.Response) sdk.Error {
 		return sdk.Wrap(err)
 	}
 
-	if err := p.Cache.Set(p.PrefixKey(module), bz); err != nil {
+	if err := p.Cache.Set(p.prefixKey(module), bz); err != nil {
 		p.Warn().
 			Str("module", module).
 			Msg("params cache failed")

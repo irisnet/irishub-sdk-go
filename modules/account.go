@@ -20,7 +20,7 @@ type accountQuery struct {
 }
 
 func (l accountQuery) QueryAndRefreshAccount(address string) (sdk.BaseAccount, sdk.Error) {
-	account, err := l.Cache.Get(l.keyWithPrefix(address))
+	account, err := l.Cache.Get(l.prefixKey(address))
 	if err != nil {
 		return l.refresh(address)
 	}
@@ -62,14 +62,14 @@ func (l accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) 
 }
 
 func (l accountQuery) QueryAddress(name string) (sdk.AccAddress, sdk.Error) {
-	addr, err := l.Cache.Get(l.keyWithPrefix(name))
+	addr, err := l.Cache.Get(l.prefixKey(name))
 	if err == nil {
 		address, err := sdk.AccAddressFromBech32(addr.(string))
 		if err != nil {
 			l.Warn().
 				Str("name", name).
 				Msg("invalid address")
-			_ = l.Remove(l.keyWithPrefix(name))
+			_ = l.Remove(l.prefixKey(name))
 		} else {
 			return address, nil
 		}
@@ -83,7 +83,7 @@ func (l accountQuery) QueryAddress(name string) (sdk.AccAddress, sdk.Error) {
 		return address, sdk.Wrap(err)
 	}
 
-	if err := l.SetWithExpire(l.keyWithPrefix(name), address.String(), l.expiration); err != nil {
+	if err := l.SetWithExpire(l.prefixKey(name), address.String(), l.expiration); err != nil {
 		l.Warn().
 			Str("name", name).
 			Msg("cache user failed")
@@ -96,7 +96,7 @@ func (l accountQuery) QueryAddress(name string) (sdk.AccAddress, sdk.Error) {
 }
 
 func (l accountQuery) removeCache(address string) bool {
-	return l.Cache.Remove(l.keyWithPrefix(address))
+	return l.Cache.Remove(l.prefixKey(address))
 }
 
 func (l accountQuery) refresh(address string) (sdk.BaseAccount, sdk.Error) {
@@ -118,7 +118,7 @@ func (l accountQuery) saveAccount(account sdk.BaseAccount) {
 		N: account.AccountNumber,
 		S: account.Sequence,
 	}
-	if err := l.SetWithExpire(l.keyWithPrefix(address), info, l.expiration); err != nil {
+	if err := l.SetWithExpire(l.prefixKey(address), info, l.expiration); err != nil {
 		l.Warn().
 			Str("address", address).
 			Msg("cache account failed")
@@ -129,7 +129,7 @@ func (l accountQuery) saveAccount(account sdk.BaseAccount) {
 		Msgf("cache account %s", l.expiration.String())
 }
 
-func (l accountQuery) keyWithPrefix(address string) string {
+func (l accountQuery) prefixKey(address string) string {
 	return fmt.Sprintf("account:%s", address)
 }
 

@@ -114,7 +114,7 @@ func (base *baseClient) SendMsgBatch(msgs sdk.Msgs, baseTx sdk.BaseTx) (rs []sdk
 			return rs, sdk.Wrap(err)
 		}
 	}
-	base.Logger().Info().Msg("validate msg success")
+	base.Logger().Debug().Msg("validate msg success")
 
 	//lock the account
 	base.l.Lock(baseTx.From)
@@ -133,10 +133,10 @@ resize:
 			return rs, err
 		}
 
-		if err := base.ValidateTx(len(txByte), mss); err != nil {
+		if err := base.ValidateTxSize(len(txByte), mss); err != nil {
 			base.Logger().Warn().
-				Int("MaxMsgsLen", batch).
-				Msg("the transaction content is too large and will be re-sent in batches")
+				Int("msgsLength", batch).
+				Msg(err.Error())
 
 			// filter out transactions that have been sent
 			msgs = msgs[i*batch:]
@@ -163,12 +163,13 @@ resize:
 
 			base.Logger().
 				Err(err).
-				Msg("broadcastTx transaction failed")
+				Msg("broadcast transaction failed")
 			return rs, err
 		}
 		base.Logger().Info().
 			Str("txHash", res.Hash).
-			Msg("broadcastTx transaction success")
+			Int64("height", res.Height).
+			Msg("broadcast transaction success")
 		rs = append(rs, res)
 	}
 	return rs, nil
@@ -294,7 +295,7 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
 	return ctx, nil
 }
 
-func (base *baseClient) ValidateTx(txSize int, msgs []sdk.Msg) sdk.Error {
+func (base *baseClient) ValidateTxSize(txSize int, msgs []sdk.Msg) sdk.Error {
 	var isServiceTx bool
 	for _, msg := range msgs {
 		if msg.Route() == service.ModuleName {
@@ -311,7 +312,7 @@ func (base *baseClient) ValidateTx(txSize int, msgs []sdk.Msg) sdk.Error {
 		}
 
 		if uint64(txSize) > param.TxSizeLimit {
-			return sdk.Wrapf("the transaction content is too large,The transaction content is too large, the actual value:  %d, the expectation is less than: %d", txSize, param.TxSizeLimit)
+			return sdk.Wrapf("the transaction content is too large, the actual length: %d, the expectation is less than: %d", txSize, param.TxSizeLimit)
 		}
 		return nil
 
@@ -325,7 +326,7 @@ func (base *baseClient) ValidateTx(txSize int, msgs []sdk.Msg) sdk.Error {
 	}
 
 	if uint64(txSize) > param.TxSizeLimit {
-		return sdk.Wrapf("the transaction content is too large,The transaction content is too large, the actual value:  %d, the expectation is less than: %d", txSize, param.TxSizeLimit)
+		return sdk.Wrapf("the transaction content is too large, the actual length: %d, the expectation is less than: %d", txSize, param.TxSizeLimit)
 	}
 	return nil
 }
