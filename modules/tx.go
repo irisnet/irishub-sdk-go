@@ -9,6 +9,80 @@ import (
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
+// QueryTx returns the tx info
+func (base baseClient) QueryTx(hash string) (sdk.ResultQueryTx, error) {
+	tx, err := hex.DecodeString(hash)
+	if err != nil {
+		return sdk.ResultQueryTx{}, err
+	}
+
+	res, err := base.Tx(tx, true)
+	if err != nil {
+		return sdk.ResultQueryTx{}, err
+	}
+
+	resBlocks, err := base.getResultBlocks([]*ctypes.ResultTx{res})
+	if err != nil {
+		return sdk.ResultQueryTx{}, err
+	}
+	return base.parseTxResult(res, resBlocks[res.Height])
+}
+
+func (base baseClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.ResultSearchTxs, error) {
+
+	query := builder.Build()
+	if len(query) == 0 {
+		return sdk.ResultSearchTxs{}, errors.New("must declare at least one tag to search")
+	}
+
+	res, err := base.TxSearch(query, true, page, size)
+	if err != nil {
+		return sdk.ResultSearchTxs{}, err
+	}
+
+	resBlocks, err := base.getResultBlocks(res.Txs)
+	if err != nil {
+		return sdk.ResultSearchTxs{}, err
+	}
+
+	var txs []sdk.ResultQueryTx
+	for i, tx := range res.Txs {
+		txInfo, err := base.parseTxResult(tx, resBlocks[res.Txs[i].Height])
+		if err != nil {
+			return sdk.ResultSearchTxs{}, err
+		}
+		txs = append(txs, txInfo)
+	}
+
+	return sdk.ResultSearchTxs{
+		Total: res.TotalCount,
+		Txs:   txs,
+	}, nil
+}
+
+func (base *baseClient) buildTx(msg []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *sdk.TxContext, sdk.Error) {
+	ctx, err := base.prepare(baseTx)
+	if err != nil {
+		return nil, ctx, sdk.Wrap(err)
+	}
+
+	tx, err := ctx.BuildAndSign(baseTx.From, msg)
+	if err != nil {
+		return nil, ctx, sdk.Wrap(err)
+	}
+
+	base.Logger().Debug().
+		Strs("data", tx.GetSignBytes()).
+		Msg("sign transaction success")
+
+	txByte, err := base.cdc.MarshalBinaryLengthPrefixed(tx)
+	if err != nil {
+		return nil, ctx, sdk.Wrap(err)
+	}
+
+	return txByte, ctx, nil
+}
+
 func (base baseClient) broadcastTx(txBytes []byte, mode sdk.BroadcastMode) (res sdk.ResultTx, err sdk.Error) {
 	ch := make(chan sdk.ResultTx, 1)
 
@@ -90,57 +164,6 @@ func (base baseClient) broadcastTxAsync(tx []byte) (sdk.ResultTx, sdk.Error) {
 
 	return sdk.ResultTx{
 		Hash: res.Hash.String(),
-	}, nil
-}
-
-// QueryTx returns the tx info
-func (base baseClient) QueryTx(hash string) (sdk.ResultQueryTx, error) {
-	tx, err := hex.DecodeString(hash)
-	if err != nil {
-		return sdk.ResultQueryTx{}, err
-	}
-
-	res, err := base.Tx(tx, true)
-	if err != nil {
-		return sdk.ResultQueryTx{}, err
-	}
-
-	resBlocks, err := base.getResultBlocks([]*ctypes.ResultTx{res})
-	if err != nil {
-		return sdk.ResultQueryTx{}, err
-	}
-	return base.parseTxResult(res, resBlocks[res.Height])
-}
-
-func (base baseClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.ResultSearchTxs, error) {
-
-	query := builder.Build()
-	if len(query) == 0 {
-		return sdk.ResultSearchTxs{}, errors.New("must declare at least one tag to search")
-	}
-
-	res, err := base.TxSearch(query, true, page, size)
-	if err != nil {
-		return sdk.ResultSearchTxs{}, err
-	}
-
-	resBlocks, err := base.getResultBlocks(res.Txs)
-	if err != nil {
-		return sdk.ResultSearchTxs{}, err
-	}
-
-	var txs []sdk.ResultQueryTx
-	for i, tx := range res.Txs {
-		txInfo, err := base.parseTxResult(tx, resBlocks[res.Txs[i].Height])
-		if err != nil {
-			return sdk.ResultSearchTxs{}, err
-		}
-		txs = append(txs, txInfo)
-	}
-
-	return sdk.ResultSearchTxs{
-		Total: res.TotalCount,
-		Txs:   txs,
 	}, nil
 }
 

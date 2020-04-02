@@ -118,6 +118,8 @@ type MsgDeposit struct {
 	Amount     sdk.Coins      `json:"amount"`      // Coins to add to the proposal's deposit
 }
 
+func (msg MsgDeposit) Route() string { return ModuleName }
+
 // Implements Msg.
 // nolint
 func (msg MsgDeposit) Type() string { return "deposit" }
@@ -154,6 +156,8 @@ type MsgVote struct {
 	Voter      sdk.AccAddress `json:"voter"`       //  address of the voter
 	Option     VoteOption     `json:"option"`      //  option from OptionSet chosen by the voter
 }
+
+func (msg MsgVote) Route() string { return ModuleName }
 
 // Implements Msg.
 // nolint

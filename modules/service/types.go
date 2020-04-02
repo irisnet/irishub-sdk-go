@@ -5,9 +5,10 @@ import (
 	json2 "encoding/json"
 	"errors"
 	"fmt"
-	cmn "github.com/tendermint/tendermint/libs/common"
 	"strings"
 	"time"
+
+	cmn "github.com/tendermint/tendermint/libs/common"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
 
@@ -36,10 +37,10 @@ var (
 	_ sdk.Msg = MsgBindService{}
 	_ sdk.Msg = MsgUpdateServiceBinding{}
 	_ sdk.Msg = MsgSetWithdrawAddress{}
-	_ sdk.Msg = MsgDisableService{}
-	_ sdk.Msg = MsgEnableService{}
+	_ sdk.Msg = MsgDisableServiceBinding{}
+	_ sdk.Msg = MsgEnableServiceBinding{}
 	_ sdk.Msg = MsgRefundServiceDeposit{}
-	_ sdk.Msg = MsgRequestService{}
+	_ sdk.Msg = MsgCallService{}
 	_ sdk.Msg = MsgRespondService{}
 	_ sdk.Msg = MsgPauseRequestContext{}
 	_ sdk.Msg = MsgStartRequestContext{}
@@ -64,6 +65,8 @@ type MsgDefineService struct {
 	AuthorDescription string         `json:"author_description"`
 	Schemas           string         `json:"schemas"`
 }
+
+func (msg MsgDefineService) Route() string { return ModuleName }
 
 func (msg MsgDefineService) Type() string {
 	return "define_service"
@@ -115,6 +118,8 @@ func (msg MsgBindService) Type() string {
 	return "bind_service"
 }
 
+func (msg MsgBindService) Route() string { return ModuleName }
+
 func (msg MsgBindService) ValidateBasic() error {
 	if len(msg.Provider) == 0 {
 		return errors.New("provider missing")
@@ -143,8 +148,8 @@ func (msg MsgBindService) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Provider}
 }
 
-// MsgRequestService defines a message to request a service
-type MsgRequestService struct {
+// MsgCallService defines a message to request a service
+type MsgCallService struct {
 	ServiceName       string           `json:"service_name"`
 	Providers         []sdk.AccAddress `json:"providers"`
 	Consumer          sdk.AccAddress   `json:"consumer"`
@@ -157,11 +162,13 @@ type MsgRequestService struct {
 	RepeatedTotal     int64            `json:"repeated_total"`
 }
 
-func (msg MsgRequestService) Type() string {
+func (msg MsgCallService) Route() string { return ModuleName }
+
+func (msg MsgCallService) Type() string {
 	return "request_service"
 }
 
-func (msg MsgRequestService) ValidateBasic() error {
+func (msg MsgCallService) ValidateBasic() error {
 	if len(msg.Consumer) == 0 {
 		return errors.New("consumer missing")
 	}
@@ -179,7 +186,7 @@ func (msg MsgRequestService) ValidateBasic() error {
 	return nil
 }
 
-func (msg MsgRequestService) GetSignBytes() []byte {
+func (msg MsgCallService) GetSignBytes() []byte {
 	b, err := cdc.MarshalJSON(msg)
 	if err != nil {
 		panic(err)
@@ -188,7 +195,7 @@ func (msg MsgRequestService) GetSignBytes() []byte {
 	return json.MustSort(b)
 }
 
-func (msg MsgRequestService) GetSigners() []sdk.AccAddress {
+func (msg MsgCallService) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Consumer}
 }
 
@@ -199,6 +206,8 @@ type MsgRespondService struct {
 	Result    string         `json:"result"`
 	Output    string         `json:"output"`
 }
+
+func (msg MsgRespondService) Route() string { return ModuleName }
 
 func (msg MsgRespondService) Type() string {
 	return "respond_service"
@@ -245,6 +254,8 @@ type MsgUpdateServiceBinding struct {
 	Pricing     string         `json:"pricing"`
 }
 
+func (msg MsgUpdateServiceBinding) Route() string { return ModuleName }
+
 // Type implements Msg.
 func (msg MsgUpdateServiceBinding) Type() string { return "update_service_binding" }
 
@@ -288,6 +299,8 @@ type MsgSetWithdrawAddress struct {
 	WithdrawAddress sdk.AccAddress `json:"withdraw_address"`
 }
 
+func (msg MsgSetWithdrawAddress) Route() string { return ModuleName }
+
 // Type implements Msg.
 func (msg MsgSetWithdrawAddress) Type() string { return "set_withdraw_address" }
 
@@ -321,17 +334,19 @@ func (msg MsgSetWithdrawAddress) GetSigners() []sdk.AccAddress {
 
 //______________________________________________________________________
 
-// MsgDisableService defines a message to disable a service binding
-type MsgDisableService struct {
+// MsgDisableServiceBinding defines a message to disable a service binding
+type MsgDisableServiceBinding struct {
 	ServiceName string         `json:"service_name"`
 	Provider    sdk.AccAddress `json:"provider"`
 }
 
+func (msg MsgDisableServiceBinding) Route() string { return ModuleName }
+
 // Type implements Msg.
-func (msg MsgDisableService) Type() string { return "disable_service" }
+func (msg MsgDisableServiceBinding) Type() string { return "disable_service" }
 
 // GetSignBytes implements Msg.
-func (msg MsgDisableService) GetSignBytes() []byte {
+func (msg MsgDisableServiceBinding) GetSignBytes() []byte {
 	b, err := cdc.MarshalJSON(msg)
 	if err != nil {
 		panic(err)
@@ -341,7 +356,7 @@ func (msg MsgDisableService) GetSignBytes() []byte {
 }
 
 // ValidateBasic implements Msg.
-func (msg MsgDisableService) ValidateBasic() error {
+func (msg MsgDisableServiceBinding) ValidateBasic() error {
 	if len(msg.Provider) == 0 {
 		return errors.New("provider missing")
 	}
@@ -354,24 +369,26 @@ func (msg MsgDisableService) ValidateBasic() error {
 }
 
 // GetSigners implements Msg.
-func (msg MsgDisableService) GetSigners() []sdk.AccAddress {
+func (msg MsgDisableServiceBinding) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Provider}
 }
 
 //______________________________________________________________________
 
-// MsgEnableService defines a message to enable a service binding
-type MsgEnableService struct {
+// MsgEnableServiceBinding defines a message to enable a service binding
+type MsgEnableServiceBinding struct {
 	ServiceName string         `json:"service_name"`
 	Provider    sdk.AccAddress `json:"provider"`
 	Deposit     sdk.Coins      `json:"deposit"`
 }
 
+func (msg MsgEnableServiceBinding) Route() string { return ModuleName }
+
 // Type implements Msg.
-func (msg MsgEnableService) Type() string { return "enable_service" }
+func (msg MsgEnableServiceBinding) Type() string { return "enable_service" }
 
 // GetSignBytes implements Msg.
-func (msg MsgEnableService) GetSignBytes() []byte {
+func (msg MsgEnableServiceBinding) GetSignBytes() []byte {
 	b, err := cdc.MarshalJSON(msg)
 	if err != nil {
 		panic(err)
@@ -381,7 +398,7 @@ func (msg MsgEnableService) GetSignBytes() []byte {
 }
 
 // ValidateBasic implements Msg.
-func (msg MsgEnableService) ValidateBasic() error {
+func (msg MsgEnableServiceBinding) ValidateBasic() error {
 	if len(msg.Provider) == 0 {
 		return errors.New("provider missing")
 	}
@@ -398,7 +415,7 @@ func (msg MsgEnableService) ValidateBasic() error {
 }
 
 // GetSigners implements Msg.
-func (msg MsgEnableService) GetSigners() []sdk.AccAddress {
+func (msg MsgEnableServiceBinding) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Provider}
 }
 
@@ -409,6 +426,8 @@ type MsgRefundServiceDeposit struct {
 	ServiceName string         `json:"service_name"`
 	Provider    sdk.AccAddress `json:"provider"`
 }
+
+func (msg MsgRefundServiceDeposit) Route() string { return ModuleName }
 
 // Type implements Msg.
 func (msg MsgRefundServiceDeposit) Type() string { return "refund_service_deposit" }
@@ -449,6 +468,8 @@ type MsgPauseRequestContext struct {
 	Consumer         sdk.AccAddress `json:"consumer"`
 }
 
+func (msg MsgPauseRequestContext) Route() string { return ModuleName }
+
 // Type implements Msg.
 func (msg MsgPauseRequestContext) Type() string { return "pause_request_context" }
 
@@ -483,6 +504,8 @@ type MsgStartRequestContext struct {
 	Consumer         sdk.AccAddress `json:"consumer"`
 }
 
+func (msg MsgStartRequestContext) Route() string { return ModuleName }
+
 // Type implements Msg.
 func (msg MsgStartRequestContext) Type() string { return "start_request_context" }
 
@@ -516,6 +539,8 @@ type MsgKillRequestContext struct {
 	RequestContextID cmn.HexBytes   `json:"request_context_id"`
 	Consumer         sdk.AccAddress `json:"consumer"`
 }
+
+func (msg MsgKillRequestContext) Route() string { return ModuleName }
 
 // Type implements Msg.
 func (msg MsgKillRequestContext) Type() string { return "kill_request_context" }
@@ -557,6 +582,8 @@ type MsgUpdateRequestContext struct {
 	Consumer          sdk.AccAddress   `json:"consumer"`
 }
 
+func (msg MsgUpdateRequestContext) Route() string { return ModuleName }
+
 // Type implements Msg.
 func (msg MsgUpdateRequestContext) Type() string { return "update_request_context" }
 
@@ -590,6 +617,8 @@ func (msg MsgUpdateRequestContext) GetSigners() []sdk.AccAddress {
 type MsgWithdrawEarnedFees struct {
 	Provider sdk.AccAddress `json:"provider"`
 }
+
+func (msg MsgWithdrawEarnedFees) Route() string { return ModuleName }
 
 // Type implements Msg.
 func (msg MsgWithdrawEarnedFees) Type() string { return "withdraw_earned_fees" }
@@ -626,6 +655,8 @@ type MsgWithdrawTax struct {
 	DestAddress sdk.AccAddress `json:"dest_address"`
 	Amount      sdk.Coins      `json:"amount"`
 }
+
+func (msg MsgWithdrawTax) Route() string { return ModuleName }
 
 // Type implements Msg.
 func (msg MsgWithdrawTax) Type() string { return "withdraw_tax" }
@@ -865,15 +896,31 @@ type compactRequest struct {
 	RequestHeight              int64
 }
 
+// service params
+type Params struct {
+	MaxRequestTimeout    int64         `json:"max_request_timeout"`
+	MinDepositMultiple   int64         `json:"min_deposit_multiple"`
+	MinDeposit           sdk.Coins     `json:"min_deposit"`
+	ServiceFeeTax        sdk.Dec       `json:"service_fee_tax"`
+	SlashFraction        sdk.Dec       `json:"slash_fraction"`
+	ComplaintRetrospect  time.Duration `json:"complaint_retrospect"`
+	ArbitrationTimeLimit time.Duration `json:"arbitration_time_limit"`
+	TxSizeLimit          uint64        `json:"tx_size_limit"`
+}
+
+func (p Params) Convert() interface{} {
+	return p
+}
+
 func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgDefineService{}, "irishub/service/MsgDefineService")
 	cdc.RegisterConcrete(MsgBindService{}, "irishub/service/MsgBindService")
 	cdc.RegisterConcrete(MsgUpdateServiceBinding{}, "irishub/service/MsgUpdateServiceBinding")
 	cdc.RegisterConcrete(MsgSetWithdrawAddress{}, "irishub/service/MsgSetWithdrawAddress")
-	cdc.RegisterConcrete(MsgDisableService{}, "irishub/service/MsgDisableService")
-	cdc.RegisterConcrete(MsgEnableService{}, "irishub/service/MsgEnableService")
+	cdc.RegisterConcrete(MsgDisableServiceBinding{}, "irishub/service/MsgDisableServiceBinding")
+	cdc.RegisterConcrete(MsgEnableServiceBinding{}, "irishub/service/MsgEnableServiceBinding")
 	cdc.RegisterConcrete(MsgRefundServiceDeposit{}, "irishub/service/MsgRefundServiceDeposit")
-	cdc.RegisterConcrete(MsgRequestService{}, "irishub/service/MsgRequestService")
+	cdc.RegisterConcrete(MsgCallService{}, "irishub/service/MsgCallService")
 	cdc.RegisterConcrete(MsgRespondService{}, "irishub/service/MsgRespondService")
 	cdc.RegisterConcrete(MsgPauseRequestContext{}, "irishub/service/MsgPauseRequestContext")
 	cdc.RegisterConcrete(MsgStartRequestContext{}, "irishub/service/MsgStartRequestContext")
@@ -888,6 +935,8 @@ func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(request{}, "irishub/service/Request")
 	cdc.RegisterConcrete(response{}, "irishub/service/Response")
 	cdc.RegisterConcrete(earnedFees{}, "irishub/service/EarnedFees")
+
+	cdc.RegisterConcrete(&Params{}, "irishub/service/Params")
 }
 
 func actionTagKey(key ...string) sdk.EventKey {

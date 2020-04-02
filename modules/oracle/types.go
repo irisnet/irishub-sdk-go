@@ -58,6 +58,8 @@ type MsgCreateFeed struct {
 	ResponseThreshold uint16           `json:"response_threshold"`
 }
 
+func (msg MsgCreateFeed) Route() string { return ModuleName }
+
 // Type implements Msg.
 func (msg MsgCreateFeed) Type() string {
 	return "create_feed"
@@ -117,6 +119,8 @@ type MsgStartFeed struct {
 	Creator  sdk.AccAddress `json:"creator"`
 }
 
+func (msg MsgStartFeed) Route() string { return ModuleName }
+
 // Type implements Msg.
 func (msg MsgStartFeed) Type() string {
 	return "start_feed"
@@ -155,6 +159,8 @@ type MsgPauseFeed struct {
 	FeedName string         `json:"feed_name"`
 	Creator  sdk.AccAddress `json:"creator"`
 }
+
+func (msg MsgPauseFeed) Route() string { return ModuleName }
 
 // Type implements Msg.
 func (msg MsgPauseFeed) Type() string {
@@ -201,6 +207,8 @@ type MsgEditFeed struct {
 	ResponseThreshold uint16           `json:"response_threshold"`
 	Creator           sdk.AccAddress   `json:"creator"`
 }
+
+func (msg MsgEditFeed) Route() string { return ModuleName }
 
 // Type implements Msg.
 func (msg MsgEditFeed) Type() string {

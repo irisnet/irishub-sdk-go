@@ -38,6 +38,8 @@ type MsgIssueToken struct {
 	Owner         sdk.AccAddress `json:"owner"`
 }
 
+func (msg MsgIssueToken) Route() string { return ModuleName }
+
 // Implements Msg.
 func (msg MsgIssueToken) Type() string { return "issue_token" }
 
@@ -89,6 +91,8 @@ func (msg MsgTransferTokenOwner) ValidateBasic() error {
 	return nil
 }
 
+func (msg MsgTransferTokenOwner) Route() string { return ModuleName }
+
 // Type implements Msg
 func (msg MsgTransferTokenOwner) Type() string { return "transfer_token_owner" }
 
@@ -100,6 +104,8 @@ type MsgEditToken struct {
 	Mintable  Bool           `json:"mintable"` //  mintable of token
 	Name      string         `json:"name"`
 }
+
+func (msg MsgEditToken) Route() string { return ModuleName }
 
 // Type implements Msg
 func (msg MsgEditToken) Type() string { return "edit_token" }
@@ -132,6 +138,8 @@ type MsgMintToken struct {
 	To     sdk.AccAddress `json:"to"`     // address of minting token to
 	Amount uint64         `json:"amount"` // amount of minting token
 }
+
+func (msg MsgMintToken) Route() string { return ModuleName }
 
 // Type implements Msg
 func (msg MsgMintToken) Type() string { return "mint_token" }

@@ -30,7 +30,8 @@ type MsgUnjail struct {
 }
 
 //nolint
-func (msg MsgUnjail) Type() string { return "unjail" }
+func (msg MsgUnjail) Route() string { return ModuleName }
+func (msg MsgUnjail) Type() string  { return "unjail" }
 func (msg MsgUnjail) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.AccAddress(msg.ValidatorAddr)}
 }

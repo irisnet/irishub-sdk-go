@@ -1,10 +1,13 @@
 // Package staking provides staking functionalities for validators and delegators
 //
+//
 // [More Details](https://www.irisnet.org/docs/features/stake.html)
+//
+//
 //
 // As a quick start:
 //
-//	baseTx := sdk.BaseTx{
+//  baseTx := sdk.BaseTx{
 //		From: "test1",
 //		Gas:  20000,
 //		Memo: "test",

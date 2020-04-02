@@ -9,19 +9,19 @@ import (
 	"github.com/irisnet/irishub-sdk-go/utils/log"
 )
 
-type localToken struct {
+type tokenQuery struct {
 	q sdk.Queries
 	*log.Logger
 	cache.Cache
 }
 
-func (l localToken) QueryToken(symbol string) (sdk.Token, error) {
+func (l tokenQuery) QueryToken(symbol string) (sdk.Token, error) {
 	symbol = strings.ToLower(symbol)
 	if symbol == sdk.IRIS.Symbol || symbol == sdk.IRIS.MinUnit {
 		return sdk.IRIS, nil
 	}
 
-	token, err := l.Get(l.keyWithPrefix(symbol))
+	token, err := l.Get(l.prefixKey(symbol))
 	if err == nil {
 		return token.(sdk.Token), nil
 	}
@@ -42,10 +42,10 @@ func (l localToken) QueryToken(symbol string) (sdk.Token, error) {
 	return t, nil
 }
 
-func (l localToken) SaveTokens(tokens ...sdk.Token) {
+func (l tokenQuery) SaveTokens(tokens ...sdk.Token) {
 	for _, t := range tokens {
-		err1 := l.Set(l.keyWithPrefix(t.Symbol), t)
-		err2 := l.Set(l.keyWithPrefix(t.GetMinUnit()), t)
+		err1 := l.Set(l.prefixKey(t.Symbol), t)
+		err2 := l.Set(l.prefixKey(t.GetMinUnit()), t)
 		if err1 != nil || err2 != nil {
 			l.Warn().
 				Str("symbol", t.Symbol).
@@ -54,7 +54,7 @@ func (l localToken) SaveTokens(tokens ...sdk.Token) {
 	}
 }
 
-func (l localToken) ToMinCoin(coins ...sdk.DecCoin) (dstCoins sdk.Coins, err sdk.Error) {
+func (l tokenQuery) ToMinCoin(coins ...sdk.DecCoin) (dstCoins sdk.Coins, err sdk.Error) {
 	for _, coin := range coins {
 		token, err := l.QueryToken(coin.Denom)
 		if err != nil {
@@ -70,7 +70,7 @@ func (l localToken) ToMinCoin(coins ...sdk.DecCoin) (dstCoins sdk.Coins, err sdk
 	return dstCoins.Sort(), nil
 }
 
-func (l localToken) ToMainCoin(coins ...sdk.Coin) (dstCoins sdk.DecCoins, err sdk.Error) {
+func (l tokenQuery) ToMainCoin(coins ...sdk.Coin) (dstCoins sdk.DecCoins, err sdk.Error) {
 	for _, coin := range coins {
 		token, err := l.QueryToken(coin.Denom)
 		if err != nil {
@@ -86,6 +86,6 @@ func (l localToken) ToMainCoin(coins ...sdk.Coin) (dstCoins sdk.DecCoins, err sd
 	return dstCoins.Sort(), nil
 }
 
-func (l localToken) keyWithPrefix(symbol string) string {
+func (l tokenQuery) prefixKey(symbol string) string {
 	return fmt.Sprintf("token:%s", symbol)
 }

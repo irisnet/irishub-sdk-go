@@ -97,7 +97,7 @@ func (s serviceClient) DisableServiceBinding(serviceName string, baseTx sdk.Base
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
-	msg := MsgDisableService{
+	msg := MsgDisableServiceBinding{
 		ServiceName: serviceName,
 		Provider:    provider,
 	}
@@ -116,7 +116,7 @@ func (s serviceClient) EnableServiceBinding(serviceName string, deposit sdk.DecC
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	msg := MsgEnableService{
+	msg := MsgEnableServiceBinding{
 		ServiceName: serviceName,
 		Provider:    provider,
 		Deposit:     amt,
@@ -145,7 +145,7 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest, baseT
 		return "", sdk.Wrap(err)
 	}
 
-	msg := MsgRequestService{
+	msg := MsgCallService{
 		ServiceName:       request.ServiceName,
 		Providers:         providers,
 		Consumer:          consumer,
@@ -377,7 +377,7 @@ func (s serviceClient) SubscribeServiceRequest(serviceRegistry rpc.ServiceRegist
 		if msgs == nil || len(msgs) == 0 {
 			return
 		}
-		if _, err = s.SendMsgBatch(5, msgs, baseTx); err != nil {
+		if _, err = s.SendMsgBatch(msgs, baseTx); err != nil {
 			s.Err(err).Msg("provider respond failed")
 		}
 	})
@@ -402,7 +402,7 @@ func (s serviceClient) SubscribeSingleServiceRequest(serviceName string,
 		)
 	return s.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
 		msgs := s.GenServiceResponseMsgs(block.ResultEndBlock.Tags, serviceName, provider, callback)
-		if _, err = s.SendMsgBatch(5, msgs, baseTx); err != nil {
+		if _, err = s.SendMsgBatch(msgs, baseTx); err != nil {
 			s.Err(err).Msg("provider respond failed")
 		}
 	})

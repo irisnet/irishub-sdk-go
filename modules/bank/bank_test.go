@@ -142,7 +142,7 @@ func (bts BankTestSuite) TestMultiSend() {
 				From:     acc[index],
 				Gas:      20000,
 				Memo:     "test",
-				Mode:     types.Commit,
+				Mode:     types.Async,
 				Password: "1234567890",
 			})
 			require.NoError(bts.T(), err)

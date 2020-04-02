@@ -34,6 +34,8 @@ type MsgSetWithdrawAddress struct {
 	WithdrawAddr  sdk.AccAddress `json:"withdraw_addr"`
 }
 
+func (msg MsgSetWithdrawAddress) Route() string { return ModuleName }
+
 func (msg MsgSetWithdrawAddress) Type() string { return "set_withdraw_address" }
 
 // Return address that must sign over msg.GetSignBytes()
@@ -61,8 +63,6 @@ func (msg MsgSetWithdrawAddress) ValidateBasic() error {
 	return nil
 }
 
-//______________________________________________________________________
-
 // msg struct for delegation withdraw for all of the delegator's delegations
 type MsgWithdrawDelegatorRewardsAll struct {
 	DelegatorAddr sdk.AccAddress `json:"delegator_addr"`
@@ -73,6 +73,8 @@ func NewMsgWithdrawDelegatorRewardsAll(delAddr sdk.AccAddress) MsgWithdrawDelega
 		DelegatorAddr: delAddr,
 	}
 }
+
+func (msg MsgWithdrawDelegatorRewardsAll) Route() string { return ModuleName }
 
 func (msg MsgWithdrawDelegatorRewardsAll) Type() string { return "withdraw_delegation_rewards_all" }
 
@@ -106,6 +108,8 @@ type MsgWithdrawDelegatorReward struct {
 	ValidatorAddr sdk.ValAddress `json:"validator_addr"`
 }
 
+func (msg MsgWithdrawDelegatorReward) Route() string { return ModuleName }
+
 func (msg MsgWithdrawDelegatorReward) Type() string { return "withdraw_delegation_reward" }
 
 // Return address that must sign over msg.GetSignBytes()
@@ -133,12 +137,12 @@ func (msg MsgWithdrawDelegatorReward) ValidateBasic() error {
 	return nil
 }
 
-//______________________________________________________________________
-
 // msg struct for validator withdraw
 type MsgWithdrawValidatorRewardsAll struct {
 	ValidatorAddr sdk.ValAddress `json:"validator_addr"`
 }
+
+func (msg MsgWithdrawValidatorRewardsAll) Route() string { return ModuleName }
 
 func (msg MsgWithdrawValidatorRewardsAll) Type() string { return "withdraw_validator_rewards_all" }
 

@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	//_ sdk.Msg = MsgUnjail{}
+	_ sdk.Msg = MsgRequestRand{}
 
 	cdc = sdk.NewAminoCodec()
 
@@ -38,6 +38,8 @@ type MsgRequestRand struct {
 	Oracle        bool           `json:"oracle"`          // oracle method
 	ServiceFeeCap sdk.Coins      `json:"service_fee_cap"` // service fee cap
 }
+
+func (msg MsgRequestRand) Route() string { return ModuleName }
 
 // Implements Msg.
 func (msg MsgRequestRand) Type() string { return "request_rand" }

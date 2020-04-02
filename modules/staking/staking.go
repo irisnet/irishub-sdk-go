@@ -406,7 +406,7 @@ func (s stakingClient) QueryPool() (rpc.StakePool, sdk.Error) {
 // QueryValidators return the staking gov params
 func (s stakingClient) QueryParams() (rpc.StakeParams, sdk.Error) {
 	var params params
-	if err := s.QueryWithResponse("custom/stake/parameters", nil, &params); err != nil {
+	if err := s.BaseClient.QueryParams(s.Name(), &params); err != nil {
 		return rpc.StakeParams{}, sdk.Wrap(err)
 	}
 	return params.Convert().(rpc.StakeParams), nil
