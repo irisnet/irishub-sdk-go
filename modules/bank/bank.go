@@ -120,9 +120,11 @@ func (b bankClient) MultiSend(receipts rpc.Receipts, baseTx sdk.BaseTx) (resTxs 
 }
 
 func (b bankClient) SendBatch(sender sdk.AccAddress,
-	receipts rpc.Receipts, baseTx sdk.BaseTx) (resTxs []sdk.ResultTx, err sdk.Error) {
+	receipts rpc.Receipts, baseTx sdk.BaseTx) ([]sdk.ResultTx, sdk.Error) {
 	batchReceipts := utils.SplitArray(maxMsgLen, receipts)
-	for batch, receipts := range batchReceipts {
+
+	var msgs sdk.Msgs
+	for _, receipts := range batchReceipts {
 		rs := receipts.(rpc.Receipts)
 		var inputs = make([]Input, len(rs))
 		var outputs = make([]Output, len(rs))
@@ -140,14 +142,9 @@ func (b bankClient) SendBatch(sender sdk.AccAddress,
 			inputs[i] = NewInput(sender, amt)
 			outputs[i] = NewOutput(outAddr, amt)
 		}
-		msg := NewMsgSend(inputs, outputs)
-		res, err := b.BuildAndSend([]sdk.Msg{msg}, baseTx)
-		if err != nil {
-			return nil, sdk.WrapWithMessage(err, "bulk sending transactions failed with errors starting at [%d]", batch*maxMsgLen)
-		}
-		resTxs = append(resTxs, res)
+		msgs = append(msgs, NewMsgSend(inputs, outputs))
 	}
-	return resTxs, nil
+	return b.SendMsgBatch(msgs, baseTx)
 }
 
 //Send is responsible for burning some tokens from `From` account
