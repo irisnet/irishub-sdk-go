@@ -1,3 +1,6 @@
+// Package modules is to warpped the API provided by each module of irishub
+//
+//
 package modules
 
 import (
@@ -39,6 +42,7 @@ type baseClient struct {
 	l *locker
 }
 
+//NewBaseClient return the baseClient for every sub modules
 func NewBaseClient(cdc sdk.Codec, cfg sdk.ClientConfig, logger *log.Logger) *baseClient {
 	base := baseClient{
 		KeyManager: adapter.NewDAOAdapter(cfg.KeyDAO, cfg.StoreType),
@@ -337,6 +341,7 @@ type locker struct {
 	size   int
 }
 
+//NewLocker implement the function of lock, can lock resources according to conditions
 func NewLocker(size int) *locker {
 	shards := make([]chan int, size)
 	for i := 0; i < size; i++ {

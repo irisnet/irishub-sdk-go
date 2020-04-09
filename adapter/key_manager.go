@@ -1,3 +1,6 @@
+// Package adapter is to adapt to the user DAO layer, the user can not override this implementation
+//
+//
 package adapter
 
 import (
@@ -14,6 +17,7 @@ type daoAdapter struct {
 	storeType types.StoreType
 }
 
+//NewDAOAdapter return a apapter for user DAO
 func NewDAOAdapter(dao types.KeyDAO, storeType types.StoreType) types.KeyManager {
 	return daoAdapter{
 		keyDAO:    dao,
@@ -94,7 +98,7 @@ func (adapter daoAdapter) Recover(name, password, mnemonic string) (string, erro
 func (adapter daoAdapter) Import(name, password string, keystore string) (string, error) {
 	store, err := adapter.keyDAO.Read(name)
 	if err != nil || store != nil {
-		return "", errors.New(fmt.Sprintf("%s has existed", name))
+		return "", fmt.Errorf("%s has existed", name)
 	}
 
 	km, err := crypto.NewKeyStoreKeyManager(keystore, password)
@@ -111,7 +115,7 @@ func (adapter daoAdapter) Import(name, password string, keystore string) (string
 func (adapter daoAdapter) Export(name, password, encryptKeystorePwd string) (keystore string, err error) {
 	store, err := adapter.keyDAO.Read(name)
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("%s not existed", name))
+		return "", fmt.Errorf("%s not existed", name)
 	}
 	var km crypto.KeyManager
 	switch store := store.(type) {
