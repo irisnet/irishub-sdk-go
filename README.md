@@ -24,13 +24,13 @@ The initialization SDK code is as follows:
 
 ```go
 client := sdk.NewClient(types.ClientConfig{
-    NodeURI:   NodeURI,
-    Network:   Network,
-    ChainID:   ChainID,
-    Gas:       Gas,
+    NodeURI:   "localhost:26657",
+    Network:   types.Mainnet,
+    ChainID:   "irishub",
+    Gas:       2000,
     Fee:       fees,
     KeyDAO:    types.NewDefaultKeyDAO(&Memory{}),
-    Mode:      Mode,
+    Mode:      types.Commit,
     StoreType: types.Key,
     Timeout:   10 * time.Second,
     Level:     "info",
