@@ -1,16 +1,6 @@
 # IRISHUB Chain Go SDK
 
-Irishub Chain GO SDK makes a simple package of API provided by Irishub, which provides great convenience for users to quickly develop applications based on irishub chain. It includes the following core components:
-
-- adapter - wrap the basic operations of CRUD operations with the user DAO layer
-- crypto - Implemented the irishub private key, address, keystore generation method
-- modules - Implemented the API interface under the rpc package, and encapsulates the API methods of irishub modules.
-- rpc - API interface exposed to users
-- test - Automated test entrance
-- types - Core type
-- utils - Simple wrap of the tool library used
-
-Among them, under the `modules` package, some or all of the interfaces provided by the modules of irishub are implemented, and currently mainly include:`asset`、`bank`、`distribution`、`gov`、`keys`、`oracle`、`random`、`service`、`slashing`、`staking`、`tendermint`。
+Irishub Chain GO SDK makes a simple package of API provided by Irishub, which provides great convenience for users to quickly develop applications based on irishub chain.
 
 ## install
 
@@ -28,9 +18,61 @@ require (
 
 ## Usage
 
+### Init Client
+
+The initialization SDK code is as follows:
+
+```go
+client := sdk.NewClient(types.ClientConfig{
+    NodeURI:   NodeURI,
+    Network:   Network,
+    ChainID:   ChainID,
+    Gas:       Gas,
+    Fee:       fees,
+    KeyDAO:    types.NewDefaultKeyDAO(&Memory{}),
+    Mode:      Mode,
+    StoreType: types.Key,
+    Timeout:   10 * time.Second,
+    Level:     "info",
+})
+```
+
+The `ClientConfig` component mainly contains the parameters used in the SDK, the specific meaning is shown in the table below
+
+| Iterm     | Type          | Description                                                                             |
+| --------- | ------------- | --------------------------------------------------------------------------------------- |
+| NodeURI   | string        | The RPC address of the irishub node connected to the SDK, for example: localhost: 26657 |
+| Network   | enum          | irishub network type, value: `Testnet`,`Mainnet`                                        |
+| ChainID   | string        | ChainID of irishub, for example: `irishub`                                              |
+| Gas       | uint64        | The maximum gas to be paid for the transaction, for example: `20000`                    |
+| Fee       | DecCoins      | Transaction fees to be paid for transactions                                            |
+| KeyDAO    | KeyDAO        | Private key management interface                                                        |
+| Mode      | enum          | Transaction broadcast mode, value: `Sync`,`Async`, `Commit`                             |
+| StoreType | enum          | Private key storage method, value: `Keystore`,`Key`                                     |
+| Timeout   | time.Duration | Transaction timeout, for example: `5s`                                                  |
+| Level     | string        | Log output level, for example: `info`                                                   |
+
+If you want to use `SDK` to send a transfer transaction, the example is as follows:
+
+```go
+coins, err := types.ParseDecCoins("0.1iris")
+to := "faa1hp29kuh22vpjjlnctmyml5s75evsnsd8r4x0mm"
+baseTx := types.BaseTx{
+    From:     "username",
+    Gas:      20000,
+    Memo:     "test",
+    Mode:     types.Commit,
+    Password: "password",
+}
+
+result, err := client.Bank().Send(to, coins, baseTx)
+```
+
+**Note**: If you use the relevant API for sending transactions, you should implement the `KeyDAO` interface. Use the `NewDefaultKeyDAO` method to initialize a `KeyDAO` instance, which will use the `AES` encryption method by default.
+
 ### KeyDAO
 
-Before using the SDK, you need to implement the relevant interface for managing keys (`KeyDAO`), which is mainly CRUD operations. The interface definition is as follows:
+ The interface definition is as follows:
 
 ```go
 type KeyDAO interface {
@@ -68,7 +110,7 @@ type KeystoreInfo struct {
 
 You can flexibly choose any of the private key management methods. The `Encrypt` and` Decrypt` interfaces are used to encrypt and decrypt the key. If the user does not implement it, the default is to use `AES`. Examples are as follows:
 
-`KeyDao` implements the`AccountAccess` interface:
+`KeyDao` implements the `AccountAccess` interface:
 
 ```go
 type Memory map[string]types.Store
@@ -86,60 +128,6 @@ func (m Memory) Delete(name string) error {
     delete(m, name)
     return nil
 }
-```
-
-**Note**: If you don’t use the relevant API for sending transactions, you can not implement the `KeyDAO` interface.
-
-### Init Client
-
-After implementing the `KeyDAO` interface, some parameters of the`SDK` need to be configured as follows:
-
-| Iterm    | Type           | Description                                               |
-| --------- | ------------- | -------------------------------------------------- |
-| NodeURI   | string        | The RPC address of the irishub node connected to the SDK, for example: localhost: 26657 |
-| Network   | enum          | irishub network type, value: `Testnet`,`Mainnet`        |
-| ChainID   | string        | ChainID of irishub, for example: `irishub`                  |
-| Gas       | uint64        | The maximum gas to be paid for the transaction, for example: `20000`                |
-| Fee       | DecCoins      | Transaction fees to be paid for transactions                                 |
-| KeyDAO    | KeyDAO        | Private key management interface                                      |
-| Mode      | enum          | Transaction broadcast mode, value: `Sync`,`Async`, `Commit`   |
-| StoreType | enum          | Private key storage method, value: `Keystore`,`Key`          |
-| Timeout   | time.Duration | Transaction timeout, for example: `5s`                        |
-| Level     | string        | Log output level, for example: `info`                        |
-
-The initialization SDK code is as follows:
-
-```go
-client := sdk.NewClient(types.ClientConfig{
-    NodeURI:   NodeURI,
-    Network:   Network,
-    ChainID:   ChainID,
-    Gas:       Gas,
-    Fee:       fees,
-    KeyDAO:    types.NewDefaultKeyDAO(&Memory{}),
-    Mode:      Mode,
-    StoreType: types.Key,
-    Timeout:   10 * time.Second,
-    Level:     "info",
-})
-```
-
-Use the `NewDefaultKeyDAO` method to initialize a`KeyDAO` instance, which will use the `AES` encryption method by default.
-
-If you want to use `SDK` to send a transfer transaction, the example is as follows:
-
-```go
-coins, err := types.ParseDecCoins("0.1iris")
-to := "faa1hp29kuh22vpjjlnctmyml5s75evsnsd8r4x0mm"
-baseTx := types.BaseTx{
-    From:     "username",
-    Gas:      20000,
-    Memo:     "test",
-    Mode:     types.Commit,
-    Password: "password",
-}
-
-result, err := client.Bank().Send(to, coins, baseTx)
 ```
 
 For more API usage documentation, please check [documentation](https://pkg.go.dev/mod/github.com/irisnet/irishub-sdk-go)。
