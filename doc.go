@@ -19,7 +19,7 @@
 // 		KeyDAO:    createTestKeyDAO(),
 // 		Mode:      Mode,
 // 		Online:    Online,
-// 		StoreType: types.Key,
+// 		StoreType: types.PrivKey,
 // 		Level:     "debug",
 // 	})
 // KeyDAO is an interface, you need to implement this interface to support the ability of SDK to access external data, such as access to a database

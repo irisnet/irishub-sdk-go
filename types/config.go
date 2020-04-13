@@ -18,7 +18,7 @@ type ClientConfig struct {
 	// Default Fee amount of iris-atto
 	Fee DecCoins
 
-	// Key DAO Implements
+	// PrivKey DAO Implements
 	KeyDAO KeyDAO
 
 	// Transaction broadcast Mode

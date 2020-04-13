@@ -50,7 +50,7 @@ func NewMockClient() MockClient {
 		Fee:       fees,
 		KeyDAO:    types.NewDefaultKeyDAO(&Memory{}),
 		Mode:      Mode,
-		StoreType: types.Key,
+		StoreType: types.PrivKey,
 		Timeout:   10 * time.Second,
 		Level:     "info",
 	})

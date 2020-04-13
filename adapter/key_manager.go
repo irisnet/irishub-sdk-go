@@ -33,7 +33,7 @@ func (adapter daoAdapter) Sign(name, password string, data []byte) (signature ty
 
 	var mm crypto.KeyManager
 	switch store := store.(type) {
-	case types.KeyInfo:
+	case types.PrivKeyInfo:
 		privKey, err := adapter.keyDAO.Decrypt(store.PrivKey, password)
 		if err != nil {
 			return signature, err
@@ -119,7 +119,7 @@ func (adapter daoAdapter) Export(name, password, encryptKeystorePwd string) (key
 	}
 	var km crypto.KeyManager
 	switch store := store.(type) {
-	case types.KeyInfo:
+	case types.PrivKeyInfo:
 		privKey, err := adapter.keyDAO.Decrypt(store.PrivKey, password)
 		if err != nil {
 			return "", err
@@ -157,7 +157,7 @@ func (adapter daoAdapter) Query(name string) (types.AccAddress, error) {
 		return nil, errors.New(fmt.Sprintf("%s not existed", name))
 	}
 	switch store := store.(type) {
-	case types.KeyInfo:
+	case types.PrivKeyInfo:
 		return types.AccAddressFromBech32(store.Address)
 	case types.KeystoreInfo:
 		var keystore crypto.Keystore
@@ -189,7 +189,7 @@ func (adapter daoAdapter) apply(km crypto.KeyManager, password string) (address 
 			Keystore: string(bz),
 		}
 		return address, store, nil
-	case types.Key:
+	case types.PrivKey:
 		privKey, err := km.ExportAsPrivateKey()
 		if err != nil {
 			return address, store, err
@@ -198,7 +198,7 @@ func (adapter daoAdapter) apply(km crypto.KeyManager, password string) (address 
 		if err != nil {
 			return "", nil, err
 		}
-		store = types.KeyInfo{
+		store = types.PrivKeyInfo{
 			PrivKey: pk,
 			Address: address,
 		}

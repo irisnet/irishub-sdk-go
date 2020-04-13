@@ -31,7 +31,7 @@ client := sdk.NewClient(types.ClientConfig{
     Fee:       fees,
     KeyDAO:    types.NewDefaultKeyDAO(&Memory{}),
     Mode:      types.Commit,
-    StoreType: types.Key,
+    StoreType: types.PrivKey,
     Timeout:   10 * time.Second,
     Level:     "info",
 })
@@ -48,7 +48,7 @@ The `ClientConfig` component mainly contains the parameters used in the SDK, the
 | Fee       | DecCoins      | Transaction fees to be paid for transactions                                            |
 | KeyDAO    | KeyDAO        | Private key management interface                                                        |
 | Mode      | enum          | Transaction broadcast mode, value: `Sync`,`Async`, `Commit`                             |
-| StoreType | enum          | Private key storage method, value: `Keystore`,`Key`                                     |
+| StoreType | enum          | Private key storage method, value: `Keystore`,`PrivKey`                                     |
 | Timeout   | time.Duration | Transaction timeout, for example: `5s`                                                  |
 | Level     | string        | Log output level, for example: `info`                                                   |
 
