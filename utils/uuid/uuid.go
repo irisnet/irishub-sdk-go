@@ -1,4 +1,4 @@
-// reference: https://github.com/binance-chain/go-sdk/blob/master/common/uuid/uuid.go
+//Package uuid reference: https://github.com/binance-chain/go-sdk/blob/master/common/uuid/uuid.go
 package uuid
 
 import (

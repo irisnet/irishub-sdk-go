@@ -1,3 +1,6 @@
+//Package tendermint provides tendermint rpc queriers implementation
+//
+//
 package tendermint
 
 import (

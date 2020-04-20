@@ -4,16 +4,16 @@ type StoreType int
 
 const (
 	Keystore StoreType = 0
-	Key      StoreType = 1
+	PrivKey  StoreType = 1
 )
 
 var (
-	_ Store = KeyInfo{}
+	_ Store = PrivKeyInfo{}
 	_ Store = KeystoreInfo{}
 )
 
 type Store interface{}
-type KeyInfo struct {
+type PrivKeyInfo struct {
 	PrivKey string `json:"priv_key"`
 	Address string `json:"address"`
 }

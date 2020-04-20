@@ -1,3 +1,6 @@
+// Package asset allows individuals and companies to create and issue their own tokens.
+//
+// [More Details](https://www.irisnet.org/docs/features/asset.html)
 package asset
 
 import (
