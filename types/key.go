@@ -12,13 +12,24 @@ var (
 	_ Store = KeystoreInfo{}
 )
 
-type Store interface{}
+type Store interface{
+	GetType() StoreType
+}
 type PrivKeyInfo struct {
 	PrivKey string `json:"priv_key"`
 	Address string `json:"address"`
 }
+
+func (p PrivKeyInfo) GetType() StoreType {
+	return PrivKey
+}
+
 type KeystoreInfo struct {
 	Keystore string `json:"keystore"`
+}
+
+func (k KeystoreInfo) GetType() StoreType {
+	return Keystore
 }
 
 type KeyDAO interface {
@@ -42,7 +53,8 @@ type defaultKeyDAOImpl struct {
 	AES
 }
 
-func NewDefaultKeyDAO(account AccountAccess) KeyDAO {
+// NewKeyDaoWithAES return a KeyDAO object. by default,the SDK's own encryption(AES) method is used
+func NewKeyDaoWithAES(account AccountAccess) KeyDAO {
 	return defaultKeyDAOImpl{
 		AccountAccess: account,
 	}

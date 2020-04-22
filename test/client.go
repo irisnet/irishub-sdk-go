@@ -22,7 +22,7 @@ const (
 
 type MockClient struct {
 	sdk.Client
-	user MockAccount
+	user *MockAccount
 }
 
 type MockAccount struct {
@@ -31,12 +31,6 @@ type MockAccount struct {
 }
 
 func NewMockClient() MockClient {
-	tc := MockClient{
-		user: MockAccount{
-			Name:     "test1",
-			Password: "11111111",
-		},
-	}
 	fees, err := types.ParseDecCoins(Fee)
 	if err != nil {
 		panic(err)
@@ -48,42 +42,39 @@ func NewMockClient() MockClient {
 		ChainID:   ChainID,
 		Gas:       Gas,
 		Fee:       fees,
-		KeyDAO:    types.NewDefaultKeyDAO(&Memory{}),
 		Mode:      Mode,
 		StoreType: types.PrivKey,
 		Timeout:   10 * time.Second,
 		Level:     "info",
+		DBRootDir: "/Users/zhangzhiqiang/Downloads/",
 	})
 
-	//init account
-	keystore := getKeystore()
-	address, err := c.Keys().Import("test1", tc.user.Password, keystore)
-	if err != nil {
-		panic(err)
+	tc := MockClient{
+		Client: c,
+		user: &MockAccount{
+			Name:     "test1",
+			Password: "11111111",
+		},
 	}
 
-	tc.Client = c
-	tc.user.Address = types.MustAccAddressFromBech32(address)
+	tc.init()
 	return tc
 }
+
+func (tc MockClient) init() {
+	address, err := tc.Keys().Show(tc.user.Name)
+	if err != nil {
+		keystore := getKeystore()
+		address, err = tc.Keys().Import(tc.user.Name, tc.user.Password, keystore)
+		if err != nil {
+			panic(err)
+		}
+	}
+	tc.user.Address = types.MustAccAddressFromBech32(address)
+}
+
 func (tc MockClient) Account() MockAccount {
-	return tc.user
-}
-
-type Memory map[string]types.Store
-
-func (m Memory) Write(name string, store types.Store) error {
-	m[name] = store
-	return nil
-}
-
-func (m Memory) Read(name string) (types.Store, error) {
-	return m[name], nil
-}
-
-func (m Memory) Delete(name string) error {
-	delete(m, name)
-	return nil
+	return *tc.user
 }
 
 func getKeystore() string {
