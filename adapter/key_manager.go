@@ -96,10 +96,10 @@ func (adapter daoAdapter) Recover(name, password, mnemonic string) (string, erro
 }
 
 func (adapter daoAdapter) Import(name, password string, keystore string) (string, error) {
-	//store, err := adapter.keyDAO.Read(name)
-	//if err != nil || store != nil {
-	//	return "", fmt.Errorf("%s has existed", name)
-	//}
+	store, err := adapter.keyDAO.Read(name)
+	if err != nil || store != nil {
+		return "", fmt.Errorf("%s has existed", name)
+	}
 
 	km, err := crypto.NewKeyStoreKeyManager(keystore, password)
 	if err != nil {
