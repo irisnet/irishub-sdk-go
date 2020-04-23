@@ -26,8 +26,8 @@ func NewDAOAdapter(dao types.KeyDAO, storeType types.StoreType) types.KeyManager
 }
 
 func (adapter daoAdapter) Sign(name, password string, data []byte) (signature types.Signature, err error) {
-	store := adapter.keyDAO.Read(name)
-	if store == nil {
+	store, err := adapter.keyDAO.Read(name)
+	if store == nil || err != nil {
 		return signature, fmt.Errorf("name %s not exist", name)
 	}
 
@@ -57,8 +57,7 @@ func (adapter daoAdapter) Sign(name, password string, data []byte) (signature ty
 }
 
 func (adapter daoAdapter) Insert(name, password string) (string, string, error) {
-	store := adapter.keyDAO.Read(name)
-	if store != nil {
+	if adapter.keyDAO.Has(name) {
 		return "", "", fmt.Errorf("name %s has existed", name)
 	}
 
@@ -81,8 +80,7 @@ func (adapter daoAdapter) Insert(name, password string) (string, string, error) 
 }
 
 func (adapter daoAdapter) Recover(name, password, mnemonic string) (string, error) {
-	store := adapter.keyDAO.Read(name)
-	if store != nil {
+	if adapter.keyDAO.Has(name) {
 		return "", fmt.Errorf("name %s has existed", name)
 	}
 
@@ -101,8 +99,7 @@ func (adapter daoAdapter) Recover(name, password, mnemonic string) (string, erro
 }
 
 func (adapter daoAdapter) Import(name, password string, keystore string) (string, error) {
-	store := adapter.keyDAO.Read(name)
-	if store != nil {
+	if adapter.keyDAO.Has(name) {
 		return "", fmt.Errorf("%s has existed", name)
 	}
 
@@ -118,8 +115,8 @@ func (adapter daoAdapter) Import(name, password string, keystore string) (string
 }
 
 func (adapter daoAdapter) Export(name, password, encryptKeystorePwd string) (keystore string, err error) {
-	store := adapter.keyDAO.Read(name)
-	if store == nil {
+	store, err := adapter.keyDAO.Read(name)
+	if store == nil || err != nil {
 		return keystore, fmt.Errorf("name %s not exist", name)
 	}
 
@@ -158,8 +155,8 @@ func (adapter daoAdapter) Delete(name string) error {
 }
 
 func (adapter daoAdapter) Query(name string) (types.AccAddress, error) {
-	store := adapter.keyDAO.Read(name)
-	if store == nil {
+	store, err := adapter.keyDAO.Read(name)
+	if store == nil || err != nil {
 		return nil, fmt.Errorf("name %s not exist", name)
 	}
 

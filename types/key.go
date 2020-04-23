@@ -39,8 +39,9 @@ type KeyDAO interface {
 
 type AccountAccess interface {
 	Write(name string, store Store) error
-	Read(name string) Store
+	Read(name string) (Store, error)
 	Delete(name string) error
+	Has(name string) bool
 }
 
 type Crypto interface {

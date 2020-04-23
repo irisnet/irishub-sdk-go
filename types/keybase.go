@@ -49,14 +49,14 @@ func (k KeyBase) Write(name string, store Store) error {
 }
 
 // Read read a key information from the local store
-func (k KeyBase) Read(name string) (store Store) {
+func (k KeyBase) Read(name string) (store Store, err error) {
 	bz, err := k.db.Get(infoKey(name))
 	if bz == nil || err != nil {
-		return store
+		return store, err
 	}
 
 	if err := k.cdc.UnmarshalBinaryLengthPrefixed(bz, &store); err != nil {
-		return store
+		return store, err
 	}
 	return
 }
