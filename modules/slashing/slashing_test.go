@@ -10,7 +10,7 @@ import (
 
 type SlashingTestSuite struct {
 	suite.Suite
-	test.MockClient
+	*test.MockClient
 }
 
 func TestSlashingTestSuite(t *testing.T) {
@@ -18,7 +18,7 @@ func TestSlashingTestSuite(t *testing.T) {
 }
 
 func (sts *SlashingTestSuite) SetupTest() {
-	tc := test.NewMockClient()
+	tc := test.GetMock()
 	sts.MockClient = tc
 }
 

@@ -13,7 +13,7 @@ import (
 
 type StakingTestSuite struct {
 	suite.Suite
-	test.MockClient
+	*test.MockClient
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -21,7 +21,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (sts *StakingTestSuite) SetupTest() {
-	sts.MockClient = test.NewMockClient()
+	sts.MockClient = test.GetMock()
 }
 
 func (sts *StakingTestSuite) TestStaking() {

@@ -96,8 +96,8 @@ func (adapter daoAdapter) Recover(name, password, mnemonic string) (string, erro
 }
 
 func (adapter daoAdapter) Import(name, password string, keystore string) (string, error) {
-	store, err := adapter.keyDAO.Read(name)
-	if err != nil || store != nil {
+	store, _ := adapter.keyDAO.Read(name)
+	if store != nil {
 		return "", fmt.Errorf("%s has existed", name)
 	}
 

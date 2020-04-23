@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	sdk "github.com/irisnet/irishub-sdk-go"
@@ -20,6 +21,11 @@ const (
 	Gas     = 20000
 )
 
+var (
+	mock *MockClient
+	lock sync.Mutex
+)
+
 type MockClient struct {
 	sdk.Client
 	user *MockAccount
@@ -30,12 +36,24 @@ type MockAccount struct {
 	Address        types.AccAddress
 }
 
-func NewMockClient() MockClient {
+func GetMock() *MockClient {
+	lock.Lock()
+	defer lock.Unlock()
+
+	if mock == nil {
+		c := newMockClient()
+		mock = &c
+	}
+	return mock
+}
+
+func newMockClient() MockClient {
 	fees, err := types.ParseDecCoins(Fee)
 	if err != nil {
 		panic(err)
 	}
 
+	path := filepath.Join(getPWD(), "test")
 	c := sdk.NewClient(types.ClientConfig{
 		NodeURI:   NodeURI,
 		Network:   Network,
@@ -46,7 +64,7 @@ func NewMockClient() MockClient {
 		StoreType: types.PrivKey,
 		Timeout:   10 * time.Second,
 		Level:     "info",
-		DBRootDir: "/Users/zhangzhiqiang/Downloads/",
+		DBRootDir: path,
 	})
 
 	tc := MockClient{
@@ -78,16 +96,20 @@ func (tc MockClient) Account() MockAccount {
 }
 
 func getKeystore() string {
+	path := filepath.Join(getPWD(), "test/scripts/keystore1.json")
+	bz, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	return string(bz)
+}
+
+func getPWD() string {
 	path, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
 	path = filepath.Dir(path)
 	path = strings.TrimRight(path, "modules")
-	path = filepath.Join(path, "test/scripts/keystore1.json")
-	bz, err := ioutil.ReadFile(path)
-	if err != nil {
-		panic(err)
-	}
-	return string(bz)
+	return path
 }

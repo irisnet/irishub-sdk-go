@@ -12,7 +12,7 @@ import (
 
 type RandomTestSuite struct {
 	suite.Suite
-	test.MockClient
+	*test.MockClient
 }
 
 func TestSlashingTestSuite(t *testing.T) {
@@ -20,7 +20,7 @@ func TestSlashingTestSuite(t *testing.T) {
 }
 
 func (rts *RandomTestSuite) SetupTest() {
-	tc := test.NewMockClient()
+	tc := test.GetMock()
 	rts.MockClient = tc
 }
 

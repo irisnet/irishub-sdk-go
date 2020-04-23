@@ -29,7 +29,6 @@ client := sdk.NewClient(types.ClientConfig{
     ChainID:   "irishub",
     Gas:       2000,
     Fee:       fees,
-    KeyDAO:    types.NewDefaultKeyDAO(&Memory{}),
     Mode:      types.Commit,
     StoreType: types.PrivKey,
     Timeout:   10 * time.Second,
@@ -46,7 +45,7 @@ The `ClientConfig` component mainly contains the parameters used in the SDK, the
 | ChainID   | string        | ChainID of irishub, for example: `irishub`                                              |
 | Gas       | uint64        | The maximum gas to be paid for the transaction, for example: `20000`                    |
 | Fee       | DecCoins      | Transaction fees to be paid for transactions                                            |
-| KeyDAO    | KeyDAO        | Private key management interface                                                        |
+| KeyDAO    | KeyDAO        | Private key management interface, If the user does not provide it, the default `keybase` will be used                                                        |
 | Mode      | enum          | Transaction broadcast mode, value: `Sync`,`Async`, `Commit`                             |
 | StoreType | enum          | Private key storage method, value: `Keystore`,`PrivKey`                                     |
 | Timeout   | time.Duration | Transaction timeout, for example: `5s`                                                  |
@@ -68,7 +67,7 @@ baseTx := types.BaseTx{
 result, err := client.Bank().Send(to, coins, baseTx)
 ```
 
-**Note**: If you use the relevant API for sending transactions, you should implement the `KeyDAO` interface. Use the `NewDefaultKeyDAO` method to initialize a `KeyDAO` instance, which will use the `AES` encryption method by default.
+**Note**: If you use the relevant API for sending transactions, you should implement the `KeyDAO` interface. Use the `NewKeyDaoWithAES` method to initialize a `KeyDAO` instance, which will use the `AES` encryption method by default.
 
 ### KeyDAO
 

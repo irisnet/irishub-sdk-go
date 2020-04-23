@@ -11,3 +11,4 @@ test_unit:
 	sleep 3s
 	@go test -p 1 $(PACKAGES)
 	cd test/scripts/ && sh clean.sh
+	rm -rf test/keys

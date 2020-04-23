@@ -16,7 +16,7 @@ import (
 
 type ServiceTestSuite struct {
 	suite.Suite
-	test.MockClient
+	*test.MockClient
 	*log.Logger
 }
 
@@ -25,7 +25,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (sts *ServiceTestSuite) SetupTest() {
-	sts.MockClient = test.NewMockClient()
+	sts.MockClient = test.GetMock()
 	sts.Logger = log.NewLogger("info")
 }
 
