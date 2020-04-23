@@ -24,13 +24,13 @@ type KeyBase struct {
 }
 
 // NewKeyBase initialize a keybase based on the configuration
-func NewKeyBase(rootDir string,cdc Codec) (KeyDAO, error) {
+func NewKeyBase(rootDir string, cdc Codec) (KeyDAO, error) {
 	db, err := dbm.NewGoLevelDB(keyDBName, filepath.Join(rootDir, "keys"))
 	if err != nil {
 		return nil, err
 	}
 	keybase := KeyBase{
-		db: db,
+		db:  db,
 		cdc: cdc,
 	}
 	return keybase, nil
@@ -38,9 +38,9 @@ func NewKeyBase(rootDir string,cdc Codec) (KeyDAO, error) {
 
 // Write add a key information to the local store
 func (k KeyBase) Write(name string, store Store) error {
-	existed,_ := k.Has(name)
+	existed, _ := k.Has(name)
 	if existed {
-		return fmt.Errorf("name %s has existed",name)
+		return fmt.Errorf("name %s has exist", name)
 	}
 
 	bz, err := k.cdc.MarshalBinaryLengthPrefixed(store)
@@ -54,7 +54,7 @@ func (k KeyBase) Write(name string, store Store) error {
 func (k KeyBase) Read(name string) (store Store, err error) {
 	bz, err := k.db.Get(infoKey(name))
 	if err != nil || bz == nil {
-		return store, errors.New(fmt.Sprintf("key %s not existed", name))
+		return store, errors.New(fmt.Sprintf("key %s not exist", name))
 	}
 
 	if err := k.cdc.UnmarshalBinaryLengthPrefixed(bz, &store); err != nil {
@@ -69,7 +69,7 @@ func (k KeyBase) Delete(name string) error {
 }
 
 // Delete delete a key from the local store
-func (k KeyBase) Has(name string) (bool,error) {
+func (k KeyBase) Has(name string) (bool, error) {
 	return k.db.Has(infoKey(name))
 }
 
