@@ -112,20 +112,23 @@ You can flexibly choose any of the private key management methods. The `Encrypt`
 `KeyDao` implements the `AccountAccess` interface:
 
 ```go
-type Memory map[string]types.Store
-
-func (m Memory) Write(name string, store types.Store) error {
-    m[name] = store
-    return nil
+func (m Memory) Write(name string, store Store) error {
+	m.store[name] = store
+	return nil
 }
 
-func (m Memory) Read(name string) types.Store {
-    return m[name]
+func (m Memory) Read(name string) (Store,error) {
+	return m.store[name],nil
 }
 
 func (m Memory) Delete(name string) error {
-    delete(m, name)
-    return nil
+	delete(m.store, name)
+	return nil
+}
+
+func (m Memory) Has(name string) bool {
+	_, ok := m.store[name]
+	return ok
 }
 ```
 

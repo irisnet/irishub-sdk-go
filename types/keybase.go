@@ -22,7 +22,8 @@ type KeyBase struct {
 	AES
 }
 
-// NewKeyBase initialize a keybase based on the configuration
+// NewKeyBase initialize a keybase based on the configuration.
+// Use leveldb as storage
 func NewKeyBase(rootDir string, cdc Codec) (KeyDAO, error) {
 	db, err := dbm.NewGoLevelDB(keyDBName, filepath.Join(rootDir, "keys"))
 	if err != nil {
@@ -77,4 +78,34 @@ func (k KeyBase) Has(name string) bool {
 
 func infoKey(name string) []byte {
 	return []byte(fmt.Sprintf("%s.%s", name, infoSuffix))
+}
+
+// Use memory as storage, use with caution in build environment
+type Memory struct {
+	store map[string]Store
+	AES
+}
+
+func NewMemory() Memory {
+	return Memory{
+		store: make(map[string]Store),
+	}
+}
+func (m Memory) Write(name string, store Store) error {
+	m.store[name] = store
+	return nil
+}
+
+func (m Memory) Read(name string) (Store, error) {
+	return m.store[name], nil
+}
+
+func (m Memory) Delete(name string) error {
+	delete(m.store, name)
+	return nil
+}
+
+func (m Memory) Has(name string) bool {
+	_, ok := m.store[name]
+	return ok
 }
