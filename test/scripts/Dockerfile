@@ -1,4 +1,4 @@
-FROM irisnet/irishub:latest
+FROM irisnet/irishub:develop
 
 COPY . /scripts
 
