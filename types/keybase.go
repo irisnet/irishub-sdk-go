@@ -13,23 +13,23 @@ const (
 )
 
 var (
-	_ KeyDAO = KeyBase{}
+	_ KeyDAO = LevelDB{}
 )
 
-type KeyBase struct {
+type LevelDB struct {
 	db  dbm.DB
 	cdc Codec
 	AES
 }
 
-// NewKeyBase initialize a keybase based on the configuration.
+// NewLevelDB initialize a keybase based on the configuration.
 // Use leveldb as storage
-func NewKeyBase(rootDir string, cdc Codec) (KeyDAO, error) {
+func NewLevelDB(rootDir string, cdc Codec) (KeyDAO, error) {
 	db, err := dbm.NewGoLevelDB(keyDBName, filepath.Join(rootDir, "keys"))
 	if err != nil {
 		return nil, err
 	}
-	keybase := KeyBase{
+	keybase := LevelDB{
 		db:  db,
 		cdc: cdc,
 	}
@@ -37,7 +37,7 @@ func NewKeyBase(rootDir string, cdc Codec) (KeyDAO, error) {
 }
 
 // Write add a key information to the local store
-func (k KeyBase) Write(name string, store Store) error {
+func (k LevelDB) Write(name string, store Store) error {
 	if k.Has(name) {
 		return fmt.Errorf("name %s has exist", name)
 	}
@@ -50,7 +50,7 @@ func (k KeyBase) Write(name string, store Store) error {
 }
 
 // Read read a key information from the local store
-func (k KeyBase) Read(name string) (store Store, err error) {
+func (k LevelDB) Read(name string) (store Store, err error) {
 	bz, err := k.db.Get(infoKey(name))
 	if bz == nil || err != nil {
 		return store, err
@@ -63,12 +63,12 @@ func (k KeyBase) Read(name string) (store Store, err error) {
 }
 
 // Delete delete a key from the local store
-func (k KeyBase) Delete(name string) error {
+func (k LevelDB) Delete(name string) error {
 	return k.db.DeleteSync(infoKey(name))
 }
 
 // Delete delete a key from the local store
-func (k KeyBase) Has(name string) bool {
+func (k LevelDB) Has(name string) bool {
 	existed, err := k.db.Has(infoKey(name))
 	if err != nil {
 		return false
@@ -81,31 +81,31 @@ func infoKey(name string) []byte {
 }
 
 // Use memory as storage, use with caution in build environment
-type Memory struct {
+type MemoryDB struct {
 	store map[string]Store
 	AES
 }
 
-func NewMemory() Memory {
-	return Memory{
+func NewMemoryDB() MemoryDB {
+	return MemoryDB{
 		store: make(map[string]Store),
 	}
 }
-func (m Memory) Write(name string, store Store) error {
+func (m MemoryDB) Write(name string, store Store) error {
 	m.store[name] = store
 	return nil
 }
 
-func (m Memory) Read(name string) (Store, error) {
+func (m MemoryDB) Read(name string) (Store, error) {
 	return m.store[name], nil
 }
 
-func (m Memory) Delete(name string) error {
+func (m MemoryDB) Delete(name string) error {
 	delete(m.store, name)
 	return nil
 }
 
-func (m Memory) Has(name string) bool {
+func (m MemoryDB) Has(name string) bool {
 	_, ok := m.store[name]
 	return ok
 }

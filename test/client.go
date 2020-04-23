@@ -67,7 +67,7 @@ func newMockClient() MockClient {
 		ChainID:   chainID,
 		Gas:       gas,
 		Fee:       fees,
-		KeyDAO:    types.NewMemory(), //default keybase
+		KeyDAO:    types.NewMemoryDB(), //default keybase
 		Mode:      mode,
 		StoreType: types.PrivKey,
 		Timeout:   10 * time.Second,

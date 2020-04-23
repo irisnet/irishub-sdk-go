@@ -335,7 +335,7 @@ func (base *baseClient) ValidateTxSize(txSize int, msgs []sdk.Msg) sdk.Error {
 	return nil
 }
 
-func initConfig(cdc sdk.Codec, cfg *sdk.ClientConfig){
+func initConfig(cdc sdk.Codec, cfg *sdk.ClientConfig) {
 	if len(cfg.NodeURI) == 0 {
 		panic(fmt.Errorf("nodeURI is required"))
 	}
@@ -361,7 +361,7 @@ func initConfig(cdc sdk.Codec, cfg *sdk.ClientConfig){
 			panic(fmt.Errorf("DBRootDir is required when use default keyDao"))
 		}
 
-		keybase, err := sdk.NewKeyBase(cfg.DBRootDir, cdc)
+		keybase, err := sdk.NewLevelDB(cfg.DBRootDir, cdc)
 		if err != nil {
 			panic(err)
 		}
