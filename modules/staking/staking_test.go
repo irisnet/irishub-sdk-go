@@ -90,9 +90,9 @@ func (sts *StakingTestSuite) TestStaking() {
 //func (sts *StakingTestSuite) TestDelegate() {
 //	baseTx := sdk.BaseTx{
 //		From: "test1",
-//		Gas:  20000,
+//		gas:  20000,
 //		Memo: "test",
-//		Mode: sdk.Commit,
+//		mode: sdk.Commit,
 //	}
 //
 //	validators, _ := sts.Staking().QueryValidators(1, 10)
@@ -109,9 +109,9 @@ func (sts *StakingTestSuite) TestStaking() {
 //func (sts *StakingTestSuite) TestUndelegate() {
 //	baseTx := sdk.BaseTx{
 //		From: "test1",
-//		Gas:  20000,
+//		gas:  20000,
 //		Memo: "test",
-//		Mode: sdk.Commit,
+//		mode: sdk.Commit,
 //	}
 //
 //	validators, _ := sts.Staking().QueryValidators(1, 10)
@@ -130,9 +130,9 @@ func (sts *StakingTestSuite) TestStaking() {
 //func (sts *StakingTestSuite) TestRedelegate() {
 //	baseTx := sdk.BaseTx{
 //		From: "test1",
-//		Gas:  20000,
+//		gas:  20000,
 //		Memo: "test",
-//		Mode: sdk.Commit,
+//		mode: sdk.Commit,
 //	}
 //
 //	validators, _ := sts.Staking().QueryValidators(1, 10)

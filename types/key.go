@@ -12,7 +12,7 @@ var (
 	_ Store = KeystoreInfo{}
 )
 
-type Store interface{
+type Store interface {
 	GetType() StoreType
 }
 type PrivKeyInfo struct {
@@ -39,7 +39,7 @@ type KeyDAO interface {
 
 type AccountAccess interface {
 	Write(name string, store Store) error
-	Read(name string) (Store, error)
+	Read(name string) Store
 	Delete(name string) error
 }
 

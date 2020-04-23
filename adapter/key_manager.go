@@ -26,9 +26,9 @@ func NewDAOAdapter(dao types.KeyDAO, storeType types.StoreType) types.KeyManager
 }
 
 func (adapter daoAdapter) Sign(name, password string, data []byte) (signature types.Signature, err error) {
-	store, err := adapter.keyDAO.Read(name)
-	if err != nil {
-		return signature, err
+	store := adapter.keyDAO.Read(name)
+	if store == nil {
+		return signature, fmt.Errorf("name %s not exist", name)
 	}
 
 	var mm crypto.KeyManager
@@ -57,6 +57,11 @@ func (adapter daoAdapter) Sign(name, password string, data []byte) (signature ty
 }
 
 func (adapter daoAdapter) Insert(name, password string) (string, string, error) {
+	store := adapter.keyDAO.Read(name)
+	if store != nil {
+		return "", "", fmt.Errorf("name %s has existed", name)
+	}
+
 	km, err := crypto.NewKeyManager()
 	if err != nil {
 		return "", "", err
@@ -76,9 +81,9 @@ func (adapter daoAdapter) Insert(name, password string) (string, string, error) 
 }
 
 func (adapter daoAdapter) Recover(name, password, mnemonic string) (string, error) {
-	store, err := adapter.keyDAO.Read(name)
-	if err != nil || store != nil {
-		return "", errors.New(fmt.Sprintf("%s has existed", name))
+	store := adapter.keyDAO.Read(name)
+	if store != nil {
+		return "", fmt.Errorf("name %s has existed", name)
 	}
 
 	km, err := crypto.NewMnemonicKeyManager(mnemonic)
@@ -96,7 +101,7 @@ func (adapter daoAdapter) Recover(name, password, mnemonic string) (string, erro
 }
 
 func (adapter daoAdapter) Import(name, password string, keystore string) (string, error) {
-	store, _ := adapter.keyDAO.Read(name)
+	store := adapter.keyDAO.Read(name)
 	if store != nil {
 		return "", fmt.Errorf("%s has existed", name)
 	}
@@ -113,10 +118,11 @@ func (adapter daoAdapter) Import(name, password string, keystore string) (string
 }
 
 func (adapter daoAdapter) Export(name, password, encryptKeystorePwd string) (keystore string, err error) {
-	store, err := adapter.keyDAO.Read(name)
-	if err != nil {
-		return "", fmt.Errorf("%s not existed", name)
+	store := adapter.keyDAO.Read(name)
+	if store == nil {
+		return keystore, fmt.Errorf("name %s not exist", name)
 	}
+
 	var km crypto.KeyManager
 	switch store := store.(type) {
 	case types.PrivKeyInfo:
@@ -152,10 +158,11 @@ func (adapter daoAdapter) Delete(name string) error {
 }
 
 func (adapter daoAdapter) Query(name string) (types.AccAddress, error) {
-	store, err := adapter.keyDAO.Read(name)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("%s not existed", name))
+	store := adapter.keyDAO.Read(name)
+	if store == nil {
+		return nil, fmt.Errorf("name %s not exist", name)
 	}
+
 	switch store := store.(type) {
 	case types.PrivKeyInfo:
 		return types.AccAddressFromBech32(store.Address)

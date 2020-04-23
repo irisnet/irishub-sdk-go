@@ -2,6 +2,7 @@ package test
 
 import (
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,22 +14,28 @@ import (
 )
 
 const (
-	NodeURI = "localhost:26657"
-	ChainID = "test"
-	Network = types.Testnet
-	Mode    = types.Commit
-	Fee     = "0.6iris"
-	Gas     = 20000
+	nodeURI = "localhost:26657"
+	chainID = "test"
+	network = types.Testnet
+	mode    = types.Commit
+	fee     = "0.6iris"
+	gas     = 20000
+
+	letterBytes   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	letterIdxBits = 6                    // 6 bits to represent a letter index
+	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
 )
 
 var (
 	mock *MockClient
 	lock sync.Mutex
+	rnd  = rand.NewSource(64)
 )
 
 type MockClient struct {
 	sdk.Client
-	user *MockAccount
+	rootUser *MockAccount
 }
 
 type MockAccount struct {
@@ -48,19 +55,19 @@ func GetMock() *MockClient {
 }
 
 func newMockClient() MockClient {
-	fees, err := types.ParseDecCoins(Fee)
+	fees, err := types.ParseDecCoins(fee)
 	if err != nil {
 		panic(err)
 	}
 
 	path := filepath.Join(getPWD(), "test")
 	c := sdk.NewClient(types.ClientConfig{
-		NodeURI:   NodeURI,
-		Network:   Network,
-		ChainID:   ChainID,
-		Gas:       Gas,
+		NodeURI:   nodeURI,
+		Network:   network,
+		ChainID:   chainID,
+		Gas:       gas,
 		Fee:       fees,
-		Mode:      Mode,
+		Mode:      mode,
 		StoreType: types.PrivKey,
 		Timeout:   10 * time.Second,
 		Level:     "info",
@@ -69,7 +76,7 @@ func newMockClient() MockClient {
 
 	tc := MockClient{
 		Client: c,
-		user: &MockAccount{
+		rootUser: &MockAccount{
 			Name:     "test1",
 			Password: "11111111",
 		},
@@ -80,19 +87,36 @@ func newMockClient() MockClient {
 }
 
 func (tc MockClient) init() {
-	address, err := tc.Keys().Show(tc.user.Name)
+	address, err := tc.Keys().Show(tc.rootUser.Name)
 	if err != nil {
 		keystore := getKeystore()
-		address, err = tc.Keys().Import(tc.user.Name, tc.user.Password, keystore)
+		address, err = tc.Keys().Import(tc.rootUser.Name, tc.rootUser.Password, keystore)
 		if err != nil {
 			panic(err)
 		}
 	}
-	tc.user.Address = types.MustAccAddressFromBech32(address)
+	tc.rootUser.Address = types.MustAccAddressFromBech32(address)
 }
 
 func (tc MockClient) Account() MockAccount {
-	return *tc.user
+	return *tc.rootUser
+}
+
+func (tc MockClient) RandStringOfLength(n int) string {
+	b := make([]byte, n)
+	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
+	for i, cache, remain := n-1, rnd.Int63(), letterIdxMax; i >= 0; {
+		if remain == 0 {
+			cache, remain = rnd.Int63(), letterIdxMax
+		}
+		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
+			b[i] = letterBytes[idx]
+			i--
+		}
+		cache >>= letterIdxBits
+		remain--
+	}
+	return string(b)
 }
 
 func getKeystore() string {

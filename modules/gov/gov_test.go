@@ -23,9 +23,9 @@ func (gts *GovTestSuite) SetupTest() {
 //func (gts *GovTestSuite) TestDeposit() {
 //	baseTx := sdk.BaseTx{
 //		From: "test1",
-//		Gas:  20000,
+//		gas:  20000,
 //		Memo: "test",
-//		Mode: sdk.Commit,
+//		mode: sdk.Commit,
 //	}
 //
 //	amt, _ := sdk.NewIntFromString("10000000000000000000000")

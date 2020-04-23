@@ -1,7 +1,6 @@
 package types
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -38,8 +37,7 @@ func NewKeyBase(rootDir string, cdc Codec) (KeyDAO, error) {
 
 // Write add a key information to the local store
 func (k KeyBase) Write(name string, store Store) error {
-	existed, _ := k.Has(name)
-	if existed {
+	if k.Has(name) {
 		return fmt.Errorf("name %s has exist", name)
 	}
 
@@ -51,14 +49,14 @@ func (k KeyBase) Write(name string, store Store) error {
 }
 
 // Read read a key information from the local store
-func (k KeyBase) Read(name string) (store Store, err error) {
+func (k KeyBase) Read(name string) (store Store) {
 	bz, err := k.db.Get(infoKey(name))
-	if err != nil || bz == nil {
-		return store, errors.New(fmt.Sprintf("key %s not exist", name))
+	if bz == nil || err != nil {
+		return store
 	}
 
 	if err := k.cdc.UnmarshalBinaryLengthPrefixed(bz, &store); err != nil {
-		return store, err
+		return store
 	}
 	return
 }
@@ -69,8 +67,12 @@ func (k KeyBase) Delete(name string) error {
 }
 
 // Delete delete a key from the local store
-func (k KeyBase) Has(name string) (bool, error) {
-	return k.db.Has(infoKey(name))
+func (k KeyBase) Has(name string) bool {
+	existed, err := k.db.Has(infoKey(name))
+	if err != nil {
+		return false
+	}
+	return existed
 }
 
 func infoKey(name string) []byte {

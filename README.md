@@ -81,7 +81,7 @@ type KeyDAO interface {
 
 type AccountAccess interface {
     Write(name string, store Store) error
-    Read(name string) (Store, error)
+    Read(name string) Store
     Delete(name string) error
 }
 type Crypto interface {
@@ -119,8 +119,8 @@ func (m Memory) Write(name string, store types.Store) error {
     return nil
 }
 
-func (m Memory) Read(name string) (types.Store, error) {
-    return m[name], nil
+func (m Memory) Read(name string) types.Store {
+    return m[name]
 }
 
 func (m Memory) Delete(name string) error {

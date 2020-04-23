@@ -24,7 +24,7 @@ func (kts *KeysTestSuite) SetupTest() {
 }
 
 func (kts *KeysTestSuite) TestKeys() {
-	name, password := "test2", "1234567890"
+	name, password := kts.RandStringOfLength(20), kts.RandStringOfLength(8)
 
 	address, mnemonic, err := kts.Keys().Add(name, password)
 	require.NoError(kts.T(), err)
@@ -35,7 +35,7 @@ func (kts *KeysTestSuite) TestKeys() {
 	require.NoError(kts.T(), err)
 	require.Equal(kts.T(), address, address1)
 
-	newPwd := "01234567891"
+	newPwd := kts.RandStringOfLength(8)
 	keystore, err := kts.Keys().Export(name, password, newPwd)
 	require.NoError(kts.T(), err)
 
