@@ -15,7 +15,7 @@ import (
 
 type OracleTestSuite struct {
 	suite.Suite
-	test.MockClient
+	*test.MockClient
 	*log.Logger
 	serviceName string
 	baseTx      sdk.BaseTx
@@ -26,7 +26,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (ots *OracleTestSuite) SetupTest() {
-	ots.MockClient = test.NewMockClient()
+	ots.MockClient = test.GetMock()
 	ots.Logger = log.NewLogger("info")
 }
 

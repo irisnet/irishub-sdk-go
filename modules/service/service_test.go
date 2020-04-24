@@ -1,7 +1,6 @@
 package service_test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -16,7 +15,7 @@ import (
 
 type ServiceTestSuite struct {
 	suite.Suite
-	test.MockClient
+	*test.MockClient
 	*log.Logger
 }
 
@@ -25,7 +24,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (sts *ServiceTestSuite) SetupTest() {
-	sts.MockClient = test.NewMockClient()
+	sts.MockClient = test.GetMock()
 	sts.Logger = log.NewLogger("info")
 }
 
@@ -42,7 +41,7 @@ func (sts *ServiceTestSuite) TestService() {
 	}
 
 	definition := rpc.ServiceDefinitionRequest{
-		ServiceName:       generateServiceName(),
+		ServiceName:       sts.RandStringOfLength(5),
 		Description:       "this is a test service",
 		Tags:              nil,
 		AuthorDescription: "service provider",
@@ -169,7 +168,7 @@ loop:
 	_, err = sts.Service().WithdrawEarnedFees(baseTx)
 	require.NoError(sts.T(), err)
 
-	addr, _, err := sts.Keys().Add("service_test", "1234567890")
+	addr, _, err := sts.Keys().Add(sts.RandStringOfLength(30), "1234567890")
 	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), addr)
 
@@ -188,8 +187,4 @@ loop:
 	balance, err := sts.ToMainCoin(acc.GetCoins()...)
 	require.NoError(sts.T(), err)
 	require.EqualValues(sts.T(), amount, balance)
-}
-
-func generateServiceName() string {
-	return fmt.Sprintf("service-%d", time.Now().Nanosecond())
 }

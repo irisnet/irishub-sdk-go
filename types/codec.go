@@ -62,5 +62,9 @@ func RegisterCodec(cdc Codec) {
 	cdc.RegisterConcrete(secp256k1.PrivKeySecp256k1{},
 		secp256k1.PrivKeyAminoName)
 
+	cdc.RegisterInterface((*Store)(nil))
+	cdc.RegisterConcrete(PrivKeyInfo{}, "sdk/PrivKeyInfo")
+	cdc.RegisterConcrete(KeystoreInfo{}, "sdk/KeystoreInfo")
+
 	codec = cdc
 }

@@ -9,7 +9,7 @@ import (
 
 type GovTestSuite struct {
 	suite.Suite
-	test.MockClient
+	*test.MockClient
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -17,15 +17,15 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (gts *GovTestSuite) SetupTest() {
-	gts.MockClient = test.NewMockClient()
+	gts.MockClient = test.GetMock()
 }
 
 //func (gts *GovTestSuite) TestDeposit() {
 //	baseTx := sdk.BaseTx{
 //		From: "test1",
-//		Gas:  20000,
+//		gas:  20000,
 //		Memo: "test",
-//		Mode: sdk.Commit,
+//		mode: sdk.Commit,
 //	}
 //
 //	amt, _ := sdk.NewIntFromString("10000000000000000000000")

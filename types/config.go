@@ -32,4 +32,7 @@ type ClientConfig struct {
 
 	//log level(trace|debug|info|warn|error|fatal|panic)
 	Level string
+
+	//Database file storage location
+	DBRootDir string
 }

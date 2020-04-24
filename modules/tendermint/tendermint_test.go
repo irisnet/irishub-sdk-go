@@ -10,7 +10,7 @@ import (
 
 type TendermintTestSuite struct {
 	suite.Suite
-	test.MockClient
+	*test.MockClient
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -18,7 +18,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (tts *TendermintTestSuite) SetupTest() {
-	tc := test.NewMockClient()
+	tc := test.GetMock()
 	tts.MockClient = tc
 }
 

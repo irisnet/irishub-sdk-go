@@ -36,19 +36,24 @@ type baseClient struct {
 	paramsQuery
 
 	logger *log.Logger
-	cfg    sdk.ClientConfig
+	cfg    *sdk.ClientConfig
 	cdc    sdk.Codec
 
 	l *locker
 }
 
 //NewBaseClient return the baseClient for every sub modules
-func NewBaseClient(cdc sdk.Codec, cfg sdk.ClientConfig, logger *log.Logger) *baseClient {
+func NewBaseClient(cdc sdk.Codec, cfg sdk.ClientConfig) *baseClient {
+	initConfig(cdc, &cfg)
+
+	//create logger
+	logger := log.NewLogger(cfg.Level)
+
 	base := baseClient{
 		KeyManager: adapter.NewDAOAdapter(cfg.KeyDAO, cfg.StoreType),
 		TmClient:   NewRPCClient(cfg.NodeURI, cdc, logger),
 		logger:     logger,
-		cfg:        cfg,
+		cfg:        &cfg,
 		cdc:        cdc,
 		l:          NewLocker(concurrency),
 	}
@@ -76,19 +81,13 @@ func NewBaseClient(cdc sdk.Codec, cfg sdk.ClientConfig, logger *log.Logger) *bas
 		expiration: cacheExpirePeriod,
 	}
 
-	base.init()
-	return &base
-}
-
-func (base *baseClient) init() {
 	fees, err := base.ToMinCoin(base.cfg.Fee...)
 	if err != nil {
 		panic(err)
 	}
-	base.cfg.Fee = sdk.NewDecCoinsFromCoins(fees...)
-	if base.cfg.Timeout.Nanoseconds() <= 0 {
-		base.cfg.Timeout = timeout
-	}
+	cfg.Fee = sdk.NewDecCoinsFromCoins(fees...)
+
+	return &base
 }
 
 func (base *baseClient) Logger() *log.Logger {
@@ -334,6 +333,58 @@ func (base *baseClient) ValidateTxSize(txSize int, msgs []sdk.Msg) sdk.Error {
 		return sdk.Wrapf("tx size too large, expected: <= %d, got %d", param.TxSizeLimit, txSize)
 	}
 	return nil
+}
+
+func initConfig(cdc sdk.Codec, cfg *sdk.ClientConfig) {
+	if len(cfg.NodeURI) == 0 {
+		panic(fmt.Errorf("nodeURI is required"))
+	}
+
+	if len(cfg.Network) == 0 {
+		cfg.Network = sdk.Mainnet
+	}
+
+	if len(cfg.ChainID) == 0 {
+		panic(fmt.Errorf("chainID is required"))
+	}
+
+	if cfg.Gas == 0 {
+		cfg.Gas = 20000
+	}
+
+	if cfg.Fee == nil || cfg.Fee.Empty() {
+		panic(fmt.Errorf("fee is required"))
+	}
+
+	if cfg.KeyDAO == nil {
+		if len(cfg.DBRootDir) == 0 {
+			panic(fmt.Errorf("DBRootDir is required when use default keyDao"))
+		}
+
+		keybase, err := sdk.NewLevelDB(cfg.DBRootDir, cdc)
+		if err != nil {
+			panic(err)
+		}
+		cfg.KeyDAO = keybase
+	}
+
+	if len(cfg.Mode) == 0 {
+		cfg.Mode = sdk.Sync
+	}
+
+	if cfg.StoreType == 0 {
+		cfg.StoreType = sdk.PrivKey
+	}
+
+	if cfg.Timeout.Nanoseconds() <= 0 {
+		cfg.Timeout = timeout
+	}
+
+	if len(cfg.Level) == 0 {
+		cfg.Level = "info"
+	}
+
+	sdk.SetNetwork(cfg.Network)
 }
 
 type locker struct {

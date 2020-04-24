@@ -34,16 +34,12 @@ type Client struct {
 
 func NewClient(cfg sdk.ClientConfig) Client {
 	cdc := sdk.NewAminoCodec()
-	sdk.SetNetwork(cfg.Network)
+	baseClient := modules.NewBaseClient(cdc, cfg)
 
-	//create logger
-	logger := log.NewLogger(cfg.Level)
-
-	baseClient := modules.NewBaseClient(cdc, cfg, logger)
 	client := &Client{
 		cdc:          cdc,
 		modules:      make(map[string]sdk.Module),
-		logger:       logger,
+		logger:       baseClient.Logger(),
 		WSClient:     baseClient.TmClient,
 		TxManager:    baseClient,
 		TokenConvert: baseClient,

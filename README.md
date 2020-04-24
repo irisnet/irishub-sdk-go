@@ -29,7 +29,6 @@ client := sdk.NewClient(types.ClientConfig{
     ChainID:   "irishub",
     Gas:       2000,
     Fee:       fees,
-    KeyDAO:    types.NewDefaultKeyDAO(&Memory{}),
     Mode:      types.Commit,
     StoreType: types.PrivKey,
     Timeout:   10 * time.Second,
@@ -46,7 +45,7 @@ The `ClientConfig` component mainly contains the parameters used in the SDK, the
 | ChainID   | string        | ChainID of irishub, for example: `irishub`                                              |
 | Gas       | uint64        | The maximum gas to be paid for the transaction, for example: `20000`                    |
 | Fee       | DecCoins      | Transaction fees to be paid for transactions                                            |
-| KeyDAO    | KeyDAO        | Private key management interface                                                        |
+| KeyDAO    | KeyDAO        | Private key management interface, If the user does not provide it, the default `LevelDB` will be used                                                        |
 | Mode      | enum          | Transaction broadcast mode, value: `Sync`,`Async`, `Commit`                             |
 | StoreType | enum          | Private key storage method, value: `Keystore`,`PrivKey`                                     |
 | Timeout   | time.Duration | Transaction timeout, for example: `5s`                                                  |
@@ -68,7 +67,7 @@ baseTx := types.BaseTx{
 result, err := client.Bank().Send(to, coins, baseTx)
 ```
 
-**Note**: If you use the relevant API for sending transactions, you should implement the `KeyDAO` interface. Use the `NewDefaultKeyDAO` method to initialize a `KeyDAO` instance, which will use the `AES` encryption method by default.
+**Note**: If you use the relevant API for sending transactions, you should implement the `KeyDAO` interface. Use the `NewKeyDaoWithAES` method to initialize a `KeyDAO` instance, which will use the `AES` encryption method by default.
 
 ### KeyDAO
 
@@ -82,7 +81,7 @@ type KeyDAO interface {
 
 type AccountAccess interface {
     Write(name string, store Store) error
-    Read(name string) (Store, error)
+    Read(name string) (Store,error)
     Delete(name string) error
 }
 type Crypto interface {
@@ -113,20 +112,34 @@ You can flexibly choose any of the private key management methods. The `Encrypt`
 `KeyDao` implements the `AccountAccess` interface:
 
 ```go
-type Memory map[string]types.Store
-
-func (m Memory) Write(name string, store types.Store) error {
-    m[name] = store
-    return nil
+// Use memory as storage, use with caution in build environment
+type MemoryDB struct {
+	store map[string]Store
+	AES
 }
 
-func (m Memory) Read(name string) (types.Store, error) {
-    return m[name], nil
+func NewMemoryDB() MemoryDB {
+	return MemoryDB{
+		store: make(map[string]Store),
+	}
+}
+func (m MemoryDB) Write(name string, store Store) error {
+	m.store[name] = store
+	return nil
 }
 
-func (m Memory) Delete(name string) error {
-    delete(m, name)
-    return nil
+func (m MemoryDB) Read(name string) (Store, error) {
+	return m.store[name], nil
+}
+
+func (m MemoryDB) Delete(name string) error {
+	delete(m.store, name)
+	return nil
+}
+
+func (m MemoryDB) Has(name string) bool {
+	_, ok := m.store[name]
+	return ok
 }
 ```
 

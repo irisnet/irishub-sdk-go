@@ -15,7 +15,7 @@ import (
 
 type BankTestSuite struct {
 	suite.Suite
-	test.MockClient
+	*test.MockClient
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -23,7 +23,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (bts *BankTestSuite) SetupTest() {
-	tc := test.NewMockClient()
+	tc := test.GetMock()
 	bts.MockClient = tc
 }
 
@@ -111,7 +111,7 @@ func (bts BankTestSuite) TestMultiSend() {
 	var acc = make([]string, accNum)
 	var receipts = make([]rpc.Receipt, accNum)
 	for i := 0; i < accNum; i++ {
-		acc[i] = fmt.Sprintf("%s%d", "testBank", i)
+		acc[i] = bts.RandStringOfLength(10)
 		addr, _, err := bts.Keys().Add(acc[i], "1234567890")
 
 		require.NoError(bts.T(), err)

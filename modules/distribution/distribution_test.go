@@ -11,7 +11,7 @@ import (
 
 type DistrTestSuite struct {
 	suite.Suite
-	test.MockClient
+	*test.MockClient
 }
 
 func TestDistrTestSuite(t *testing.T) {
@@ -19,7 +19,7 @@ func TestDistrTestSuite(t *testing.T) {
 }
 
 func (dts *DistrTestSuite) SetupTest() {
-	tc := test.NewMockClient()
+	tc := test.GetMock()
 	dts.MockClient = tc
 }
 
