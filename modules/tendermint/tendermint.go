@@ -6,6 +6,7 @@ package tendermint
 import (
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/tendermint/tendermint/p2p"
 )
 
 const (
@@ -64,7 +65,7 @@ func (t tmClient) SearchTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk
 }
 
 func (t tmClient) QueryValidators(height int64) (rpc.ResultQueryValidators, sdk.Error) {
-	rs, err := t.Validators(&height)
+	rs, err := t.Validators(&height, 0, 100)
 	if err != nil {
 		return rpc.ResultQueryValidators{}, sdk.Wrap(err)
 	}
@@ -72,4 +73,22 @@ func (t tmClient) QueryValidators(height int64) (rpc.ResultQueryValidators, sdk.
 		BlockHeight: rs.BlockHeight,
 		Validators:  sdk.ParseValidators(rs.Validators),
 	}, nil
+}
+
+func (t tmClient) QueryNodeInfo() (p2p.DefaultNodeInfo, sdk.Error) {
+	status, err := t.Status()
+	if err != nil {
+		return p2p.DefaultNodeInfo{}, sdk.Wrap(err)
+	}
+	return status.NodeInfo, nil
+}
+
+func (t tmClient) QueryNodeVersion() (string, sdk.Error) {
+	var version string
+	bz, err := t.Query("/app/version", nil)
+	if err != nil {
+		return "", sdk.Wrap(err)
+	}
+	version = string(bz)
+	return version, nil
 }

@@ -35,7 +35,7 @@ func (base baseClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int) 
 		return sdk.ResultSearchTxs{}, errors.New("must declare at least one tag to search")
 	}
 
-	res, err := base.TxSearch(query, true, page, size)
+	res, err := base.TxSearch(query, true, page, size, "asc")
 	if err != nil {
 		return sdk.ResultSearchTxs{}, err
 	}
@@ -75,7 +75,7 @@ func (base *baseClient) buildTx(msg []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *sdk.
 		Strs("data", tx.GetSignBytes()).
 		Msg("sign transaction success")
 
-	txByte, err := base.cdc.MarshalBinaryLengthPrefixed(tx)
+	txByte, err := base.Cdc.MarshalBinaryLengthPrefixed(tx)
 	if err != nil {
 		return nil, ctx, sdk.Wrap(err)
 	}
@@ -130,9 +130,9 @@ func (base baseClient) broadcastTxCommit(tx []byte) (sdk.ResultTx, sdk.Error) {
 	return sdk.ResultTx{
 		GasWanted: res.DeliverTx.GasWanted,
 		GasUsed:   res.DeliverTx.GasUsed,
-		Tags:      sdk.ParseTags(res.DeliverTx.Tags),
-		Hash:      res.Hash.String(),
-		Height:    res.Height,
+		//Tags:      sdk.ParseTags(res.DeliverTx.Tags),
+		Hash:   res.Hash.String(),
+		Height: res.Height,
 	}, nil
 }
 
@@ -185,7 +185,7 @@ func (base baseClient) getResultBlocks(resTxs []*ctypes.ResultTx) (map[int64]*ct
 func (base baseClient) parseTxResult(res *ctypes.ResultTx, resBlock *ctypes.ResultBlock) (sdk.ResultQueryTx, error) {
 
 	var tx sdk.StdTx
-	err := base.cdc.UnmarshalBinaryLengthPrefixed(res.Tx, &tx)
+	err := base.Cdc.UnmarshalBinaryLengthPrefixed(res.Tx, &tx)
 	if err != nil {
 		return sdk.ResultQueryTx{}, err
 	}
@@ -199,7 +199,7 @@ func (base baseClient) parseTxResult(res *ctypes.ResultTx, resBlock *ctypes.Resu
 			Log:       res.TxResult.Log,
 			GasWanted: res.TxResult.GasWanted,
 			GasUsed:   res.TxResult.GasUsed,
-			Tags:      sdk.ParseTags(res.TxResult.Tags),
+			//Tags:      sdk.ParseTags(res.TxResult.Tags),
 		},
 		Timestamp: resBlock.Block.Time.Format(time.RFC3339),
 	}, nil

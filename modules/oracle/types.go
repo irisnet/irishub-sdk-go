@@ -3,7 +3,7 @@ package oracle
 import (
 	"errors"
 	"fmt"
-	cmn "github.com/tendermint/tendermint/libs/common"
+	"github.com/tendermint/tendermint/libs/bytes"
 	"strings"
 	"time"
 
@@ -249,7 +249,7 @@ type feed struct {
 	AggregateFunc    string         `json:"aggregate_func"`
 	ValueJsonPath    string         `json:"value_json_path"`
 	LatestHistory    uint64         `json:"latest_history"`
-	RequestContextID cmn.HexBytes   `json:"request_context_id"`
+	RequestContextID bytes.HexBytes `json:"request_context_id"`
 	Creator          sdk.AccAddress `json:"creator"`
 }
 

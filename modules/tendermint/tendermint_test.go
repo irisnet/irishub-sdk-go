@@ -1,6 +1,7 @@
 package tendermint_test
 
 import (
+	"fmt"
 	"github.com/irisnet/irishub-sdk-go/test"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/stretchr/testify/require"
@@ -68,4 +69,17 @@ func (tts *TendermintTestSuite) TestQueryValidators() {
 	result, err := tts.Tendermint().QueryValidators(1)
 	require.NoError(tts.T(), err)
 	require.Len(tts.T(), result.Validators, 1)
+}
+
+func (tts *TendermintTestSuite) TestQueryNodeInfo() {
+	result, err := tts.Tendermint().QueryNodeInfo()
+	require.NoError(tts.T(), err)
+	fmt.Println(result)
+	require.NotEmpty(tts.T(), result)
+}
+
+func (tts *TendermintTestSuite) TestQueryNodeVersion() {
+	result, err := tts.Tendermint().QueryNodeVersion()
+	require.NoError(tts.T(), err)
+	require.NotEmpty(tts.T(), result)
 }

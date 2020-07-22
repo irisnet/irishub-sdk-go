@@ -5,10 +5,9 @@ import (
 	json2 "encoding/json"
 	"errors"
 	"fmt"
+	"github.com/tendermint/tendermint/libs/bytes"
 	"strings"
 	"time"
-
-	cmn "github.com/tendermint/tendermint/libs/common"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
 
@@ -201,7 +200,7 @@ func (msg MsgCallService) GetSigners() []sdk.AccAddress {
 
 // MsgRespondService defines a message to respond a service request
 type MsgRespondService struct {
-	RequestID cmn.HexBytes   `json:"request_id"`
+	RequestID bytes.HexBytes `json:"request_id"`
 	Provider  sdk.AccAddress `json:"provider"`
 	Result    string         `json:"result"`
 	Output    string         `json:"output"`
@@ -464,7 +463,7 @@ func (msg MsgRefundServiceDeposit) GetSigners() []sdk.AccAddress {
 
 // MsgPauseRequestContext defines a message to suspend a request context
 type MsgPauseRequestContext struct {
-	RequestContextID cmn.HexBytes   `json:"request_context_id"`
+	RequestContextID bytes.HexBytes `json:"request_context_id"`
 	Consumer         sdk.AccAddress `json:"consumer"`
 }
 
@@ -500,7 +499,7 @@ func (msg MsgPauseRequestContext) GetSigners() []sdk.AccAddress {
 
 // MsgStartRequestContext defines a message to resume a request context
 type MsgStartRequestContext struct {
-	RequestContextID cmn.HexBytes   `json:"request_context_id"`
+	RequestContextID bytes.HexBytes `json:"request_context_id"`
 	Consumer         sdk.AccAddress `json:"consumer"`
 }
 
@@ -536,7 +535,7 @@ func (msg MsgStartRequestContext) GetSigners() []sdk.AccAddress {
 
 // MsgKillRequestContext defines a message to terminate a request context
 type MsgKillRequestContext struct {
-	RequestContextID cmn.HexBytes   `json:"request_context_id"`
+	RequestContextID bytes.HexBytes `json:"request_context_id"`
 	Consumer         sdk.AccAddress `json:"consumer"`
 }
 
@@ -573,7 +572,7 @@ func (msg MsgKillRequestContext) GetSigners() []sdk.AccAddress {
 
 // MsgUpdateRequestContext defines a message to update a request context
 type MsgUpdateRequestContext struct {
-	RequestContextID  cmn.HexBytes     `json:"request_context_id"`
+	RequestContextID  bytes.HexBytes   `json:"request_context_id"`
 	Providers         []sdk.AccAddress `json:"providers"`
 	ServiceFeeCap     sdk.Coins        `json:"service_fee_cap"`
 	Timeout           int64            `json:"timeout"`
@@ -757,7 +756,7 @@ type request struct {
 	SuperMode                  bool           `json:"super_mode"`
 	RequestHeight              int64          `json:"request_height"`
 	ExpirationHeight           int64          `json:"expiration_height"`
-	RequestContextID           cmn.HexBytes   `json:"request_context_id"`
+	RequestContextID           bytes.HexBytes `json:"request_context_id"`
 	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
 }
 
@@ -797,7 +796,7 @@ type response struct {
 	Consumer                   sdk.AccAddress `json:"consumer"`
 	Output                     string         `json:"output"`
 	Result                     string         `json:"error"`
-	RequestContextID           cmn.HexBytes   `json:"request_context_id"`
+	RequestContextID           bytes.HexBytes `json:"request_context_id"`
 	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
 }
 
@@ -889,7 +888,7 @@ func (e earnedFees) Convert() interface{} {
 
 // CompactRequest defines a compact request with a request context ID
 type compactRequest struct {
-	RequestContextID           cmn.HexBytes
+	RequestContextID           bytes.HexBytes
 	RequestContextBatchCounter uint64
 	Provider                   sdk.AccAddress
 	ServiceFee                 sdk.Coins
@@ -943,7 +942,7 @@ func actionTagKey(key ...string) sdk.EventKey {
 	return sdk.EventKey(strings.Join(key, "."))
 }
 
-func hexBytesFrom(requestID string) cmn.HexBytes {
+func hexBytesFrom(requestID string) bytes.HexBytes {
 	v, _ := hex.DecodeString(requestID)
-	return cmn.HexBytes(v)
+	return bytes.HexBytes(v)
 }

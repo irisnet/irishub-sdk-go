@@ -1,6 +1,7 @@
 package staking_test
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/require"
 	"testing"
 
@@ -85,6 +86,24 @@ func (sts *StakingTestSuite) TestStaking() {
 	uds, err := sts.Staking().QueryUnbondingDelegationsFrom(validator)
 	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), uds)
+}
+
+func (sts *StakingTestSuite) TestQueryValidator() {
+	validators, err := sts.Staking().QueryValidator("iva13rtezlhpqms02syv27zc0lqc5nt3z4lcnn820h")
+	require.NoError(sts.T(), err)
+	fmt.Println(validators)
+}
+
+func (sts *StakingTestSuite) TestQueryValidators() {
+	validators, err := sts.Staking().QueryValidators(0, 10)
+	require.NoError(sts.T(), err)
+	fmt.Println(validators)
+}
+
+func (sts *StakingTestSuite) TestQueryValidators1() {
+	validators, err := sts.Staking().QueryValidators1(0, 10)
+	require.NoError(sts.T(), err)
+	fmt.Println(validators)
 }
 
 //func (sts *StakingTestSuite) TestDelegate() {

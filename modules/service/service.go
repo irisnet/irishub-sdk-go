@@ -2,9 +2,8 @@ package service
 
 import (
 	"encoding/json"
+	"github.com/tendermint/tendermint/libs/bytes"
 	"strings"
-
-	cmn "github.com/tendermint/tendermint/libs/common"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -493,7 +492,7 @@ func (s serviceClient) QueryRequests(serviceName string, provider sdk.AccAddress
 // QueryRequestsByReqCtx returns all requests of the specified request context ID and batch counter
 func (s serviceClient) QueryRequestsByReqCtx(reqCtxID string, batchCounter uint64) ([]rpc.ServiceRequest, sdk.Error) {
 	param := struct {
-		RequestContextID cmn.HexBytes
+		RequestContextID bytes.HexBytes
 		BatchCounter     uint64
 	}{
 		RequestContextID: hexBytesFrom(reqCtxID),
@@ -528,7 +527,7 @@ func (s serviceClient) QueryResponse(requestID string) (rpc.ServiceResponse, sdk
 // QueryResponses returns all responses of the specified request context and batch counter
 func (s serviceClient) QueryResponses(reqCtxID string, batchCounter uint64) ([]rpc.ServiceResponse, sdk.Error) {
 	param := struct {
-		RequestContextID cmn.HexBytes
+		RequestContextID bytes.HexBytes
 		BatchCounter     uint64
 	}{
 		RequestContextID: hexBytesFrom(reqCtxID),
@@ -544,7 +543,7 @@ func (s serviceClient) QueryResponses(reqCtxID string, batchCounter uint64) ([]r
 // QueryRequestContext return the specified request context
 func (s serviceClient) QueryRequestContext(reqCtxID string) (rpc.RequestContext, sdk.Error) {
 	param := struct {
-		RequestContextID cmn.HexBytes
+		RequestContextID bytes.HexBytes
 	}{
 		RequestContextID: hexBytesFrom(reqCtxID),
 	}

@@ -6,6 +6,7 @@ package modules
 import (
 	"errors"
 	"fmt"
+	"github.com/tendermint/tendermint/libs/bytes"
 	"time"
 
 	"github.com/irisnet/irishub-sdk-go/adapter"
@@ -15,7 +16,6 @@ import (
 	"github.com/irisnet/irishub-sdk-go/utils"
 	"github.com/irisnet/irishub-sdk-go/utils/cache"
 	"github.com/irisnet/irishub-sdk-go/utils/log"
-	cmn "github.com/tendermint/tendermint/libs/common"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 )
 
@@ -37,7 +37,7 @@ type baseClient struct {
 
 	logger *log.Logger
 	cfg    *sdk.ClientConfig
-	cdc    sdk.Codec
+	Cdc    sdk.Codec
 
 	l *locker
 }
@@ -54,7 +54,7 @@ func NewBaseClient(cdc sdk.Codec, cfg sdk.ClientConfig) *baseClient {
 		TmClient:   NewRPCClient(cfg.NodeURI, cdc, logger),
 		logger:     logger,
 		cfg:        &cfg,
-		cdc:        cdc,
+		Cdc:        cdc,
 		l:          NewLocker(concurrency),
 	}
 
@@ -180,7 +180,7 @@ resize:
 }
 
 func (base baseClient) Broadcast(signedTx sdk.StdTx, mode sdk.BroadcastMode) (sdk.ResultTx, sdk.Error) {
-	txByte, err := base.cdc.MarshalBinaryLengthPrefixed(signedTx)
+	txByte, err := base.Cdc.MarshalBinaryLengthPrefixed(signedTx)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -194,7 +194,7 @@ func (base baseClient) QueryWithResponse(path string, data interface{}, result s
 		return err
 	}
 
-	if err := base.cdc.UnmarshalJSON(res, result); err != nil {
+	if err := base.Cdc.UnmarshalJSON(res, result); err != nil {
 		return err
 	}
 
@@ -205,7 +205,7 @@ func (base baseClient) Query(path string, data interface{}) ([]byte, error) {
 	var bz []byte
 	var err error
 	if data != nil {
-		bz, err = base.cdc.MarshalJSON(data)
+		bz, err = base.Cdc.MarshalJSON(data)
 		if err != nil {
 			return nil, err
 		}
@@ -228,8 +228,11 @@ func (base baseClient) Query(path string, data interface{}) ([]byte, error) {
 	return resp.Value, nil
 }
 
-func (base baseClient) QueryStore(key cmn.HexBytes, storeName string) (res []byte, err error) {
-	path := fmt.Sprintf("/store/%s/%s", storeName, "key")
+func (base baseClient) QueryStore(key bytes.HexBytes, storeName, endPath string) ([]sdk.KVPair, error) {
+	var (
+		res []sdk.KVPair
+	)
+	path := fmt.Sprintf("/store/%s/%s", storeName, endPath)
 	opts := rpcclient.ABCIQueryOptions{
 		//Height: cliCtx.Height,
 		Prove: false,
@@ -244,13 +247,17 @@ func (base baseClient) QueryStore(key cmn.HexBytes, storeName string) (res []byt
 	if !resp.IsOK() {
 		return res, errors.New(resp.Log)
 	}
-	return resp.Value, nil
+
+	if err := base.Cdc.UnmarshalBinaryLengthPrefixed(resp.Value, &res); err != nil {
+		return res, err
+	}
+	return res, nil
 }
 
 func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
 	fees, _ := base.cfg.Fee.TruncateDecimal()
 	ctx := &sdk.TxContext{}
-	ctx.WithCodec(base.cdc).
+	ctx.WithCodec(base.Cdc).
 		WithChainID(base.cfg.ChainID).
 		WithKeyManager(base.KeyManager).
 		WithNetwork(base.cfg.Network).

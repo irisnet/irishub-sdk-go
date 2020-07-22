@@ -9,7 +9,6 @@ import (
 
 	tmclient "github.com/tendermint/tendermint/rpc/client"
 
-	cmn "github.com/tendermint/tendermint/libs/common"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
@@ -33,6 +32,7 @@ type WSClient interface {
 type TmClient interface {
 	tmclient.ABCIClient
 	tmclient.SignClient
+	tmclient.StatusClient
 	WSClient
 }
 
@@ -79,20 +79,20 @@ type Tag struct {
 }
 type Tags []Tag
 
-func ParseTags(pairs []cmn.KVPair) (tags []Tag) {
-	if pairs == nil || len(pairs) == 0 {
-		return tags
-	}
-	for _, pair := range pairs {
-		key := string(pair.Key)
-		value := string(pair.Value)
-		tags = append(tags, Tag{
-			Key:   key,
-			Value: value,
-		})
-	}
-	return
-}
+//func ParseTags(pairs []cmn.KVPair) (tags []Tag) {
+//	if pairs == nil || len(pairs) == 0 {
+//		return tags
+//	}
+//	for _, pair := range pairs {
+//		key := string(pair.Key)
+//		value := string(pair.Value)
+//		tags = append(tags, Tag{
+//			Key:   key,
+//			Value: value,
+//		})
+//	}
+//	return
+//}
 func (t Tags) GetValues(key string) (values []string) {
 	for _, tag := range t {
 		if tag.Key == key {

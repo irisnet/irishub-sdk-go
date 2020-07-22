@@ -12,12 +12,17 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/irisnet/irishub-sdk-go/utils/bech32"
+
+	tmkv "github.com/tendermint/tendermint/libs/kv"
 )
 
 const (
 	// AddrLen defines a valid address length
 	AddrLen = 20
 )
+
+// TODO: 重新考虑放置位置
+type KVPair tmkv.Pair
 
 // AccAddress a wrapper around bytes meant to represent an account address.
 // When marshaled to a string or JSON, it uses Bech32.

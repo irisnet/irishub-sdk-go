@@ -34,7 +34,7 @@ func (l tokenQuery) QueryToken(symbol string) (sdk.Token, error) {
 
 	symbol = strings.TrimSuffix(symbol, "-min")
 	var t sdk.Token
-	if err := l.q.QueryWithResponse("custom/asset/token", param, &t); err != nil {
+	if err := l.q.QueryWithResponse("custom/token/token", param, &t); err != nil {
 		return sdk.Token{}, err
 	}
 

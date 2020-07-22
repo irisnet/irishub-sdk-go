@@ -28,7 +28,8 @@ type StakingQueries interface {
 	QueryRedelegationsFrom(valAddr string) (Redelegations, sdk.Error)
 
 	QueryValidator(address string) (Validator, sdk.Error)
-	QueryValidators(page uint64, size uint16) (Validators, sdk.Error)
+	QueryValidators(page, size int) (Validators, sdk.Error)
+	QueryValidators1(page, size int) (Validators, sdk.Error)
 
 	QueryPool() (StakePool, sdk.Error)
 	QueryParams() (StakeParams, sdk.Error)

@@ -28,7 +28,7 @@ func (bts *BankTestSuite) SetupTest() {
 }
 
 func (bts BankTestSuite) TestGetAccount() {
-	acc, err := bts.Bank().QueryAccount(bts.Account().Address.String())
+	acc, err := bts.Bank().QueryAccount("iaa1lhjw88yzxwwjafwdz5ztc0fkxrn3atzr7gfjtm")
 	require.NoError(bts.T(), err)
 	fmt.Printf("%v", acc)
 }
@@ -151,4 +151,10 @@ func (bts BankTestSuite) TestMultiSend() {
 	wait.Wait()
 	end := time.Now()
 	fmt.Println(fmt.Sprintf("total senconds:%s", end.Sub(begin).String()))
+}
+
+func (bts BankTestSuite) TestGetAllTokenStats() {
+	//result, err := bts.Bank().QueryAllTokenStats()
+	//require.NoError(bts.T(), err)
+	//fmt.Printf("%v", result)
 }

@@ -385,16 +385,15 @@ func (ds redelegations) Convert() interface{} {
 }
 
 type validator struct {
-	OperatorAddr string `json:"operator_address"` // address of the validator's operator; bech encoded in JSON
-	ConsPubKey   string `json:"consensus_pubkey"` // the consensus public key of the validator; bech encoded in JSON
-	Jailed       bool   `json:"jailed"`           // has the validator been jailed from bonded status?
+	OperatorAddress []byte `json:"operator_address"` // address of the validator's operator; bech encoded in JSON
+	ConsensusPubkey string `json:"consensus_pubkey"` // the consensus public key of the validator; bech encoded in JSON
+	Jailed          bool   `json:"jailed"`           // has the validator been jailed from bonded status?
 
 	Status          bondStatus `json:"status"`           // validator status (bonded/unbonding/unbonded)
 	Tokens          string     `json:"tokens"`           // delegated tokens (incl. self-delegation)
 	DelegatorShares string     `json:"delegator_shares"` // total shares issued to a validator's delegators
 
 	Description Description `json:"description"` // description terms for the validator
-	BondHeight  int64       `json:"bond_height"` // earliest height as a bonded validator
 
 	UnbondingHeight  int64     `json:"unbonding_height"` // if unbonding, height at which this validator has begun unbonding
 	UnbondingMinTime time.Time `json:"unbonding_time"`   // if unbonding, min time for the validator to complete unbonding
@@ -402,10 +401,24 @@ type validator struct {
 	Commission Commission `json:"commission"` // commission parameters
 }
 
+//type Validator struct {
+//	OperatorAddress   github_com_cosmos_cosmos_sdk_types.ValAddress `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3,casttype=github.com/cosmos/cosmos-sdk/types.ValAddress" json:"operator_address,omitempty" yaml:"operator_address"`
+//	ConsensusPubkey   string                                        `protobuf:"bytes,2,opt,name=consensus_pubkey,json=consensusPubkey,proto3" json:"consensus_pubkey,omitempty" yaml:"consensus_pubkey"`
+//	Jailed            bool                                          `protobuf:"varint,3,opt,name=jailed,proto3" json:"jailed,omitempty"`
+//	Status            github_com_cosmos_cosmos_sdk_types.BondStatus `protobuf:"varint,4,opt,name=status,proto3,casttype=github.com/cosmos/cosmos-sdk/types.BondStatus" json:"status,omitempty"`
+//	Tokens            github_com_cosmos_cosmos_sdk_types.Int        `protobuf:"bytes,5,opt,name=tokens,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"tokens"`
+//	DelegatorShares   github_com_cosmos_cosmos_sdk_types.Dec        `protobuf:"bytes,6,opt,name=delegator_shares,json=delegatorShares,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"delegator_shares" yaml:"delegator_shares"`
+//	Description       Description                                   `protobuf:"bytes,7,opt,name=description,proto3" json:"description"`
+//	UnbondingHeight   int64                                         `protobuf:"varint,8,opt,name=unbonding_height,json=unbondingHeight,proto3" json:"unbonding_height,omitempty" yaml:"unbonding_height"`
+//	UnbondingTime     time.Time                                     `protobuf:"bytes,9,opt,name=unbonding_time,json=unbondingTime,proto3,stdtime" json:"unbonding_time" yaml:"unbonding_time"`
+//	Commission        Commission                                    `protobuf:"bytes,10,opt,name=commission,proto3" json:"commission"`
+//	MinSelfDelegation github_com_cosmos_cosmos_sdk_types.Int        `protobuf:"bytes,11,opt,name=min_self_delegation,json=minSelfDelegation,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"min_self_delegation" yaml:"min_self_delegation"`
+//}
+
 func (v validator) Convert() interface{} {
 	return rpc.Validator{
-		OperatorAddress: v.OperatorAddr,
-		ConsensusPubkey: v.ConsPubKey,
+		OperatorAddress: string(v.OperatorAddress),
+		ConsensusPubkey: v.ConsensusPubkey,
 		Jailed:          v.Jailed,
 		Status:          v.Status.String(),
 		Tokens:          v.Tokens,
@@ -416,7 +429,7 @@ func (v validator) Convert() interface{} {
 			Website:  v.Description.Website,
 			Details:  v.Description.Details,
 		},
-		BondHeight:      v.BondHeight,
+		//BondHeight:      v.BondHeight,
 		UnbondingHeight: v.UnbondingHeight,
 		UnbondingTime:   v.UnbondingMinTime.String(),
 		Commission: rpc.Commission{
@@ -513,7 +526,7 @@ func (p params) Convert() interface{} {
 func registerCodec(cdc sdk.Codec) {
 	//cdc.RegisterConcrete(Pool{}, "irishub/stake/Pool")
 	cdc.RegisterConcrete(&params{}, "irishub/stake/Params")
-	cdc.RegisterConcrete(validator{}, "irishub/stake/Validator")
+	cdc.RegisterConcrete(validator{}, "custom/staking/Validator")
 	cdc.RegisterConcrete(delegation{}, "irishub/stake/Delegation")
 	cdc.RegisterConcrete(unbondingDelegation{}, "irishub/stake/UnbondingDelegation")
 	cdc.RegisterConcrete(redelegation{}, "irishub/stake/Redelegation")

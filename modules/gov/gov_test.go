@@ -1,6 +1,8 @@
 package gov_test
 
 import (
+	"fmt"
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/irisnet/irishub-sdk-go/test"
@@ -18,6 +20,12 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (gts *GovTestSuite) SetupTest() {
 	gts.MockClient = test.GetMock()
+}
+
+func (gts *GovTestSuite) TestQueryVoters() {
+	votes, err := gts.Gov().QueryVotes(123)
+	require.NoError(gts.T(), err)
+	fmt.Println(votes)
 }
 
 //func (gts *GovTestSuite) TestDeposit() {
@@ -61,10 +69,6 @@ func (gts *GovTestSuite) SetupTest() {
 //	vote, err := gts.Gov().QueryVote(proposalID, gts.Sender().String())
 //	require.NoError(gts.T(), err)
 //	require.EQ(gts.T(), proposalID, vote.ProposalID)
-//
-//	votes, err := gts.Gov().QueryVotes(proposalID)
-//	require.NoError(gts.T(), err)
-//	require.NotEmpty(gts.T(), votes)
 //
 //	tally, err := gts.Gov().QueryTally(proposalID)
 //	require.NoError(gts.T(), err)

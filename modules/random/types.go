@@ -3,10 +3,9 @@ package random
 import (
 	"errors"
 	"fmt"
+	"github.com/tendermint/tendermint/libs/bytes"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
-
-	cmn "github.com/tendermint/tendermint/libs/common"
 
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/utils/json"
@@ -78,7 +77,7 @@ type rand struct {
 
 func (r rand) Convert() interface{} {
 	return rpc.ResponseRandom{
-		RequestTxHash: cmn.HexBytes(r.RequestTxHash).String(),
+		RequestTxHash: bytes.HexBytes(r.RequestTxHash).String(),
 		Height:        r.Height,
 		Value:         r.Value,
 	}
@@ -97,7 +96,7 @@ func (r request) Convert() interface{} {
 	return rpc.RequestRandom{
 		Height:        r.Height,
 		Consumer:      r.Consumer.String(),
-		TxHash:        cmn.HexBytes(r.TxHash).String(),
+		TxHash:        bytes.HexBytes(r.TxHash).String(),
 		Oracle:        r.Oracle,
 		ServiceFeeCap: r.ServiceFeeCap,
 	}

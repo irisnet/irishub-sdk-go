@@ -23,6 +23,11 @@ type Codec interface {
 
 	RegisterConcrete(o interface{}, name string)
 	RegisterInterface(ptr interface{})
+
+	MustMarshalBinaryBare(o interface{}) []byte
+	MustUnmarshalBinaryBare(bz []byte, ptr interface{})
+
+	UnmarshalBinaryBare(bz []byte, ptr interface{}) error
 }
 
 type AminoCodec struct {
