@@ -1,4 +1,4 @@
-module github.com/irisnet/irishub-sdk-go
+module github.com/junjie-bianjie/irishub-sdk-go
 
 go 1.13
 
