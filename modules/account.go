@@ -52,6 +52,7 @@ func (a accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) 
 	}
 
 	var account sdk.BaseAccount
+	//err := a.Query
 	if err := a.QueryWithResponse("custom/auth/account", param, &account); err != nil {
 		return sdk.BaseAccount{}, sdk.Wrap(err)
 	}

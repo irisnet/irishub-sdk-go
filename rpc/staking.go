@@ -29,7 +29,6 @@ type StakingQueries interface {
 
 	QueryValidator(address string) (Validator, sdk.Error)
 	QueryValidators(page, size int) (Validators, sdk.Error)
-	QueryValidators1(page, size int) (Validators, sdk.Error)
 
 	QueryPool() (StakePool, sdk.Error)
 	QueryParams() (StakeParams, sdk.Error)
@@ -81,17 +80,17 @@ type Redelegation struct {
 
 type Validators []Validator
 type Validator struct {
-	OperatorAddress string      `json:"operator_address"`
-	ConsensusPubkey string      `json:"consensus_pubkey"`
-	Jailed          bool        `json:"jailed"`
-	Status          string      `json:"status"`
-	Tokens          string      `json:"tokens"`
-	DelegatorShares string      `json:"delegator_shares"`
-	Description     Description `json:"description"`
-	BondHeight      int64       `json:"bond_height"`
-	UnbondingHeight int64       `json:"unbonding_height"`
-	UnbondingTime   string      `json:"unbonding_time"`
-	Commission      Commission  `json:"commission"`
+	OperatorAddress   string      `json:"operator_address"`
+	ConsensusPubkey   string      `json:"consensus_pubkey"`
+	Jailed            bool        `json:"jailed"`
+	Status            string      `json:"status"`
+	Tokens            string      `json:"tokens"`
+	DelegatorShares   string      `json:"delegator_shares"`
+	Description       Description `json:"description"`
+	UnbondingHeight   int64       `json:"unbonding_height"`
+	UnbondingTime     string      `json:"unbonding_time"`
+	Commission        Commission  `json:"commission"`
+	MinSelfDelegation string      `json:"min_self_delegation"`
 }
 
 // DelegatorShareExRate gets the exchange rate of tokens over delegator shares.
@@ -113,10 +112,14 @@ func (v Validator) DelegatorShareExRate() sdk.Dec {
 }
 
 type Commission struct {
+	CommissionRates `json:"commission_rates"`
+	UpdateTime      string `json:"update_time"`
+}
+
+type CommissionRates struct {
 	Rate          string `json:"rate"`
 	MaxRate       string `json:"max_rate"`
 	MaxChangeRate string `json:"max_change_rate"`
-	UpdateTime    string `json:"update_time"`
 }
 
 type Description struct {

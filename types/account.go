@@ -2,8 +2,6 @@ package types
 
 import (
 	"errors"
-
-	"github.com/tendermint/tendermint/crypto"
 )
 
 // Account is an interface used to store coins at a given address within state.
@@ -16,8 +14,8 @@ type Account interface {
 	GetAddress() AccAddress
 	SetAddress(AccAddress) error // errors if already set.
 
-	GetPubKey() crypto.PubKey // can return nil.
-	SetPubKey(crypto.PubKey) error
+	GetPubKey() []byte // can return nil.
+	SetPubKey([]byte) error
 
 	GetAccountNumber() uint64
 	SetAccountNumber(uint64) error
@@ -25,8 +23,8 @@ type Account interface {
 	GetSequence() uint64
 	SetSequence(uint64) error
 
-	GetCoins() Coins
-	SetCoins(Coins) error
+	//GetCoins() Coins
+	//SetCoins(Coins) error
 
 	GetMemoRegexp() string
 	SetMemoRegexp(string)
@@ -34,13 +32,20 @@ type Account interface {
 
 var _ Account = (*BaseAccount)(nil)
 
-type BaseAccount struct {
+/*type BaseAccount struct {
 	Address       AccAddress    `json:"address"`
 	Coins         Coins         `json:"coins"`
 	PubKey        crypto.PubKey `json:"public_key"`
 	AccountNumber uint64        `json:"account_number"`
 	Sequence      uint64        `json:"sequence"`
 	MemoRegexp    string        `json:"memo_regexp"`
+}*/
+
+type BaseAccount struct {
+	Address       AccAddress `json:"address"`
+	PubKey        []byte     `json:"public_key"`
+	AccountNumber uint64     `json:"account_number"`
+	Sequence      uint64     `json:"sequence"`
 }
 
 // Implements sdk.Account.
@@ -58,24 +63,24 @@ func (acc *BaseAccount) SetAddress(addr AccAddress) error {
 }
 
 // Implements sdk.Account.
-func (acc BaseAccount) GetPubKey() crypto.PubKey {
+func (acc BaseAccount) GetPubKey() []byte {
 	return acc.PubKey
 }
 
 // Implements sdk.Account.
-func (acc *BaseAccount) SetPubKey(pubKey crypto.PubKey) error {
+func (acc *BaseAccount) SetPubKey(pubKey []byte) error {
 	acc.PubKey = pubKey
 	return nil
 }
 
 // Implements sdk.Account.
-func (acc *BaseAccount) GetCoins() Coins {
-	return acc.Coins
+func (acc *BaseAccount) GetCoins() string {
+	return ""
 }
 
 // Implements sdk.Account.
 func (acc *BaseAccount) SetCoins(coins Coins) error {
-	acc.Coins = coins
+	acc.PubKey = []byte("coins")
 	return nil
 }
 
@@ -103,12 +108,12 @@ func (acc *BaseAccount) SetSequence(seq uint64) error {
 
 // Implements sdk.Account.
 func (acc *BaseAccount) GetMemoRegexp() string {
-	return acc.MemoRegexp
+	return "acc.MemoRegexp"
 }
 
 // Implements sdk.Account.
 func (acc *BaseAccount) SetMemoRegexp(regexp string) {
-	acc.MemoRegexp = regexp
+	//acc.MemoRegexp = regexp
 }
 
 func (acc *BaseAccount) Convert() interface{} {

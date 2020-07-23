@@ -1,7 +1,6 @@
 package staking
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
@@ -382,36 +381,43 @@ func (s stakingClient) QueryValidator(address string) (rpc.Validator, sdk.Error)
 }
 
 // QueryValidators return the specified validators by page and size
-func (s stakingClient) QueryValidators(page int, size int) (rpc.Validators, sdk.Error) {
+func (s stakingClient) QueryValidators(page, size int) (rpc.Validators, sdk.Error) {
+	var result rpc.Validators
+	validators, err := s.queryValidators(page, size, BondStatusUnbonded)
+	if err != nil {
+		return rpc.Validators{}, sdk.Wrap(err)
+	}
+	result = append(result, validators...)
+
+	validators, err = s.queryValidators(page, size, BondStatusUnbonding)
+	if err != nil {
+		return rpc.Validators{}, sdk.Wrap(err)
+	}
+	result = append(result, validators...)
+
+	validators, err = s.queryValidators(page, size, BondStatusBonded)
+	if err != nil {
+		return rpc.Validators{}, sdk.Wrap(err)
+	}
+	result = append(result, validators...)
+	return result, nil
+}
+
+// queryValidators return the specified validators by status
+func (s stakingClient) queryValidators(page, size int, status string) (rpc.Validators, sdk.Error) {
 	param := struct {
 		Page, Limit int
 		Status      string
 	}{
-		Page:  page,
-		Limit: size,
-		//Status: "Bonded",
+		Page:   page,
+		Limit:  size,
+		Status: status,
 	}
 
 	var validators validators
-	//
-	//validatorsKey := []byte{0x21} // prefix for each key to a validator
-	//if res, err := s.QueryStore(validatorsKey, "staking", "subspace"); err != nil {
-	//	// TODO: handle err
-	//} else {
-	//	unmarshalValidator := func(bz []byte) {
-	//
-	//	}
-	//}
-
-	if res, err := s.Status(); err != nil {
-		panic(err)
-	} else {
-		fmt.Println(string(res.SyncInfo.LatestAppHash))
-	}
 	if err := s.QueryWithResponse("custom/staking/validators", param, &validators); err != nil {
 		return rpc.Validators{}, sdk.Wrap(err)
 	}
-
 	return validators.Convert().(rpc.Validators), nil
 }
 
@@ -464,12 +470,4 @@ func (s stakingClient) SubscribeValidatorInfoUpdates(validator string,
 			}
 		}
 	})
-}
-
-func (s stakingClient) QueryValidators1(page, size int) (rpc.Validators, sdk.Error) {
-	var i int64
-	i = 1
-	result, _ := s.Validators(&i, 0, 100)
-	fmt.Println(result)
-	return rpc.Validators{}, nil
 }

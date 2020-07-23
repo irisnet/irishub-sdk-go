@@ -90,7 +90,7 @@ func (bts BankTestSuite) TestSetMemoRegexp() {
 
 	acc, err := bts.Bank().QueryAccount(bts.Account().Address.String())
 	require.NoError(bts.T(), err)
-	require.Equal(bts.T(), "testMemo", acc.MemoRegexp)
+	require.Equal(bts.T(), "testMemo", acc)
 }
 
 func (bts BankTestSuite) TestMultiSend() {

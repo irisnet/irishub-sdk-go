@@ -32,7 +32,7 @@ func (s slashingClient) QueryValidatorSigningInfo(validatorConPubKey string) (rp
 	if err != nil {
 		return rpc.ValidatorSigningInfo{}, sdk.Wrap(err)
 	}
-	return s.querySigningInfoV017(pk)
+	return s.querySigningInfoV100(pk)
 }
 
 func (s slashingClient) RegisterCodec(cdc sdk.Codec) {
@@ -90,7 +90,7 @@ func (s slashingClient) querySigningInfoV017(pk crypto.PubKey) (rpc.ValidatorSig
 	}, nil
 }
 
-func (s slashingClient) querySigningInfoV100(pk crypto.PubKey) (rpc.ValidatorSigningInfo, error) {
+func (s slashingClient) querySigningInfoV100(pk crypto.PubKey) (rpc.ValidatorSigningInfo, sdk.Error) {
 	consAddr := sdk.ConsAddress(pk.Address())
 	param := struct {
 		ConsAddress sdk.ConsAddress
@@ -101,7 +101,7 @@ func (s slashingClient) querySigningInfoV100(pk crypto.PubKey) (rpc.ValidatorSig
 	var signingInfo validatorSigningInfo
 	err := s.QueryWithResponse("custom/slashing/signingInfo", param, &signingInfo)
 	if err != nil {
-		return rpc.ValidatorSigningInfo{}, err
+		return rpc.ValidatorSigningInfo{}, sdk.Wrap(err)
 	}
-	return signingInfo.Convert().(rpc.ValidatorSigningInfo), err
+	return signingInfo.Convert().(rpc.ValidatorSigningInfo), sdk.Wrap(err)
 }

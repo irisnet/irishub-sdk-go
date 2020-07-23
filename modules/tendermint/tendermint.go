@@ -7,6 +7,7 @@ import (
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/tendermint/tendermint/p2p"
+	"github.com/tendermint/tendermint/types"
 )
 
 const (
@@ -38,6 +39,14 @@ func (t tmClient) QueryBlock(height int64) (sdk.Block, sdk.Error) {
 		return sdk.Block{}, sdk.Wrap(err)
 	}
 	return sdk.ParseBlock(t.cdc, block.Block), nil
+}
+
+func (t tmClient) QueryBlockLatest() (sdk.Block, sdk.Error) {
+	status, err := t.Status()
+	if err != nil {
+		return sdk.Block{}, sdk.Wrap(err)
+	}
+	return t.QueryBlock(status.SyncInfo.LatestBlockHeight)
 }
 
 func (t tmClient) QueryBlockResult(height int64) (sdk.BlockResult, sdk.Error) {
@@ -91,4 +100,12 @@ func (t tmClient) QueryNodeVersion() (string, sdk.Error) {
 	}
 	version = string(bz)
 	return version, nil
+}
+
+func (t tmClient) QueryGenesis() (types.GenesisDoc, sdk.Error) {
+	genesis, err := t.Genesis()
+	if err != nil {
+		return types.GenesisDoc{}, sdk.Wrap(err)
+	}
+	return *genesis.Genesis, nil
 }

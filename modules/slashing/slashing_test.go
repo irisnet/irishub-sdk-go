@@ -29,11 +29,7 @@ func (sts *SlashingTestSuite) TestQueryParams() {
 }
 
 func (sts *SlashingTestSuite) TestQueryValidatorSigningInfo() {
-	//validators, err := sts.Staking().QueryValidators(1, 10)
-	//require.NoError(sts.T(), err)
-	//require.NotEmpty(sts.T(), validators)
-
-	signingInfo, err := sts.Slashing().QueryValidatorSigningInfo("fcp1numpsf6e6h0zn7sysgv29d0h7m0dqyjnrkr8vq")
+	signingInfo, err := sts.Slashing().QueryValidatorSigningInfo("icp1zcjduepqngqqcwa3u7f8d0ds8ynds5nlkt7c7djvllf88gs3lprnvkyw4suqncgprh")
 	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), signingInfo)
 	require.NotEmpty(sts.T(), signingInfo.IndexOffset)

@@ -1,6 +1,7 @@
 package gov
 
 import (
+	"fmt"
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/utils/log"
@@ -166,12 +167,14 @@ func (g govClient) QueryVotes(proposalID uint64) ([]rpc.Vote, sdk.Error) {
 		ProposalID: proposalID,
 	}
 
-	var vs votes
-	err := g.QueryWithResponse("custom/gov/votes", param, &vs)
+	//var vs votes
+	res, err := g.Query("custom/gov/votes", param)
+	fmt.Println("QueryVotes ->result", res)
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}
-	return vs.Convert().([]rpc.Vote), nil
+	//return vs.Convert().([]rpc.Vote), nil
+	return []rpc.Vote{}, nil
 }
 
 // QueryDeposit returns the deposit of the specified proposalID and depositor

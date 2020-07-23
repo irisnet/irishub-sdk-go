@@ -33,6 +33,7 @@ type TmClient interface {
 	tmclient.ABCIClient
 	tmclient.SignClient
 	tmclient.StatusClient
+	tmclient.HistoryClient
 	WSClient
 }
 

@@ -23,7 +23,7 @@ func (ats *AssetTestSuite) SetupTest() {
 }
 
 func (ats AssetTestSuite) TestQueryToken() {
-	token, err := ats.Asset().QueryToken("iris")
+	token, err := ats.Asset().QueryToken("point")
 	require.NoError(ats.T(), err)
 	require.Equal(ats.T(), sdk.IRIS, token)
 }
