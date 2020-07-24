@@ -24,7 +24,6 @@ type ParamQuery interface {
 type StoreQuery interface {
 	QueryWithResponse(path string, data interface{}, result Response) error
 	Query(path string, data interface{}) ([]byte, error)
-	//QueryStore(key bytes.HexBytes, storeName, endPath string) ([]KVPair, error)
 }
 
 type AccountQuery interface {

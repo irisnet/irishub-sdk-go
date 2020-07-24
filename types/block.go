@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/base64"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -100,16 +99,11 @@ func ParseBlockResult(res *ctypes.ResultBlockResults) BlockResult {
 func ParseValidators(vs []*tmtypes.Validator) []Validator {
 	var validators = make([]Validator, len(vs))
 	for i, v := range vs {
-		bech32Addr, _ := ConsAddressFromHex(v.Address.String())
-		bech32PubKey, _ := Bech32ifyConsPub(v.PubKey)
-
 		var pubKey PubKey
 		if bz, err := codec.MarshalJSON(v.PubKey); err == nil {
 			_ = codec.UnmarshalJSON(bz, &pubKey)
 		}
 		validators[i] = Validator{
-			Bech32Address:    bech32Addr.String(),
-			Bech32PubKey:     bech32PubKey,
 			Address:          v.Address.String(),
 			PubKey:           pubKey,
 			VotingPower:      v.VotingPower,

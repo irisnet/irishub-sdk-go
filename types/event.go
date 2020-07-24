@@ -151,15 +151,14 @@ type EventDataNewBlockHeader struct {
 
 type EventNewBlockHeaderHandler func(EventDataNewBlockHeader)
 
-//EventDataValidatorSetUpdates for SubscribeValidatorSetUpdates
+// Volatile state for each Validator
 type Validator struct {
-	Bech32Address    string `json:"bech32_address"`
-	Bech32PubKey     string `json:"bech32_pubkey"`
 	Address          string `json:"address"`
 	PubKey           PubKey `json:"pub_key"`
 	VotingPower      int64  `json:"voting_power"`
 	ProposerPriority int64  `json:"proposer_priority"`
 }
+
 type EventDataValidatorSetUpdates struct {
 	ValidatorUpdates []Validator `json:"validator_updates"`
 }

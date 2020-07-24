@@ -6,8 +6,6 @@ package tendermint
 import (
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
-	"github.com/tendermint/tendermint/p2p"
-	"github.com/tendermint/tendermint/types"
 )
 
 const (
@@ -73,23 +71,25 @@ func (t tmClient) SearchTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk
 	return txs, nil
 }
 
-func (t tmClient) QueryValidators(height int64) (rpc.ResultQueryValidators, sdk.Error) {
+func (t tmClient) QueryValidators(height int64) (rpc.ResultValidators, sdk.Error) {
 	rs, err := t.Validators(&height, 0, 100)
 	if err != nil {
-		return rpc.ResultQueryValidators{}, sdk.Wrap(err)
+		return rpc.ResultValidators{}, sdk.Wrap(err)
 	}
-	return rpc.ResultQueryValidators{
+	return rpc.ResultValidators{
 		BlockHeight: rs.BlockHeight,
 		Validators:  sdk.ParseValidators(rs.Validators),
+		Count:       rs.Count,
+		Total:       rs.Total,
 	}, nil
 }
 
-func (t tmClient) QueryNodeInfo() (p2p.DefaultNodeInfo, sdk.Error) {
+func (t tmClient) QueryNodeInfo() (sdk.ResultStatus, sdk.Error) {
 	status, err := t.Status()
 	if err != nil {
-		return p2p.DefaultNodeInfo{}, sdk.Wrap(err)
+		return sdk.ResultStatus{}, sdk.Wrap(err)
 	}
-	return status.NodeInfo, nil
+	return sdk.ParseNodeStatus(status), nil
 }
 
 func (t tmClient) QueryNodeVersion() (string, sdk.Error) {
@@ -102,10 +102,10 @@ func (t tmClient) QueryNodeVersion() (string, sdk.Error) {
 	return version, nil
 }
 
-func (t tmClient) QueryGenesis() (types.GenesisDoc, sdk.Error) {
+func (t tmClient) QueryGenesis() (sdk.GenesisDoc, sdk.Error) {
 	genesis, err := t.Genesis()
 	if err != nil {
-		return types.GenesisDoc{}, sdk.Wrap(err)
+		return sdk.GenesisDoc{}, sdk.Wrap(err)
 	}
-	return *genesis.Genesis, nil
+	return sdk.ParseGenesis(genesis.Genesis), nil
 }

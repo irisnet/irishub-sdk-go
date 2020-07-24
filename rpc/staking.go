@@ -17,16 +17,12 @@ type StakingTx interface {
 type StakingQueries interface {
 	QueryDelegation(delAddr, valAddr string) (Delegation, sdk.Error)
 	QueryDelegations(delAddr string) (DelegationResponses, sdk.Error)
-
-	QueryUnbondingDelegation(delAddr, valAddr string) (UnbondingDelegation, sdk.Error)
-	QueryUnbondingDelegations(delAddr string) (UnbondingDelegations, sdk.Error)
-
-	QueryRedelegation(delAddr, srcValAddr, dstValAddr string) (Redelegation, sdk.Error)
-	QueryRedelegations(delAddr string) (Redelegations, sdk.Error)
-
 	QueryDelegationsTo(valAddr string) (DelegationResponses, sdk.Error)
+
+	QueryUnbondingDelegations(delAddr string) (UnbondingDelegations, sdk.Error)
 	QueryUnbondingDelegationsFrom(valAddr string) (UnbondingDelegations, sdk.Error)
-	QueryRedelegationsFrom(valAddr string) (Redelegations, sdk.Error)
+
+	QueryRedelegationsFrom(valAddr string) (RedelegationResponses, sdk.Error)
 
 	QueryValidator(address string) (Validator, sdk.Error)
 	QueryValidators(page, size int) (Validators, sdk.Error)
@@ -73,17 +69,29 @@ type UnbondingDelegationEntry struct {
 	Balance        sdk.Int   `json:"balance"`
 }
 
-type Redelegations []Redelegation
+type RedelegationResponses []RedelegationResponse
+type RedelegationResponse struct {
+	Redelegation Redelegation                `json:"redelegation"`
+	Entries      []RedelegationEntryResponse `json:"entries"`
+}
+
 type Redelegation struct {
-	DelegatorAddr    string   `json:"delegator_addr"`
-	ValidatorSrcAddr string   `json:"validator_src_addr"`
-	ValidatorDstAddr string   `json:"validator_dst_addr"`
-	CreationHeight   int64    `json:"creation_height"`
-	MinTime          string   `json:"min_time"`
-	InitialBalance   sdk.Coin `json:"initial_balance"`
-	Balance          sdk.Coin `json:"balance"`
-	SharesSrc        string   `json:"shares_src"`
-	SharesDst        string   `json:"shares_dst"`
+	DelegatorAddress    string              `json:"delegator_address"`
+	ValidatorSrcAddress string              `json:"validator_src_address,omitempty"`
+	ValidatorDstAddress string              `json:"validator_dst_address"`
+	Entries             []RedelegationEntry `json:"entries"`
+}
+
+type RedelegationEntryResponse struct {
+	RedelegationEntry RedelegationEntry `json:"redelegation_entry"`
+	Balance           sdk.Int           `json:"balance"`
+}
+
+type RedelegationEntry struct {
+	CreationHeight int32     `json:"creation_height"`
+	CompletionTime time.Time `json:"completion_time"`
+	InitialBalance sdk.Int   `json:"initial_balance"`
+	SharesDst      sdk.Dec   `json:"shares_dst"`
 }
 
 type Validators []Validator

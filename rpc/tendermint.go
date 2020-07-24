@@ -2,8 +2,6 @@ package rpc
 
 import (
 	sdk "github.com/irisnet/irishub-sdk-go/types"
-	"github.com/tendermint/tendermint/p2p"
-	"github.com/tendermint/tendermint/types"
 )
 
 type Tendermint interface {
@@ -13,14 +11,16 @@ type Tendermint interface {
 	QueryBlockResult(height int64) (sdk.BlockResult, sdk.Error)
 	QueryTx(hash string) (sdk.ResultQueryTx, sdk.Error)
 	SearchTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.ResultSearchTxs, sdk.Error)
-	QueryValidators(height int64) (ResultQueryValidators, sdk.Error)
-	QueryNodeInfo() (p2p.DefaultNodeInfo, sdk.Error)
+	QueryValidators(height int64) (ResultValidators, sdk.Error)
+	QueryNodeInfo() (sdk.ResultStatus, sdk.Error)
 	QueryNodeVersion() (string, sdk.Error)
-	QueryGenesis() (types.GenesisDoc, sdk.Error)
+	QueryGenesis() (sdk.GenesisDoc, sdk.Error)
 }
 
-// Validators for a height
-type ResultQueryValidators struct {
+// Validators for a height.
+type ResultValidators struct {
 	BlockHeight int64           `json:"block_height"`
 	Validators  []sdk.Validator `json:"validators"`
+	Count       int             `json:"count"`
+	Total       int             `json:"total"`
 }

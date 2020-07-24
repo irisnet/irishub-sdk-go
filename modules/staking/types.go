@@ -366,43 +366,93 @@ func (ubdEntry unbondingDelegationEntry) Convert() interface{} {
 	}
 }
 
-// redelegation reflects a delegation's passive re-delegation queue.
+// RedelegationResponse is equivalent to a Redelegation except that its entries
+// contain a balance in addition to shares which is more suitable for client
+// responses.
+type redelegationResponses []redelegationResponse
+type redelegationResponse struct {
+	Redelegation redelegation                `json:"redelegation"`
+	Entries      []redelegationEntryResponse `json:"entries"`
+}
+
+// Redelegation contains the list of a particular delegator's redelegating bonds
+// from a particular source validator to a particular destination validator.
 type redelegation struct {
-	DelegatorAddr    sdk.AccAddress `json:"delegator_addr"`     // delegator
-	ValidatorSrcAddr sdk.ValAddress `json:"validator_src_addr"` // validator redelegation source operator addr
-	ValidatorDstAddr sdk.ValAddress `json:"validator_dst_addr"` // validator redelegation destination operator addr
-	CreationHeight   int64          `json:"creation_height"`    // height which the redelegation took place
-	MinTime          time.Time      `json:"min_time"`           // unix time for redelegation completion
-	InitialBalance   sdk.Coin       `json:"initial_balance"`    // initial balance when redelegation started
-	Balance          sdk.Coin       `json:"balance"`            // current balance
-	SharesSrc        sdk.Dec        `json:"shares_src"`         // amount of source shares redelegating
-	SharesDst        sdk.Dec        `json:"shares_dst"`         // amount of destination shares redelegating
+	DelegatorAddress    sdk.AccAddress      `json:"delegator_address"`
+	ValidatorSrcAddress sdk.ValAddress      `json:"validator_src_address,omitempty"`
+	ValidatorDstAddress sdk.ValAddress      `json:"validator_dst_address"`
+	Entries             []redelegationEntry `json:"entries"`
 }
 
-func (d redelegation) Convert() interface{} {
-	return rpc.Redelegation{
-		DelegatorAddr:    d.DelegatorAddr.String(),
-		ValidatorSrcAddr: d.ValidatorDstAddr.String(),
-		ValidatorDstAddr: d.ValidatorDstAddr.String(),
-		CreationHeight:   d.CreationHeight,
-		MinTime:          d.MinTime.String(),
-		InitialBalance:   d.InitialBalance,
-		Balance:          d.Balance,
-		SharesSrc:        d.SharesSrc.String(),
-		SharesDst:        d.SharesDst.String(),
+// RedelegationEntryResponse is equivalent to a RedelegationEntry except that it
+// contains a balance in addition to shares which is more suitable for client
+// responses.
+type redelegationEntryResponse struct {
+	RedelegationEntry redelegationEntry `json:"redelegation_entry"`
+	Balance           sdk.Int           `json:"balance"`
+}
+
+// RedelegationEntry defines a redelegation object with relevant metadata.
+type redelegationEntry struct {
+	CreationHeight int32     `json:"creation_height"`
+	CompletionTime time.Time `json:"completion_time"`
+	InitialBalance sdk.Int   `json:"initial_balance"`
+	SharesDst      sdk.Dec   `json:"shares_dst"`
+}
+
+func (rs redelegationResponses) Convert() interface{} {
+	redelegationResponses := make(rpc.RedelegationResponses, len(rs))
+	for i, v := range rs {
+		redelegationResponses[i] = v.Convert().(rpc.RedelegationResponse)
 	}
+	return redelegationResponses
 }
 
-type redelegations []redelegation
-
-func (ds redelegations) Convert() interface{} {
-	rds := make(rpc.Redelegations, len(ds))
-	for _, d := range ds {
-		rds = append(rds, d.Convert().(rpc.Redelegation))
+func (rs redelegationResponse) Convert() interface{} {
+	outsideEntry := make([]rpc.RedelegationEntryResponse, len(rs.Entries))
+	for i, v := range rs.Entries {
+		outsideEntry[i] = rpc.RedelegationEntryResponse{
+			RedelegationEntry: rpc.RedelegationEntry{
+				CreationHeight: v.RedelegationEntry.CreationHeight,
+				CompletionTime: v.RedelegationEntry.CompletionTime,
+				InitialBalance: v.RedelegationEntry.InitialBalance,
+				SharesDst:      v.RedelegationEntry.SharesDst,
+			},
+			Balance: v.Balance,
+		}
 	}
-	return rds
+
+	insideEntry := make([]rpc.RedelegationEntry, len(rs.Redelegation.Entries))
+	for i, v := range rs.Redelegation.Entries {
+		insideEntry[i] = rpc.RedelegationEntry{
+			CreationHeight: v.CreationHeight,
+			CompletionTime: v.CompletionTime,
+			InitialBalance: v.InitialBalance,
+			SharesDst:      v.SharesDst,
+		}
+	}
+
+	redelegationResponse := rpc.RedelegationResponse{
+		Redelegation: rpc.Redelegation{
+			DelegatorAddress:    rs.Redelegation.DelegatorAddress.String(),
+			ValidatorDstAddress: rs.Redelegation.ValidatorDstAddress.String(),
+			ValidatorSrcAddress: rs.Redelegation.ValidatorSrcAddress.String(),
+			Entries:             insideEntry,
+		},
+		Entries: outsideEntry,
+	}
+
+	return redelegationResponse
 }
 
+// Validator defines the total amount of bond shares and their exchange rate to
+// coins. Slashing results in a decrease in the exchange rate, allowing correct
+// calculation of future undelegations without iterating over delegators.
+// When coins are delegated to this validator, the validator is credited with a
+// delegation whose number of bond shares is based on the amount of coins
+// delegated divided by the current exchange rate. Voting power can be
+// calculated as total bonded shares multiplied by exchange rate.
+type validators []validator
 type validator struct {
 	OperatorAddress   string      `json:"operator_address"` // address of the validator's operator; bech encoded in JSON
 	ConsensusPubkey   string      `json:"consensus_pubkey"` // the consensus public key of the validator; bech encoded in JSON
@@ -415,8 +465,6 @@ type validator struct {
 	Commission        Commission  `json:"commission"`       // commission parameters
 	MinSelfDelegation string      `json:"min_self_delegation"`
 }
-
-type validators []validator
 
 func (v validator) Convert() interface{} {
 	return rpc.Validator{
