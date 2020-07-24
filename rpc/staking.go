@@ -2,6 +2,7 @@ package rpc
 
 import (
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"time"
 )
 
 type StakingTx interface {
@@ -15,7 +16,7 @@ type StakingTx interface {
 
 type StakingQueries interface {
 	QueryDelegation(delAddr, valAddr string) (Delegation, sdk.Error)
-	QueryDelegations(delAddr string) (Delegations, sdk.Error)
+	QueryDelegations(delAddr string) (DelegationResponses, sdk.Error)
 
 	QueryUnbondingDelegation(delAddr, valAddr string) (UnbondingDelegation, sdk.Error)
 	QueryUnbondingDelegations(delAddr string) (UnbondingDelegations, sdk.Error)
@@ -23,7 +24,7 @@ type StakingQueries interface {
 	QueryRedelegation(delAddr, srcValAddr, dstValAddr string) (Redelegation, sdk.Error)
 	QueryRedelegations(delAddr string) (Redelegations, sdk.Error)
 
-	QueryDelegationsTo(valAddr string) (Delegations, sdk.Error)
+	QueryDelegationsTo(valAddr string) (DelegationResponses, sdk.Error)
 	QueryUnbondingDelegationsFrom(valAddr string) (UnbondingDelegations, sdk.Error)
 	QueryRedelegationsFrom(valAddr string) (Redelegations, sdk.Error)
 
@@ -46,23 +47,30 @@ type Staking interface {
 	StakingSubscriber
 }
 
-type Delegation struct {
-	DelegatorAddr string `json:"delegator_addr"`
-	ValidatorAddr string `json:"validator_addr"`
-	Shares        string `json:"shares"`
-	Height        int64  `json:"height"`
+type DelegationResponses []DelegationResponse
+type DelegationResponse struct {
+	Delegation Delegation `json:"delegation"`
+	Balance    sdk.Coin   `json:"balance"`
 }
-type Delegations []Delegation
+
+type Delegation struct {
+	DelegatorAddress string `json:"delegator_address"`
+	ValidatorAddress string `json:"validator_address"`
+	Shares           string `json:"shares"`
+}
 
 type UnbondingDelegations []UnbondingDelegation
 type UnbondingDelegation struct {
-	TxHash         string   `json:"tx_hash"`
-	DelegatorAddr  string   `json:"delegator_addr"`
-	ValidatorAddr  string   `json:"validator_addr"`
-	CreationHeight int64    `json:"creation_height"`
-	MinTime        string   `json:"min_time"`
-	InitialBalance sdk.Coin `json:"initial_balance"`
-	Balance        sdk.Coin `json:"balance"`
+	DelegatorAddress string                     `json:"delegator_address"`
+	ValidatorAddress string                     `json:"validator_address"`
+	Entries          []UnbondingDelegationEntry `json:"entries"`
+}
+
+type UnbondingDelegationEntry struct {
+	CreationHeight int64     `json:"creation_height,omitempty"`
+	CompletionTime time.Time `json:"completion_time"`
+	InitialBalance sdk.Int   `json:"initial_balance"`
+	Balance        sdk.Int   `json:"balance"`
 }
 
 type Redelegations []Redelegation

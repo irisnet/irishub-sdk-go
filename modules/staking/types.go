@@ -22,7 +22,8 @@ var (
 	_ sdk.Msg = MsgUndelegate{}
 	_ sdk.Msg = MsgBeginRedelegate{}
 
-	cdc = sdk.NewAminoCodec()
+	cdc         = sdk.NewAminoCodec()
+	defaultPage = 1
 )
 
 func init() {
@@ -285,66 +286,84 @@ func (msg MsgEditValidator) ValidateBasic() error {
 }
 
 //===============================for query===============================
-// delegation represents the bond with tokens held by an account.  It is
-// owned by one delegator, and is associated with the voting power of one
-// pubKey.
+// DelegationResponse is equivalent to Delegation except that it contains a balance
+// in addition to shares which is more suitable for client responses.
+type delegationResponses []delegationResponse
+type delegationResponse struct {
+	Delegation delegation `json:"delegation"`
+	Balance    sdk.Coin   `json:"balance"`
+}
+
 type delegation struct {
-	DelegatorAddr sdk.AccAddress `json:"delegator_addr"`
-	ValidatorAddr sdk.ValAddress `json:"validator_addr"`
-	Shares        sdk.Dec        `json:"shares"`
-	Height        int64          `json:"height"` // Last height bond updated
+	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
+	ValidatorAddress sdk.ValAddress `json:"validator_address"`
+	Shares           sdk.Dec        `json:"shares"`
 }
 
-func (d delegation) Convert() interface{} {
-	return rpc.Delegation{
-		DelegatorAddr: d.DelegatorAddr.String(),
-		ValidatorAddr: d.ValidatorAddr.String(),
-		Shares:        d.Shares.String(),
-		Height:        d.Height,
+func (ds delegationResponses) Convert() interface{} {
+	dses := make(rpc.DelegationResponses, len(ds))
+	for i, v := range ds {
+		dses[i] = v.Convert().(rpc.DelegationResponse)
+	}
+	return dses
+}
+
+func (d delegationResponse) Convert() interface{} {
+	return rpc.DelegationResponse{
+		Delegation: rpc.Delegation{
+			DelegatorAddress: d.Delegation.DelegatorAddress.String(),
+			ValidatorAddress: d.Delegation.ValidatorAddress.String(),
+			Shares:           d.Delegation.Shares.String(),
+		},
+		Balance: d.Balance,
 	}
 }
 
-type delegations []delegation
-
-func (ds delegations) Convert() interface{} {
-	delegations := make(rpc.Delegations, len(ds))
-	for _, d := range ds {
-		delegations = append(delegations, d.Convert().(rpc.Delegation))
-	}
-	return delegations
-}
-
-// unbondingDelegation reflects a delegation's passive unbonding queue.
-type unbondingDelegation struct {
-	TxHash         string         `json:"tx_hash"`
-	DelegatorAddr  sdk.AccAddress `json:"delegator_addr"`  // delegator
-	ValidatorAddr  sdk.ValAddress `json:"validator_addr"`  // validator unbonding from operator addr
-	CreationHeight int64          `json:"creation_height"` // height which the unbonding took place
-	MinTime        time.Time      `json:"min_time"`        // unix time for unbonding completion
-	InitialBalance sdk.Coin       `json:"initial_balance"` // atoms initially scheduled to receive at completion
-	Balance        sdk.Coin       `json:"balance"`         // atoms to receive at completion
-}
-
-func (ubd unbondingDelegation) Convert() interface{} {
-	return rpc.UnbondingDelegation{
-		TxHash:         ubd.TxHash,
-		DelegatorAddr:  ubd.DelegatorAddr.String(),
-		ValidatorAddr:  ubd.ValidatorAddr.String(),
-		CreationHeight: ubd.CreationHeight,
-		MinTime:        ubd.MinTime.String(),
-		InitialBalance: ubd.InitialBalance,
-		Balance:        ubd.Balance,
-	}
-}
-
+// UnbondingDelegation stores all of a single delegator's unbonding bonds
+// for a single validator in an time-ordered list
 type unbondingDelegations []unbondingDelegation
+type unbondingDelegation struct {
+	DelegatorAddress sdk.AccAddress             `json:"delegator_address"`
+	ValidatorAddress sdk.ValAddress             `json:"validator_address"`
+	Entries          []unbondingDelegationEntry `protobuf:"bytes,3,rep,name=entries,proto3" json:"entries"`
+}
+
+// UnbondingDelegationEntry defines an unbonding object with relevant metadata.
+type unbondingDelegationEntry struct {
+	CreationHeight int64     `json:"creation_height,omitempty"`
+	CompletionTime time.Time `json:"completion_time"`
+	InitialBalance sdk.Int   `json:"initial_balance"`
+	Balance        sdk.Int   `json:"balance"`
+}
 
 func (ubds unbondingDelegations) Convert() interface{} {
 	uds := make(rpc.UnbondingDelegations, len(ubds))
-	for _, d := range ubds {
-		uds = append(uds, d.Convert().(rpc.UnbondingDelegation))
+	for i, v := range ubds {
+		uds[i] = v.Convert().(rpc.UnbondingDelegation)
 	}
 	return uds
+}
+
+func (ubd unbondingDelegation) Convert() interface{} {
+	entries := make([]rpc.UnbondingDelegationEntry, len(ubd.Entries))
+	for i, v := range ubd.Entries {
+		entries[i] = v.Convert().(rpc.UnbondingDelegationEntry)
+	}
+
+	return rpc.UnbondingDelegation{
+		DelegatorAddress: ubd.DelegatorAddress.String(),
+		ValidatorAddress: ubd.ValidatorAddress.String(),
+		Entries:          entries,
+	}
+}
+
+func (ubdEntry unbondingDelegationEntry) Convert() interface{} {
+	return rpc.UnbondingDelegationEntry{
+		CreationHeight: ubdEntry.CreationHeight,
+		CompletionTime: ubdEntry.CompletionTime,
+		InitialBalance: ubdEntry.InitialBalance,
+		Balance:        ubdEntry.Balance,
+	}
 }
 
 // redelegation reflects a delegation's passive re-delegation queue.
@@ -397,6 +416,8 @@ type validator struct {
 	MinSelfDelegation string      `json:"min_self_delegation"`
 }
 
+type validators []validator
+
 func (v validator) Convert() interface{} {
 	return rpc.Validator{
 		OperatorAddress: v.OperatorAddress,
@@ -423,8 +444,6 @@ func (v validator) Convert() interface{} {
 		MinSelfDelegation: v.MinSelfDelegation,
 	}
 }
-
-type validators []validator
 
 func (vs validators) Convert() interface{} {
 	validators := make(rpc.Validators, len(vs))

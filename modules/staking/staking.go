@@ -1,6 +1,7 @@
 package staking
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
@@ -170,18 +171,18 @@ func (s stakingClient) QueryDelegation(delegatorAddr, validatorAddr string) (rpc
 		ValidatorAddr: varAddr,
 	}
 
-	var delegation delegation
-	if err := s.QueryWithResponse("custom/staking/delegation", param, &delegation); err != nil {
+	var delegationResponse delegationResponse
+	if err := s.QueryWithResponse("custom/staking/delegation", param, &delegationResponse); err != nil {
 		return rpc.Delegation{}, sdk.Wrap(err)
 	}
-	return delegation.Convert().(rpc.Delegation), nil
+	return delegationResponse.Convert().(rpc.Delegation), nil
 }
 
 // QueryDelegations return the specified delegations by delegatorAddr
-func (s stakingClient) QueryDelegations(delegatorAddr string) (rpc.Delegations, sdk.Error) {
+func (s stakingClient) QueryDelegations(delegatorAddr string) (rpc.DelegationResponses, sdk.Error) {
 	delAddr, err := sdk.AccAddressFromBech32(delegatorAddr)
 	if err != nil {
-		return rpc.Delegations{}, sdk.Wrap(err)
+		return rpc.DelegationResponses{}, sdk.Wrap(err)
 	}
 
 	param := struct {
@@ -190,11 +191,11 @@ func (s stakingClient) QueryDelegations(delegatorAddr string) (rpc.Delegations, 
 		DelegatorAddr: delAddr,
 	}
 
-	var ds delegations
+	var ds delegationResponses
 	if err := s.QueryWithResponse("custom/staking/delegatorDelegations", param, &ds); err != nil {
-		return rpc.Delegations{}, sdk.Wrap(err)
+		return rpc.DelegationResponses{}, sdk.Wrap(err)
 	}
-	return ds.Convert().(rpc.Delegations), nil
+	return ds.Convert().(rpc.DelegationResponses), nil
 }
 
 // QueryUnbondingDelegation return the specified unbonding delegation by delegatorAddr and validatorAddr
@@ -298,23 +299,25 @@ func (s stakingClient) QueryRedelegations(delegatorAddr string) (rpc.Redelegatio
 }
 
 // QueryDelegationsTo return the specified delegations by validatorAddr
-func (s stakingClient) QueryDelegationsTo(validatorAddr string) (rpc.Delegations, sdk.Error) {
+func (s stakingClient) QueryDelegationsTo(validatorAddr string) (rpc.DelegationResponses, sdk.Error) {
 	varAddr, err := sdk.ValAddressFromBech32(validatorAddr)
 	if err != nil {
-		return rpc.Delegations{}, sdk.Wrap(err)
+		return rpc.DelegationResponses{}, sdk.Wrap(err)
 	}
 
 	param := struct {
 		ValidatorAddr sdk.ValAddress
+		Page          int
 	}{
 		ValidatorAddr: varAddr,
+		Page:          defaultPage, // A page number must be passed in
 	}
 
-	var ds delegations
+	var ds delegationResponses
 	if err := s.QueryWithResponse("custom/staking/validatorDelegations", param, &ds); err != nil {
-		return rpc.Delegations{}, sdk.Wrap(err)
+		return rpc.DelegationResponses{}, sdk.Wrap(err)
 	}
-	return ds.Convert().(rpc.Delegations), nil
+	return ds.Convert().(rpc.DelegationResponses), nil
 }
 
 // QueryUnbondingDelegationsFrom return the specified unbonding delegations by validatorAddr
@@ -326,8 +329,10 @@ func (s stakingClient) QueryUnbondingDelegationsFrom(validatorAddr string) (rpc.
 
 	param := struct {
 		ValidatorAddr sdk.ValAddress
+		Page          int
 	}{
 		ValidatorAddr: varAddr,
+		Page:          1, // A page number must be passed in
 	}
 
 	var ubds unbondingDelegations
@@ -366,15 +371,16 @@ func (s stakingClient) QueryValidator(address string) (rpc.Validator, sdk.Error)
 
 	param := struct {
 		ValidatorAddr sdk.ValAddress
-		Page, Limit   int
 	}{
 		ValidatorAddr: varAddr,
-		Page:          1,
-		Limit:         1,
 	}
 
 	var validator validator
-	if err := s.QueryWithResponse("custom/staking/validator", param, &validator); err != nil {
+	res, err1 := s.Query("custom/staking/validator", param)
+	if err1 != nil {
+		return rpc.Validator{}, sdk.Wrap(err)
+	}
+	if err1 = json.Unmarshal(res, &validator); err1 != nil {
 		return rpc.Validator{}, sdk.Wrap(err)
 	}
 	return validator.Convert().(rpc.Validator), nil

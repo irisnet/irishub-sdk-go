@@ -75,7 +75,7 @@ func (base *baseClient) buildTx(msg []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *sdk.
 		Strs("data", tx.GetSignBytes()).
 		Msg("sign transaction success")
 
-	txByte, err := base.Cdc.MarshalBinaryLengthPrefixed(tx)
+	txByte, err := base.cdc.MarshalBinaryLengthPrefixed(tx)
 	if err != nil {
 		return nil, ctx, sdk.Wrap(err)
 	}
@@ -185,7 +185,7 @@ func (base baseClient) getResultBlocks(resTxs []*ctypes.ResultTx) (map[int64]*ct
 func (base baseClient) parseTxResult(res *ctypes.ResultTx, resBlock *ctypes.ResultBlock) (sdk.ResultQueryTx, error) {
 
 	var tx sdk.StdTx
-	err := base.Cdc.UnmarshalBinaryLengthPrefixed(res.Tx, &tx)
+	err := base.cdc.UnmarshalBinaryLengthPrefixed(res.Tx, &tx)
 	if err != nil {
 		return sdk.ResultQueryTx{}, err
 	}
