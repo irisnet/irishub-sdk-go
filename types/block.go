@@ -78,7 +78,6 @@ func ParseBlockResult(res *ctypes.ResultBlockResults) BlockResult {
 			Log:       r.Log,
 			GasWanted: r.GasWanted,
 			GasUsed:   r.GasUsed,
-			//Tags:      ParseTags(r.Tags),
 		}
 	}
 	return BlockResult{
@@ -86,12 +85,9 @@ func ParseBlockResult(res *ctypes.ResultBlockResults) BlockResult {
 		Results: ABCIResponses{
 			DeliverTx: txResults,
 			EndBlock: ResultEndBlock{
-				//Tags:             ParseTags(res.Results.EndBlock.Tags),
 				ValidatorUpdates: ParseValidatorUpdate(res.ValidatorUpdates),
 			},
-			BeginBlock: ResultBeginBlock{
-				//Tags: ParseTags(res.Results.BeginBlock.Tags),
-			},
+			BeginBlock: ResultBeginBlock{},
 		},
 	}
 }

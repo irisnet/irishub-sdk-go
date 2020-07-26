@@ -1,7 +1,6 @@
 package staking_test
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/require"
 	"testing"
 
@@ -49,7 +48,6 @@ func (sts *StakingTestSuite) TestQueryUnbondingDelegationsFrom() {
 
 func (sts *StakingTestSuite) TestQueryRedelegationsFrom() {
 	redelegations, err := sts.Staking().QueryRedelegationsFrom("iva1x98k5n7xj0h3udnf5dcdzw85tsfa75qm682jtg")
-	fmt.Println(redelegations)
 	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), redelegations)
 }

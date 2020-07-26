@@ -84,6 +84,14 @@ func (t tmClient) QueryValidators(height int64) (rpc.ResultValidators, sdk.Error
 	}, nil
 }
 
+func (t tmClient) QueryValidatorsLatest() (rpc.ResultValidators, sdk.Error) {
+	status, err := t.Status()
+	if err != nil {
+		return rpc.ResultValidators{}, sdk.Wrap(err)
+	}
+	return t.QueryValidators(status.SyncInfo.LatestBlockHeight)
+}
+
 func (t tmClient) QueryNodeInfo() (sdk.ResultStatus, sdk.Error) {
 	status, err := t.Status()
 	if err != nil {

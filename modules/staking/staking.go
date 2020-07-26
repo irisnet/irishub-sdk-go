@@ -350,7 +350,11 @@ func (s stakingClient) queryValidators(page, size int, status string) (rpc.Valid
 // QueryValidators return the staking pool status
 func (s stakingClient) QueryPool() (rpc.StakePool, sdk.Error) {
 	var pool Pool
-	if err := s.QueryWithResponse("custom/staking/pool", nil, &pool); err != nil {
+	res, err := s.Query("custom/staking/pool", nil)
+	if err != nil {
+		return rpc.StakePool{}, sdk.Wrap(err)
+	}
+	if err := json.Unmarshal(res, &pool); err != nil {
 		return rpc.StakePool{}, sdk.Wrap(err)
 	}
 	return pool.Convert().(rpc.StakePool), nil

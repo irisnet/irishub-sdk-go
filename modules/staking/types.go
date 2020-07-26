@@ -554,14 +554,14 @@ type CommissionMsg struct {
 }
 
 type Pool struct {
-	LooseTokens  sdk.Dec `json:"loose_tokens"`  // tokens which are not bonded in a validator
-	BondedTokens sdk.Dec `json:"bonded_tokens"` // reserve of bonded tokens
+	NotBondedTokens sdk.Int `json:"not_bonded_tokens"` // tokens which are not bonded in a validator
+	BondedTokens    sdk.Int `json:"bonded_tokens"`     // reserve of bonded tokens
 }
 
 func (p Pool) Convert() interface{} {
 	return rpc.StakePool{
-		LooseTokens:  p.LooseTokens.String(),
-		BondedTokens: p.BondedTokens.String(),
+		NotBondedTokens: p.NotBondedTokens.String(),
+		BondedTokens:    p.BondedTokens.String(),
 	}
 }
 
@@ -579,7 +579,7 @@ func (p params) Convert() interface{} {
 }
 
 func registerCodec(cdc sdk.Codec) {
-	//cdc.RegisterConcrete(Pool{}, "irishub/stake/Pool")
+	cdc.RegisterConcrete(Pool{}, "irishub/stake/Pool")
 	cdc.RegisterConcrete(&params{}, "irishub/stake/Params")
 	cdc.RegisterConcrete(validator{}, "custom/staking/Validator")
 	cdc.RegisterConcrete(delegation{}, "irishub/stake/Delegation")

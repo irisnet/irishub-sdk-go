@@ -12,6 +12,7 @@ type Tendermint interface {
 	QueryTx(hash string) (sdk.ResultQueryTx, sdk.Error)
 	SearchTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.ResultSearchTxs, sdk.Error)
 	QueryValidators(height int64) (ResultValidators, sdk.Error)
+	QueryValidatorsLatest() (ResultValidators, sdk.Error)
 	QueryNodeInfo() (sdk.ResultStatus, sdk.Error)
 	QueryNodeVersion() (string, sdk.Error)
 	QueryGenesis() (sdk.GenesisDoc, sdk.Error)

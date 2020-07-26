@@ -146,8 +146,8 @@ type Description struct {
 }
 
 type StakePool struct {
-	LooseTokens  string `json:"loose_tokens"`
-	BondedTokens string `json:"bonded_tokens"`
+	NotBondedTokens string `json:"not_bonded_tokens"`
+	BondedTokens    string `json:"bonded_tokens"`
 }
 
 type StakeParams struct {

@@ -30,7 +30,7 @@ func (bts *BankTestSuite) SetupTest() {
 func (bts BankTestSuite) TestGetAccount() {
 	acc, err := bts.Bank().QueryAccount("iaa1lhjw88yzxwwjafwdz5ztc0fkxrn3atzr7gfjtm")
 	require.NoError(bts.T(), err)
-	fmt.Printf("%v", acc)
+	require.NotEmpty(bts.T(), acc)
 }
 
 func (bts BankTestSuite) TestGetTokenStats() {

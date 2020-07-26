@@ -185,7 +185,7 @@ func (txCtx *TxContext) Build(msgs []Msg) (StdSignMsg, error) {
 		Sequence:      txCtx.sequence,
 		Memo:          txCtx.memo,
 		Msgs:          msgs,
-		Fee:           NewStdFee(txCtx.gas, txCtx.fee...),
+		Fee:           NewStdFee(txCtx.gas, txCtx.fee),
 	}, nil
 }
 
@@ -200,16 +200,11 @@ func (txCtx *TxContext) Sign(name string, msg StdSignMsg) (StdTx, error) {
 }
 
 func (txCtx *TxContext) makeSignature(name string, msg StdSignMsg) (sig StdSignature, err error) {
-	sig = StdSignature{
-		AccountNumber: msg.AccountNumber,
-		Sequence:      msg.Sequence,
-	}
 	if !txCtx.Simulate() {
 		signature, err := txCtx.keyManager.Sign(name, txCtx.password, msg.Bytes(txCtx.codec))
 		if err != nil {
 			return sig, err
 		}
-		sig.PubKey = signature.PubKey
 		sig.Signature = signature.Signature
 	}
 	return sig, nil

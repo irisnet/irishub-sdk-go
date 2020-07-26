@@ -13,16 +13,16 @@ var (
 )
 
 var (
-	testnetEnv = &AddrPrefixCfg{
-		bech32AddressPrefix: map[string]string{
-			"account_addr":   "faa",
-			"validator_addr": "fva",
-			"consensus_addr": "fca",
-			"account_pub":    "fap",
-			"validator_pub":  "fvp",
-			"consensus_pub":  "fcp",
-		},
-	}
+	//testnetEnv = &AddrPrefixCfg{
+	//	bech32AddressPrefix: map[string]string{
+	//		"account_addr":   "faa",
+	//		"validator_addr": "fva",
+	//		"consensus_addr": "fca",
+	//		"account_pub":    "fap",
+	//		"validator_pub":  "fvp",
+	//		"consensus_pub":  "fcp",
+	//	},
+	//}
 	mainnetEnv = &AddrPrefixCfg{
 		bech32AddressPrefix: map[string]string{
 			"account_addr":   "iaa",
@@ -48,7 +48,7 @@ func GetAddrPrefixCfg() *AddrPrefixCfg {
 	if defaultNetwork == Mainnet {
 		return mainnetEnv
 	}
-	return testnetEnv
+	return mainnetEnv
 }
 
 // GetBech32AccountAddrPrefix returns the Bech32 prefix for account address

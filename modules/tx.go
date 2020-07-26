@@ -186,6 +186,7 @@ func (base baseClient) parseTxResult(res *ctypes.ResultTx, resBlock *ctypes.Resu
 
 	var tx sdk.StdTx
 	err := base.cdc.UnmarshalBinaryLengthPrefixed(res.Tx, &tx)
+	//err := base.cdc.UnmarshalBinaryBare(res.Tx, &tx)
 	if err != nil {
 		return sdk.ResultQueryTx{}, err
 	}
@@ -199,7 +200,6 @@ func (base baseClient) parseTxResult(res *ctypes.ResultTx, resBlock *ctypes.Resu
 			Log:       res.TxResult.Log,
 			GasWanted: res.TxResult.GasWanted,
 			GasUsed:   res.TxResult.GasUsed,
-			//Tags:      sdk.ParseTags(res.TxResult.Tags),
 		},
 		Timestamp: resBlock.Block.Time.Format(time.RFC3339),
 	}, nil

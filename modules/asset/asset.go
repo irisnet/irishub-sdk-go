@@ -29,36 +29,16 @@ func (a assetClient) Name() string {
 	return ModuleName
 }
 
-func (a assetClient) QueryToken(symbol string) (sdk.Token, error) {
-	return a.BaseClient.QueryToken(symbol)
-}
-
-func (a assetClient) QueryTokens(owner string) (sdk.Tokens, error) {
+func (a assetClient) QueryTokens() (sdk.Tokens, error) {
 	param := struct {
-		Symbol string
-		Owner  string
+		Owner string
 	}{
-		Owner: owner,
+		Owner: "",
 	}
 
 	var tokens sdk.Tokens
-	if err := a.QueryWithResponse("custom/asset/tokens", param, &tokens); err != nil {
+	if err := a.QueryWithResponse("custom/token/tokens", param, &tokens); err != nil {
 		return sdk.Tokens{}, err
 	}
-	a.SaveTokens(tokens...)
 	return tokens, nil
-}
-
-func (a assetClient) QueryFees(symbol string) (rpc.TokenFees, error) {
-	param := struct {
-		Symbol string
-	}{
-		Symbol: symbol,
-	}
-
-	var tokens tokenFees
-	if err := a.QueryWithResponse("custom/asset/fees", param, &tokens); err != nil {
-		return rpc.TokenFees{}, err
-	}
-	return tokens.Convert().(rpc.TokenFees), nil
 }

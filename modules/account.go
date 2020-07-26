@@ -46,13 +46,12 @@ func (a accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) 
 	}
 
 	param := struct {
-		Address sdk.AccAddress
+		Address sdk.AccAddress `json:"address"`
 	}{
 		Address: addr,
 	}
 
 	var account sdk.BaseAccount
-	//err := a.Query
 	if err := a.QueryWithResponse("custom/auth/account", param, &account); err != nil {
 		return sdk.BaseAccount{}, sdk.Wrap(err)
 	}

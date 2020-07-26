@@ -18,6 +18,11 @@ var (
 	}
 )
 
+type TokenResponse struct {
+	TypeName string `json:"type"`
+	Value    Token  `json:"value"`
+}
+
 type Token struct {
 	Symbol        string `json:"symbol"`
 	Name          string `json:"name"`
@@ -54,7 +59,7 @@ func (t Token) Convert() interface{} {
 	return t
 }
 
-type Tokens []Token
+type Tokens []TokenResponse
 
 func (t Tokens) Convert() interface{} {
 	return t
