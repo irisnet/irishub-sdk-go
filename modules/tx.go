@@ -185,7 +185,7 @@ func (base baseClient) getResultBlocks(resTxs []*ctypes.ResultTx) (map[int64]*ct
 func (base baseClient) parseTxResult(res *ctypes.ResultTx, resBlock *ctypes.ResultBlock) (sdk.ResultQueryTx, error) {
 
 	var tx sdk.StdTx
-	err := base.cdc.UnmarshalBinaryLengthPrefixed(res.Tx, &tx)
+	err := base.cdc.UnmarshalBinaryBare(res.Tx, &tx)
 	//err := base.cdc.UnmarshalBinaryBare(res.Tx, &tx)
 	if err != nil {
 		return sdk.ResultQueryTx{}, err

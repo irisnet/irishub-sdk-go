@@ -74,7 +74,7 @@ func (s slashingClient) querySigningInfoV017(pk crypto.PubKey) (rpc.ValidatorSig
 	}
 
 	var signingInfo validatorSigningInfoV017
-	err = cdc.UnmarshalBinaryLengthPrefixed(res, &signingInfo)
+	err = cdc.UnmarshalBinaryBare(res, &signingInfo)
 	if err != nil {
 		return rpc.ValidatorSigningInfo{}, sdk.Wrap(err)
 	}

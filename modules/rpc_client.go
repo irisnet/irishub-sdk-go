@@ -148,7 +148,7 @@ func (r rpcClient) SubscribeAny(query string, handler sdk.EventHandler) (subscri
 func (r rpcClient) parseTx(data sdk.EventData) sdk.EventDataTx {
 	tx := data.(tmtypes.EventDataTx)
 	var stdTx sdk.StdTx
-	if err := r.cdc.UnmarshalBinaryLengthPrefixed(tx.Tx, &stdTx); err != nil {
+	if err := r.cdc.UnmarshalBinaryBare(tx.Tx, &stdTx); err != nil {
 		return sdk.EventDataTx{}
 	}
 	hash := bytes.HexBytes(tx.Tx.Hash()).String()
