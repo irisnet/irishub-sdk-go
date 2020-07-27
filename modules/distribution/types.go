@@ -168,30 +168,28 @@ func (msg MsgWithdrawValidatorRewardsAll) ValidateBasic() error {
 	return nil
 }
 
-type rewards struct {
-	Total       sdk.Coins            `json:"total"`
-	Delegations []delegationsRewards `json:"delegations"`
-	Commission  sdk.Coins            `json:"commission"`
+type rewardsResponse struct {
+	Rewards []delegationDelegatorReward `json:"rewards"`
+	Total   sdk.DecCoins                `json:"total"`
 }
 
-func (r rewards) Convert() interface{} {
-	var delegations []rpc.DelegationRewards
-	for _, d := range r.Delegations {
-		delegations = append(delegations, rpc.DelegationRewards{
+func (r rewardsResponse) Convert() interface{} {
+	var rewards []rpc.DelegationsRewards
+	for _, d := range r.Rewards {
+		rewards = append(rewards, rpc.DelegationsRewards{
 			Validator: d.Validator.String(),
 			Reward:    d.Reward,
 		})
 	}
 	return rpc.Rewards{
-		Total:       r.Total,
-		Commission:  r.Commission,
-		Delegations: delegations,
+		Total:   r.Total,
+		Rewards: rewards,
 	}
 }
 
-type delegationsRewards struct {
-	Validator sdk.ValAddress `json:"validator"`
-	Reward    sdk.Coins      `json:"reward"`
+type delegationDelegatorReward struct {
+	Validator sdk.ValAddress `json:"validator_address"`
+	Reward    sdk.DecCoins   `json:"reward"`
 }
 
 func registerCodec(cdc sdk.Codec) {

@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	//nodeURI = "http://10.1.4.19:36657"
-	nodeURI = "http://localhost:26657"
+	nodeURI = "http://10.1.4.19:36657"
+	//nodeURI = "http://localhost:26657"
 	chainID = "test"
 	network = types.Mainnet
 	mode    = types.Commit

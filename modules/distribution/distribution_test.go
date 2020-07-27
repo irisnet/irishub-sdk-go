@@ -56,3 +56,9 @@ func (dts *DistrTestSuite) TestWithdrawRewards() {
 	require.NoError(dts.T(), err)
 	require.NotEmpty(dts.T(), rs.Hash)
 }
+
+func (dts *DistrTestSuite) TestQueryWithdrawAddr() {
+	res, err := dts.Distr().QueryWithdrawAddr("iaa18e2e9fxxrr88k78gg7fhuuqgccfv8self9ye65")
+	require.NoError(dts.T(), err)
+	require.NotEmpty(dts.T(), res)
+}

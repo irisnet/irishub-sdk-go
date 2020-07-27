@@ -6,18 +6,18 @@ import (
 
 type Distribution interface {
 	sdk.Module
-	QueryRewards(delegator string) (Rewards, sdk.Error)
+	QueryRewards(delegatorOrValidator string) (Rewards, sdk.Error)
+	QueryWithdrawAddr(validator string) (string, sdk.Error)
 	SetWithdrawAddr(withdrawAddr string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 	WithdrawRewards(isValidator bool, onlyFromValidator string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 }
 
 type Rewards struct {
-	Total       sdk.Coins           `json:"total"`
-	Delegations []DelegationRewards `json:"delegations"`
-	Commission  sdk.Coins           `json:"commission"`
+	Rewards []DelegationsRewards `json:"rewards"`
+	Total   sdk.DecCoins         `json:"total"`
 }
 
-type DelegationRewards struct {
-	Validator string    `json:"validator"`
-	Reward    sdk.Coins `json:"reward"`
+type DelegationsRewards struct {
+	Validator string       `json:"validator"`
+	Reward    sdk.DecCoins `json:"reward"`
 }

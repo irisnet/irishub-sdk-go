@@ -38,11 +38,30 @@ func (d distributionClient) QueryRewards(delegator string) (rpc.Rewards, sdk.Err
 		DelegatorAddress: address,
 	}
 
-	var rewards rewards
-	if err := d.QueryWithResponse("custom/distribution/withdraw_addr", param, &rewards); err != nil {
+	var rewards rewardsResponse
+	if err := d.QueryWithResponse("custom/distribution/delegator_total_rewards", param, &rewards); err != nil {
 		return rpc.Rewards{}, sdk.Wrap(err)
 	}
 	return rewards.Convert().(rpc.Rewards), nil
+}
+
+func (d distributionClient) QueryWithdrawAddr(delegator string) (string, sdk.Error) {
+	address, err := sdk.AccAddressFromBech32(delegator)
+	if err != nil {
+		return "", sdk.Wrap(err)
+	}
+
+	param := struct {
+		DelegatorAddress sdk.AccAddress `json:"delegator_address"`
+	}{
+		DelegatorAddress: address,
+	}
+
+	res, newErr := d.Query("custom/distribution/withdraw_addr", param)
+	if newErr != nil {
+		return "", sdk.Wrap(err)
+	}
+	return string(res), nil
 }
 
 func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
