@@ -33,13 +33,13 @@ func (d distributionClient) QueryRewards(delegator string) (rpc.Rewards, sdk.Err
 	}
 
 	param := struct {
-		Address sdk.AccAddress
+		DelegatorAddress sdk.AccAddress `json:"delegator_address"`
 	}{
-		Address: address,
+		DelegatorAddress: address,
 	}
 
 	var rewards rewards
-	if err := d.QueryWithResponse("custom/distr/rewards", param, &rewards); err != nil {
+	if err := d.QueryWithResponse("custom/distribution/withdraw_addr", param, &rewards); err != nil {
 		return rpc.Rewards{}, sdk.Wrap(err)
 	}
 	return rewards.Convert().(rpc.Rewards), nil

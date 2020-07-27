@@ -24,7 +24,7 @@ func (dts *DistrTestSuite) SetupTest() {
 }
 
 func (dts *DistrTestSuite) TestQueryRewards() {
-	r, err := dts.Distr().QueryRewards(dts.Account().Address.String())
+	r, err := dts.Distr().QueryRewards("iaa18e2e9fxxrr88k78gg7fhuuqgccfv8self9ye65")
 	require.NoError(dts.T(), err)
 	require.NotEmpty(dts.T(), r)
 }

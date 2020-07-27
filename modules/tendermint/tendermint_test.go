@@ -36,10 +36,9 @@ func (tts *TendermintTestSuite) TestQueryBlockLatest() {
 }
 
 func (tts *TendermintTestSuite) TestQueryBlockResult() {
-	result, err := tts.Tendermint().QueryBlockResult(1)
-	fmt.Println(result)
+	result, err := tts.Tendermint().QueryBlockResult(1443)
 	require.NoError(tts.T(), err)
-	require.Equal(tts.T(), int64(1), result.Height)
+	require.Equal(tts.T(), int64(1443), result.Height)
 }
 
 func (tts *TendermintTestSuite) TestQueryTx() {

@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/base64"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/kv"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
@@ -37,8 +38,26 @@ func ParseBlock(cdc Codec, block *tmtypes.Block) Block {
 }
 
 type BlockResult struct {
-	Height  int64         `json:"height"`
+	Height                int64               `json:"height"`
+	TxsResults            []ResponseDeliverTx `json:"txs_results"`
+	BeginBlockEvents      []Event             `json:"begin_block_events"`
+	EndBlockEvents        []Event             `json:"end_block_events"`
+	ValidatorUpdates      []ValidatorUpdate   `json:"validator_updates"`
+	ConsensusParamUpdates ConsensusParams     `json:"consensus_param_updates"`
+
+	// TODO delete this field
 	Results ABCIResponses `json:"results"`
+}
+
+type ResponseDeliverTx struct {
+	Code      uint32  `json:"code"`
+	Data      string  `json:"data"`
+	Log       string  `json:"log"`
+	Info      string  `json:"info"`
+	GasWanted int64   `json:"gas_wanted"`
+	GasUsed   int64   `json:"gas_used"`
+	Events    []Event `json:"events"`
+	Codespace string  `json:"codespace"`
 }
 
 type ABCIResponses struct {
@@ -70,25 +89,74 @@ func ParseValidatorUpdate(updates []abci.ValidatorUpdate) []ValidatorUpdate {
 	return vUpdates
 }
 
-func ParseBlockResult(res *ctypes.ResultBlockResults) BlockResult {
-	var txResults = make([]TxResult, len(res.TxsResults))
-	for i, r := range res.TxsResults {
-		txResults[i] = TxResult{
-			Code:      r.Code,
-			Log:       r.Log,
-			GasWanted: r.GasWanted,
-			GasUsed:   r.GasUsed,
+func ParseTxsResults(deliver []*abci.ResponseDeliverTx) []ResponseDeliverTx {
+	var rDeliverTxs = make([]ResponseDeliverTx, len(deliver))
+	for i, v := range deliver {
+		rDeliverTxs[i] = ResponseDeliverTx{
+			Code:      v.Code,
+			Data:      string(v.Data),
+			Log:       v.Log,
+			Info:      v.Info,
+			GasWanted: v.GasWanted,
+			GasUsed:   v.GasUsed,
+			Events:    ParseBlockEvent(v.Events),
+			Codespace: v.Codespace,
 		}
 	}
-	return BlockResult{
-		Height: res.Height,
-		Results: ABCIResponses{
-			DeliverTx: txResults,
-			EndBlock: ResultEndBlock{
-				ValidatorUpdates: ParseValidatorUpdate(res.ValidatorUpdates),
+	return rDeliverTxs
+}
+
+func ParseBlockEvent(event []abci.Event) []Event {
+	var events = make([]Event, len(event))
+
+	for i, v := range event {
+		events[i] = Event{
+			Type:       v.Type,
+			Attributes: ParsePair(v.Attributes),
+		}
+	}
+	return events
+}
+
+func ParsePair(kvPairs []kv.Pair) []Pair {
+	var pairs = make([]Pair, len(kvPairs))
+	for i, v := range kvPairs {
+		pairs[i] = Pair{
+			Key:   string(v.Key),
+			Value: string(v.Value),
+		}
+	}
+	return pairs
+}
+
+func ParseConsensusParamUpdates(con *abci.ConsensusParams) ConsensusParams {
+	var consensusParams ConsensusParams
+	if con != nil {
+		consensusParams = ConsensusParams{
+			Block: BlockParams{
+				MaxBytes: con.Block.MaxBytes,
+				MaxGas:   con.Block.MaxGas,
 			},
-			BeginBlock: ResultBeginBlock{},
-		},
+			Evidence: EvidenceParams{
+				MaxAgeNumBlocks: con.Evidence.MaxAgeNumBlocks,
+				MaxAgeDuration:  con.Evidence.MaxAgeDuration,
+			},
+			Validator: ValidatorParams{
+				PubKeyTypes: con.Validator.PubKeyTypes,
+			},
+		}
+	}
+	return consensusParams
+}
+
+func ParseBlockResult(res *ctypes.ResultBlockResults) BlockResult {
+	return BlockResult{
+		Height:                res.Height,
+		TxsResults:            ParseTxsResults(res.TxsResults),
+		BeginBlockEvents:      ParseBlockEvent(res.BeginBlockEvents),
+		EndBlockEvents:        ParseBlockEvent(res.EndBlockEvents),
+		ValidatorUpdates:      ParseValidatorUpdate(res.ValidatorUpdates),
+		ConsensusParamUpdates: ParseConsensusParamUpdates(res.ConsensusParamUpdates),
 	}
 }
 

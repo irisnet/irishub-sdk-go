@@ -41,6 +41,16 @@ type EventType string
 type EventKey string
 type EventValue string
 
+type Event struct {
+	Type       string `json:"type"`
+	Attributes []Pair `json:"attributes"`
+}
+
+type Pair struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
 type Subscription struct {
 	Ctx   context.Context `json:"-"`
 	Query string          `json:"query"`
@@ -80,20 +90,6 @@ type Tag struct {
 }
 type Tags []Tag
 
-//func ParseTags(pairs []cmn.KVPair) (tags []Tag) {
-//	if pairs == nil || len(pairs) == 0 {
-//		return tags
-//	}
-//	for _, pair := range pairs {
-//		key := string(pair.Key)
-//		value := string(pair.Value)
-//		tags = append(tags, Tag{
-//			Key:   key,
-//			Value: value,
-//		})
-//	}
-//	return
-//}
 func (t Tags) GetValues(key string) (values []string) {
 	for _, tag := range t {
 		if tag.Key == key {
