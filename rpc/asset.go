@@ -7,6 +7,8 @@ import (
 type Asset interface {
 	sdk.Module
 	QueryTokens() (sdk.Tokens, error)
+	QueryTokenDenom(denom string) (sdk.TokenData, error)
+	QueryToken(symbol string) (sdk.Token, error)
 }
 
 // TokenFees is for the token fees query output

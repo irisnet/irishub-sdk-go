@@ -7,6 +7,7 @@ import (
 // expose bank module api for user
 type Bank interface {
 	sdk.Module
+	QueryBalances(address, denom string) (sdk.Balances, sdk.Error)
 	QueryAccount(address string) (sdk.BaseAccount, sdk.Error)
 	QueryTokenStats(tokenID string) (TokenStats, sdk.Error)
 	Send(to string, amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)

@@ -1,6 +1,7 @@
 package gov
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -82,8 +83,8 @@ func (g govClient) QueryProposal(proposalID uint64) (rpc.Proposal, sdk.Error) {
 		return nil, sdk.Wrap(err)
 	}
 
-	var proposal proposal
-	if err = cdc.UnmarshalJSON(res, &proposal); err != nil {
+	var proposal BasicProposal
+	if err = json.Unmarshal(res, &proposal); err != nil {
 		return nil, sdk.Wrap(err)
 	}
 

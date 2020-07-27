@@ -10,7 +10,10 @@ import (
 )
 
 const (
-	ModuleName = "asset"
+	ModuleName      = "token"
+	RestParamDenom  = "denom"
+	RestParamSymbol = "symbol"
+	RestParamOwner  = "owner"
 )
 
 var (
@@ -220,12 +223,12 @@ func (b *Bool) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// FungibleToken defines a struct for the fungible token
-type FungibleToken struct {
+// Token defines a struct for the fungible token
+type Token struct {
 	Symbol        string         `json:"symbol"`
 	Name          string         `json:"name"`
-	Decimal       uint8          `json:"decimal"`
-	MinUnitAlias  string         `json:"min_unit_alias"`
+	Scale         uint8          `json:"scale"`
+	MinUnit       string         `json:"min_unit"`
 	InitialSupply uint64         `json:"initial_supply"`
 	MaxSupply     uint64         `json:"max_supply"`
 	Mintable      bool           `json:"mintable"`
@@ -233,9 +236,9 @@ type FungibleToken struct {
 }
 
 func registerCodec(cdc sdk.Codec) {
-	cdc.RegisterConcrete(MsgIssueToken{}, "irishub/asset/MsgIssueToken")
-	cdc.RegisterConcrete(MsgEditToken{}, "irishub/asset/MsgEditToken")
-	cdc.RegisterConcrete(MsgMintToken{}, "irishub/asset/MsgMintToken")
-	cdc.RegisterConcrete(MsgTransferTokenOwner{}, "irishub/asset/MsgTransferTokenOwner")
-	cdc.RegisterConcrete(FungibleToken{}, "irishub/asset/FungibleToken")
+	cdc.RegisterConcrete(MsgIssueToken{}, "irismod/token/MsgIssueToken")
+	cdc.RegisterConcrete(MsgEditToken{}, "irismod/token/MsgEditToken")
+	cdc.RegisterConcrete(MsgMintToken{}, "irismod/token/MsgMintToken")
+	cdc.RegisterConcrete(MsgTransferTokenOwner{}, "irismod/token/MsgTransferTokenOwner")
+	cdc.RegisterConcrete(Token{}, "irismod/token/Token")
 }

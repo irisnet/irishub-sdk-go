@@ -93,7 +93,7 @@ func (s slashingClient) querySigningInfoV017(pk crypto.PubKey) (rpc.ValidatorSig
 func (s slashingClient) querySigningInfoV100(pk crypto.PubKey) (rpc.ValidatorSigningInfo, sdk.Error) {
 	consAddr := sdk.ConsAddress(pk.Address())
 	param := struct {
-		ConsAddress sdk.ConsAddress
+		ConsAddress sdk.ConsAddress `json:"cons_address"`
 	}{
 		ConsAddress: consAddr,
 	}

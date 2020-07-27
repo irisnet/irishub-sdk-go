@@ -33,10 +33,7 @@ const (
 )
 
 type Proposal interface {
-	GetProposalID() uint64
-	GetTitle() string
-	GetDescription() string
-	GetProposalType() string
+	GetProposalID() string
 	GetStatus() string
 	GetTallyResult() TallyResult
 	GetSubmitTime() time.Time
@@ -44,44 +41,27 @@ type Proposal interface {
 	GetTotalDeposit() sdk.Coins
 	GetVotingStartTime() time.Time
 	GetVotingEndTime() time.Time
-	GetProposer() string
 }
 
 var _ Proposal = (*BasicProposal)(nil)
 
 type BasicProposal struct {
-	ProposalID      uint64      `json:"proposal_id"` //  ID of the proposal
-	Title           string      `json:"title"`
-	Description     string      `json:"description"`
-	ProposalType    string      `json:"proposal_type"`
-	ProposalStatus  string      `json:"proposal_status"`   // Status of the Proposal {Pending, Active, Passed, Rejected}
+	ProposalID      string      `json:"proposal_id"` //  ID of the proposal
+	Status          string      `json:"status"`
 	TallyResult     TallyResult `json:"tally_result"`      // Result of Tallys
 	SubmitTime      time.Time   `json:"submit_time"`       // Time of the block where TxGovSubmitProposal was included
 	DepositEndTime  time.Time   `json:"deposit_end_time"`  // Time that the Proposal would expire if deposit amount isn't met
 	TotalDeposit    sdk.Coins   `json:"total_deposit"`     // Current deposit on this proposal. Initial value is set at InitialDeposit
 	VotingStartTime time.Time   `json:"voting_start_time"` // Time of the block where MinDeposit was reached. -1 if MinDeposit is not reached
 	VotingEndTime   time.Time   `json:"voting_end_time"`
-	Proposer        string      `json:"proposer"`
 }
 
-func (b BasicProposal) GetProposalID() uint64 {
+func (b BasicProposal) GetProposalID() string {
 	return b.ProposalID
 }
 
-func (b BasicProposal) GetTitle() string {
-	return b.Title
-}
-
-func (b BasicProposal) GetDescription() string {
-	return b.Description
-}
-
-func (b BasicProposal) GetProposalType() string {
-	return b.ProposalType
-}
-
 func (b BasicProposal) GetStatus() string {
-	return b.ProposalStatus
+	return b.Status
 }
 
 func (b BasicProposal) GetTallyResult() TallyResult {
@@ -106,10 +86,6 @@ func (b BasicProposal) GetVotingStartTime() time.Time {
 
 func (b BasicProposal) GetVotingEndTime() time.Time {
 	return b.VotingEndTime
-}
-
-func (b BasicProposal) GetProposer() string {
-	return b.Proposer
 }
 
 // TallyResult defines a standard tally for a proposal

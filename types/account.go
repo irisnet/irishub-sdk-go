@@ -107,3 +107,12 @@ func (acc BaseAccount) Validate() error {
 func (acc BaseAccount) Convert() interface{} {
 	return acc
 }
+
+type Balances []struct {
+	Denom  string `json:"denom"`
+	Amount string `json:"amount"`
+}
+
+func (acc *Balances) Convert() interface{} {
+	return acc
+}

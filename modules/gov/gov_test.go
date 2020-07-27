@@ -30,6 +30,7 @@ func (gts *GovTestSuite) TestQueryVoters() {
 
 func (gts *GovTestSuite) TestQueryProposal() {
 	proposal, err := gts.Gov().QueryProposal(1)
+	fmt.Println(proposal)
 	require.NoError(gts.T(), err)
 	fmt.Println(proposal)
 }

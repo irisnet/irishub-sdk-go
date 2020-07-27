@@ -30,6 +30,26 @@ func (b bankClient) Name() string {
 	return ModuleName
 }
 
+func (b bankClient) QueryBalances(address, denom string) (sdk.Balances, sdk.Error) {
+	param := struct {
+		Denom   string
+		Address string
+	}{
+		Address: address,
+		Denom:   denom,
+	}
+	var ts sdk.Balances
+	uri := fmt.Sprintf("custom/%s/balance", b.Name())
+	if denom == "" {
+		uri = fmt.Sprintf("custom/%s/all_balances", b.Name())
+	}
+
+	if err := b.QueryWithResponse(uri, param, &ts); err != nil {
+		return sdk.Balances{}, sdk.Wrap(err)
+	}
+	return ts, nil
+}
+
 // QueryAccount return account information specified address
 func (b bankClient) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) {
 	account, err := b.BaseClient.QueryAccount(address)
