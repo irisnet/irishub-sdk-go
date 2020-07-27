@@ -1,6 +1,7 @@
 package staking_test
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/require"
 	"testing"
 
@@ -61,6 +62,7 @@ func (sts *StakingTestSuite) TestQueryValidator() {
 
 func (sts *StakingTestSuite) TestQueryValidators() {
 	validators, err := sts.Staking().QueryValidators(1, 10)
+	fmt.Println(validators)
 	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), validators)
 }

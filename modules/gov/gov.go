@@ -84,6 +84,7 @@ func (g govClient) QueryProposal(proposalID uint64) (rpc.Proposal, sdk.Error) {
 	}
 
 	var proposal BasicProposal
+	//var proposal rpc.Proposal
 	if err = json.Unmarshal(res, &proposal); err != nil {
 		return nil, sdk.Wrap(err)
 	}

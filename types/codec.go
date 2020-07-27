@@ -50,7 +50,7 @@ func (cdc AminoCodec) RegisterInterface(ptr interface{}) {
 func RegisterCodec(cdc Codec) {
 	cdc.RegisterInterface((*AccountI)(nil))
 	cdc.RegisterInterface((*Msg)(nil))
-	cdc.RegisterConcrete(&BaseAccount{}, "cosmos-sdk/BaseAccount")
+	cdc.RegisterConcrete(&BaseAccount{}, "irishub/bank/Account")
 	cdc.RegisterConcrete(StdTx{}, "irishub/bank/StdTx")
 	// These are all written here instead of
 	cdc.RegisterInterface((*crypto.PubKey)(nil))

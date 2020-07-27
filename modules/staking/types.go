@@ -459,6 +459,7 @@ type validator struct {
 	Jailed            bool        `json:"jailed"`           // has the validator been jailed from bonded status?
 	Status            bondStatus  `json:"status"`           // validator status (bonded/unbonding/unbonded)
 	Tokens            string      `json:"tokens"`           // delegated tokens (incl. self-delegation)
+	DelegatorShares   string      `json:"delegator_shares"`
 	Description       Description `json:"description"`      // description terms for the validator
 	UnbondingHeight   int64       `json:"unbonding_height"` // if unbonding, height at which this validator has begun unbonding
 	UnbondingTime     time.Time   `json:"unbonding_time"`   // if unbonding, min time for the validator to complete unbonding
@@ -473,6 +474,7 @@ func (v validator) Convert() interface{} {
 		Jailed:          v.Jailed,
 		Status:          v.Status.String(),
 		Tokens:          v.Tokens,
+		DelegatorShares: v.DelegatorShares,
 		Description: rpc.Description{
 			Moniker:  v.Description.Moniker,
 			Identity: v.Description.Identity,
@@ -539,6 +541,12 @@ type Description struct {
 
 // Commission defines a commission parameters for a given validator.
 type Commission struct {
+	CommissionRates `json:"commission_rates"`
+}
+
+// CommissionRates defines the initial commission rates to be used for creating
+// a validator.
+type CommissionRates struct {
 	Rate          sdk.Dec   `json:"rate"`            // the commission rate charged to delegators
 	MaxRate       sdk.Dec   `json:"max_rate"`        // maximum commission rate which validator can ever charge
 	MaxChangeRate sdk.Dec   `json:"max_change_rate"` // maximum daily increase of the validator commission

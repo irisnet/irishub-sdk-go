@@ -308,24 +308,15 @@ func (s stakingClient) QueryValidator(address string) (rpc.Validator, sdk.Error)
 
 // QueryValidators return the specified validators by page and size
 func (s stakingClient) QueryValidators(page, size int) (rpc.Validators, sdk.Error) {
+	var statuses = []string{BondStatusUnbonded, BondStatusUnbonding, BondStatusBonded}
 	var result rpc.Validators
-	validators, err := s.queryValidators(page, size, BondStatusUnbonded)
-	if err != nil {
-		return rpc.Validators{}, sdk.Wrap(err)
+	for _, status := range statuses {
+		validators, err := s.queryValidators(page, size, status)
+		if err != nil {
+			return rpc.Validators{}, sdk.Wrap(err)
+		}
+		result = append(result, validators...)
 	}
-	result = append(result, validators...)
-
-	validators, err = s.queryValidators(page, size, BondStatusUnbonding)
-	if err != nil {
-		return rpc.Validators{}, sdk.Wrap(err)
-	}
-	result = append(result, validators...)
-
-	validators, err = s.queryValidators(page, size, BondStatusBonded)
-	if err != nil {
-		return rpc.Validators{}, sdk.Wrap(err)
-	}
-	result = append(result, validators...)
 	return result, nil
 }
 
