@@ -62,3 +62,9 @@ func (dts *DistrTestSuite) TestQueryWithdrawAddr() {
 	require.NoError(dts.T(), err)
 	require.NotEmpty(dts.T(), res)
 }
+
+func (dts *DistrTestSuite) TestQueryCommission() {
+	res, err := dts.Distr().QueryCommission("iva1x98k5n7xj0h3udnf5dcdzw85tsfa75qm682jtg")
+	require.NoError(dts.T(), err)
+	require.NotEmpty(dts.T(), res)
+}

@@ -4,6 +4,8 @@
 package tendermint
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
@@ -17,9 +19,10 @@ type tmClient struct {
 	cdc sdk.Codec
 }
 
-func Create(ac sdk.BaseClient) rpc.Tendermint {
+func Create(ac sdk.BaseClient, cdc sdk.Codec) rpc.Tendermint {
 	return tmClient{
 		BaseClient: ac,
+		cdc:        cdc,
 	}
 }
 
@@ -33,6 +36,8 @@ func (t tmClient) Name() string {
 
 func (t tmClient) QueryBlock(height int64) (sdk.Block, sdk.Error) {
 	block, err := t.Block(&height)
+	bz, _ := json.Marshal(block)
+	fmt.Println(bz)
 	if err != nil {
 		return sdk.Block{}, sdk.Wrap(err)
 	}

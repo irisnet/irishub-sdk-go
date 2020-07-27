@@ -23,7 +23,7 @@ func (tts *TendermintTestSuite) SetupTest() {
 }
 
 func (tts *TendermintTestSuite) TestQueryQueryBlock() {
-	var height int64 = 1006
+	var height int64 = 34433
 	block, err := tts.Tendermint().QueryBlock(height)
 	require.NoError(tts.T(), err)
 	require.Equal(tts.T(), height, block.Height)
@@ -36,7 +36,8 @@ func (tts *TendermintTestSuite) TestQueryBlockLatest() {
 }
 
 func (tts *TendermintTestSuite) TestQueryBlockResult() {
-	result, err := tts.Tendermint().QueryBlockResult(1443)
+	result, err := tts.Tendermint().QueryBlockResult(34433)
+	fmt.Println(result)
 	require.NoError(tts.T(), err)
 	require.Equal(tts.T(), int64(1443), result.Height)
 }

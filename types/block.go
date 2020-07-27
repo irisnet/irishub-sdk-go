@@ -23,7 +23,7 @@ func ParseBlock(cdc Codec, block *tmtypes.Block) Block {
 	var txs []StdTx
 	for _, tx := range block.Txs {
 		var stdTx StdTx
-		if err := cdc.UnmarshalBinaryLengthPrefixed(tx, &stdTx); err == nil {
+		if err := cdc.UnmarshalBinaryBare(tx, &stdTx); err == nil {
 			txs = append(txs, stdTx)
 		}
 	}

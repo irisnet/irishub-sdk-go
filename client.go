@@ -57,7 +57,7 @@ func NewClient(cfg sdk.ClientConfig) Client {
 		random.Create(baseClient),
 		keys.Create(baseClient.KeyManager),
 		asset.Create(baseClient),
-		tendermint.Create(baseClient),
+		tendermint.Create(baseClient, cdc),
 	)
 
 	return *client

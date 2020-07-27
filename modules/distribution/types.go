@@ -192,6 +192,16 @@ type delegationDelegatorReward struct {
 	Reward    sdk.DecCoins   `json:"reward"`
 }
 
+type validatorAccumulatedCommission struct {
+	Commission sdk.DecCoins `json:"commission"`
+}
+
+func (v validatorAccumulatedCommission) Convert() interface{} {
+	return rpc.ValidatorAccumulatedCommission{
+		Commission: v.Commission,
+	}
+}
+
 func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(MsgWithdrawDelegatorRewardsAll{}, "irishub/distr/MsgWithdrawDelegationRewardsAll")
 	cdc.RegisterConcrete(MsgWithdrawDelegatorReward{}, "irishub/distr/MsgWithdrawDelegationReward")

@@ -64,6 +64,26 @@ func (d distributionClient) QueryWithdrawAddr(delegator string) (string, sdk.Err
 	return string(res), nil
 }
 
+func (d distributionClient) QueryCommission(validator string) (rpc.ValidatorAccumulatedCommission, sdk.Error) {
+	address, err := sdk.ValAddressFromBech32(validator)
+	if err != nil {
+		return rpc.ValidatorAccumulatedCommission{}, sdk.Wrap(err)
+	}
+
+	param := struct {
+		ValidatorAddress sdk.ValAddress `json:"validator_address"`
+	}{
+		ValidatorAddress: address,
+	}
+
+	var commission validatorAccumulatedCommission
+	if err := d.QueryWithResponse("custom/distribution/validator_commission", param, &commission); err != nil {
+		return rpc.ValidatorAccumulatedCommission{}, sdk.Wrap(err)
+	}
+
+	return commission.Convert().(rpc.ValidatorAccumulatedCommission), nil
+}
+
 func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	delegator, err := d.QueryAddress(baseTx.From)
 	if err != nil {
