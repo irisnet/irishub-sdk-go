@@ -26,6 +26,17 @@ func Create(ac sdk.BaseClient) rpc.Params {
 	}
 }
 
-func (p paramClient) QueryParams() (string, error) {
-	return "", nil
+func (p paramClient) QueryParams(subspace, key string) (rpc.SubspaceParamsResponse, sdk.Error) {
+	param := struct {
+		Subspace, Key string
+	}{
+		Subspace: subspace,
+		Key:      key,
+	}
+
+	var sr subspaceParamsResponse
+	if err := p.QueryWithResponse("custom/params/params", param, &sr); err != nil {
+		return rpc.SubspaceParamsResponse{}, sdk.Wrap(err)
+	}
+	return sr.Convert().(rpc.SubspaceParamsResponse), nil
 }

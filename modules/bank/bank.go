@@ -76,6 +76,26 @@ func (b bankClient) QueryTokenStats(tokenID string) (rpc.TokenStats, sdk.Error) 
 	return ts.Convert().(rpc.TokenStats), nil
 }
 
+// Query the total supply of coins of the chain
+func (b bankClient) QueryTotalSupply() (sdk.Coins, sdk.Error) {
+	param := struct {
+		Page int
+	}{
+		Page: 1,
+	}
+
+	var total sdk.Coins
+	res, err := b.Query("custom/bank/total_supply", param)
+	if err != nil {
+		return sdk.Coins{}, nil
+	}
+
+	if err := cdc.UnmarshalJSON(res, &total); err != nil {
+		return sdk.Coins{}, nil
+	}
+	return total, nil
+}
+
 //Send is responsible for transferring tokens from `From` to `to` account
 func (b bankClient) Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	sender, err := b.QueryAddress(baseTx.From)

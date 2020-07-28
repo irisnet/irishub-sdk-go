@@ -35,6 +35,12 @@ func (bts BankTestSuite) TestGetTokenStats() {
 	fmt.Printf("%v", acc)
 }
 
+func (bts BankTestSuite) TestQueryTotalSupply() {
+	acc, err := bts.Bank().QueryTotalSupply()
+	require.NoError(bts.T(), err)
+	fmt.Println(acc)
+}
+
 //
 //func (bts BankTestSuite) TestSend() {
 //	coins, err := types.ParseDecCoins("0.1iris")

@@ -34,6 +34,5 @@ func (ats AssetTestSuite) TestQueryToken() {
 		ats.Error(err)
 	}
 	fmt.Println(token)
-	//fmt.Println(err.Error())
 	require.NoError(ats.T(), err)
 }

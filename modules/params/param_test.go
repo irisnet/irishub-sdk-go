@@ -1,7 +1,6 @@
 package params_test
 
 import (
-	"fmt"
 	"github.com/irisnet/irishub-sdk-go/test"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -23,7 +22,10 @@ func (pts *ParamTestSuite) SetupTest() {
 }
 
 func (pts *ParamTestSuite) TestQueryParam() {
-	params, err := pts.Params().QueryParams()
-	fmt.Println(params)
+	subspace := "staking"
+	key := "MaxValidators"
+	params, err := pts.Params().QueryParams(subspace, key)
 	require.NoError(pts.T(), err)
+	require.Equal(pts.T(), params.Subspace, subspace)
+	require.Equal(pts.T(), params.Key, key)
 }
