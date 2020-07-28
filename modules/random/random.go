@@ -34,7 +34,7 @@ func (r randomClient) Request(request rpc.RandomRequest, baseTx sdk.BaseTx) (str
 		return "", sdk.Wrap(err)
 	}
 
-	amt, err := r.ToMinCoin(request.ServiceFeeCap...)
+	//amt, err := r.ToMinCoin(request.ServiceFeeCap...)
 	if err != nil {
 		return "", sdk.Wrap(err)
 	}
@@ -43,7 +43,7 @@ func (r randomClient) Request(request rpc.RandomRequest, baseTx sdk.BaseTx) (str
 		Consumer:      consumer,
 		BlockInterval: request.BlockInterval,
 		Oracle:        request.Oracle,
-		ServiceFeeCap: amt,
+		//ServiceFeeCap: amt,
 	}
 
 	needWatch := request.Callback != nil

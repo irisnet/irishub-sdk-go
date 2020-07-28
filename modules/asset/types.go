@@ -10,10 +10,7 @@ import (
 )
 
 const (
-	ModuleName      = "token"
-	RestParamDenom  = "denom"
-	RestParamSymbol = "symbol"
-	RestParamOwner  = "owner"
+	ModuleName = "token"
 )
 
 var (

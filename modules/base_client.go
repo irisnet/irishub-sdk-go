@@ -79,13 +79,6 @@ func NewBaseClient(cdc sdk.Codec, cfg sdk.ClientConfig) *baseClient {
 		cdc:        cdc,
 		expiration: cacheExpirePeriod,
 	}
-
-	fees, err := base.ToMinCoin(base.cfg.Fee...)
-	if err != nil {
-		panic(err)
-	}
-	cfg.Fee = sdk.NewDecCoinsFromCoins(fees...)
-
 	return &base
 }
 
@@ -280,7 +273,7 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
 		WithPassword(baseTx.Password)
 
 	if !baseTx.Fee.Empty() && baseTx.Fee.IsValid() {
-		fees, err := base.ToMinCoin(baseTx.Fee...)
+		//fees, err := base.ToMinCoin(baseTx.Fee...)
 		if err != nil {
 			return nil, err
 		}
@@ -356,10 +349,6 @@ func initConfig(cdc sdk.Codec, cfg *sdk.ClientConfig) {
 
 	if cfg.Gas == 0 {
 		cfg.Gas = 20000
-	}
-
-	if cfg.Fee == nil || cfg.Fee.Empty() {
-		panic(fmt.Errorf("fee is required"))
 	}
 
 	if cfg.KeyDAO == nil {

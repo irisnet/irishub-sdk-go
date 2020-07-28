@@ -174,17 +174,4 @@ loop:
 
 	_, err = sts.Service().SetWithdrawAddress(addr, baseTx)
 	require.NoError(sts.T(), err)
-
-	d, e := sdk.NewDecimalFromStr("0.01")
-	require.NoError(sts.T(), e)
-	amount := sdk.NewDecCoins(sdk.NewDecCoinFromDec("iris", d))
-	_, err = sts.Service().WithdrawTax(addr, amount, baseTx)
-	require.NoError(sts.T(), err)
-
-	acc, err := sts.Bank().QueryAccount(addr)
-	require.NoError(sts.T(), err)
-
-	balance, err := sts.ToMainCoin(acc.GetCoins()...)
-	require.NoError(sts.T(), err)
-	require.EqualValues(sts.T(), amount, balance)
 }

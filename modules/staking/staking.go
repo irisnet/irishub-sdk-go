@@ -41,7 +41,7 @@ func (s stakingClient) Delegate(valAddr string, amount sdk.DecCoin, baseTx sdk.B
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	amt, err := s.ToMinCoin(amount)
+	//amt, err := s.ToMinCoin(amount)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -49,7 +49,7 @@ func (s stakingClient) Delegate(valAddr string, amount sdk.DecCoin, baseTx sdk.B
 	msg := MsgDelegate{
 		DelegatorAddr: delegator,
 		ValidatorAddr: validator,
-		Delegation:    amt[0],
+		//Delegation:    amt[0],
 	}
 
 	s.Info().Str("delegator", delegator.String()).
@@ -71,7 +71,7 @@ func (s stakingClient) Undelegate(valAddr string, amount sdk.DecCoin, baseTx sdk
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	amt, err := s.ToMinCoin(amount)
+	//amt, err := s.ToMinCoin(amount)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -80,8 +80,8 @@ func (s stakingClient) Undelegate(valAddr string, amount sdk.DecCoin, baseTx sdk
 	if exRate.IsZero() {
 		return sdk.ResultTx{}, sdk.Wrapf("zero exRate should not happen")
 	}
-	amountDec := sdk.NewDecFromInt(amt[0].Amount)
-	share := amountDec.Quo(exRate)
+	//amountDec := sdk.NewDecFromInt(amt[0].Amount)
+	//share := amountDec.Quo(exRate)
 
 	varAddr, err := sdk.ValAddressFromBech32(valAddr)
 	if err != nil {
@@ -91,7 +91,7 @@ func (s stakingClient) Undelegate(valAddr string, amount sdk.DecCoin, baseTx sdk
 	msg := MsgUndelegate{
 		DelegatorAddr: delegator,
 		ValidatorAddr: varAddr,
-		SharesAmount:  share,
+		//SharesAmount:  share,
 	}
 
 	s.Info().Str("delegator", delegator.String()).
@@ -124,7 +124,7 @@ func (s stakingClient) Redelegate(srcValidatorAddr,
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	amt, err := s.ToMinCoin(amount)
+	//amt, err := s.ToMinCoin(amount)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -133,14 +133,14 @@ func (s stakingClient) Redelegate(srcValidatorAddr,
 	if exRate.IsZero() {
 		return sdk.ResultTx{}, sdk.Wrapf("zero exRate should not happen")
 	}
-	amountDec := sdk.NewDecFromInt(amt[0].Amount)
-	share := amountDec.Quo(exRate)
+	//amountDec := sdk.NewDecFromInt(amt[0].Amount)
+	//share := amountDec.Quo(exRate)
 
 	msg := MsgBeginRedelegate{
 		DelegatorAddr:    delAddr,
 		ValidatorSrcAddr: srcValAddr,
 		ValidatorDstAddr: dstValAddr,
-		SharesAmount:     share,
+		//SharesAmount:     share,
 	}
 
 	s.Info().Str("delegator", delAddr.String()).

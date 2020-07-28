@@ -186,11 +186,8 @@ func (r rpcClient) parseNewBlockHeader(data sdk.EventData) sdk.EventDataNewBlock
 	blockHeader := data.(tmtypes.EventDataNewBlockHeader)
 	return sdk.EventDataNewBlockHeader{
 		Header:           blockHeader.Header,
-		ResultBeginBlock: sdk.ResultBeginBlock{
-			//Tags: sdk.ParseTags(blockHeader.ResultBeginBlock.Tags),
-		},
+		ResultBeginBlock: sdk.ResultBeginBlock{},
 		ResultEndBlock: sdk.ResultEndBlock{
-			//Tags:             sdk.ParseTags(blockHeader.ResultEndBlock.Tags),
 			ValidatorUpdates: sdk.ParseValidatorUpdate(blockHeader.ResultEndBlock.ValidatorUpdates),
 		},
 	}

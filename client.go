@@ -2,8 +2,6 @@ package sdk
 
 import (
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/modules/htlc"
-
 	"io"
 
 	"github.com/irisnet/irishub-sdk-go/modules"
@@ -116,10 +114,6 @@ func (s *Client) Asset() rpc.Asset {
 
 func (s *Client) Tendermint() rpc.Tendermint {
 	return s.modules[tendermint.ModuleName].(rpc.Tendermint)
-}
-
-func (s *Client) Htlc() rpc.Htlc {
-	return s.modules[htlc.ModuleName].(rpc.Htlc)
 }
 
 func (s *Client) SetOutput(w io.Writer) {

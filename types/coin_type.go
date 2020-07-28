@@ -30,42 +30,41 @@ type CoinType struct {
 }
 
 //ToMainCoin return the main denom coin from args
-func (ct CoinType) ConvertToMainCoin(coin Coin) (DecCoin, error) {
+func (ct CoinType) ConvertToMainCoin(coin Coin) (Coin, error) {
 	if !ct.hasUnit(coin.Denom) {
-		return ZeroDecCoin, errors.New("coinType unit (%s) not defined" + coin.Denom)
+		return coin, errors.New("coinType unit (%s) not defined" + coin.Denom)
 	}
 
 	if ct.isMainUnit(coin.Denom) {
-		return ZeroDecCoin, nil
+		return coin, nil
 	}
 
 	// dest amount = src amount * (10^(dest scale) / 10^(src scale))
-	dstScale := NewDecimalFromInt(ct.MainUnit.GetScaleFactor())
-	srcScale := NewDecimalFromInt(ct.MinUnit.GetScaleFactor())
-	amount := NewDecimalFromInt(coin.Amount)
+	dstScale := NewDecFromInt(ct.MainUnit.GetScaleFactor())
+	srcScale := NewDecFromInt(ct.MinUnit.GetScaleFactor())
+	amount := NewDecFromInt(coin.Amount)
 
 	amt := amount.Mul(dstScale).Quo(srcScale)
-	return NewDecCoinFromDec(ct.MainUnit.Denom, amt), nil
+	return NewCoin(ct.MainUnit.Denom, amt.RoundInt()), nil
 }
 
 //ToMinCoin return the min denom coin from args
-func (ct CoinType) ConvertToMinCoin(coin DecCoin) (newCoin Coin, err error) {
+func (ct CoinType) ConvertToMinCoin(coin Coin) (newCoin Coin, err error) {
 	if !ct.hasUnit(coin.Denom) {
-		return newCoin, errors.New("coinType unit (%s) not defined" + coin.Denom)
+		return coin, errors.New("coinType unit (%s) not defined" + coin.Denom)
 	}
 
 	if ct.isMinUnit(coin.Denom) {
-		newCoin, _ := coin.TruncateDecimal()
-		return newCoin, nil
+		return coin, nil
 	}
 
 	// dest amount = src amount * (10^(dest scale) / 10^(src scale))
-	srcScale := NewDecimalFromInt(ct.MainUnit.GetScaleFactor())
-	dstScale := NewDecimalFromInt(ct.MinUnit.GetScaleFactor())
-	amount := coin.Amount
+	srcScale := NewDecFromInt(ct.MainUnit.GetScaleFactor())
+	dstScale := NewDecFromInt(ct.MinUnit.GetScaleFactor())
+	amount := NewDecFromInt(coin.Amount)
 
 	amt := amount.Mul(dstScale).Quo(srcScale)
-	return NewCoin(ct.MinUnit.Denom, amt.RoundInt()), nil
+	return NewCoin(ct.MainUnit.Denom, amt.RoundInt()), nil
 }
 
 func (ct CoinType) isMainUnit(name string) bool {

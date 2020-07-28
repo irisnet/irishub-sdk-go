@@ -27,7 +27,7 @@ func (g govClient) Deposit(proposalID uint64, amount sdk.DecCoins, baseTx sdk.Ba
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	amt, err := g.ToMinCoin(amount...)
+	//amt, err := g.ToMinCoin(amount...)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -35,12 +35,12 @@ func (g govClient) Deposit(proposalID uint64, amount sdk.DecCoins, baseTx sdk.Ba
 	msg := MsgDeposit{
 		ProposalID: proposalID,
 		Depositor:  depositor,
-		Amount:     amt,
+		//Amount:     amt,
 	}
 	g.Info().
 		Uint64("proposalID", proposalID).
 		Str("depositor", depositor.String()).
-		Str("amount", amt.String()).
+		//Str("amount", amt.String()).
 		Msg("execute gov deposit")
 	return g.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }

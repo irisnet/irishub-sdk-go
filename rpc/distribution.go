@@ -6,7 +6,7 @@ import (
 
 type Distribution interface {
 	sdk.Module
-	QueryRewards(delegatorOrValidator string) (Rewards, sdk.Error)
+	QueryRewards(operator string) (Rewards, sdk.Error)
 	QueryWithdrawAddr(delegator string) (string, sdk.Error)
 	QueryCommission(validator string) (ValidatorAccumulatedCommission, sdk.Error)
 	SetWithdrawAddr(withdrawAddr string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)

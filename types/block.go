@@ -44,9 +44,6 @@ type BlockResult struct {
 	EndBlockEvents        []Event             `json:"end_block_events"`
 	ValidatorUpdates      []ValidatorUpdate   `json:"validator_updates"`
 	ConsensusParamUpdates ConsensusParams     `json:"consensus_param_updates"`
-
-	// TODO delete this field
-	Results ABCIResponses `json:"results"`
 }
 
 type ResponseDeliverTx struct {
@@ -58,12 +55,6 @@ type ResponseDeliverTx struct {
 	GasUsed   int64   `json:"gas_used"`
 	Events    []Event `json:"events"`
 	Codespace string  `json:"codespace"`
-}
-
-type ABCIResponses struct {
-	DeliverTx  []TxResult
-	EndBlock   ResultEndBlock
-	BeginBlock ResultBeginBlock
 }
 
 type ResultBeginBlock struct {

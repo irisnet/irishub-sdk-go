@@ -3,6 +3,7 @@ package distribution
 import (
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/bech32"
 	"github.com/irisnet/irishub-sdk-go/utils/log"
 )
 
@@ -26,8 +27,8 @@ func Create(ac sdk.BaseClient) rpc.Distribution {
 	}
 }
 
-func (d distributionClient) QueryRewards(delegator string) (rpc.Rewards, sdk.Error) {
-	address, err := sdk.AccAddressFromBech32(delegator)
+func (d distributionClient) QueryRewards(delAddrOrValAddr string) (rpc.Rewards, sdk.Error) {
+	_, bz, err := bech32.DecodeAndConvert(delAddrOrValAddr)
 	if err != nil {
 		return rpc.Rewards{}, sdk.Wrap(err)
 	}
@@ -35,7 +36,7 @@ func (d distributionClient) QueryRewards(delegator string) (rpc.Rewards, sdk.Err
 	param := struct {
 		DelegatorAddress sdk.AccAddress `json:"delegator_address"`
 	}{
-		DelegatorAddress: address,
+		DelegatorAddress: sdk.AccAddress(bz),
 	}
 
 	var rewards rewardsResponse
