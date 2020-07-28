@@ -279,8 +279,8 @@ type votes []vote
 
 func (vs votes) Convert() interface{} {
 	votes := make([]rpc.Vote, len(vs))
-	for _, v := range vs {
-		votes = append(votes, v.Convert().(rpc.Vote))
+	for i, v := range vs {
+		votes[i] = v.Convert().(rpc.Vote)
 	}
 	return votes
 }

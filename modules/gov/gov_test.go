@@ -23,7 +23,7 @@ func (gts *GovTestSuite) SetupTest() {
 }
 
 func (gts *GovTestSuite) TestQueryVoters() {
-	votes, err := gts.Gov().QueryVotes(2)
+	votes, err := gts.Gov().QueryVotes(6)
 	require.NoError(gts.T(), err)
 	fmt.Println(votes)
 }

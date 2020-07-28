@@ -22,8 +22,7 @@ var (
 	_ sdk.Msg = MsgUndelegate{}
 	_ sdk.Msg = MsgBeginRedelegate{}
 
-	cdc         = sdk.NewAminoCodec()
-	defaultPage = 1
+	cdc = sdk.NewAminoCodec()
 )
 
 func init() {

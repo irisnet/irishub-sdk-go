@@ -46,8 +46,8 @@ func (d distributionClient) QueryRewards(delAddrOrValAddr string) (rpc.Rewards, 
 	return rewards.Convert().(rpc.Rewards), nil
 }
 
-func (d distributionClient) QueryWithdrawAddr(delegator string) (string, sdk.Error) {
-	address, err := sdk.AccAddressFromBech32(delegator)
+func (d distributionClient) QueryWithdrawAddr(delAddrOrValAddr string) (string, sdk.Error) {
+	_, address, err := bech32.DecodeAndConvert(delAddrOrValAddr)
 	if err != nil {
 		return "", sdk.Wrap(err)
 	}
@@ -55,7 +55,7 @@ func (d distributionClient) QueryWithdrawAddr(delegator string) (string, sdk.Err
 	param := struct {
 		DelegatorAddress sdk.AccAddress `json:"delegator_address"`
 	}{
-		DelegatorAddress: address,
+		DelegatorAddress: sdk.AccAddress(address),
 	}
 
 	res, newErr := d.Query("custom/distribution/withdraw_addr", param)

@@ -26,7 +26,7 @@ func (p paramsClient) Name() string {
 //func (p paramsClient) QueryHTLC(hashLock string) (interface{}, sdk.Error) {
 //	//hLock := []byte(hashLock)
 //	//
-//	//param := struct {
+//	//params := struct {
 //	//	HashLock common.HexBytes
 //	//}{
 //	//	HashLock: hLock,

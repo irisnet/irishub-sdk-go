@@ -210,7 +210,7 @@ func (s stakingClient) QueryDelegationsTo(validatorAddr string) (rpc.DelegationR
 		Page          int
 	}{
 		ValidatorAddr: varAddr,
-		Page:          defaultPage, // A page number must be passed in
+		Page:          1, // A page number must be passed in (pass default page:1)
 	}
 
 	var ds delegationResponses

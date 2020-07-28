@@ -2,7 +2,6 @@ package gov
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/utils/log"
@@ -165,18 +164,17 @@ func (g govClient) QueryVote(proposalID uint64, voter string) (rpc.Vote, sdk.Err
 func (g govClient) QueryVotes(proposalID uint64) ([]rpc.Vote, sdk.Error) {
 	param := struct {
 		ProposalID uint64
+		Page       int
 	}{
 		ProposalID: proposalID,
+		Page:       1, // A page number must be passed in (pass default page:1)
 	}
 
-	//var vs votes
-	res, err := g.Query("custom/gov/votes", param)
-	fmt.Println("QueryVotes ->result", res)
-	if err != nil {
+	var vs votes
+	if err := g.QueryWithResponse("custom/gov/votes", param, &vs); err != nil {
 		return nil, sdk.Wrap(err)
 	}
-	//return vs.Convert().([]rpc.Vote), nil
-	return []rpc.Vote{}, nil
+	return vs.Convert().([]rpc.Vote), nil
 }
 
 // QueryDeposit returns the deposit of the specified proposalID and depositor
