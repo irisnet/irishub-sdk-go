@@ -56,8 +56,6 @@ func (b bankClient) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) {
 	if err != nil {
 		return sdk.BaseAccount{}, sdk.Wrap(err)
 	}
-	s := string(account.GetPubKey().Bytes())
-	fmt.Println(s)
 	return account, nil
 }
 

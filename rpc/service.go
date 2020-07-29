@@ -172,18 +172,18 @@ type RequestContext struct {
 	Consumer           sdk.AccAddress   `json:"consumer"`
 	Input              string           `json:"input"`
 	ServiceFeeCap      sdk.Coins        `json:"service_fee_cap"`
+	ModuleName         string           `json:"module_name"`
 	Timeout            int64            `json:"timeout"`
 	SuperMode          bool             `json:"super_mode"`
 	Repeated           bool             `json:"repeated"`
 	RepeatedFrequency  uint64           `json:"repeated_frequency"`
 	RepeatedTotal      int64            `json:"repeated_total"`
 	BatchCounter       uint64           `json:"batch_counter"`
-	BatchRequestCount  uint16           `json:"batch_request_count"`
-	BatchResponseCount uint16           `json:"batch_response_count"`
-	BatchState         string           `json:"batch_state"`
-	State              string           `json:"state"`
-	ResponseThreshold  uint16           `json:"response_threshold"`
-	ModuleName         string           `json:"module_name"`
+	BatchRequestCount  uint32           `json:"batch_request_count"`
+	BatchResponseCount uint32           `json:"batch_response_count"`
+	ResponseThreshold  uint32           `json:"response_threshold"`
+	BatchState         int32            `json:"batch_state"`
+	State              int32            `json:"state"`
 }
 
 // EarnedFees defines a struct for the fees earned by the provider

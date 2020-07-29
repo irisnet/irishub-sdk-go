@@ -185,7 +185,7 @@ func (sts *ServiceTestSuite) TestQueryBindings() {
 }
 
 func (sts *ServiceTestSuite) TestQueryRequestContext() {
-	context, err := sts.Service().QueryRequestContext()
+	context, err := sts.Service().QueryRequestContext("ED676A63391321F9570009C918F29BC447B4CCCEE5C2884E6AF051C02EE8BAFF0000000000000000")
 	fmt.Println(context)
 	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), context)
