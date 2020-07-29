@@ -1,9 +1,8 @@
 package rpc
 
 import (
-	"time"
-
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"time"
 )
 
 type ServiceTx interface {
@@ -133,13 +132,14 @@ type ServiceBindingUpdateRequest struct {
 
 // ServiceBinding defines a struct for service binding
 type ServiceBinding struct {
-	ServiceName     string         `json:"service_name"`
-	Provider        sdk.AccAddress `json:"provider"`
-	Deposit         sdk.Coins      `json:"deposit"`
-	Pricing         string         `json:"pricing"`
-	WithdrawAddress sdk.AccAddress `json:"withdraw_address"`
-	Available       bool           `json:"available"`
-	DisabledTime    time.Time      `json:"disabled_time"`
+	ServiceName  string    `json:"service_name"`
+	Provider     string    `json:"provider"`
+	Deposit      sdk.Coins `json:"deposit"`
+	Pricing      string    `json:"pricing"`
+	Qos          uint64    `json:"qos"`
+	Available    bool      `json:"available"`
+	DisabledTime time.Time `json:"disabled_time"`
+	Owner        string    `json:"owner"`
 }
 
 type ServiceInvocationRequest struct {

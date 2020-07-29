@@ -713,24 +713,26 @@ func (r serviceDefinition) Convert() interface{} {
 
 // serviceBinding defines a struct for service binding
 type serviceBinding struct {
-	ServiceName     string         `json:"service_name"`
-	Provider        sdk.AccAddress `json:"provider"`
-	Deposit         sdk.Coins      `json:"deposit"`
-	Pricing         string         `json:"pricing"`
-	WithdrawAddress sdk.AccAddress `json:"withdraw_address"`
-	Available       bool           `json:"available"`
-	DisabledTime    time.Time      `json:"disabled_time"`
+	ServiceName  string         `json:"service_name"`
+	Provider     sdk.AccAddress `json:"provider"`
+	Deposit      sdk.Coins      `json:"deposit"`
+	Pricing      string         `json:"pricing"`
+	Qos          uint64         `json:"qos"`
+	Available    bool           `json:"available"`
+	DisabledTime time.Time      `json:"disabled_time"`
+	Owner        sdk.AccAddress `json:"owner"`
 }
 
 func (b serviceBinding) Convert() interface{} {
 	return rpc.ServiceBinding{
-		ServiceName:     b.ServiceName,
-		Provider:        b.Provider,
-		Deposit:         b.Deposit,
-		Pricing:         b.Pricing,
-		WithdrawAddress: b.WithdrawAddress,
-		Available:       b.Available,
-		DisabledTime:    b.DisabledTime,
+		ServiceName:  b.ServiceName,
+		Provider:     b.Provider.String(),
+		Deposit:      b.Deposit,
+		Pricing:      b.Pricing,
+		Qos:          b.Qos,
+		Available:    b.Available,
+		DisabledTime: b.DisabledTime,
+		Owner:        b.Owner.String(),
 	}
 
 }
@@ -739,8 +741,8 @@ type serviceBindings []serviceBinding
 
 func (bs serviceBindings) Convert() interface{} {
 	bindings := make([]rpc.ServiceBinding, len(bs))
-	for _, binding := range bs {
-		bindings = append(bindings, binding.Convert().(rpc.ServiceBinding))
+	for i, v := range bs {
+		bindings[i] = v.Convert().(rpc.ServiceBinding)
 	}
 	return bindings
 }

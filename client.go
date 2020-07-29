@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"fmt"
+	"github.com/irisnet/irishub-sdk-go/modules/htlc"
 	"github.com/irisnet/irishub-sdk-go/modules/params"
 	"io"
 
@@ -58,6 +59,7 @@ func NewClient(cfg sdk.ClientConfig) Client {
 		asset.Create(baseClient),
 		tendermint.Create(baseClient, cdc),
 		params.Create(baseClient),
+		htlc.Create(baseClient),
 	)
 
 	return *client
@@ -120,6 +122,10 @@ func (s *Client) Tendermint() rpc.Tendermint {
 
 func (s *Client) Params() rpc.Params {
 	return s.modules[params.ModuleName].(rpc.Params)
+}
+
+func (s *Client) Htlc() rpc.Htlc {
+	return s.modules[htlc.ModuleName].(rpc.Htlc)
 }
 
 func (s *Client) SetOutput(w io.Writer) {

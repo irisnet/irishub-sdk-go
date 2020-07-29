@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -174,4 +175,11 @@ loop:
 
 	_, err = sts.Service().SetWithdrawAddress(addr, baseTx)
 	require.NoError(sts.T(), err)
+}
+
+func (sts *ServiceTestSuite) TestQueryBindings() {
+	bindings, err := sts.Service().QueryBindings("assettransfer")
+	fmt.Println(bindings)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), bindings)
 }
