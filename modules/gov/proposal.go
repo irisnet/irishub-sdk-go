@@ -18,10 +18,7 @@ var (
 
 // proposal interface
 type proposal interface {
-	GetProposalID() uint64
-	GetTitle() string
-	GetDescription() string
-	GetProposalType() string
+	GetProposalID() string
 	GetStatus() string
 	GetTallyResult() tallyResult
 	GetSubmitTime() time.Time
@@ -29,7 +26,6 @@ type proposal interface {
 	GetTotalDeposit() sdk.Coins
 	GetVotingStartTime() time.Time
 	GetVotingEndTime() time.Time
-	GetProposer() sdk.AccAddress
 	sdk.Response
 }
 
@@ -42,30 +38,18 @@ func (ps proposals) Convert() interface{} {
 
 // Basic proposals
 type BasicProposal struct {
-	ProposalID      uint64         `json:"proposal_id"`       //  ID of the proposal
-	Title           string         `json:"title"`             //  Title of the proposal
-	Description     string         `json:"description"`       //  Description of the proposal
-	ProposalType    string         `json:"proposal_type"`     //  Type of proposal. Initial set {plainTextProposal, softwareUpgradeProposal}
-	Status          string         `json:"proposal_status"`   //  Status of the proposal {Pending, Active, Passed, Rejected}
-	TallyResult     tallyResult    `json:"tally_result"`      //  Result of Tallys
-	SubmitTime      time.Time      `json:"submit_time"`       //  Time of the block where TxGovSubmitProposal was included
-	DepositEndTime  time.Time      `json:"deposit_end_time"`  // Time that the proposal would expire if deposit amount isn't met
-	TotalDeposit    sdk.Coins      `json:"total_deposit"`     //  Current deposit on this proposal. Initial value is set at InitialDeposit
-	VotingStartTime time.Time      `json:"voting_start_time"` //  Time of the block where MinDeposit was reached. -1 if MinDeposit is not reached
-	VotingEndTime   time.Time      `json:"voting_end_time"`   // Time that the VotingPeriod for this proposal will end and votes will be tallied
-	Proposer        sdk.AccAddress `json:"proposer"`
+	ProposalID      string      `json:"id"`                 //  ID of the proposal
+	Status          string      `json:"status"`             //  Status of the proposal {Pending, Active, Passed, Rejected}
+	TallyResult     tallyResult `json:"final_tally_result"` //  Result of Tallys
+	SubmitTime      time.Time   `json:"submit_time"`        //  Time of the block where TxGovSubmitProposal was included
+	DepositEndTime  time.Time   `json:"deposit_end_time"`   // Time that the proposal would expire if deposit amount isn't met
+	TotalDeposit    sdk.Coins   `json:"total_deposit"`      //  Current deposit on this proposal. Initial value is set at InitialDeposit
+	VotingStartTime time.Time   `json:"voting_start_time"`  //  Time of the block where MinDeposit was reached. -1 if MinDeposit is not reached
+	VotingEndTime   time.Time   `json:"voting_end_time"`    // Time that the VotingPeriod for this proposal will end and votes will be tallied
 }
 
-func (b BasicProposal) GetTitle() string {
-	return b.Title
-}
-
-func (b BasicProposal) GetDescription() string {
-	return b.Description
-}
-
-func (b BasicProposal) GetProposalType() string {
-	return b.ProposalType
+func (b BasicProposal) GetProposalID() string {
+	return b.ProposalID
 }
 
 func (b BasicProposal) GetStatus() string {
@@ -96,35 +80,22 @@ func (b BasicProposal) GetVotingEndTime() time.Time {
 	return b.VotingEndTime
 }
 
-func (b BasicProposal) GetProposer() sdk.AccAddress {
-	return b.Proposer
-}
-
 func (b BasicProposal) Convert() interface{} {
 	return rpc.BasicProposal{
-		Title:          b.Title,
-		Description:    b.Description,
-		ProposalID:     b.ProposalID,
-		ProposalStatus: b.Status,
-		ProposalType:   b.ProposalType,
+		ProposalID: b.ProposalID,
+		Status:     b.Status,
 		TallyResult: rpc.TallyResult{
-			Yes:               b.TallyResult.Yes,
-			Abstain:           b.TallyResult.Abstain,
-			No:                b.TallyResult.No,
-			NoWithVeto:        b.TallyResult.NoWithVeto,
-			SystemVotingPower: b.TallyResult.SystemVotingPower,
+			Yes:        b.TallyResult.Yes,
+			Abstain:    b.TallyResult.Abstain,
+			No:         b.TallyResult.No,
+			NoWithVeto: b.TallyResult.NoWithVeto,
 		},
 		SubmitTime:      b.SubmitTime,
 		DepositEndTime:  b.DepositEndTime,
 		TotalDeposit:    b.TotalDeposit,
 		VotingStartTime: b.VotingStartTime,
 		VotingEndTime:   b.VotingEndTime,
-		Proposer:        b.Proposer.String(),
 	}
-}
-
-func (b BasicProposal) GetProposalID() uint64 {
-	return b.ProposalID
 }
 
 type plainTextProposal struct {

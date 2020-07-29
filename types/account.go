@@ -1,18 +1,19 @@
 package types
 
 import (
+	"bytes"
 	"errors"
-
+	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/crypto"
 )
 
-// Account is an interface used to store coins at a given address within state.
+// AccountI is an interface used to store coins at a given address within state.
 // It presumes a notion of sequence numbers for replay protection,
 // a notion of account numbers for replay protection for previously pruned accounts,
 // and a pubkey for authentication purposes.
 //
-// Many complex conditions can be used in the concrete struct which implements Account.
-type Account interface {
+// Many complex conditions can be used in the concrete struct which implements AccountI.
+type AccountI interface {
 	GetAddress() AccAddress
 	SetAddress(AccAddress) error // errors if already set.
 
@@ -24,93 +25,94 @@ type Account interface {
 
 	GetSequence() uint64
 	SetSequence(uint64) error
-
-	GetCoins() Coins
-	SetCoins(Coins) error
-
-	GetMemoRegexp() string
-	SetMemoRegexp(string)
 }
 
-var _ Account = (*BaseAccount)(nil)
+var _ AccountI = (*BaseAccount)(nil)
 
 type BaseAccount struct {
-	Address       AccAddress    `json:"address"`
-	Coins         Coins         `json:"coins"`
-	PubKey        crypto.PubKey `json:"public_key"`
-	AccountNumber uint64        `json:"account_number"`
-	Sequence      uint64        `json:"sequence"`
-	MemoRegexp    string        `json:"memo_regexp"`
+	Address       AccAddress `json:"address"`
+	PubKey        []byte     `json:"public_key"`
+	AccountNumber uint64     `json:"account_number"`
+	Sequence      uint64     `json:"sequence"`
 }
 
-// Implements sdk.Account.
+// GetAddress - Implements sdk.AccountI.
 func (acc BaseAccount) GetAddress() AccAddress {
 	return acc.Address
 }
 
-// Implements sdk.Account.
+// SetAddress - Implements sdk.AccountI.
 func (acc *BaseAccount) SetAddress(addr AccAddress) error {
 	if len(acc.Address) != 0 {
 		return errors.New("cannot override BaseAccount address")
 	}
+
 	acc.Address = addr
 	return nil
 }
 
-// Implements sdk.Account.
-func (acc BaseAccount) GetPubKey() crypto.PubKey {
-	return acc.PubKey
+// GetPubKey - Implements sdk.AccountI.
+func (acc BaseAccount) GetPubKey() (pk crypto.PubKey) {
+	if len(acc.PubKey) == 0 {
+		return nil
+	}
+
+	amino.MustUnmarshalBinaryBare(acc.PubKey, &pk)
+	return pk
 }
 
-// Implements sdk.Account.
+// SetPubKey - Implements sdk.AccountI.
 func (acc *BaseAccount) SetPubKey(pubKey crypto.PubKey) error {
-	acc.PubKey = pubKey
+	if pubKey == nil {
+		acc.PubKey = nil
+	} else {
+		acc.PubKey = pubKey.Bytes()
+	}
+
 	return nil
 }
 
-// Implements sdk.Account.
-func (acc *BaseAccount) GetCoins() Coins {
-	return acc.Coins
-}
-
-// Implements sdk.Account.
-func (acc *BaseAccount) SetCoins(coins Coins) error {
-	acc.Coins = coins
-	return nil
-}
-
-// Implements Account
-func (acc *BaseAccount) GetAccountNumber() uint64 {
+// GetAccountNumber - Implements AccountI
+func (acc BaseAccount) GetAccountNumber() uint64 {
 	return acc.AccountNumber
 }
 
-// Implements Account
+// SetAccountNumber - Implements AccountI
 func (acc *BaseAccount) SetAccountNumber(accNumber uint64) error {
 	acc.AccountNumber = accNumber
 	return nil
 }
 
-// Implements sdk.Account.
-func (acc *BaseAccount) GetSequence() uint64 {
+// GetSequence - Implements sdk.AccountI.
+func (acc BaseAccount) GetSequence() uint64 {
 	return acc.Sequence
 }
 
-// Implements sdk.Account.
+// SetSequence - Implements sdk.AccountI.
 func (acc *BaseAccount) SetSequence(seq uint64) error {
 	acc.Sequence = seq
 	return nil
 }
 
-// Implements sdk.Account.
-func (acc *BaseAccount) GetMemoRegexp() string {
-	return acc.MemoRegexp
+// Validate checks for errors on the account fields
+func (acc BaseAccount) Validate() error {
+	if len(acc.PubKey) != 0 && acc.Address != nil &&
+		!bytes.Equal(acc.GetPubKey().Address().Bytes(), acc.Address.Bytes()) {
+		return errors.New("account address and pubkey address do not match")
+	}
+
+	return nil
 }
 
-// Implements sdk.Account.
-func (acc *BaseAccount) SetMemoRegexp(regexp string) {
-	acc.MemoRegexp = regexp
+func (acc BaseAccount) Convert() interface{} {
+	return acc
 }
 
-func (acc *BaseAccount) Convert() interface{} {
+type Balances []struct {
+	Denom  string `json:"denom"`
+	Amount string `json:"amount"`
+}
+
+func (acc *Balances) Convert() interface{} {
 	return acc
 }

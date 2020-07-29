@@ -1,9 +1,8 @@
 package rpc
 
 import (
-	"time"
-
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"time"
 )
 
 type ServiceTx interface {
@@ -133,13 +132,14 @@ type ServiceBindingUpdateRequest struct {
 
 // ServiceBinding defines a struct for service binding
 type ServiceBinding struct {
-	ServiceName     string         `json:"service_name"`
-	Provider        sdk.AccAddress `json:"provider"`
-	Deposit         sdk.Coins      `json:"deposit"`
-	Pricing         string         `json:"pricing"`
-	WithdrawAddress sdk.AccAddress `json:"withdraw_address"`
-	Available       bool           `json:"available"`
-	DisabledTime    time.Time      `json:"disabled_time"`
+	ServiceName  string    `json:"service_name"`
+	Provider     string    `json:"provider"`
+	Deposit      sdk.Coins `json:"deposit"`
+	Pricing      string    `json:"pricing"`
+	Qos          uint64    `json:"qos"`
+	Available    bool      `json:"available"`
+	DisabledTime time.Time `json:"disabled_time"`
+	Owner        string    `json:"owner"`
 }
 
 type ServiceInvocationRequest struct {
@@ -172,18 +172,18 @@ type RequestContext struct {
 	Consumer           sdk.AccAddress   `json:"consumer"`
 	Input              string           `json:"input"`
 	ServiceFeeCap      sdk.Coins        `json:"service_fee_cap"`
+	ModuleName         string           `json:"module_name"`
 	Timeout            int64            `json:"timeout"`
 	SuperMode          bool             `json:"super_mode"`
 	Repeated           bool             `json:"repeated"`
 	RepeatedFrequency  uint64           `json:"repeated_frequency"`
 	RepeatedTotal      int64            `json:"repeated_total"`
 	BatchCounter       uint64           `json:"batch_counter"`
-	BatchRequestCount  uint16           `json:"batch_request_count"`
-	BatchResponseCount uint16           `json:"batch_response_count"`
-	BatchState         string           `json:"batch_state"`
-	State              string           `json:"state"`
-	ResponseThreshold  uint16           `json:"response_threshold"`
-	ModuleName         string           `json:"module_name"`
+	BatchRequestCount  uint32           `json:"batch_request_count"`
+	BatchResponseCount uint32           `json:"batch_response_count"`
+	ResponseThreshold  uint32           `json:"response_threshold"`
+	BatchState         int32            `json:"batch_state"`
+	State              int32            `json:"state"`
 }
 
 // EarnedFees defines a struct for the fees earned by the provider

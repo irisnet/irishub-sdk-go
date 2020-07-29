@@ -245,20 +245,18 @@ func (vo VoteOption) String() string {
 
 // Tally Results
 type tallyResult struct {
-	Yes               string `json:"yes"`
-	Abstain           string `json:"abstain"`
-	No                string `json:"no"`
-	NoWithVeto        string `json:"no_with_veto"`
-	SystemVotingPower string `json:"system_voting_power"`
+	Yes        string `json:"yes"`
+	Abstain    string `json:"abstain"`
+	No         string `json:"no"`
+	NoWithVeto string `json:"no_with_veto"`
 }
 
 func (t tallyResult) Convert() interface{} {
 	return rpc.TallyResult{
-		Yes:               t.Yes,
-		Abstain:           t.Abstain,
-		No:                t.No,
-		NoWithVeto:        t.NoWithVeto,
-		SystemVotingPower: t.SystemVotingPower,
+		Yes:        t.Yes,
+		Abstain:    t.Abstain,
+		No:         t.No,
+		NoWithVeto: t.NoWithVeto,
 	}
 }
 
@@ -281,8 +279,8 @@ type votes []vote
 
 func (vs votes) Convert() interface{} {
 	votes := make([]rpc.Vote, len(vs))
-	for _, v := range vs {
-		votes = append(votes, v.Convert().(rpc.Vote))
+	for i, v := range vs {
+		votes[i] = v.Convert().(rpc.Vote)
 	}
 	return votes
 }

@@ -3,14 +3,13 @@ package modules
 import (
 	"context"
 	"fmt"
-
-	cmn "github.com/tendermint/tendermint/libs/common"
-	rpc "github.com/tendermint/tendermint/rpc/client"
-	tmtypes "github.com/tendermint/tendermint/types"
-
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/utils/log"
 	"github.com/irisnet/irishub-sdk-go/utils/uuid"
+	"github.com/tendermint/tendermint/libs/bytes"
+	rpc "github.com/tendermint/tendermint/rpc/client"
+	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
+	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 type rpcClient struct {
@@ -20,7 +19,10 @@ type rpcClient struct {
 }
 
 func NewRPCClient(remote string, cdc sdk.Codec, log *log.Logger) sdk.TmClient {
-	client := rpc.NewHTTP(remote, "/websocket")
+	client, err := rpchttp.New(remote, "/websocket")
+	if err != nil {
+		panic(err)
+	}
 	_ = client.Start()
 	return rpcClient{
 		Client: client,
@@ -146,16 +148,16 @@ func (r rpcClient) SubscribeAny(query string, handler sdk.EventHandler) (subscri
 func (r rpcClient) parseTx(data sdk.EventData) sdk.EventDataTx {
 	tx := data.(tmtypes.EventDataTx)
 	var stdTx sdk.StdTx
-	if err := r.cdc.UnmarshalBinaryLengthPrefixed(tx.Tx, &stdTx); err != nil {
+	if err := r.cdc.UnmarshalBinaryBare(tx.Tx, &stdTx); err != nil {
 		return sdk.EventDataTx{}
 	}
-	hash := cmn.HexBytes(tx.Tx.Hash()).String()
+	hash := bytes.HexBytes(tx.Tx.Hash()).String()
 	result := sdk.TxResult{
 		Code:      tx.Result.Code,
 		Log:       tx.Result.Log,
 		GasWanted: tx.Result.GasWanted,
 		GasUsed:   tx.Result.GasUsed,
-		Tags:      sdk.ParseTags(tx.Result.Tags),
+		//Tags:      sdk.ParseTags(tx.Result.Tags),
 	}
 	return sdk.EventDataTx{
 		Hash:   hash,
@@ -169,12 +171,12 @@ func (r rpcClient) parseTx(data sdk.EventData) sdk.EventDataTx {
 func (r rpcClient) parseNewBlock(data sdk.EventData) sdk.EventDataNewBlock {
 	block := data.(tmtypes.EventDataNewBlock)
 	return sdk.EventDataNewBlock{
-		Block: sdk.ParseBlock(r.cdc, block.Block),
+		Block:            sdk.ParseBlock(r.cdc, block.Block),
 		ResultBeginBlock: sdk.ResultBeginBlock{
-			Tags: sdk.ParseTags(block.ResultBeginBlock.Tags),
+			//Tags: sdk.ParseTags(block.ResultBeginBlock.Tags),
 		},
 		ResultEndBlock: sdk.ResultEndBlock{
-			Tags:             sdk.ParseTags(block.ResultEndBlock.Tags),
+			//Tags:             sdk.ParseTags(block.ResultEndBlock.Tags),
 			ValidatorUpdates: sdk.ParseValidatorUpdate(block.ResultEndBlock.ValidatorUpdates),
 		},
 	}
@@ -183,12 +185,9 @@ func (r rpcClient) parseNewBlock(data sdk.EventData) sdk.EventDataNewBlock {
 func (r rpcClient) parseNewBlockHeader(data sdk.EventData) sdk.EventDataNewBlockHeader {
 	blockHeader := data.(tmtypes.EventDataNewBlockHeader)
 	return sdk.EventDataNewBlockHeader{
-		Header: blockHeader.Header,
-		ResultBeginBlock: sdk.ResultBeginBlock{
-			Tags: sdk.ParseTags(blockHeader.ResultBeginBlock.Tags),
-		},
+		Header:           blockHeader.Header,
+		ResultBeginBlock: sdk.ResultBeginBlock{},
 		ResultEndBlock: sdk.ResultEndBlock{
-			Tags:             sdk.ParseTags(blockHeader.ResultEndBlock.Tags),
 			ValidatorUpdates: sdk.ParseValidatorUpdate(blockHeader.ResultEndBlock.ValidatorUpdates),
 		},
 	}

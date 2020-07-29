@@ -9,7 +9,6 @@ import (
 
 	tmclient "github.com/tendermint/tendermint/rpc/client"
 
-	cmn "github.com/tendermint/tendermint/libs/common"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
@@ -33,12 +32,24 @@ type WSClient interface {
 type TmClient interface {
 	tmclient.ABCIClient
 	tmclient.SignClient
+	tmclient.StatusClient
+	tmclient.HistoryClient
 	WSClient
 }
 
 type EventType string
 type EventKey string
 type EventValue string
+
+type Event struct {
+	Type       string `json:"type"`
+	Attributes []Pair `json:"attributes"`
+}
+
+type Pair struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
 
 type Subscription struct {
 	Ctx   context.Context `json:"-"`
@@ -79,20 +90,6 @@ type Tag struct {
 }
 type Tags []Tag
 
-func ParseTags(pairs []cmn.KVPair) (tags []Tag) {
-	if pairs == nil || len(pairs) == 0 {
-		return tags
-	}
-	for _, pair := range pairs {
-		key := string(pair.Key)
-		value := string(pair.Value)
-		tags = append(tags, Tag{
-			Key:   key,
-			Value: value,
-		})
-	}
-	return
-}
 func (t Tags) GetValues(key string) (values []string) {
 	for _, tag := range t {
 		if tag.Key == key {
@@ -150,15 +147,14 @@ type EventDataNewBlockHeader struct {
 
 type EventNewBlockHeaderHandler func(EventDataNewBlockHeader)
 
-//EventDataValidatorSetUpdates for SubscribeValidatorSetUpdates
+// Volatile state for each Validator
 type Validator struct {
-	Bech32Address    string `json:"bech32_address"`
-	Bech32PubKey     string `json:"bech32_pubkey"`
 	Address          string `json:"address"`
 	PubKey           PubKey `json:"pub_key"`
 	VotingPower      int64  `json:"voting_power"`
 	ProposerPriority int64  `json:"proposer_priority"`
 }
+
 type EventDataValidatorSetUpdates struct {
 	ValidatorUpdates []Validator `json:"validator_updates"`
 }

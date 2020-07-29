@@ -285,127 +285,191 @@ func (msg MsgEditValidator) ValidateBasic() error {
 }
 
 //===============================for query===============================
-// delegation represents the bond with tokens held by an account.  It is
-// owned by one delegator, and is associated with the voting power of one
-// pubKey.
+// DelegationResponse is equivalent to Delegation except that it contains a balance
+// in addition to shares which is more suitable for client responses.
+type delegationResponses []delegationResponse
+type delegationResponse struct {
+	Delegation delegation `json:"delegation"`
+	Balance    sdk.Coin   `json:"balance"`
+}
+
 type delegation struct {
-	DelegatorAddr sdk.AccAddress `json:"delegator_addr"`
-	ValidatorAddr sdk.ValAddress `json:"validator_addr"`
-	Shares        sdk.Dec        `json:"shares"`
-	Height        int64          `json:"height"` // Last height bond updated
+	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
+	ValidatorAddress sdk.ValAddress `json:"validator_address"`
+	Shares           sdk.Dec        `json:"shares"`
 }
 
-func (d delegation) Convert() interface{} {
-	return rpc.Delegation{
-		DelegatorAddr: d.DelegatorAddr.String(),
-		ValidatorAddr: d.ValidatorAddr.String(),
-		Shares:        d.Shares.String(),
-		Height:        d.Height,
+func (ds delegationResponses) Convert() interface{} {
+	dses := make(rpc.DelegationResponses, len(ds))
+	for i, v := range ds {
+		dses[i] = v.Convert().(rpc.DelegationResponse)
+	}
+	return dses
+}
+
+func (d delegationResponse) Convert() interface{} {
+	return rpc.DelegationResponse{
+		Delegation: rpc.Delegation{
+			DelegatorAddress: d.Delegation.DelegatorAddress.String(),
+			ValidatorAddress: d.Delegation.ValidatorAddress.String(),
+			Shares:           d.Delegation.Shares.String(),
+		},
+		Balance: d.Balance,
 	}
 }
 
-type delegations []delegation
-
-func (ds delegations) Convert() interface{} {
-	delegations := make(rpc.Delegations, len(ds))
-	for _, d := range ds {
-		delegations = append(delegations, d.Convert().(rpc.Delegation))
-	}
-	return delegations
-}
-
-// unbondingDelegation reflects a delegation's passive unbonding queue.
-type unbondingDelegation struct {
-	TxHash         string         `json:"tx_hash"`
-	DelegatorAddr  sdk.AccAddress `json:"delegator_addr"`  // delegator
-	ValidatorAddr  sdk.ValAddress `json:"validator_addr"`  // validator unbonding from operator addr
-	CreationHeight int64          `json:"creation_height"` // height which the unbonding took place
-	MinTime        time.Time      `json:"min_time"`        // unix time for unbonding completion
-	InitialBalance sdk.Coin       `json:"initial_balance"` // atoms initially scheduled to receive at completion
-	Balance        sdk.Coin       `json:"balance"`         // atoms to receive at completion
-}
-
-func (ubd unbondingDelegation) Convert() interface{} {
-	return rpc.UnbondingDelegation{
-		TxHash:         ubd.TxHash,
-		DelegatorAddr:  ubd.DelegatorAddr.String(),
-		ValidatorAddr:  ubd.ValidatorAddr.String(),
-		CreationHeight: ubd.CreationHeight,
-		MinTime:        ubd.MinTime.String(),
-		InitialBalance: ubd.InitialBalance,
-		Balance:        ubd.Balance,
-	}
-}
-
+// UnbondingDelegation stores all of a single delegator's unbonding bonds
+// for a single validator in an time-ordered list
 type unbondingDelegations []unbondingDelegation
+type unbondingDelegation struct {
+	DelegatorAddress sdk.AccAddress             `json:"delegator_address"`
+	ValidatorAddress sdk.ValAddress             `json:"validator_address"`
+	Entries          []unbondingDelegationEntry `protobuf:"bytes,3,rep,name=entries,proto3" json:"entries"`
+}
+
+// UnbondingDelegationEntry defines an unbonding object with relevant metadata.
+type unbondingDelegationEntry struct {
+	CreationHeight int64     `json:"creation_height,omitempty"`
+	CompletionTime time.Time `json:"completion_time"`
+	InitialBalance sdk.Int   `json:"initial_balance"`
+	Balance        sdk.Int   `json:"balance"`
+}
 
 func (ubds unbondingDelegations) Convert() interface{} {
 	uds := make(rpc.UnbondingDelegations, len(ubds))
-	for _, d := range ubds {
-		uds = append(uds, d.Convert().(rpc.UnbondingDelegation))
+	for i, v := range ubds {
+		uds[i] = v.Convert().(rpc.UnbondingDelegation)
 	}
 	return uds
 }
 
-// redelegation reflects a delegation's passive re-delegation queue.
+func (ubd unbondingDelegation) Convert() interface{} {
+	entries := make([]rpc.UnbondingDelegationEntry, len(ubd.Entries))
+	for i, v := range ubd.Entries {
+		entries[i] = v.Convert().(rpc.UnbondingDelegationEntry)
+	}
+
+	return rpc.UnbondingDelegation{
+		DelegatorAddress: ubd.DelegatorAddress.String(),
+		ValidatorAddress: ubd.ValidatorAddress.String(),
+		Entries:          entries,
+	}
+}
+
+func (ubdEntry unbondingDelegationEntry) Convert() interface{} {
+	return rpc.UnbondingDelegationEntry{
+		CreationHeight: ubdEntry.CreationHeight,
+		CompletionTime: ubdEntry.CompletionTime,
+		InitialBalance: ubdEntry.InitialBalance,
+		Balance:        ubdEntry.Balance,
+	}
+}
+
+// RedelegationResponse is equivalent to a Redelegation except that its entries
+// contain a balance in addition to shares which is more suitable for client
+// responses.
+type redelegationResponses []redelegationResponse
+type redelegationResponse struct {
+	Redelegation redelegation                `json:"redelegation"`
+	Entries      []redelegationEntryResponse `json:"entries"`
+}
+
+// Redelegation contains the list of a particular delegator's redelegating bonds
+// from a particular source validator to a particular destination validator.
 type redelegation struct {
-	DelegatorAddr    sdk.AccAddress `json:"delegator_addr"`     // delegator
-	ValidatorSrcAddr sdk.ValAddress `json:"validator_src_addr"` // validator redelegation source operator addr
-	ValidatorDstAddr sdk.ValAddress `json:"validator_dst_addr"` // validator redelegation destination operator addr
-	CreationHeight   int64          `json:"creation_height"`    // height which the redelegation took place
-	MinTime          time.Time      `json:"min_time"`           // unix time for redelegation completion
-	InitialBalance   sdk.Coin       `json:"initial_balance"`    // initial balance when redelegation started
-	Balance          sdk.Coin       `json:"balance"`            // current balance
-	SharesSrc        sdk.Dec        `json:"shares_src"`         // amount of source shares redelegating
-	SharesDst        sdk.Dec        `json:"shares_dst"`         // amount of destination shares redelegating
+	DelegatorAddress    sdk.AccAddress      `json:"delegator_address"`
+	ValidatorSrcAddress sdk.ValAddress      `json:"validator_src_address,omitempty"`
+	ValidatorDstAddress sdk.ValAddress      `json:"validator_dst_address"`
+	Entries             []redelegationEntry `json:"entries"`
 }
 
-func (d redelegation) Convert() interface{} {
-	return rpc.Redelegation{
-		DelegatorAddr:    d.DelegatorAddr.String(),
-		ValidatorSrcAddr: d.ValidatorDstAddr.String(),
-		ValidatorDstAddr: d.ValidatorDstAddr.String(),
-		CreationHeight:   d.CreationHeight,
-		MinTime:          d.MinTime.String(),
-		InitialBalance:   d.InitialBalance,
-		Balance:          d.Balance,
-		SharesSrc:        d.SharesSrc.String(),
-		SharesDst:        d.SharesDst.String(),
+// RedelegationEntryResponse is equivalent to a RedelegationEntry except that it
+// contains a balance in addition to shares which is more suitable for client
+// responses.
+type redelegationEntryResponse struct {
+	RedelegationEntry redelegationEntry `json:"redelegation_entry"`
+	Balance           sdk.Int           `json:"balance"`
+}
+
+// RedelegationEntry defines a redelegation object with relevant metadata.
+type redelegationEntry struct {
+	CreationHeight int32     `json:"creation_height"`
+	CompletionTime time.Time `json:"completion_time"`
+	InitialBalance sdk.Int   `json:"initial_balance"`
+	SharesDst      sdk.Dec   `json:"shares_dst"`
+}
+
+func (rs redelegationResponses) Convert() interface{} {
+	redelegationResponses := make(rpc.RedelegationResponses, len(rs))
+	for i, v := range rs {
+		redelegationResponses[i] = v.Convert().(rpc.RedelegationResponse)
 	}
+	return redelegationResponses
 }
 
-type redelegations []redelegation
-
-func (ds redelegations) Convert() interface{} {
-	rds := make(rpc.Redelegations, len(ds))
-	for _, d := range ds {
-		rds = append(rds, d.Convert().(rpc.Redelegation))
+func (rs redelegationResponse) Convert() interface{} {
+	outsideEntry := make([]rpc.RedelegationEntryResponse, len(rs.Entries))
+	for i, v := range rs.Entries {
+		outsideEntry[i] = rpc.RedelegationEntryResponse{
+			RedelegationEntry: rpc.RedelegationEntry{
+				CreationHeight: v.RedelegationEntry.CreationHeight,
+				CompletionTime: v.RedelegationEntry.CompletionTime,
+				InitialBalance: v.RedelegationEntry.InitialBalance,
+				SharesDst:      v.RedelegationEntry.SharesDst,
+			},
+			Balance: v.Balance,
+		}
 	}
-	return rds
+
+	insideEntry := make([]rpc.RedelegationEntry, len(rs.Redelegation.Entries))
+	for i, v := range rs.Redelegation.Entries {
+		insideEntry[i] = rpc.RedelegationEntry{
+			CreationHeight: v.CreationHeight,
+			CompletionTime: v.CompletionTime,
+			InitialBalance: v.InitialBalance,
+			SharesDst:      v.SharesDst,
+		}
+	}
+
+	redelegationResponse := rpc.RedelegationResponse{
+		Redelegation: rpc.Redelegation{
+			DelegatorAddress:    rs.Redelegation.DelegatorAddress.String(),
+			ValidatorDstAddress: rs.Redelegation.ValidatorDstAddress.String(),
+			ValidatorSrcAddress: rs.Redelegation.ValidatorSrcAddress.String(),
+			Entries:             insideEntry,
+		},
+		Entries: outsideEntry,
+	}
+
+	return redelegationResponse
 }
 
+// Validator defines the total amount of bond shares and their exchange rate to
+// coins. Slashing results in a decrease in the exchange rate, allowing correct
+// calculation of future undelegations without iterating over delegators.
+// When coins are delegated to this validator, the validator is credited with a
+// delegation whose number of bond shares is based on the amount of coins
+// delegated divided by the current exchange rate. Voting power can be
+// calculated as total bonded shares multiplied by exchange rate.
+type validators []validator
 type validator struct {
-	OperatorAddr string `json:"operator_address"` // address of the validator's operator; bech encoded in JSON
-	ConsPubKey   string `json:"consensus_pubkey"` // the consensus public key of the validator; bech encoded in JSON
-	Jailed       bool   `json:"jailed"`           // has the validator been jailed from bonded status?
-
-	Status          bondStatus `json:"status"`           // validator status (bonded/unbonding/unbonded)
-	Tokens          string     `json:"tokens"`           // delegated tokens (incl. self-delegation)
-	DelegatorShares string     `json:"delegator_shares"` // total shares issued to a validator's delegators
-
-	Description Description `json:"description"` // description terms for the validator
-	BondHeight  int64       `json:"bond_height"` // earliest height as a bonded validator
-
-	UnbondingHeight  int64     `json:"unbonding_height"` // if unbonding, height at which this validator has begun unbonding
-	UnbondingMinTime time.Time `json:"unbonding_time"`   // if unbonding, min time for the validator to complete unbonding
-
-	Commission Commission `json:"commission"` // commission parameters
+	OperatorAddress   string      `json:"operator_address"` // address of the validator's operator; bech encoded in JSON
+	ConsensusPubkey   string      `json:"consensus_pubkey"` // the consensus public key of the validator; bech encoded in JSON
+	Jailed            bool        `json:"jailed"`           // has the validator been jailed from bonded status?
+	Status            bondStatus  `json:"status"`           // validator status (bonded/unbonding/unbonded)
+	Tokens            string      `json:"tokens"`           // delegated tokens (incl. self-delegation)
+	DelegatorShares   string      `json:"delegator_shares"`
+	Description       Description `json:"description"`      // description terms for the validator
+	UnbondingHeight   int64       `json:"unbonding_height"` // if unbonding, height at which this validator has begun unbonding
+	UnbondingTime     time.Time   `json:"unbonding_time"`   // if unbonding, min time for the validator to complete unbonding
+	Commission        Commission  `json:"commission"`       // commission parameters
+	MinSelfDelegation string      `json:"min_self_delegation"`
 }
 
 func (v validator) Convert() interface{} {
 	return rpc.Validator{
-		OperatorAddress: v.OperatorAddr,
-		ConsensusPubkey: v.ConsPubKey,
+		OperatorAddress: v.OperatorAddress,
+		ConsensusPubkey: v.ConsensusPubkey,
 		Jailed:          v.Jailed,
 		Status:          v.Status.String(),
 		Tokens:          v.Tokens,
@@ -416,19 +480,19 @@ func (v validator) Convert() interface{} {
 			Website:  v.Description.Website,
 			Details:  v.Description.Details,
 		},
-		BondHeight:      v.BondHeight,
 		UnbondingHeight: v.UnbondingHeight,
-		UnbondingTime:   v.UnbondingMinTime.String(),
+		UnbondingTime:   v.UnbondingTime.String(),
 		Commission: rpc.Commission{
-			Rate:          v.Commission.Rate.String(),
-			MaxRate:       v.Commission.MaxRate.String(),
-			MaxChangeRate: v.Commission.MaxChangeRate.String(),
-			UpdateTime:    v.Commission.UpdateTime.String(),
+			CommissionRates: rpc.CommissionRates{
+				Rate:          v.Commission.Rate.String(),
+				MaxRate:       v.Commission.MaxRate.String(),
+				MaxChangeRate: v.Commission.MaxChangeRate.String(),
+			},
+			UpdateTime: v.Commission.UpdateTime.String(),
 		},
+		MinSelfDelegation: v.MinSelfDelegation,
 	}
 }
-
-type validators []validator
 
 func (vs validators) Convert() interface{} {
 	validators := make(rpc.Validators, len(vs))
@@ -439,13 +503,17 @@ func (vs validators) Convert() interface{} {
 }
 
 // status of a validator
-type bondStatus byte
+type bondStatus int32
 
 // nolint
 const (
-	Unbonded  bondStatus = 0x00
-	Unbonding bondStatus = 0x01
-	Bonded    bondStatus = 0x02
+	Unbonded  bondStatus = 1
+	Unbonding bondStatus = 2
+	Bonded    bondStatus = 3
+
+	BondStatusUnbonded  = "Unbonded"
+	BondStatusUnbonding = "Unbonding"
+	BondStatusBonded    = "Bonded"
 )
 
 func (b bondStatus) String() string {
@@ -463,14 +531,21 @@ func (b bondStatus) String() string {
 
 // Description - description fields for a validator
 type Description struct {
-	Moniker  string `json:"moniker"`  // name
-	Identity string `json:"identity"` // optional identity signature (ex. UPort or Keybase)
-	Website  string `json:"website"`  // optional website link
-	Details  string `json:"details"`  // optional details
+	Moniker         string `json:"moniker"`          // name
+	Identity        string `json:"identity"`         // optional identity signature (ex. UPort or Keybase)
+	Website         string `json:"website"`          // optional website link
+	SecurityContact string `json:"security_contact"` // optional securityContact
+	Details         string `json:"details"`          // optional details
 }
 
 // Commission defines a commission parameters for a given validator.
 type Commission struct {
+	CommissionRates `json:"commission_rates"`
+}
+
+// CommissionRates defines the initial commission rates to be used for creating
+// a validator.
+type CommissionRates struct {
 	Rate          sdk.Dec   `json:"rate"`            // the commission rate charged to delegators
 	MaxRate       sdk.Dec   `json:"max_rate"`        // maximum commission rate which validator can ever charge
 	MaxChangeRate sdk.Dec   `json:"max_change_rate"` // maximum daily increase of the validator commission
@@ -486,14 +561,14 @@ type CommissionMsg struct {
 }
 
 type Pool struct {
-	LooseTokens  sdk.Dec `json:"loose_tokens"`  // tokens which are not bonded in a validator
-	BondedTokens sdk.Dec `json:"bonded_tokens"` // reserve of bonded tokens
+	NotBondedTokens sdk.Int `json:"not_bonded_tokens"` // tokens which are not bonded in a validator
+	BondedTokens    sdk.Int `json:"bonded_tokens"`     // reserve of bonded tokens
 }
 
 func (p Pool) Convert() interface{} {
 	return rpc.StakePool{
-		LooseTokens:  p.LooseTokens.String(),
-		BondedTokens: p.BondedTokens.String(),
+		NotBondedTokens: p.NotBondedTokens.String(),
+		BondedTokens:    p.BondedTokens.String(),
 	}
 }
 
@@ -511,9 +586,9 @@ func (p params) Convert() interface{} {
 }
 
 func registerCodec(cdc sdk.Codec) {
-	//cdc.RegisterConcrete(Pool{}, "irishub/stake/Pool")
+	cdc.RegisterConcrete(Pool{}, "irishub/stake/Pool")
 	cdc.RegisterConcrete(&params{}, "irishub/stake/Params")
-	cdc.RegisterConcrete(validator{}, "irishub/stake/Validator")
+	cdc.RegisterConcrete(validator{}, "custom/staking/Validator")
 	cdc.RegisterConcrete(delegation{}, "irishub/stake/Delegation")
 	cdc.RegisterConcrete(unbondingDelegation{}, "irishub/stake/UnbondingDelegation")
 	cdc.RegisterConcrete(redelegation{}, "irishub/stake/Redelegation")

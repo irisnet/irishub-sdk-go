@@ -30,6 +30,26 @@ func (b bankClient) Name() string {
 	return ModuleName
 }
 
+func (b bankClient) QueryBalances(address, denom string) (sdk.Balances, sdk.Error) {
+	param := struct {
+		Denom   string
+		Address string
+	}{
+		Address: address,
+		Denom:   denom,
+	}
+	var ts sdk.Balances
+	uri := fmt.Sprintf("custom/%s/balance", b.Name())
+	if denom == "" {
+		uri = fmt.Sprintf("custom/%s/all_balances", b.Name())
+	}
+
+	if err := b.QueryWithResponse(uri, param, &ts); err != nil {
+		return sdk.Balances{}, sdk.Wrap(err)
+	}
+	return ts, nil
+}
+
 // QueryAccount return account information specified address
 func (b bankClient) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) {
 	account, err := b.BaseClient.QueryAccount(address)
@@ -54,8 +74,28 @@ func (b bankClient) QueryTokenStats(tokenID string) (rpc.TokenStats, sdk.Error) 
 	return ts.Convert().(rpc.TokenStats), nil
 }
 
+// Query the total supply of coins of the chain
+func (b bankClient) QueryTotalSupply() (sdk.Coins, sdk.Error) {
+	param := struct {
+		Page int
+	}{
+		Page: 1,
+	}
+
+	var total sdk.Coins
+	res, err := b.Query("custom/bank/total_supply", param)
+	if err != nil {
+		return sdk.Coins{}, nil
+	}
+
+	if err := cdc.UnmarshalJSON(res, &total); err != nil {
+		return sdk.Coins{}, nil
+	}
+	return total, nil
+}
+
 //Send is responsible for transferring tokens from `From` to `to` account
-func (b bankClient) Send(to string, amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+func (b bankClient) Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	sender, err := b.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
@@ -94,20 +134,20 @@ func (b bankClient) MultiSend(receipts rpc.Receipts, baseTx sdk.BaseTx) (resTxs 
 
 	var inputs = make([]Input, len(receipts))
 	var outputs = make([]Output, len(receipts))
-	for i, receipt := range receipts {
-		amt, err := b.ToMinCoin(receipt.Amount...)
-		if err != nil {
-			return nil, sdk.Wrap(err)
-		}
-
-		outAddr, e := sdk.AccAddressFromBech32(receipt.Address)
-		if e != nil {
-			return nil, sdk.Wrapf(fmt.Sprintf("%s invalid address", receipt.Address))
-		}
-
-		inputs[i] = NewInput(sender, amt)
-		outputs[i] = NewOutput(outAddr, amt)
-	}
+	//for i, receipt := range receipts {
+	//	amt, err := b.ToMinCoin(receipt.Amount...)
+	//	if err != nil {
+	//		return nil, sdk.Wrap(err)
+	//	}
+	//
+	//	outAddr, e := sdk.AccAddressFromBech32(receipt.Address)
+	//	if e != nil {
+	//		return nil, sdk.Wrapf(fmt.Sprintf("%s invalid address", receipt.Address))
+	//	}
+	//
+	//	inputs[i] = NewInput(sender, amt)
+	//	outputs[i] = NewOutput(outAddr, amt)
+	//}
 
 	msg := NewMsgSend(inputs, outputs)
 	res, err := b.BuildAndSend([]sdk.Msg{msg}, baseTx)
@@ -128,20 +168,20 @@ func (b bankClient) SendBatch(sender sdk.AccAddress,
 		rs := receipts.(rpc.Receipts)
 		var inputs = make([]Input, len(rs))
 		var outputs = make([]Output, len(rs))
-		for i, receipt := range rs {
-			amt, err := b.ToMinCoin(receipt.Amount...)
-			if err != nil {
-				return nil, sdk.Wrap(err)
-			}
-
-			outAddr, e := sdk.AccAddressFromBech32(receipt.Address)
-			if e != nil {
-				return nil, sdk.Wrapf(fmt.Sprintf("%s invalid address", receipt.Address))
-			}
-
-			inputs[i] = NewInput(sender, amt)
-			outputs[i] = NewOutput(outAddr, amt)
-		}
+		//for i, receipt := range rs {
+		//	amt, err := b.ToMinCoin(receipt.Amount...)
+		//	if err != nil {
+		//		return nil, sdk.Wrap(err)
+		//	}
+		//
+		//	outAddr, e := sdk.AccAddressFromBech32(receipt.Address)
+		//	if e != nil {
+		//		return nil, sdk.Wrapf(fmt.Sprintf("%s invalid address", receipt.Address))
+		//	}
+		//
+		//	inputs[i] = NewInput(sender, amt)
+		//	outputs[i] = NewOutput(outAddr, amt)
+		//}
 		msgs = append(msgs, NewMsgSend(inputs, outputs))
 	}
 	return b.SendMsgBatch(msgs, baseTx)
@@ -149,17 +189,18 @@ func (b bankClient) SendBatch(sender sdk.AccAddress,
 
 //Send is responsible for burning some tokens from `From` account
 func (b bankClient) Burn(amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	sender, err := b.QueryAddress(baseTx.From)
-	if err != nil {
-		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
-	}
-
-	amt, err := b.ToMinCoin(amount...)
-	if err != nil {
-		return sdk.ResultTx{}, sdk.Wrap(err)
-	}
-	msg := NewMsgBurn(sender, amt)
-	return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
+	//sender, err := b.QueryAddress(baseTx.From)
+	//if err != nil {
+	//	return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
+	//}
+	//
+	////amt, err := b.ToMinCoin(amount...)
+	//if err != nil {
+	//	return sdk.ResultTx{}, sdk.Wrap(err)
+	//}
+	//msg := NewMsgBurn(sender, amt)
+	//return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
+	return sdk.ResultTx{}, nil
 }
 
 //Send is responsible for setting memo regexp for your own address, so that you can only receive coins from transactions with the corresponding memo.

@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -174,17 +175,18 @@ loop:
 
 	_, err = sts.Service().SetWithdrawAddress(addr, baseTx)
 	require.NoError(sts.T(), err)
+}
 
-	d, e := sdk.NewDecimalFromStr("0.01")
-	require.NoError(sts.T(), e)
-	amount := sdk.NewDecCoins(sdk.NewDecCoinFromDec("iris", d))
-	_, err = sts.Service().WithdrawTax(addr, amount, baseTx)
+func (sts *ServiceTestSuite) TestQueryBindings() {
+	bindings, err := sts.Service().QueryBindings("assettransfer")
+	fmt.Println(bindings)
 	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), bindings)
+}
 
-	acc, err := sts.Bank().QueryAccount(addr)
+func (sts *ServiceTestSuite) TestQueryRequestContext() {
+	context, err := sts.Service().QueryRequestContext("ED676A63391321F9570009C918F29BC447B4CCCEE5C2884E6AF051C02EE8BAFF0000000000000000")
+	fmt.Println(context)
 	require.NoError(sts.T(), err)
-
-	balance, err := sts.ToMainCoin(acc.GetCoins()...)
-	require.NoError(sts.T(), err)
-	require.EqualValues(sts.T(), amount, balance)
+	require.NotEmpty(sts.T(), context)
 }

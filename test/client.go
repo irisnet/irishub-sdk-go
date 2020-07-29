@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	nodeURI = "localhost:26657"
+	nodeURI = "http://10.1.4.185:36657"
+	//nodeURI = "http://localhost:26657"
 	chainID = "test"
-	network = types.Testnet
+	network = types.Mainnet
 	mode    = types.Commit
-	fee     = "0.6iris"
 	gas     = 20000
 
 	letterBytes   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -55,18 +55,12 @@ func GetMock() *MockClient {
 }
 
 func newMockClient() MockClient {
-	fees, err := types.ParseDecCoins(fee)
-	if err != nil {
-		panic(err)
-	}
-
 	path := filepath.Join(getPWD(), "test")
 	c := sdk.NewClient(types.ClientConfig{
 		NodeURI:   nodeURI,
 		Network:   network,
 		ChainID:   chainID,
 		Gas:       gas,
-		Fee:       fees,
 		KeyDAO:    types.NewMemoryDB(), //default keybase
 		Mode:      mode,
 		StoreType: types.PrivKey,

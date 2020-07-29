@@ -1,10 +1,9 @@
 package staking_test
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/require"
 	"testing"
-
-	sdk "github.com/irisnet/irishub-sdk-go/types"
 
 	"github.com/stretchr/testify/suite"
 
@@ -24,185 +23,49 @@ func (sts *StakingTestSuite) SetupTest() {
 	sts.MockClient = test.GetMock()
 }
 
-func (sts *StakingTestSuite) TestStaking() {
-	baseTx := sdk.BaseTx{
-		From:     sts.Account().Name,
-		Gas:      20000,
-		Memo:     "test",
-		Mode:     sdk.Commit,
-		Password: sts.Account().Password,
-	}
-
-	//test QueryValidators
-	validators, _ := sts.Staking().QueryValidators(1, 10)
-	validator := validators[0].OperatorAddress
-
-	amount, e := sdk.ParseDecCoin("20iris")
-	require.NoError(sts.T(), e)
-
-	//test Delegate
-	rs, err := sts.Staking().Delegate(validator, amount, baseTx)
+func (sts *StakingTestSuite) TestQueryDelegations() {
+	delegations, err := sts.Staking().QueryDelegations("iaa13rtezlhpqms02syv27zc0lqc5nt3z4lcxzd9js")
 	require.NoError(sts.T(), err)
-	require.NotEmpty(sts.T(), rs.Hash)
-
-	//test QueryDelegation
-	delegator := sts.Account().Address.String()
-	d, err := sts.Staking().QueryDelegation(delegator, validator)
-	require.NoError(sts.T(), err)
-	require.Equal(sts.T(), validator, d.ValidatorAddr)
-	require.Equal(sts.T(), delegator, d.DelegatorAddr)
-
-	//test QueryDelegations
-	ds, err := sts.Staking().QueryDelegations(delegator)
-	require.NoError(sts.T(), err)
-	require.NotEmpty(sts.T(), ds)
-
-	//test QueryDelegationsTo
-	ds, err = sts.Staking().QueryDelegationsTo(validator)
-	require.NoError(sts.T(), err)
-	require.NotEmpty(sts.T(), ds)
-
-	//test Undelegate
-	amount, e = sdk.ParseDecCoin("10iris")
-	require.NoError(sts.T(), e)
-
-	rs, err = sts.Staking().Undelegate(validator, amount, baseTx)
-	require.NoError(sts.T(), err)
-	require.NotEmpty(sts.T(), rs.Hash)
-
-	//test QueryUnbondingDelegation
-	ubd, err := sts.Staking().QueryUnbondingDelegation(delegator, validator)
-	require.NoError(sts.T(), err)
-	require.Equal(sts.T(), validator, ubd.ValidatorAddr)
-	require.Equal(sts.T(), delegator, ubd.DelegatorAddr)
-
-	//test QueryUnbondingDelegations
-	ubds, err := sts.Staking().QueryUnbondingDelegations(delegator)
-	require.NoError(sts.T(), err)
-	require.NotEmpty(sts.T(), ubds)
-
-	//test QueryUnbondingDelegationsFrom
-	uds, err := sts.Staking().QueryUnbondingDelegationsFrom(validator)
-	require.NoError(sts.T(), err)
-	require.NotEmpty(sts.T(), uds)
+	require.NotEmpty(sts.T(), delegations)
 }
 
-//func (sts *StakingTestSuite) TestDelegate() {
-//	baseTx := sdk.BaseTx{
-//		From: "test1",
-//		gas:  20000,
-//		Memo: "test",
-//		mode: sdk.Commit,
-//	}
-//
-//	validators, _ := sts.Staking().QueryValidators(1, 10)
-//	validator := validators[0].OperatorAddress
-//	amt, _ := sdk.NewIntFromString("20000000000000000000")
-//	amount := sdk.NewCoin("iris-atto", amt)
-//
-//	rs, err := sts.Staking().Delegate(validator, amount, baseTx)
-//	require.NoError(err)
-//	require.NotEmpty(rs.Hash)
-//
-//}
+func (sts *StakingTestSuite) TestQueryDelegationsTo() {
+	delegations, err := sts.Staking().QueryDelegationsTo("iva13rtezlhpqms02syv27zc0lqc5nt3z4lcnn820h")
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), delegations)
+}
 
-//func (sts *StakingTestSuite) TestUndelegate() {
-//	baseTx := sdk.BaseTx{
-//		From: "test1",
-//		gas:  20000,
-//		Memo: "test",
-//		mode: sdk.Commit,
-//	}
-//
-//	validators, _ := sts.Staking().QueryValidators(1, 10)
-//	validator := validators[0].OperatorAddress
-//	amt, _ := sdk.NewIntFromString("10000000000000000000")
-//	amount := sdk.NewCoin("iris-atto", amt)
-//
-//	rs, err := sts.Staking().Undelegate(validator, amount, baseTx)
-//	require.NoError(err)
-//	require.NotEmpty(rs.Hash)
-//
-//
-//}
+func (sts *StakingTestSuite) TestQueryQueryUnbondingDelegations() {
+	unbodingDelegations, err := sts.Staking().QueryUnbondingDelegations("iaa18e2e9fxxrr88k78gg7fhuuqgccfv8self9ye65")
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), unbodingDelegations)
+}
 
-//
-//func (sts *StakingTestSuite) TestRedelegate() {
-//	baseTx := sdk.BaseTx{
-//		From: "test1",
-//		gas:  20000,
-//		Memo: "test",
-//		mode: sdk.Commit,
-//	}
-//
-//	validators, _ := sts.Staking().QueryValidators(1, 10)
-//	validator := validators[0].OperatorAddress
-//	amt, _ := sdk.NewIntFromString("1000000000000000000")
-//	amount := sdk.NewCoin("iris-atto", amt)
-//
-//	rs, err := sts.Staking().Undelegate(validator, amount, baseTx)
-//	require.NoError(err)
-//	require.NotEmpty(rs.Hash)
-//
-//}
+func (sts *StakingTestSuite) TestQueryUnbondingDelegationsFrom() {
+	unbodingDelegations, err := sts.Staking().QueryUnbondingDelegationsFrom("iva1x98k5n7xj0h3udnf5dcdzw85tsfa75qm682jtg")
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), unbodingDelegations)
+}
 
-//func (sts *StakingTestSuite) TestQueryDelegation() {
-//	validators, _ := sts.Staking().QueryValidators(1, 10)
-//	validator := validators[0].OperatorAddress
-//	delegator := sts.Sender().String()
-//	d, err := sts.Staking().QueryDelegation(delegator, validator)
-//	require.NoError(err)
-//	require.EQ(validator, d.ValidatorAddr)
-//	require.EQ(delegator, d.DelegatorAddr)
-//}
-//
-//func (sts *StakingTestSuite) TestQueryQueryDelegations() {
-//	delegator := sts.Sender().String()
-//	ds, err := sts.Staking().QueryDelegations(delegator)
-//	require.NoError(err)
-//	require.NotEmpty(ds)
-//}
-//
-//func (sts *StakingTestSuite) TestQueryUnbondingDelegation() {
-//	validators, _ := sts.Staking().QueryValidators(1, 10)
-//	validator := validators[0].OperatorAddress
-//	delegator := sts.Sender().String()
-//	ubd, err := sts.Staking().QueryUnbondingDelegation(delegator, validator)
-//	require.NoError(err)
-//	require.EQ(validator, ubd.ValidatorAddr)
-//	require.EQ(delegator, ubd.DelegatorAddr)
-//}
-//
-//func (sts *StakingTestSuite) TestQueryUnbondingDelegations() {
-//	delegator := sts.Sender().String()
-//	ubds, err := sts.Staking().QueryUnbondingDelegations(delegator)
-//	require.NoError(err)
-//	require.NotEmpty(ubds)
-//}
-//
-//func (sts *StakingTestSuite) TestQueryDelegationsTo() {
-//	validators, _ := sts.Staking().QueryValidators(1, 10)
-//	validator := validators[0].OperatorAddress
-//	ds, err := sts.Staking().QueryDelegationsTo(validator)
-//	require.NoError(err)
-//	require.NotEmpty(ds)
-//}
-//
-//func (sts *StakingTestSuite) TestQueryUnbondingDelegationsFrom() {
-//	validators, _ := sts.Staking().QueryValidators(1, 10)
-//	validator := validators[0].OperatorAddress
-//	ds, err := sts.Staking().QueryUnbondingDelegationsFrom(validator)
-//	require.NoError(err)
-//	require.NotEmpty(ds)
-//}
-//
-//func (sts *StakingTestSuite) TestQueryValidator() {
-//	validators, _ := sts.Staking().QueryValidators(1, 10)
-//	validator := validators[0].OperatorAddress
-//	v, err := sts.Staking().QueryValidator(validator)
-//	require.NoError(err)
-//	require.EqualValues(validators[0], v)
-//}
+func (sts *StakingTestSuite) TestQueryRedelegationsFrom() {
+	redelegations, err := sts.Staking().QueryRedelegationsFrom("iva1x98k5n7xj0h3udnf5dcdzw85tsfa75qm682jtg")
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), redelegations)
+}
+
+func (sts *StakingTestSuite) TestQueryValidator() {
+	address := "iva13rtezlhpqms02syv27zc0lqc5nt3z4lcnn820h"
+	validator, err := sts.Staking().QueryValidator(address)
+	require.NoError(sts.T(), err)
+	require.Equal(sts.T(), address, validator.OperatorAddress)
+}
+
+func (sts *StakingTestSuite) TestQueryValidators() {
+	validators, err := sts.Staking().QueryValidators(1, 10)
+	fmt.Println(validators)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), validators)
+}
 
 func (sts *StakingTestSuite) TestQueryPool() {
 	p, err := sts.Staking().QueryPool()

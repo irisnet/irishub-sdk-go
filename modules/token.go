@@ -34,7 +34,7 @@ func (l tokenQuery) QueryToken(symbol string) (sdk.Token, error) {
 
 	symbol = strings.TrimSuffix(symbol, "-min")
 	var t sdk.Token
-	if err := l.q.QueryWithResponse("custom/asset/token", param, &t); err != nil {
+	if err := l.q.QueryWithResponse("custom/token/token", param, &t); err != nil {
 		return sdk.Token{}, err
 	}
 
@@ -54,7 +54,7 @@ func (l tokenQuery) SaveTokens(tokens ...sdk.Token) {
 	}
 }
 
-func (l tokenQuery) ToMinCoin(coins ...sdk.DecCoin) (dstCoins sdk.Coins, err sdk.Error) {
+func (l tokenQuery) ToMinCoin(coins ...sdk.Coin) (dstCoins sdk.Coins, err sdk.Error) {
 	for _, coin := range coins {
 		token, err := l.QueryToken(coin.Denom)
 		if err != nil {
@@ -70,7 +70,7 @@ func (l tokenQuery) ToMinCoin(coins ...sdk.DecCoin) (dstCoins sdk.Coins, err sdk
 	return dstCoins.Sort(), nil
 }
 
-func (l tokenQuery) ToMainCoin(coins ...sdk.Coin) (dstCoins sdk.DecCoins, err sdk.Error) {
+func (l tokenQuery) ToMainCoin(coins ...sdk.Coin) (dstCoins sdk.Coins, err sdk.Error) {
 	for _, coin := range coins {
 		token, err := l.QueryToken(coin.Denom)
 		if err != nil {

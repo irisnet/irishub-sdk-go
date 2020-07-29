@@ -2,6 +2,7 @@ package rpc
 
 import (
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"time"
 )
 
 type StakingTx interface {
@@ -15,20 +16,16 @@ type StakingTx interface {
 
 type StakingQueries interface {
 	QueryDelegation(delAddr, valAddr string) (Delegation, sdk.Error)
-	QueryDelegations(delAddr string) (Delegations, sdk.Error)
+	QueryDelegations(delAddr string) (DelegationResponses, sdk.Error)
+	QueryDelegationsTo(valAddr string) (DelegationResponses, sdk.Error)
 
-	QueryUnbondingDelegation(delAddr, valAddr string) (UnbondingDelegation, sdk.Error)
 	QueryUnbondingDelegations(delAddr string) (UnbondingDelegations, sdk.Error)
-
-	QueryRedelegation(delAddr, srcValAddr, dstValAddr string) (Redelegation, sdk.Error)
-	QueryRedelegations(delAddr string) (Redelegations, sdk.Error)
-
-	QueryDelegationsTo(valAddr string) (Delegations, sdk.Error)
 	QueryUnbondingDelegationsFrom(valAddr string) (UnbondingDelegations, sdk.Error)
-	QueryRedelegationsFrom(valAddr string) (Redelegations, sdk.Error)
+
+	QueryRedelegationsFrom(valAddr string) (RedelegationResponses, sdk.Error)
 
 	QueryValidator(address string) (Validator, sdk.Error)
-	QueryValidators(page uint64, size uint16) (Validators, sdk.Error)
+	QueryValidators(page, size int) (Validators, sdk.Error)
 
 	QueryPool() (StakePool, sdk.Error)
 	QueryParams() (StakeParams, sdk.Error)
@@ -46,51 +43,70 @@ type Staking interface {
 	StakingSubscriber
 }
 
-type Delegation struct {
-	DelegatorAddr string `json:"delegator_addr"`
-	ValidatorAddr string `json:"validator_addr"`
-	Shares        string `json:"shares"`
-	Height        int64  `json:"height"`
+type DelegationResponses []DelegationResponse
+type DelegationResponse struct {
+	Delegation Delegation `json:"delegation"`
+	Balance    sdk.Coin   `json:"balance"`
 }
-type Delegations []Delegation
+
+type Delegation struct {
+	DelegatorAddress string `json:"delegator_address"`
+	ValidatorAddress string `json:"validator_address"`
+	Shares           string `json:"shares"`
+}
 
 type UnbondingDelegations []UnbondingDelegation
 type UnbondingDelegation struct {
-	TxHash         string   `json:"tx_hash"`
-	DelegatorAddr  string   `json:"delegator_addr"`
-	ValidatorAddr  string   `json:"validator_addr"`
-	CreationHeight int64    `json:"creation_height"`
-	MinTime        string   `json:"min_time"`
-	InitialBalance sdk.Coin `json:"initial_balance"`
-	Balance        sdk.Coin `json:"balance"`
+	DelegatorAddress string                     `json:"delegator_address"`
+	ValidatorAddress string                     `json:"validator_address"`
+	Entries          []UnbondingDelegationEntry `json:"entries"`
 }
 
-type Redelegations []Redelegation
+type UnbondingDelegationEntry struct {
+	CreationHeight int64     `json:"creation_height,omitempty"`
+	CompletionTime time.Time `json:"completion_time"`
+	InitialBalance sdk.Int   `json:"initial_balance"`
+	Balance        sdk.Int   `json:"balance"`
+}
+
+type RedelegationResponses []RedelegationResponse
+type RedelegationResponse struct {
+	Redelegation Redelegation                `json:"redelegation"`
+	Entries      []RedelegationEntryResponse `json:"entries"`
+}
+
 type Redelegation struct {
-	DelegatorAddr    string   `json:"delegator_addr"`
-	ValidatorSrcAddr string   `json:"validator_src_addr"`
-	ValidatorDstAddr string   `json:"validator_dst_addr"`
-	CreationHeight   int64    `json:"creation_height"`
-	MinTime          string   `json:"min_time"`
-	InitialBalance   sdk.Coin `json:"initial_balance"`
-	Balance          sdk.Coin `json:"balance"`
-	SharesSrc        string   `json:"shares_src"`
-	SharesDst        string   `json:"shares_dst"`
+	DelegatorAddress    string              `json:"delegator_address"`
+	ValidatorSrcAddress string              `json:"validator_src_address,omitempty"`
+	ValidatorDstAddress string              `json:"validator_dst_address"`
+	Entries             []RedelegationEntry `json:"entries"`
+}
+
+type RedelegationEntryResponse struct {
+	RedelegationEntry RedelegationEntry `json:"redelegation_entry"`
+	Balance           sdk.Int           `json:"balance"`
+}
+
+type RedelegationEntry struct {
+	CreationHeight int32     `json:"creation_height"`
+	CompletionTime time.Time `json:"completion_time"`
+	InitialBalance sdk.Int   `json:"initial_balance"`
+	SharesDst      sdk.Dec   `json:"shares_dst"`
 }
 
 type Validators []Validator
 type Validator struct {
-	OperatorAddress string      `json:"operator_address"`
-	ConsensusPubkey string      `json:"consensus_pubkey"`
-	Jailed          bool        `json:"jailed"`
-	Status          string      `json:"status"`
-	Tokens          string      `json:"tokens"`
-	DelegatorShares string      `json:"delegator_shares"`
-	Description     Description `json:"description"`
-	BondHeight      int64       `json:"bond_height"`
-	UnbondingHeight int64       `json:"unbonding_height"`
-	UnbondingTime   string      `json:"unbonding_time"`
-	Commission      Commission  `json:"commission"`
+	OperatorAddress   string      `json:"operator_address"`
+	ConsensusPubkey   string      `json:"consensus_pubkey"`
+	Jailed            bool        `json:"jailed"`
+	Status            string      `json:"status"`
+	Tokens            string      `json:"tokens"`
+	DelegatorShares   string      `json:"delegator_shares"`
+	Description       Description `json:"description"`
+	UnbondingHeight   int64       `json:"unbonding_height"`
+	UnbondingTime     string      `json:"unbonding_time"`
+	Commission        Commission  `json:"commission"`
+	MinSelfDelegation string      `json:"min_self_delegation"`
 }
 
 // DelegatorShareExRate gets the exchange rate of tokens over delegator shares.
@@ -112,10 +128,14 @@ func (v Validator) DelegatorShareExRate() sdk.Dec {
 }
 
 type Commission struct {
+	CommissionRates `json:"commission_rates"`
+	UpdateTime      string `json:"update_time"`
+}
+
+type CommissionRates struct {
 	Rate          string `json:"rate"`
 	MaxRate       string `json:"max_rate"`
 	MaxChangeRate string `json:"max_change_rate"`
-	UpdateTime    string `json:"update_time"`
 }
 
 type Description struct {
@@ -126,8 +146,8 @@ type Description struct {
 }
 
 type StakePool struct {
-	LooseTokens  string `json:"loose_tokens"`
-	BondedTokens string `json:"bonded_tokens"`
+	NotBondedTokens string `json:"not_bonded_tokens"`
+	BondedTokens    string `json:"bonded_tokens"`
 }
 
 type StakeParams struct {

@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/multisig"
-
 	json2 "github.com/irisnet/irishub-sdk-go/utils/json"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 const (
@@ -21,7 +19,7 @@ const (
 
 type BroadcastMode string
 
-// Transactions messages must fulfill the Msg
+// Msg defines the interface a transaction message must fulfill.
 type Msg interface {
 	// Return the message type.
 	// Must be alphanumeric or empty.
@@ -35,7 +33,7 @@ type Msg interface {
 	// doesn't require access to any other information.
 	ValidateBasic() error
 
-	// QueryAndRefreshAccount the canonical byte representation of the Msg.
+	// Get the canonical byte representation of the Msg.
 	GetSignBytes() []byte
 
 	// Signers returns the addrs of signers that must sign.
@@ -72,22 +70,24 @@ type StdFee struct {
 	Gas    uint64 `json:"gas"`
 }
 
-func NewStdFee(gas uint64, amount ...Coin) StdFee {
+func NewStdFee(gas uint64, amount Coins) StdFee {
 	return StdFee{
 		Amount: amount,
 		Gas:    gas,
 	}
 }
 
-// Fee bytes for signing later
+// Bytes returns the encoded bytes of a StdFee.
 func (fee StdFee) Bytes() []byte {
 	if len(fee.Amount) == 0 {
 		fee.Amount = Coins{}
 	}
+
 	bz, err := NewAminoCodec().MarshalJSON(fee)
 	if err != nil {
 		panic(err)
 	}
+
 	return bz
 }
 
@@ -98,10 +98,8 @@ type Signature struct {
 
 // Standard Signature
 type StdSignature struct {
-	crypto.PubKey `json:"pub_key"` // optional
-	Signature     []byte           `json:"signature"`
-	AccountNumber uint64           `json:"account_number"`
-	Sequence      uint64           `json:"sequence"`
+	PubKey    []byte `json:"pub_key" yaml:"pub_key"` // optional
+	Signature []byte `json:"signature" yaml:"signature"`
 }
 
 // StdSignMsg is a convenience structure for passing along
@@ -171,6 +169,7 @@ func NewStdTx(msgs []Msg, fee StdFee, sigs []StdSignature, memo string) StdTx {
 //nolint
 // GetMsgs returns the all the transaction's messages.
 func (tx StdTx) GetMsgs() []Msg { return tx.Msgs }
+
 func (tx StdTx) GetSignBytes() []string {
 	var bz []string
 	for _, msg := range tx.Msgs {
@@ -200,27 +199,7 @@ func (tx StdTx) ValidateBasic() error {
 			),
 		)
 	}
-	sigCount := 0
-	for i := 0; i < len(stdSigs); i++ {
-		sigCount += countSubKeys(stdSigs[i].PubKey)
-		if sigCount > txSigLimit {
-			return errors.New(
-				fmt.Sprintf("ssdk.ErrTooManySignaturesignatures: %d, limit: %d", sigCount, txSigLimit),
-			)
-		}
-	}
 	return nil
-}
-func countSubKeys(pub crypto.PubKey) int {
-	v, ok := pub.(multisig.PubKeyMultisigThreshold)
-	if !ok {
-		return 1
-	}
-	numKeys := 0
-	for _, subkey := range v.PubKeys {
-		numKeys += countSubKeys(subkey)
-	}
-	return numKeys
 }
 
 // GetSigners returns the addresses that must sign the transaction.
@@ -229,8 +208,9 @@ func countSubKeys(pub crypto.PubKey) int {
 // in the order they appear in tx.GetMsgs().
 // Duplicate addresses will be omitted.
 func (tx StdTx) GetSigners() []AccAddress {
-	seen := map[string]bool{}
 	var signers []AccAddress
+	seen := map[string]bool{}
+
 	for _, msg := range tx.GetMsgs() {
 		for _, addr := range msg.GetSigners() {
 			if !seen[addr.String()] {
@@ -239,10 +219,11 @@ func (tx StdTx) GetSigners() []AccAddress {
 			}
 		}
 	}
+
 	return signers
 }
 
-//nolint
+// GetMemo returns the memo
 func (tx StdTx) GetMemo() string { return tx.Memo }
 
 // GetSignatures returns the signature of signers who signed the Msg.
@@ -252,7 +233,13 @@ func (tx StdTx) GetMemo() string { return tx.Memo }
 // CONTRACT: If the signature is missing (ie the Msg is
 // invalid), then the corresponding signature is
 // .Empty().
-func (tx StdTx) GetSignatures() []StdSignature { return tx.Signatures }
+func (tx StdTx) GetSignatures() [][]byte {
+	sigs := make([][]byte, len(tx.Signatures))
+	for i, stdSig := range tx.Signatures {
+		sigs[i] = stdSig.Signature
+	}
+	return sigs
+}
 
 type BaseTx struct {
 	From     string        `json:"from"`

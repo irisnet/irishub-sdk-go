@@ -42,21 +42,21 @@ func (o oracleClient) CreateFeed(request rpc.FeedCreateRequest) (sdk.ResultTx, s
 		providers = append(providers, p)
 	}
 
-	amt, err := o.ToMinCoin(request.ServiceFeeCap...)
+	//amt, err := o.ToMinCoin(request.ServiceFeeCap...)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	msg := MsgCreateFeed{
-		FeedName:          request.FeedName,
-		LatestHistory:     request.LatestHistory,
-		Description:       request.Description,
-		Creator:           creator,
-		ServiceName:       request.ServiceName,
-		Providers:         providers,
-		Input:             request.Input,
-		Timeout:           request.Timeout,
-		ServiceFeeCap:     amt,
+		FeedName:      request.FeedName,
+		LatestHistory: request.LatestHistory,
+		Description:   request.Description,
+		Creator:       creator,
+		ServiceName:   request.ServiceName,
+		Providers:     providers,
+		Input:         request.Input,
+		Timeout:       request.Timeout,
+		//ServiceFeeCap:     amt,
 		RepeatedFrequency: request.RepeatedFrequency,
 		AggregateFunc:     request.AggregateFunc,
 		ValueJsonPath:     request.ValueJsonPath,
@@ -95,21 +95,21 @@ func (o oracleClient) CreateAndStartFeed(request rpc.FeedCreateRequest) (sdk.Res
 		providers = append(providers, p)
 	}
 
-	amt, err := o.ToMinCoin(request.ServiceFeeCap...)
+	//amt, err := o.ToMinCoin(request.ServiceFeeCap...)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	msgCreateFeed := MsgCreateFeed{
-		FeedName:          request.FeedName,
-		LatestHistory:     request.LatestHistory,
-		Description:       request.Description,
-		Creator:           creator,
-		ServiceName:       request.ServiceName,
-		Providers:         providers,
-		Input:             request.Input,
-		Timeout:           request.Timeout,
-		ServiceFeeCap:     amt,
+		FeedName:      request.FeedName,
+		LatestHistory: request.LatestHistory,
+		Description:   request.Description,
+		Creator:       creator,
+		ServiceName:   request.ServiceName,
+		Providers:     providers,
+		Input:         request.Input,
+		Timeout:       request.Timeout,
+		//ServiceFeeCap:     amt,
 		RepeatedFrequency: request.RepeatedFrequency,
 		AggregateFunc:     request.AggregateFunc,
 		ValueJsonPath:     request.ValueJsonPath,
@@ -153,19 +153,19 @@ func (o oracleClient) EditFeed(request rpc.FeedEditRequest) (sdk.ResultTx, sdk.E
 		providers = append(providers, p)
 	}
 
-	amt, err := o.ToMinCoin(request.ServiceFeeCap...)
+	//amt, err := o.ToMinCoin(request.ServiceFeeCap...)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	msg := MsgEditFeed{
-		FeedName:          request.FeedName,
-		LatestHistory:     request.LatestHistory,
-		Description:       request.Description,
-		Creator:           creator,
-		Providers:         providers,
-		Timeout:           request.Timeout,
-		ServiceFeeCap:     amt,
+		FeedName:      request.FeedName,
+		LatestHistory: request.LatestHistory,
+		Description:   request.Description,
+		Creator:       creator,
+		Providers:     providers,
+		Timeout:       request.Timeout,
+		//ServiceFeeCap:     amt,
 		RepeatedFrequency: request.RepeatedFrequency,
 		ResponseThreshold: request.ResponseThreshold,
 	}

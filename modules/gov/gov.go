@@ -1,6 +1,7 @@
 package gov
 
 import (
+	"encoding/json"
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/utils/log"
@@ -25,7 +26,7 @@ func (g govClient) Deposit(proposalID uint64, amount sdk.DecCoins, baseTx sdk.Ba
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
-	amt, err := g.ToMinCoin(amount...)
+	//amt, err := g.ToMinCoin(amount...)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -33,12 +34,12 @@ func (g govClient) Deposit(proposalID uint64, amount sdk.DecCoins, baseTx sdk.Ba
 	msg := MsgDeposit{
 		ProposalID: proposalID,
 		Depositor:  depositor,
-		Amount:     amt,
+		//Amount:     amt,
 	}
 	g.Info().
 		Uint64("proposalID", proposalID).
 		Str("depositor", depositor.String()).
-		Str("amount", amt.String()).
+		//Str("amount", amt.String()).
 		Msg("execute gov deposit")
 	return g.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
@@ -81,8 +82,9 @@ func (g govClient) QueryProposal(proposalID uint64) (rpc.Proposal, sdk.Error) {
 		return nil, sdk.Wrap(err)
 	}
 
-	var proposal proposal
-	if err = cdc.UnmarshalJSON(res, &proposal); err != nil {
+	var proposal BasicProposal
+	//var proposal rpc.Proposal
+	if err = json.Unmarshal(res, &proposal); err != nil {
 		return nil, sdk.Wrap(err)
 	}
 
@@ -162,13 +164,14 @@ func (g govClient) QueryVote(proposalID uint64, voter string) (rpc.Vote, sdk.Err
 func (g govClient) QueryVotes(proposalID uint64) ([]rpc.Vote, sdk.Error) {
 	param := struct {
 		ProposalID uint64
+		Page       int
 	}{
 		ProposalID: proposalID,
+		Page:       1, // A page number must be passed in (pass default page:1)
 	}
 
 	var vs votes
-	err := g.QueryWithResponse("custom/gov/votes", param, &vs)
-	if err != nil {
+	if err := g.QueryWithResponse("custom/gov/votes", param, &vs); err != nil {
 		return nil, sdk.Wrap(err)
 	}
 	return vs.Convert().([]rpc.Vote), nil

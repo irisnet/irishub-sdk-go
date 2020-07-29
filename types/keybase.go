@@ -56,7 +56,7 @@ func (k LevelDB) Read(name string) (store Store, err error) {
 		return store, err
 	}
 
-	if err := k.cdc.UnmarshalBinaryLengthPrefixed(bz, &store); err != nil {
+	if err := k.cdc.UnmarshalBinaryBare(bz, &store); err != nil {
 		return store, err
 	}
 	return

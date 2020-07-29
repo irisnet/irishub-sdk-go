@@ -18,11 +18,11 @@ type Dec struct {
 
 // number of decimal places
 const (
-	Precision = 10
+	Precision = 18
 
 	// bytes required to represent the above precision
 	// Ceiling[Log2[999 999 999 999 999 999]]
-	DecimalPrecisionBits = 34
+	DecimalPrecisionBits = 60
 )
 
 var (

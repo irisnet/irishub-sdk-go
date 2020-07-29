@@ -3,11 +3,10 @@ package service
 import (
 	"encoding/binary"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
+	"github.com/tendermint/tendermint/libs/bytes"
 )
 
 // queryRequestContextByTxQuery will query for a single request context via a direct txs tags query.
@@ -39,8 +38,7 @@ func (s serviceClient) queryRequestContextByTxQuery(reqCtxID string) (requestCon
 				BatchCounter:       uint64(msg.RepeatedTotal),
 				BatchRequestCount:  0,
 				BatchResponseCount: 0,
-				BatchState:         "completed",
-				State:              "completed",
+				State:              0,
 				ResponseThreshold:  0,
 				ModuleName:         "",
 			}, nil
@@ -51,47 +49,47 @@ func (s serviceClient) queryRequestContextByTxQuery(reqCtxID string) (requestCon
 
 // queryRequestByTxQuery will query for a single request via a direct txs tags query.
 func (s serviceClient) queryRequestByTxQuery(requestID string) (request, error) {
-	reqCtxID, _, requestHeight, batchRequestIndex, err := splitRequestID(requestID)
-	if err != nil {
-		return request{}, err
-	}
+	//reqCtxID, _, requestHeight, batchRequestIndex, err := splitRequestID(requestID)
+	//if err != nil {
+	//	return request{}, err
+	//}
+	//
+	//// query request context
+	//reqCtx, err := s.QueryRequestContext(hex.EncodeToString(reqCtxID))
+	//if err != nil {
+	//	return request{}, err
+	//}
+	//
+	//blockResult, err := s.BlockResults(&requestHeight)
+	//if err != nil {
+	//	return request{}, err
+	//}
 
-	// query request context
-	reqCtx, err := s.QueryRequestContext(hex.EncodeToString(reqCtxID))
-	if err != nil {
-		return request{}, err
-	}
-
-	blockResult, err := s.BlockResults(&requestHeight)
-	if err != nil {
-		return request{}, err
-	}
-
-	for _, tag := range blockResult.Results.EndBlock.Tags {
-		key := actionTagKey(actionNewBatchRequest, reqCtxID.String())
-		if string(tag.Key) == string(key) {
-			var requests []compactRequest
-			if err := json.Unmarshal(tag.GetValue(), &requests); err != nil {
-				return request{}, err
-			}
-			if len(requests) > int(batchRequestIndex) {
-				compactRequest := requests[batchRequestIndex]
-				return request{
-					ID:                         requestID,
-					ServiceName:                reqCtx.ServiceName,
-					Provider:                   compactRequest.Provider,
-					Consumer:                   reqCtx.Consumer,
-					Input:                      reqCtx.Input,
-					ServiceFee:                 compactRequest.ServiceFee,
-					SuperMode:                  reqCtx.SuperMode,
-					RequestHeight:              compactRequest.RequestHeight,
-					ExpirationHeight:           compactRequest.RequestHeight + reqCtx.Timeout,
-					RequestContextID:           compactRequest.RequestContextID,
-					RequestContextBatchCounter: compactRequest.RequestContextBatchCounter,
-				}, nil
-			}
-		}
-	}
+	//for _, tag := range blockResult.Results.EndBlock.Tags {
+	//	key := actionTagKey(actionNewBatchRequest, reqCtxID.String())
+	//	if string(tag.Key) == string(key) {
+	//		var requests []compactRequest
+	//		if err := json.Unmarshal(tag.GetValue(), &requests); err != nil {
+	//			return request{}, err
+	//		}
+	//		if len(requests) > int(batchRequestIndex) {
+	//			compactRequest := requests[batchRequestIndex]
+	//			return request{
+	//				ID:                         requestID,
+	//				ServiceName:                reqCtx.ServiceName,
+	//				Provider:                   compactRequest.Provider,
+	//				Consumer:                   reqCtx.Consumer,
+	//				Input:                      reqCtx.Input,
+	//				ServiceFee:                 compactRequest.ServiceFee,
+	//				SuperMode:                  reqCtx.SuperMode,
+	//				RequestHeight:              compactRequest.RequestHeight,
+	//				ExpirationHeight:           compactRequest.RequestHeight + reqCtx.Timeout,
+	//				RequestContextID:           compactRequest.RequestContextID,
+	//				RequestContextBatchCounter: compactRequest.RequestContextBatchCounter,
+	//			}, nil
+	//		}
+	//	}
+	//}
 
 	return request{}, errors.New(fmt.Sprintf("invalid requestID:%s", requestID))
 }
@@ -124,9 +122,9 @@ func (s serviceClient) queryResponseByTxQuery(requestID string) (response, error
 
 	for _, msg := range result.Txs[0].Tx.GetMsgs() {
 		if responseMsg, ok := msg.(MsgRespondService); ok {
-			if responseMsg.RequestID.String() != requestID {
-				continue
-			}
+			//if responseMsg.RequestID.String() != requestID {
+			//	continue
+			//}
 			return response{
 				Provider:                   responseMsg.Provider,
 				Consumer:                   reqCtx.Consumer,
@@ -142,7 +140,7 @@ func (s serviceClient) queryResponseByTxQuery(requestID string) (response, error
 }
 
 // SplitRequestContextID splits the given contextID to txHash and msgIndex
-func splitRequestContextID(reqCtxID string) (cmn.HexBytes, int64, error) {
+func splitRequestContextID(reqCtxID string) (bytes.HexBytes, int64, error) {
 	contextID, err := hex.DecodeString(reqCtxID)
 	if err != nil {
 		return nil, 0, errors.New("invalid request context id")
@@ -158,7 +156,7 @@ func splitRequestContextID(reqCtxID string) (cmn.HexBytes, int64, error) {
 }
 
 // SplitRequestID splits the given contextID to contextID, batchCounter, requestHeight, batchRequestIndex
-func splitRequestID(reqID string) (cmn.HexBytes, uint64, int64, int16, error) {
+func splitRequestID(reqID string) (bytes.HexBytes, uint64, int64, int16, error) {
 	requestID, err := hex.DecodeString(reqID)
 	if err != nil {
 		return nil, 0, 0, 0, errors.New("invalid request id")

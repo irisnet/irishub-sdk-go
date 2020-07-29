@@ -4,6 +4,7 @@
 package asset
 
 import (
+	"fmt"
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/utils/log"
@@ -29,24 +30,32 @@ func (a assetClient) Name() string {
 	return ModuleName
 }
 
-func (a assetClient) QueryToken(symbol string) (sdk.Token, error) {
-	return a.BaseClient.QueryToken(symbol)
-}
-
-func (a assetClient) QueryTokens(owner string) (sdk.Tokens, error) {
+func (a assetClient) QueryTokens() (sdk.Tokens, error) {
 	param := struct {
-		Symbol string
-		Owner  string
+		Owner string
 	}{
-		Owner: owner,
+		Owner: "",
 	}
 
 	var tokens sdk.Tokens
-	if err := a.QueryWithResponse("custom/asset/tokens", param, &tokens); err != nil {
+	if err := a.QueryWithResponse("custom/token/tokens", param, &tokens); err != nil {
 		return sdk.Tokens{}, err
 	}
-	a.SaveTokens(tokens...)
 	return tokens, nil
+}
+
+func (a assetClient) QueryTokenDenom(denom string) (sdk.TokenData, error) {
+	uri := fmt.Sprintf("custom/%s/token", ModuleName)
+	param := struct {
+		Denom string
+	}{
+		Denom: denom,
+	}
+	var tokendata sdk.TokenData
+	if err := a.QueryWithResponse(uri, param, &tokendata); err != nil {
+		return sdk.TokenData{}, err
+	}
+	return tokendata, nil
 }
 
 func (a assetClient) QueryFees(symbol string) (rpc.TokenFees, error) {
@@ -55,9 +64,10 @@ func (a assetClient) QueryFees(symbol string) (rpc.TokenFees, error) {
 	}{
 		Symbol: symbol,
 	}
+	uri := fmt.Sprintf("custom/%s/fees/tokens", ModuleName)
 
 	var tokens tokenFees
-	if err := a.QueryWithResponse("custom/asset/fees", param, &tokens); err != nil {
+	if err := a.QueryWithResponse(uri, param, &tokens); err != nil {
 		return rpc.TokenFees{}, err
 	}
 	return tokens.Convert().(rpc.TokenFees), nil

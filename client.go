@@ -2,7 +2,8 @@ package sdk
 
 import (
 	"fmt"
-
+	"github.com/irisnet/irishub-sdk-go/modules/htlc"
+	"github.com/irisnet/irishub-sdk-go/modules/params"
 	"io"
 
 	"github.com/irisnet/irishub-sdk-go/modules"
@@ -23,7 +24,7 @@ import (
 )
 
 type Client struct {
-	cdc     sdk.Codec
+	Cdc     sdk.Codec
 	modules map[string]sdk.Module
 	logger  *log.Logger
 
@@ -37,7 +38,7 @@ func NewClient(cfg sdk.ClientConfig) Client {
 	baseClient := modules.NewBaseClient(cdc, cfg)
 
 	client := &Client{
-		cdc:          cdc,
+		Cdc:          cdc,
 		modules:      make(map[string]sdk.Module),
 		logger:       baseClient.Logger(),
 		WSClient:     baseClient.TmClient,
@@ -56,7 +57,9 @@ func NewClient(cfg sdk.ClientConfig) Client {
 		random.Create(baseClient),
 		keys.Create(baseClient.KeyManager),
 		asset.Create(baseClient),
-		tendermint.Create(baseClient),
+		tendermint.Create(baseClient, cdc),
+		params.Create(baseClient),
+		htlc.Create(baseClient),
 	)
 
 	return *client
@@ -67,10 +70,10 @@ func (s *Client) registerModule(modules ...sdk.Module) {
 		if _, existed := s.modules[m.Name()]; existed {
 			panic(fmt.Sprintf("module[%s] has existed", m.Name()))
 		}
-		m.RegisterCodec(s.cdc)
+		m.RegisterCodec(s.Cdc)
 		s.modules[m.Name()] = m
 	}
-	sdk.RegisterCodec(s.cdc)
+	sdk.RegisterCodec(s.Cdc)
 }
 
 func (s *Client) Bank() rpc.Bank {
@@ -115,6 +118,14 @@ func (s *Client) Asset() rpc.Asset {
 
 func (s *Client) Tendermint() rpc.Tendermint {
 	return s.modules[tendermint.ModuleName].(rpc.Tendermint)
+}
+
+func (s *Client) Params() rpc.Params {
+	return s.modules[params.ModuleName].(rpc.Params)
+}
+
+func (s *Client) Htlc() rpc.Htlc {
+	return s.modules[htlc.ModuleName].(rpc.Htlc)
 }
 
 func (s *Client) SetOutput(w io.Writer) {

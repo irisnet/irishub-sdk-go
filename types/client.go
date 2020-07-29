@@ -2,7 +2,6 @@ package types
 
 import (
 	"github.com/irisnet/irishub-sdk-go/utils/log"
-	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 type TxManager interface {
@@ -25,7 +24,6 @@ type ParamQuery interface {
 type StoreQuery interface {
 	QueryWithResponse(path string, data interface{}, result Response) error
 	Query(path string, data interface{}) ([]byte, error)
-	QueryStore(key cmn.HexBytes, storeName string) (res []byte, err error)
 }
 
 type AccountQuery interface {
@@ -44,8 +42,8 @@ type TokenManager interface {
 }
 
 type TokenConvert interface {
-	ToMinCoin(coin ...DecCoin) (Coins, Error)
-	ToMainCoin(coin ...Coin) (DecCoins, Error)
+	ToMinCoin(coin ...Coin) (Coins, Error)
+	ToMainCoin(coin ...Coin) (Coins, Error)
 }
 
 type Logger interface {

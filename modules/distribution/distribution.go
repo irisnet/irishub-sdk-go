@@ -3,6 +3,7 @@ package distribution
 import (
 	"github.com/irisnet/irishub-sdk-go/rpc"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/utils/bech32"
 	"github.com/irisnet/irishub-sdk-go/utils/log"
 )
 
@@ -26,23 +27,62 @@ func Create(ac sdk.BaseClient) rpc.Distribution {
 	}
 }
 
-func (d distributionClient) QueryRewards(delegator string) (rpc.Rewards, sdk.Error) {
-	address, err := sdk.AccAddressFromBech32(delegator)
+func (d distributionClient) QueryRewards(delAddrOrValAddr string) (rpc.Rewards, sdk.Error) {
+	_, bz, err := bech32.DecodeAndConvert(delAddrOrValAddr)
 	if err != nil {
 		return rpc.Rewards{}, sdk.Wrap(err)
 	}
 
 	param := struct {
-		Address sdk.AccAddress
+		DelegatorAddress sdk.AccAddress `json:"delegator_address"`
 	}{
-		Address: address,
+		DelegatorAddress: sdk.AccAddress(bz),
 	}
 
-	var rewards rewards
-	if err := d.QueryWithResponse("custom/distr/rewards", param, &rewards); err != nil {
+	var rewards rewardsResponse
+	if err := d.QueryWithResponse("custom/distribution/delegator_total_rewards", param, &rewards); err != nil {
 		return rpc.Rewards{}, sdk.Wrap(err)
 	}
 	return rewards.Convert().(rpc.Rewards), nil
+}
+
+func (d distributionClient) QueryWithdrawAddr(delAddrOrValAddr string) (string, sdk.Error) {
+	_, address, err := bech32.DecodeAndConvert(delAddrOrValAddr)
+	if err != nil {
+		return "", sdk.Wrap(err)
+	}
+
+	param := struct {
+		DelegatorAddress sdk.AccAddress `json:"delegator_address"`
+	}{
+		DelegatorAddress: sdk.AccAddress(address),
+	}
+
+	res, newErr := d.Query("custom/distribution/withdraw_addr", param)
+	if newErr != nil {
+		return "", sdk.Wrap(err)
+	}
+	return string(res), nil
+}
+
+func (d distributionClient) QueryCommission(validator string) (rpc.ValidatorAccumulatedCommission, sdk.Error) {
+	address, err := sdk.ValAddressFromBech32(validator)
+	if err != nil {
+		return rpc.ValidatorAccumulatedCommission{}, sdk.Wrap(err)
+	}
+
+	param := struct {
+		ValidatorAddress sdk.ValAddress `json:"validator_address"`
+	}{
+		ValidatorAddress: address,
+	}
+
+	var commission validatorAccumulatedCommission
+	if err := d.QueryWithResponse("custom/distribution/validator_commission", param, &commission); err != nil {
+		return rpc.ValidatorAccumulatedCommission{}, sdk.Wrap(err)
+	}
+
+	return commission.Convert().(rpc.ValidatorAccumulatedCommission), nil
 }
 
 func (d distributionClient) SetWithdrawAddr(withdrawAddr string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {

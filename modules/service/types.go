@@ -5,10 +5,9 @@ import (
 	json2 "encoding/json"
 	"errors"
 	"fmt"
+	"github.com/tendermint/tendermint/libs/bytes"
 	"strings"
 	"time"
-
-	cmn "github.com/tendermint/tendermint/libs/common"
 
 	"github.com/irisnet/irishub-sdk-go/rpc"
 
@@ -201,7 +200,7 @@ func (msg MsgCallService) GetSigners() []sdk.AccAddress {
 
 // MsgRespondService defines a message to respond a service request
 type MsgRespondService struct {
-	RequestID cmn.HexBytes   `json:"request_id"`
+	RequestID bytes.HexBytes `json:"request_id"`
 	Provider  sdk.AccAddress `json:"provider"`
 	Result    string         `json:"result"`
 	Output    string         `json:"output"`
@@ -464,7 +463,7 @@ func (msg MsgRefundServiceDeposit) GetSigners() []sdk.AccAddress {
 
 // MsgPauseRequestContext defines a message to suspend a request context
 type MsgPauseRequestContext struct {
-	RequestContextID cmn.HexBytes   `json:"request_context_id"`
+	RequestContextID bytes.HexBytes `json:"request_context_id"`
 	Consumer         sdk.AccAddress `json:"consumer"`
 }
 
@@ -500,7 +499,7 @@ func (msg MsgPauseRequestContext) GetSigners() []sdk.AccAddress {
 
 // MsgStartRequestContext defines a message to resume a request context
 type MsgStartRequestContext struct {
-	RequestContextID cmn.HexBytes   `json:"request_context_id"`
+	RequestContextID bytes.HexBytes `json:"request_context_id"`
 	Consumer         sdk.AccAddress `json:"consumer"`
 }
 
@@ -536,7 +535,7 @@ func (msg MsgStartRequestContext) GetSigners() []sdk.AccAddress {
 
 // MsgKillRequestContext defines a message to terminate a request context
 type MsgKillRequestContext struct {
-	RequestContextID cmn.HexBytes   `json:"request_context_id"`
+	RequestContextID bytes.HexBytes `json:"request_context_id"`
 	Consumer         sdk.AccAddress `json:"consumer"`
 }
 
@@ -573,7 +572,7 @@ func (msg MsgKillRequestContext) GetSigners() []sdk.AccAddress {
 
 // MsgUpdateRequestContext defines a message to update a request context
 type MsgUpdateRequestContext struct {
-	RequestContextID  cmn.HexBytes     `json:"request_context_id"`
+	RequestContextID  bytes.HexBytes   `json:"request_context_id"`
 	Providers         []sdk.AccAddress `json:"providers"`
 	ServiceFeeCap     sdk.Coins        `json:"service_fee_cap"`
 	Timeout           int64            `json:"timeout"`
@@ -714,24 +713,26 @@ func (r serviceDefinition) Convert() interface{} {
 
 // serviceBinding defines a struct for service binding
 type serviceBinding struct {
-	ServiceName     string         `json:"service_name"`
-	Provider        sdk.AccAddress `json:"provider"`
-	Deposit         sdk.Coins      `json:"deposit"`
-	Pricing         string         `json:"pricing"`
-	WithdrawAddress sdk.AccAddress `json:"withdraw_address"`
-	Available       bool           `json:"available"`
-	DisabledTime    time.Time      `json:"disabled_time"`
+	ServiceName  string         `json:"service_name"`
+	Provider     sdk.AccAddress `json:"provider"`
+	Deposit      sdk.Coins      `json:"deposit"`
+	Pricing      string         `json:"pricing"`
+	Qos          uint64         `json:"qos"`
+	Available    bool           `json:"available"`
+	DisabledTime time.Time      `json:"disabled_time"`
+	Owner        sdk.AccAddress `json:"owner"`
 }
 
 func (b serviceBinding) Convert() interface{} {
 	return rpc.ServiceBinding{
-		ServiceName:     b.ServiceName,
-		Provider:        b.Provider,
-		Deposit:         b.Deposit,
-		Pricing:         b.Pricing,
-		WithdrawAddress: b.WithdrawAddress,
-		Available:       b.Available,
-		DisabledTime:    b.DisabledTime,
+		ServiceName:  b.ServiceName,
+		Provider:     b.Provider.String(),
+		Deposit:      b.Deposit,
+		Pricing:      b.Pricing,
+		Qos:          b.Qos,
+		Available:    b.Available,
+		DisabledTime: b.DisabledTime,
+		Owner:        b.Owner.String(),
 	}
 
 }
@@ -740,8 +741,8 @@ type serviceBindings []serviceBinding
 
 func (bs serviceBindings) Convert() interface{} {
 	bindings := make([]rpc.ServiceBinding, len(bs))
-	for _, binding := range bs {
-		bindings = append(bindings, binding.Convert().(rpc.ServiceBinding))
+	for i, v := range bs {
+		bindings[i] = v.Convert().(rpc.ServiceBinding)
 	}
 	return bindings
 }
@@ -757,7 +758,7 @@ type request struct {
 	SuperMode                  bool           `json:"super_mode"`
 	RequestHeight              int64          `json:"request_height"`
 	ExpirationHeight           int64          `json:"expiration_height"`
-	RequestContextID           cmn.HexBytes   `json:"request_context_id"`
+	RequestContextID           bytes.HexBytes `json:"request_context_id"`
 	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
 }
 
@@ -797,7 +798,7 @@ type response struct {
 	Consumer                   sdk.AccAddress `json:"consumer"`
 	Output                     string         `json:"output"`
 	Result                     string         `json:"error"`
-	RequestContextID           cmn.HexBytes   `json:"request_context_id"`
+	RequestContextID           bytes.HexBytes `json:"request_context_id"`
 	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
 }
 
@@ -833,18 +834,18 @@ type requestContext struct {
 	Consumer           sdk.AccAddress   `json:"consumer"`
 	Input              string           `json:"input"`
 	ServiceFeeCap      sdk.Coins        `json:"service_fee_cap"`
+	ModuleName         string           `json:"module_name"`
 	Timeout            int64            `json:"timeout"`
 	SuperMode          bool             `json:"super_mode"`
 	Repeated           bool             `json:"repeated"`
 	RepeatedFrequency  uint64           `json:"repeated_frequency"`
 	RepeatedTotal      int64            `json:"repeated_total"`
 	BatchCounter       uint64           `json:"batch_counter"`
-	BatchRequestCount  uint16           `json:"batch_request_count"`
-	BatchResponseCount uint16           `json:"batch_response_count"`
-	BatchState         string           `json:"batch_state"`
-	State              string           `json:"state"`
-	ResponseThreshold  uint16           `json:"response_threshold"`
-	ModuleName         string           `json:"module_name"`
+	BatchRequestCount  uint32           `json:"batch_request_count"`
+	BatchResponseCount uint32           `json:"batch_response_count"`
+	ResponseThreshold  uint32           `json:"response_threshold"`
+	BatchState         int32            `json:"batch_state"`
+	State              int32            `json:"state"`
 }
 
 // Empty returns true if empty
@@ -889,7 +890,7 @@ func (e earnedFees) Convert() interface{} {
 
 // CompactRequest defines a compact request with a request context ID
 type compactRequest struct {
-	RequestContextID           cmn.HexBytes
+	RequestContextID           bytes.HexBytes
 	RequestContextBatchCounter uint64
 	Provider                   sdk.AccAddress
 	ServiceFee                 sdk.Coins
@@ -943,7 +944,7 @@ func actionTagKey(key ...string) sdk.EventKey {
 	return sdk.EventKey(strings.Join(key, "."))
 }
 
-func hexBytesFrom(requestID string) cmn.HexBytes {
+func hexBytesFrom(requestID string) bytes.HexBytes {
 	v, _ := hex.DecodeString(requestID)
-	return cmn.HexBytes(v)
+	return bytes.HexBytes(v)
 }

@@ -24,7 +24,7 @@ func (dts *DistrTestSuite) SetupTest() {
 }
 
 func (dts *DistrTestSuite) TestQueryRewards() {
-	r, err := dts.Distr().QueryRewards(dts.Account().Address.String())
+	r, err := dts.Distr().QueryRewards("iva1x98k5n7xj0h3udnf5dcdzw85tsfa75qm682jtg")
 	require.NoError(dts.T(), err)
 	require.NotEmpty(dts.T(), r)
 }
@@ -55,4 +55,16 @@ func (dts *DistrTestSuite) TestWithdrawRewards() {
 	rs, err := dts.Distr().WithdrawRewards(true, "", baseTx)
 	require.NoError(dts.T(), err)
 	require.NotEmpty(dts.T(), rs.Hash)
+}
+
+func (dts *DistrTestSuite) TestQueryWithdrawAddr() {
+	res, err := dts.Distr().QueryWithdrawAddr("iva13rtezlhpqms02syv27zc0lqc5nt3z4lcnn820h")
+	require.NoError(dts.T(), err)
+	require.NotEmpty(dts.T(), res)
+}
+
+func (dts *DistrTestSuite) TestQueryCommission() {
+	res, err := dts.Distr().QueryCommission("iva1x98k5n7xj0h3udnf5dcdzw85tsfa75qm682jtg")
+	require.NoError(dts.T(), err)
+	require.NotEmpty(dts.T(), res)
 }

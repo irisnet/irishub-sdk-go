@@ -18,6 +18,15 @@ var (
 	}
 )
 
+type TokenData struct {
+	TypeName string `json:"type"`
+	Value    Token  `json:"value"`
+}
+
+func (t TokenData) Convert() interface{} {
+	return t
+}
+
 type Token struct {
 	Symbol        string `json:"symbol"`
 	Name          string `json:"name"`
@@ -54,7 +63,7 @@ func (t Token) Convert() interface{} {
 	return t
 }
 
-type Tokens []Token
+type Tokens []TokenData
 
 func (t Tokens) Convert() interface{} {
 	return t

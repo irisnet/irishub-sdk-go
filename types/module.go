@@ -2,7 +2,6 @@ package types
 
 type Module interface {
 	RegisterCodec(cdc Codec)
-	//RegisterErrorCode()
 	Name() string
 }
 

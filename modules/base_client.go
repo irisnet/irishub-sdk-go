@@ -15,7 +15,6 @@ import (
 	"github.com/irisnet/irishub-sdk-go/utils"
 	"github.com/irisnet/irishub-sdk-go/utils/cache"
 	"github.com/irisnet/irishub-sdk-go/utils/log"
-	cmn "github.com/tendermint/tendermint/libs/common"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 )
 
@@ -80,13 +79,6 @@ func NewBaseClient(cdc sdk.Codec, cfg sdk.ClientConfig) *baseClient {
 		cdc:        cdc,
 		expiration: cacheExpirePeriod,
 	}
-
-	fees, err := base.ToMinCoin(base.cfg.Fee...)
-	if err != nil {
-		panic(err)
-	}
-	cfg.Fee = sdk.NewDecCoinsFromCoins(fees...)
-
 	return &base
 }
 
@@ -228,24 +220,31 @@ func (base baseClient) Query(path string, data interface{}) ([]byte, error) {
 	return resp.Value, nil
 }
 
-func (base baseClient) QueryStore(key cmn.HexBytes, storeName string) (res []byte, err error) {
-	path := fmt.Sprintf("/store/%s/%s", storeName, "key")
-	opts := rpcclient.ABCIQueryOptions{
-		//Height: cliCtx.Height,
-		Prove: false,
-	}
-
-	result, err := base.TmClient.ABCIQueryWithOptions(path, key, opts)
-	if err != nil {
-		return res, err
-	}
-
-	resp := result.Response
-	if !resp.IsOK() {
-		return res, errors.New(resp.Log)
-	}
-	return resp.Value, nil
-}
+//func (base baseClient) QueryStore(key bytes.HexBytes, storeName, endPath string) ([]sdk.KVPair, error) {
+//	var (
+//		res []sdk.KVPair
+//	)
+//	path := fmt.Sprintf("/store/%s/%s", storeName, endPath)
+//	opts := rpcclient.ABCIQueryOptions{
+//		//Height: cliCtx.Height,
+//		Prove: false,
+//	}
+//
+//	result, err := base.TmClient.ABCIQueryWithOptions(path, key, opts)
+//	if err != nil {
+//		return res, err
+//	}
+//
+//	resp := result.Response
+//	if !resp.IsOK() {
+//		return res, errors.New(resp.Log)
+//	}
+//
+//	if err := base.Cdc.UnmarshalBinaryLengthPrefixed(resp.Value, &res); err != nil {
+//		return res, err
+//	}
+//	return res, nil
+//}
 
 func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
 	fees, _ := base.cfg.Fee.TruncateDecimal()
@@ -274,7 +273,7 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
 		WithPassword(baseTx.Password)
 
 	if !baseTx.Fee.Empty() && baseTx.Fee.IsValid() {
-		fees, err := base.ToMinCoin(baseTx.Fee...)
+		//fees, err := base.ToMinCoin(baseTx.Fee...)
 		if err != nil {
 			return nil, err
 		}
@@ -350,10 +349,6 @@ func initConfig(cdc sdk.Codec, cfg *sdk.ClientConfig) {
 
 	if cfg.Gas == 0 {
 		cfg.Gas = 20000
-	}
-
-	if cfg.Fee == nil || cfg.Fee.Empty() {
-		panic(fmt.Errorf("fee is required"))
 	}
 
 	if cfg.KeyDAO == nil {
