@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/irisnet/irishub-sdk-go/utils/log"
+	"github.com/tendermint/tendermint/libs/bytes"
 )
 
 type TxManager interface {
@@ -24,6 +25,7 @@ type ParamQuery interface {
 type StoreQuery interface {
 	QueryWithResponse(path string, data interface{}, result Response) error
 	Query(path string, data interface{}) ([]byte, error)
+	QueryStore(key bytes.HexBytes, storeName string) (res []byte, err error)
 }
 
 type AccountQuery interface {
