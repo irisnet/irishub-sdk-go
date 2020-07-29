@@ -23,24 +23,21 @@ func registerCodec(cdc sdk.Codec) {
 }
 
 type htlc struct {
-	sender               sdk.AccAddress
-	to                   sdk.AccAddress
-	receiverOnOtherChain string
-	amount               sdk.Coins
-	secret               bytes.HexBytes
-	timestamp            uint64
-	expirationHeight     uint64
-	state                int32
+	Sender           sdk.AccAddress `json:"sender"`
+	To               sdk.AccAddress `json:"to"`
+	Amount           sdk.Coins      `json:"amount"`
+	Secret           bytes.HexBytes `json:"secret"`
+	ExpirationHeight uint64         `json:"expiration_height"`
+	State            int32          `json:"state"`
 }
 
 func (h htlc) Convert() interface{} {
 	return rpc.HTLC{
-		Sender:               h.sender.String(),
-		To:                   h.to.String(),
-		ReceiverOnOtherChain: h.receiverOnOtherChain,
-		Secret:               h.secret,
-		Timestamp:            h.timestamp,
-		ExpirationHeight:     h.expirationHeight,
-		State:                h.state,
+		Sender:           h.Sender.String(),
+		To:               h.To.String(),
+		Amount:           h.Amount,
+		Secret:           h.Secret.String(),
+		ExpirationHeight: h.ExpirationHeight,
+		State:            h.State,
 	}
 }

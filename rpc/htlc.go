@@ -2,7 +2,6 @@ package rpc
 
 import (
 	sdk "github.com/irisnet/irishub-sdk-go/types"
-	"github.com/tendermint/tendermint/libs/bytes"
 )
 
 type Htlc interface {
@@ -11,12 +10,10 @@ type Htlc interface {
 }
 
 type HTLC struct {
-	Sender               string
-	To                   string
-	ReceiverOnOtherChain string
-	Amount               sdk.Coins
-	Secret               bytes.HexBytes
-	Timestamp            uint64
-	ExpirationHeight     uint64
-	State                int32
+	Sender           string
+	To               string
+	Amount           sdk.Coins
+	Secret           string
+	ExpirationHeight uint64
+	State            int32
 }

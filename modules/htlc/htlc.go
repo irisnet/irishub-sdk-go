@@ -41,7 +41,7 @@ func (h htlcClient) QueryHtlc(hashLock string) (rpc.HTLC, sdk.Error) {
 	}
 
 	var htlc htlc
-	if err := h.QueryWithResponse("custom/htlc/hltc", params, &htlc); err != nil {
+	if err := h.QueryWithResponse("custom/htlc/htlc", params, &htlc); err != nil {
 		return rpc.HTLC{}, nil
 	}
 	return htlc.Convert().(rpc.HTLC), nil

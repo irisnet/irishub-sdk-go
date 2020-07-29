@@ -72,3 +72,9 @@ func (sts *StakingTestSuite) TestQueryPool() {
 	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), p)
 }
+
+func (sts *StakingTestSuite) TestQueryParams() {
+	p, err := sts.Staking().QueryParams()
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), p)
+}

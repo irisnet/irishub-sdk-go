@@ -23,7 +23,8 @@ func (hts *HtlcTestSuite) SetupTest() {
 }
 
 func (hts HtlcTestSuite) TestGetTokenStats() {
-	htlc, err := hts.Htlc().QueryHtlc("123")
+	htlc, err := hts.Htlc().QueryHtlc("ca73cdb84272871f51b21da7f195bb8c885775917a17e74ca8b2835a24f29b1d")
 	fmt.Println(htlc)
 	require.NoError(hts.T(), err)
+	require.NotEmpty(hts.T(), htlc)
 }

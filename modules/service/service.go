@@ -201,7 +201,7 @@ func (s serviceClient) SubscribeServiceResponse(reqCtxID string,
 			}
 		}
 		reqCtx, err := s.QueryRequestContext(reqCtxID)
-		if err != nil || reqCtx.State == "completed" {
+		if err != nil || reqCtx.State == 0 {
 			_ = s.Unsubscribe(subscription)
 		}
 	})

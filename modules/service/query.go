@@ -38,8 +38,7 @@ func (s serviceClient) queryRequestContextByTxQuery(reqCtxID string) (requestCon
 				BatchCounter:       uint64(msg.RepeatedTotal),
 				BatchRequestCount:  0,
 				BatchResponseCount: 0,
-				BatchState:         "completed",
-				State:              "completed",
+				State:              0,
 				ResponseThreshold:  0,
 				ModuleName:         "",
 			}, nil
