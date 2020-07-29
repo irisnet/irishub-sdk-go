@@ -183,3 +183,10 @@ func (sts *ServiceTestSuite) TestQueryBindings() {
 	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), bindings)
 }
+
+func (sts *ServiceTestSuite) TestQueryRequestContext() {
+	context, err := sts.Service().QueryRequestContext()
+	fmt.Println(context)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), context)
+}

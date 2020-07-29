@@ -43,7 +43,7 @@ func (tts *TendermintTestSuite) TestQueryBlockResult() {
 }
 
 func (tts *TendermintTestSuite) TestQueryTx() {
-	tx, err := tts.Tendermint().QueryTx("37152D5D811FA5D7BB8E2AA3DC2D4A7A135616B32F60A4AC62F2A8254128348D")
+	tx, err := tts.Tendermint().QueryTx("B664260AD9E9E8400B4B865123C84333A4974194ED92BEA185EDFFD9BECEF5D7")
 	fmt.Println(tx)
 	require.NoError(tts.T(), err)
 	fmt.Println(tx)
