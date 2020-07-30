@@ -156,7 +156,7 @@ func (bts BankTestSuite) TestQueryTotalSupply() {
 //}
 
 func (bts BankTestSuite) TestGetAllBalance() {
-	result, err := bts.Bank().QueryBalances("iaa1x98k5n7xj0h3udnf5dcdzw85tsfa75qm0kqak0", "")
+	result, err := bts.Bank().QueryBalances("iaa13rtezlhpqms02syv27zc0lqc5nt3z4lcxzd9js", "")
 	require.NoError(bts.T(), err)
 	fmt.Printf("%v", result)
 }

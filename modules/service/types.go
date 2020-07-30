@@ -914,7 +914,7 @@ func (p Params) Convert() interface{} {
 }
 
 func registerCodec(cdc sdk.Codec) {
-	cdc.RegisterConcrete(MsgDefineService{}, "irishub/service/MsgDefineService")
+	cdc.RegisterConcrete(MsgDefineService{}, "irismod/service/MsgDefineService")
 	cdc.RegisterConcrete(MsgBindService{}, "irishub/service/MsgBindService")
 	cdc.RegisterConcrete(MsgUpdateServiceBinding{}, "irishub/service/MsgUpdateServiceBinding")
 	cdc.RegisterConcrete(MsgSetWithdrawAddress{}, "irishub/service/MsgSetWithdrawAddress")

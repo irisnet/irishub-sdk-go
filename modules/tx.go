@@ -186,7 +186,6 @@ func (base baseClient) parseTxResult(res *ctypes.ResultTx, resBlock *ctypes.Resu
 
 	var tx sdk.StdTx
 	err := base.cdc.UnmarshalBinaryBare(res.Tx, &tx)
-	//err := base.cdc.UnmarshalBinaryBare(res.Tx, &tx)
 	if err != nil {
 		return sdk.ResultQueryTx{}, err
 	}

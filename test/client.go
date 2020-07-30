@@ -72,8 +72,8 @@ func newMockClient() MockClient {
 	tc := MockClient{
 		Client: c,
 		rootUser: &MockAccount{
-			Name:     "test1",
-			Password: "11111111",
+			Name:     "v1",
+			Password: "1234567890",
 		},
 	}
 
@@ -84,8 +84,9 @@ func newMockClient() MockClient {
 func (tc MockClient) init() {
 	address, err := tc.Keys().Show(tc.rootUser.Name)
 	if err != nil {
-		keystore := getKeystore()
-		address, err = tc.Keys().Import(tc.rootUser.Name, tc.rootUser.Password, keystore)
+		mnemonic := "abstract toe afraid ceiling inform lunch abuse capital hunt rebel once already slot hybrid maximum display snack laptop advance pizza guard fringe box renew"
+		//address, err = tc.Keys().Import(tc.rootUser.Name, tc.rootUser.Password, keystore)
+		address, err = tc.Keys().Recover(tc.rootUser.Name, tc.rootUser.Password, mnemonic)
 		if err != nil {
 			panic(err)
 		}

@@ -32,8 +32,8 @@ func (b bankClient) Name() string {
 
 func (b bankClient) QueryBalances(address, denom string) (sdk.Balances, sdk.Error) {
 	param := struct {
-		Denom   string
-		Address string
+		Denom   string `json:"denom"`
+		Address string `json:"address"`
 	}{
 		Address: address,
 		Denom:   denom,

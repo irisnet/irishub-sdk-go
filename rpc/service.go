@@ -98,6 +98,7 @@ type ServiceResponse struct {
 	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
 }
 
+// ServiceDefinitionRequest defines the request parameters of the service definition
 type ServiceDefinitionRequest struct {
 	ServiceName       string   `json:"service_name"`
 	Description       string   `json:"description"`

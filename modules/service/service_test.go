@@ -177,6 +177,29 @@ loop:
 	require.NoError(sts.T(), err)
 }
 
+func (sts *ServiceTestSuite) TestDefineService() {
+	schemas := `{"input":{"type":"object"},"output":{"type":"object"},"error":{"type":"object"}}`
+
+	baseTx := sdk.BaseTx{
+		From:     sts.Account().Name,
+		Gas:      1000,
+		Memo:     "test",
+		Mode:     sdk.Commit,
+		Password: sts.Account().Password,
+	}
+
+	definition := rpc.ServiceDefinitionRequest{
+		ServiceName:       "june30",
+		Description:       "this is a test service",
+		Tags:              nil,
+		AuthorDescription: "service provider",
+		Schemas:           schemas,
+	}
+	result, err := sts.Service().DefineService(definition, baseTx)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), result.Hash)
+}
+
 func (sts *ServiceTestSuite) TestQueryBindings() {
 	bindings, err := sts.Service().QueryBindings("assettransfer")
 	fmt.Println(bindings)
