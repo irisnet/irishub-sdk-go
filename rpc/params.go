@@ -4,8 +4,8 @@ import sdk "github.com/irisnet/irishub-sdk-go/types"
 
 type Params interface {
 	sdk.Module
-	QueryParams(subspace, key string) (SubspaceParamsResponse, sdk.Error)
-	//QueryParams(module string) (SubspaceParamsResponse, sdk.Error)
+	QueryParamsBySubAndKey(subspace, key string) (SubspaceParamsResponse, sdk.Error)
+	QueryParams(moduleName string) ([]byte, sdk.Error)
 }
 
 type SubspaceParamsResponse struct {
