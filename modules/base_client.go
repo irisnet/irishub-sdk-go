@@ -6,6 +6,7 @@ package modules
 import (
 	"errors"
 	"fmt"
+	"github.com/tendermint/tendermint/libs/bytes"
 	"time"
 
 	"github.com/irisnet/irishub-sdk-go/adapter"
@@ -220,31 +221,24 @@ func (base baseClient) Query(path string, data interface{}) ([]byte, error) {
 	return resp.Value, nil
 }
 
-//func (base baseClient) QueryStore(key bytes.HexBytes, storeName, endPath string) ([]sdk.KVPair, error) {
-//	var (
-//		res []sdk.KVPair
-//	)
-//	path := fmt.Sprintf("/store/%s/%s", storeName, endPath)
-//	opts := rpcclient.ABCIQueryOptions{
-//		//Height: cliCtx.Height,
-//		Prove: false,
-//	}
-//
-//	result, err := base.TmClient.ABCIQueryWithOptions(path, key, opts)
-//	if err != nil {
-//		return res, err
-//	}
-//
-//	resp := result.Response
-//	if !resp.IsOK() {
-//		return res, errors.New(resp.Log)
-//	}
-//
-//	if err := base.Cdc.UnmarshalBinaryLengthPrefixed(resp.Value, &res); err != nil {
-//		return res, err
-//	}
-//	return res, nil
-//}
+func (base baseClient) QueryStore(key bytes.HexBytes, storeName string) (res []byte, err error) {
+	path := fmt.Sprintf("/store/%s/%s", storeName, "key")
+	opts := rpcclient.ABCIQueryOptions{
+		//Height: cliCtx.Height,
+		Prove: false,
+	}
+
+	result, err := base.TmClient.ABCIQueryWithOptions(path, key, opts)
+	if err != nil {
+		return res, err
+	}
+
+	resp := result.Response
+	if !resp.IsOK() {
+		return res, errors.New(resp.Log)
+	}
+	return resp.Value, nil
+}
 
 func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
 	fees, _ := base.cfg.Fee.TruncateDecimal()

@@ -932,7 +932,7 @@ func registerCodec(cdc sdk.Codec) {
 
 	cdc.RegisterConcrete(serviceDefinition{}, "irishub/service/ServiceDefinition")
 	cdc.RegisterConcrete(serviceBinding{}, "irishub/service/ServiceBinding")
-	cdc.RegisterConcrete(requestContext{}, "irishub/service/RequestContext")
+	//cdc.RegisterConcrete(requestContext{}, "irishub/service/RequestContext")
 	cdc.RegisterConcrete(request{}, "irishub/service/Request")
 	cdc.RegisterConcrete(response{}, "irishub/service/Response")
 	cdc.RegisterConcrete(earnedFees{}, "irishub/service/EarnedFees")

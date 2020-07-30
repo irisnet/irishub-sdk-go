@@ -549,11 +549,8 @@ func (s serviceClient) QueryRequestContext(reqCtxID string) (rpc.RequestContext,
 	}
 
 	var reqCtx requestContext
-	if err := s.QueryWithResponse("custom/service/context", param, &reqCtx); reqCtx.Empty() {
-		reqCtx, err = s.queryRequestContextByTxQuery(reqCtxID)
-		if err != nil {
-			return rpc.RequestContext{}, sdk.Wrap(err)
-		}
+	if err := s.QueryWithResponse("custom/service/context", param, &reqCtx); err != nil {
+		return rpc.RequestContext{}, sdk.Wrap(err)
 	}
 	return reqCtx.Convert().(rpc.RequestContext), nil
 }

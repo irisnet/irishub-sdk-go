@@ -68,7 +68,7 @@ func (s slashingClient) queryParamsV100() (rpc.SlashingParams, error) {
 
 func (s slashingClient) querySigningInfoV017(pk crypto.PubKey) (rpc.ValidatorSigningInfo, sdk.Error) {
 	key := append([]byte{0x01}, pk.Address().Bytes()...)
-	res, err := s.Query(string(key), s.Name())
+	res, err := s.QueryStore(key, s.Name())
 	if err != nil {
 		return rpc.ValidatorSigningInfo{}, sdk.Wrap(err)
 	}

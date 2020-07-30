@@ -248,6 +248,29 @@ func (ca ConsAddress) Bytes() []byte {
 	return ca
 }
 
+// MarshalJSON marshals to JSON using Bech32.
+func (ca ConsAddress) MarshalJSON() ([]byte, error) {
+	return json.Marshal(ca.String())
+}
+
+// UnmarshalJSON unmarshals from JSON assuming Bech32 encoding.
+func (ca *ConsAddress) UnmarshalJSON(data []byte) error {
+	var s string
+
+	err := json.Unmarshal(data, &s)
+	if err != nil {
+		return err
+	}
+
+	ca2, err := ConsAddressFromBech32(s)
+	if err != nil {
+		return err
+	}
+
+	*ca = ca2
+	return nil
+}
+
 // ConsAddressFromHex creates a ConsAddress from a hex string.
 func ConsAddressFromHex(address string) (addr ConsAddress, err error) {
 	if len(address) == 0 {
