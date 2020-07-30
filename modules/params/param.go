@@ -27,49 +27,57 @@ func Create(ac sdk.BaseClient) rpc.Params {
 	}
 }
 
-// QueryParams By subspace and key this query need certain args
-func (p paramClient) QueryParamsBySubAndKey(subspace, key string) (rpc.SubspaceParamsResponse, sdk.Error) {
-	param := struct {
-		Subspace, Key string
-	}{
-		Subspace: subspace,
-		Key:      key,
-	}
-
-	var sr subspaceParamsResponse
-	if err := p.QueryWithResponse("custom/params/params", param, &sr); err != nil {
-		return rpc.SubspaceParamsResponse{}, sdk.Wrap(err)
-	}
-	return sr.Convert().(rpc.SubspaceParamsResponse), nil
-}
-
 // QueryParams By moduleName , if the moduleName isn't pass will return params of all module
 // Support Module: auth,distribution,gov,mint,service,slashing,staking,token
-func (p paramClient) QueryParams(moduleName string) ([]byte, sdk.Error) {
-	//if len(module) > 0 {
-	//router := fmt.Sprintf("custom/%s/parameters", moduleName)
-	router := getRouter(moduleName)
-	if len(router) == 0 {
-		return []byte{}, sdk.Wrapf("the params of module isn't exist")
+func (p paramClient) QueryParams(moduleName string) (rpc.ParamsResponses, sdk.Error) {
+	var prs paramsResponses
+	if len(moduleName) == 0 {
+		for _, v := range AllModule {
+			res, err := p.queryParams(v)
+			if err != nil {
+				return rpc.ParamsResponses{}, sdk.Wrap(err)
+			}
+			prs = append(prs, res)
+		}
+	} else {
+		res, err := p.queryParams(moduleName)
+		if err != nil {
+			return rpc.ParamsResponses{}, sdk.Wrap(err)
+		}
+		prs = append(prs, res)
 	}
-	res, err := p.Query(router, nil)
-	if err != nil {
-		return []byte{}, sdk.Wrap(err)
-	}
-	return res, nil
+	return prs.Convert().(rpc.ParamsResponses), nil
 }
 
-func getRouter(moduleName string) string {
-	var router string
+// QueryParams By moduleName (moduleName must be have)
+func (p paramClient) queryParams(moduleName string) (paramsResponse, sdk.Error) {
+	routers := getRouters(moduleName)
+	if len(routers) == 0 {
+		return paramsResponse{}, sdk.Wrapf("the params of module isn't exist")
+	}
+
+	var ps paramsResponse
+	for _, router := range routers {
+		res, err := p.Query(router, nil)
+		if err != nil {
+			return paramsResponse{}, sdk.Wrap(err)
+		}
+		ps.Type = moduleName + "/Params"
+		ps.Value += string(res)
+	}
+	return ps, nil
+}
+
+// getRouters By moduleName , GOV  will return 3 router ,the others is 1
+func getRouters(moduleName string) []string {
+	var router []string
 	switch moduleName {
 	case AUTH:
 		fallthrough
 	case DISTRIBUTION:
 		fallthrough
-	case GOV:
-		fallthrough
 	case TOKEN:
-		router = fmt.Sprintf("custom/%s/params", moduleName)
+		router = append(router, fmt.Sprintf("custom/%s/params", moduleName))
 	case MINT:
 		fallthrough
 	case SERVICE:
@@ -77,9 +85,12 @@ func getRouter(moduleName string) string {
 	case SLASHING:
 		fallthrough
 	case STAKING:
-		router = fmt.Sprintf("custom/%s/params", moduleName)
+		router = append(router, fmt.Sprintf("custom/%s/parameters", moduleName))
+	case GOV:
+		router = append(router, fmt.Sprintf("custom/%s/params/deposit", moduleName))
+		router = append(router, fmt.Sprintf("custom/%s/params/voting", moduleName))
+		router = append(router, fmt.Sprintf("custom/%s/params/tallying", moduleName))
 	default:
-		router = ""
 	}
 	return router
 }

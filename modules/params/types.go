@@ -15,17 +15,25 @@ const (
 	TOKEN        = "token"
 )
 
-// SubspaceParamsResponse defines the response for quering parameters by subspace.
-type subspaceParamsResponse struct {
-	Subspace string
-	Key      string
-	Value    string
+var AllModule = []string{AUTH, DISTRIBUTION, GOV, MINT, SERVICE, SLASHING, STAKING, TOKEN}
+
+type paramsResponses []paramsResponse
+type paramsResponse struct {
+	Type  string
+	Value string
 }
 
-func (s subspaceParamsResponse) Convert() interface{} {
-	return rpc.SubspaceParamsResponse{
-		Subspace: s.Subspace,
-		Key:      s.Key,
-		Value:    s.Value,
+func (ps paramsResponses) Convert() interface{} {
+	paramsResponse := make(rpc.ParamsResponses, len(ps))
+	for i, v := range ps {
+		paramsResponse[i] = v.Convert().(rpc.ParamsResponse)
+	}
+	return paramsResponse
+}
+
+func (p paramsResponse) Convert() interface{} {
+	return rpc.ParamsResponse{
+		Type:  p.Type,
+		Value: p.Value,
 	}
 }
