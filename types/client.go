@@ -44,8 +44,8 @@ type TokenManager interface {
 }
 
 type TokenConvert interface {
-	ToMinCoin(coin ...Coin) (Coins, Error)
-	ToMainCoin(coin ...Coin) (Coins, Error)
+	ToMinCoin(coin ...DecCoin) (Coins, Error)
+	ToMainCoin(coin ...Coin) (DecCoins, Error)
 }
 
 type Logger interface {

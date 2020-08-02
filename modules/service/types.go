@@ -18,14 +18,13 @@ import (
 const (
 	ModuleName = "service"
 
-	tagServiceName      = "service-name"
-	tagProvider         = "provider"
-	tagConsumer         = "consumer"
-	tagRequestID        = "request-id"
-	tagRespondService   = "respond_service"
-	tagRequestContextID = "request-context-id"
-
-	actionNewBatchRequest = "new-batch-request"
+	eventTypeNewBatchRequest         = "new_batch_request"
+	eventTypeNewBatchRequestProvider = "new_batch_request_provider"
+	attributeKeyRequests             = "requests"
+	attributeKeyRequestID            = "request_id"
+	attributeKeyRequestContextID     = "request_context_id"
+	attributeKeyServiceName          = "service_name"
+	attributeKeyProvider             = "provider"
 
 	requestIDLen = 58
 	contextIDLen = 40
@@ -786,8 +785,8 @@ type requests []request
 
 func (rs requests) Convert() interface{} {
 	requests := make([]rpc.ServiceRequest, len(rs))
-	for _, request := range rs {
-		requests = append(requests, request.Convert().(rpc.ServiceRequest))
+	for i, v := range rs {
+		requests[i] = v.Convert().(rpc.ServiceRequest)
 	}
 	return requests
 }
@@ -797,7 +796,7 @@ type response struct {
 	Provider                   sdk.AccAddress `json:"provider"`
 	Consumer                   sdk.AccAddress `json:"consumer"`
 	Output                     string         `json:"output"`
-	Result                     string         `json:"error"`
+	Result                     string         `json:"result"`
 	RequestContextID           bytes.HexBytes `json:"request_context_id"`
 	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
 }
@@ -821,8 +820,8 @@ type responses []response
 
 func (rs responses) Convert() interface{} {
 	responses := make([]rpc.ServiceResponse, len(rs))
-	for _, response := range rs {
-		responses = append(responses, response.Convert().(rpc.ServiceResponse))
+	for i, v := range rs {
+		responses[i] = v.Convert().(rpc.ServiceResponse)
 	}
 	return responses
 }
@@ -907,6 +906,7 @@ type Params struct {
 	ComplaintRetrospect  time.Duration `json:"complaint_retrospect"`
 	ArbitrationTimeLimit time.Duration `json:"arbitration_time_limit"`
 	TxSizeLimit          uint64        `json:"tx_size_limit"`
+	BaseDenom            string        `json:"base_denom"`
 }
 
 func (p Params) Convert() interface{} {
@@ -914,30 +914,30 @@ func (p Params) Convert() interface{} {
 }
 
 func registerCodec(cdc sdk.Codec) {
-	cdc.RegisterConcrete(MsgDefineService{}, "irismod/service/MsgDefineService")
-	cdc.RegisterConcrete(MsgBindService{}, "irishub/service/MsgBindService")
-	cdc.RegisterConcrete(MsgUpdateServiceBinding{}, "irishub/service/MsgUpdateServiceBinding")
-	cdc.RegisterConcrete(MsgSetWithdrawAddress{}, "irishub/service/MsgSetWithdrawAddress")
-	cdc.RegisterConcrete(MsgDisableServiceBinding{}, "irishub/service/MsgDisableServiceBinding")
-	cdc.RegisterConcrete(MsgEnableServiceBinding{}, "irishub/service/MsgEnableServiceBinding")
-	cdc.RegisterConcrete(MsgRefundServiceDeposit{}, "irishub/service/MsgRefundServiceDeposit")
-	cdc.RegisterConcrete(MsgCallService{}, "irishub/service/MsgCallService")
-	cdc.RegisterConcrete(MsgRespondService{}, "irishub/service/MsgRespondService")
-	cdc.RegisterConcrete(MsgPauseRequestContext{}, "irishub/service/MsgPauseRequestContext")
-	cdc.RegisterConcrete(MsgStartRequestContext{}, "irishub/service/MsgStartRequestContext")
-	cdc.RegisterConcrete(MsgKillRequestContext{}, "irishub/service/MsgKillRequestContext")
-	cdc.RegisterConcrete(MsgUpdateRequestContext{}, "irishub/service/MsgUpdateRequestContext")
-	cdc.RegisterConcrete(MsgWithdrawEarnedFees{}, "irishub/service/MsgWithdrawEarnedFees")
-	cdc.RegisterConcrete(MsgWithdrawTax{}, "irishub/service/MsgWithdrawTax")
+	cdc.RegisterConcrete(&MsgDefineService{}, "irismod/service/MsgDefineService")
+	cdc.RegisterConcrete(&MsgBindService{}, "irismod/service/MsgBindService")
+	cdc.RegisterConcrete(&MsgUpdateServiceBinding{}, "irismod/service/MsgUpdateServiceBinding")
+	cdc.RegisterConcrete(&MsgSetWithdrawAddress{}, "irismod/service/MsgSetWithdrawAddress")
+	cdc.RegisterConcrete(&MsgDisableServiceBinding{}, "irismod/service/MsgDisableServiceBinding")
+	cdc.RegisterConcrete(&MsgEnableServiceBinding{}, "irismod/service/MsgEnableServiceBinding")
+	cdc.RegisterConcrete(&MsgRefundServiceDeposit{}, "irismod/service/MsgRefundServiceDeposit")
+	cdc.RegisterConcrete(&MsgCallService{}, "irismod/service/MsgCallService")
+	cdc.RegisterConcrete(&MsgRespondService{}, "irismod/service/MsgRespondService")
+	cdc.RegisterConcrete(&MsgPauseRequestContext{}, "irismod/service/MsgPauseRequestContext")
+	cdc.RegisterConcrete(&MsgStartRequestContext{}, "irismod/service/MsgStartRequestContext")
+	cdc.RegisterConcrete(&MsgKillRequestContext{}, "irismod/service/MsgKillRequestContext")
+	cdc.RegisterConcrete(&MsgUpdateRequestContext{}, "irismod/service/MsgUpdateRequestContext")
+	cdc.RegisterConcrete(&MsgWithdrawEarnedFees{}, "irismod/service/MsgWithdrawEarnedFees")
 
-	cdc.RegisterConcrete(serviceDefinition{}, "irishub/service/ServiceDefinition")
-	cdc.RegisterConcrete(serviceBinding{}, "irishub/service/ServiceBinding")
-	//cdc.RegisterConcrete(requestContext{}, "irishub/service/RequestContext")
-	cdc.RegisterConcrete(request{}, "irishub/service/Request")
-	cdc.RegisterConcrete(response{}, "irishub/service/Response")
-	cdc.RegisterConcrete(earnedFees{}, "irishub/service/EarnedFees")
+	//cdc.RegisterConcrete(MsgWithdrawTax{}, "irismod/service/MsgWithdrawTax")
+	//cdc.RegisterConcrete(serviceDefinition{}, "irismod/service/ServiceDefinition")
+	//cdc.RegisterConcrete(serviceBinding{}, "irismod/service/ServiceBinding")
+	//cdc.RegisterConcrete(requestContext{}, "irismod/service/RequestContext")
+	//cdc.RegisterConcrete(request{}, "irismod/service/Request")
+	//cdc.RegisterConcrete(response{}, "irismod/service/Response")
+	//cdc.RegisterConcrete(earnedFees{}, "irismod/service/EarnedFees")
 
-	cdc.RegisterConcrete(&Params{}, "irishub/service/Params")
+	//cdc.RegisterConcrete(&Params{}, "irismod/service/Params")
 }
 
 func actionTagKey(key ...string) sdk.EventKey {

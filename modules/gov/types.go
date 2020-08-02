@@ -311,11 +311,12 @@ func (ds deposits) Convert() interface{} {
 }
 
 func registerCodec(cdc sdk.Codec) {
-	cdc.RegisterConcrete(MsgSubmitProposal{}, "irishub/gov/MsgSubmitProposal")
+	cdc.RegisterConcrete(&MsgSubmitProposal{}, "cosmos-sdk/MsgSubmitProposal")
+	cdc.RegisterConcrete(&MsgDeposit{}, "cosmos-sdk/MsgDeposit")
+	cdc.RegisterConcrete(&MsgVote{}, "cosmos-sdk/MsgVote")
+
 	cdc.RegisterConcrete(MsgSubmitCommunityTaxUsageProposal{}, "irishub/gov/MsgSubmitCommunityTaxUsageProposal")
 	cdc.RegisterConcrete(MsgSubmitSoftwareUpgradeProposal{}, "irishub/gov/MsgSubmitSoftwareUpgradeProposal")
-	cdc.RegisterConcrete(MsgDeposit{}, "irishub/gov/MsgDeposit")
-	cdc.RegisterConcrete(MsgVote{}, "irishub/gov/MsgVote")
 
 	registerCodecForProposal(cdc)
 	cdc.RegisterConcrete(&vote{}, "irishub/gov/Vote")

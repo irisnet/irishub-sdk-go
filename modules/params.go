@@ -2,6 +2,7 @@ package modules
 
 import (
 	"fmt"
+	"github.com/irisnet/irishub-sdk-go/modules/service"
 	"time"
 
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -32,14 +33,17 @@ func (p paramsQuery) QueryParams(module string, res sdk.Response) sdk.Error {
 		return nil
 	}
 
-	params := struct {
-		Module string
-	}{
-		Module: module,
+	var path string
+	switch module {
+	case service.ModuleName:
+		path = fmt.Sprintf("custom/%s/parameters", module)
+	case "auth":
+		path = fmt.Sprintf("custom/%s/params", "auth")
+	default:
+		return sdk.Wrapf("unsupported param query")
 	}
 
-	//path := fmt.Sprintf("custom/%s/parameters", module)
-	bz, err := p.Query("custom/params/module", params)
+	bz, err := p.Query(path, nil)
 	if err != nil {
 		return sdk.Wrap(err)
 	}

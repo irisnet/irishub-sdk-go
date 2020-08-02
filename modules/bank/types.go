@@ -19,7 +19,7 @@ const (
 )
 
 var (
-	_ types.Msg = MsgSend{}
+	_ types.Msg = MsgMultiSend{}
 	_ types.Msg = MsgBurn{}
 	_ types.Msg = MsgSetMemoRegexp{}
 
@@ -30,23 +30,30 @@ func init() {
 	registerCodec(cdc)
 }
 
+// MsgSend - high level transaction of the coin module
 type MsgSend struct {
+	FromAddress types.AccAddress `protobuf:"bytes,1,opt,name=from_address,json=fromAddress,proto3,casttype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"from_address,omitempty" yaml:"from_address"`
+	ToAddress   types.AccAddress `protobuf:"bytes,2,opt,name=to_address,json=toAddress,proto3,casttype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"to_address,omitempty" yaml:"to_address"`
+	Amount      types.Coins      `protobuf:"bytes,3,rep,name=amount,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"amount"`
+}
+
+type MsgMultiSend struct {
 	Inputs  []Input  `json:"inputs"`
 	Outputs []Output `json:"outputs"`
 }
 
 // NewMsgSend - construct arbitrary multi-in, multi-out send msg.
-func NewMsgSend(in []Input, out []Output) MsgSend {
-	return MsgSend{Inputs: in, Outputs: out}
+func NewMsgSend(in []Input, out []Output) MsgMultiSend {
+	return MsgMultiSend{Inputs: in, Outputs: out}
 }
 
-func (msg MsgSend) Route() string { return ModuleName }
+func (msg MsgMultiSend) Route() string { return ModuleName }
 
 // Implements Msg.
-func (msg MsgSend) Type() string { return "send" }
+func (msg MsgMultiSend) Type() string { return "send" }
 
 // Implements Msg.
-func (msg MsgSend) ValidateBasic() error {
+func (msg MsgMultiSend) ValidateBasic() error {
 	// this just makes sure all the inputs and outputs are properly formatted,
 	// not that they actually have the money inside
 	if len(msg.Inputs) == 0 {
@@ -77,7 +84,7 @@ func (msg MsgSend) ValidateBasic() error {
 }
 
 // Implements Msg.
-func (msg MsgSend) GetSignBytes() []byte {
+func (msg MsgMultiSend) GetSignBytes() []byte {
 	var inputs, outputs []json.RawMessage
 	for _, input := range msg.Inputs {
 		inputs = append(inputs, input.GetSignBytes())
@@ -99,7 +106,7 @@ func (msg MsgSend) GetSignBytes() []byte {
 }
 
 // Implements Msg.
-func (msg MsgSend) GetSigners() []types.AccAddress {
+func (msg MsgMultiSend) GetSigners() []types.AccAddress {
 	addrs := make([]types.AccAddress, len(msg.Inputs))
 	for i, in := range msg.Inputs {
 		addrs[i] = in.Address
@@ -305,9 +312,6 @@ func (ts tokenStats) Convert() interface{} {
 }
 
 func registerCodec(cdc types.Codec) {
-	cdc.RegisterConcrete(MsgSend{}, "irishub/bank/Send")
-	cdc.RegisterConcrete(MsgBurn{}, "irishub/bank/Burn")
-	cdc.RegisterConcrete(MsgSetMemoRegexp{}, "irishub/bank/SetMemoRegexp")
-
-	cdc.RegisterConcrete(&Params{}, "irishub/Auth/Params")
+	cdc.RegisterConcrete(MsgSend{}, "cosmos-sdk/MsgSend")
+	cdc.RegisterConcrete(MsgMultiSend{}, "cosmos-sdk/MsgMultiSend")
 }

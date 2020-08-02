@@ -127,6 +127,7 @@ func (vsi validatorSigningInfo) Convert() interface{} {
 }
 
 func registerCodec(cdc sdk.Codec) {
-	cdc.RegisterConcrete(MsgUnjail{}, "irishub/slashing/MsgUnjail")
+	cdc.RegisterConcrete(MsgUnjail{}, "cosmos-sdk/MsgUnjail")
+
 	cdc.RegisterConcrete(&paramsV017{}, "irishub/slashing/Params")
 }

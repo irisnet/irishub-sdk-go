@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	tmtypes "github.com/tendermint/tendermint/types"
 	"strings"
 
 	tmclient "github.com/tendermint/tendermint/rpc/client"
 
-	tmtypes "github.com/tendermint/tendermint/types"
+	abciTmtypes "github.com/tendermint/tendermint/abci/types"
 )
 
 const (
@@ -17,6 +18,12 @@ const (
 	ActionKey    EventKey = "action"
 	SenderKey    EventKey = "sender"
 	RecipientKey EventKey = "recipient"
+
+	EventTypeMessage   = "message"
+	AttributeKeyAction = "action"
+	AttributeKeyModule = "module"
+	AttributeKeySender = "sender"
+	AttributeKeyAmount = "amount"
 
 	TxValue EventValue = "Tx"
 )
@@ -41,9 +48,102 @@ type EventType string
 type EventKey string
 type EventValue string
 
+type Attribute struct {
+	Key   string
+	Value string
+}
+
+type Attributes []Attribute
+
+func (a Attributes) GetValues(key string) (values []string) {
+	for _, attr := range a {
+		if attr.Key == key {
+			values = append(values, attr.Value)
+		}
+	}
+	return
+}
+
+func (a Attributes) GetValue(key string) string {
+	for _, attr := range a {
+		if attr.Key == key {
+			return attr.Value
+		}
+	}
+	return ""
+}
+
+func (a Attributes) String() string {
+	var attrs = make([]string, len(a))
+	for i, attr := range a {
+		attrs[i] = fmt.Sprintf("%s=%s", attr.Key, attr.Value)
+	}
+	return strings.Join(attrs, ",")
+}
+
 type Event struct {
-	Type       string `json:"type"`
-	Attributes []Pair `json:"attributes"`
+	Type       string     `json:"type"`
+	Attributes Attributes `json:"attributes"`
+}
+
+func ParseEvent(event abciTmtypes.Event) Event {
+	var tags Attributes
+	for _, pair := range event.Attributes {
+		key := string(pair.Key)
+		value := string(pair.Value)
+		tags = append(tags, Attribute{
+			Key:   key,
+			Value: value,
+		})
+	}
+	return Event{
+		Type:       event.Type,
+		Attributes: tags,
+	}
+}
+
+type Events []Event
+
+func ParseEvents(events []abciTmtypes.Event) (es Events) {
+	for _, event := range events {
+		es = append(es, ParseEvent(event))
+	}
+	return
+}
+
+func (es Events) Filter(typ string) (evts Events) {
+	for _, e := range es {
+		if e.Type == typ {
+			evts = append(evts, e)
+		}
+	}
+	return evts
+}
+
+func (es Events) GetValue(typ, key string) (string, error) {
+	for _, e := range es {
+		if e.Type == typ {
+			for _, attr := range e.Attributes {
+				if attr.Key == key {
+					return attr.Value, nil
+				}
+			}
+		}
+	}
+	return "", fmt.Errorf("not found type:%s key:%s", typ, key)
+}
+
+func (es Events) GetValues(typ, key string) (values []string) {
+	for _, e := range es {
+		if e.Type == typ {
+			for _, attr := range e.Attributes {
+				if attr.Key == key {
+					values = append(values, attr.Value)
+				}
+			}
+		}
+	}
+	return values
 }
 
 type Pair struct {
@@ -81,39 +181,7 @@ type TxResult struct {
 	Log       string `json:"log"`
 	GasWanted int64  `json:"gas_wanted"`
 	GasUsed   int64  `json:"gas_used"`
-	Tags      Tags   `json:"tags"`
-}
-
-type Tag struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-type Tags []Tag
-
-func (t Tags) GetValues(key string) (values []string) {
-	for _, tag := range t {
-		if tag.Key == key {
-			values = append(values, tag.Value)
-		}
-	}
-	return
-}
-
-func (t Tags) GetValue(key string) string {
-	for _, tag := range t {
-		if tag.Key == key {
-			return tag.Value
-		}
-	}
-	return ""
-}
-
-func (t Tags) String() string {
-	var tags = make([]string, len(t))
-	for i, tag := range t {
-		tags[i] = fmt.Sprintf("%s=%s", tag.Key, tag.Value)
-	}
-	return strings.Join(tags, ",")
+	Events    Events `json:"events"`
 }
 
 type EventTxHandler func(EventDataTx)
@@ -149,6 +217,8 @@ type EventNewBlockHeaderHandler func(EventDataNewBlockHeader)
 
 // Volatile state for each Validator
 type Validator struct {
+	Bech32Address    string `json:"bech32_address"`
+	Bech32PubKey     string `json:"bech32_pubkey"`
 	Address          string `json:"address"`
 	PubKey           PubKey `json:"pub_key"`
 	VotingPower      int64  `json:"voting_power"`
@@ -171,6 +241,13 @@ type condition struct {
 func Cond(key EventKey) *condition {
 	return &condition{
 		key: key,
+	}
+}
+
+// NewCond return a condition object with a complete event type and attrKey
+func NewCond(typ, attrKey string) *condition {
+	return &condition{
+		key: EventKey(fmt.Sprintf("%s.%s", typ, attrKey)),
 	}
 }
 

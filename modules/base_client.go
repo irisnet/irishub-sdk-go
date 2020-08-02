@@ -241,13 +241,11 @@ func (base baseClient) QueryStore(key bytes.HexBytes, storeName string) (res []b
 }
 
 func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
-	fees, _ := base.cfg.Fee.TruncateDecimal()
 	ctx := &sdk.TxContext{}
 	ctx.WithCodec(base.cdc).
 		WithChainID(base.cfg.ChainID).
 		WithKeyManager(base.KeyManager).
 		WithNetwork(base.cfg.Network).
-		WithFee(fees).
 		WithMode(base.cfg.Mode).
 		WithSimulate(false).
 		WithGas(base.cfg.Gas)
@@ -267,9 +265,15 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
 		WithPassword(baseTx.Password)
 
 	if !baseTx.Fee.Empty() && baseTx.Fee.IsValid() {
-		//fees, err := base.ToMinCoin(baseTx.Fee...)
+		fees, err := base.ToMinCoin(baseTx.Fee...)
 		if err != nil {
 			return nil, err
+		}
+		ctx.WithFee(fees)
+	} else {
+		fees, err := base.ToMinCoin(base.cfg.Fee...)
+		if err != nil {
+			panic(err)
 		}
 		ctx.WithFee(fees)
 	}

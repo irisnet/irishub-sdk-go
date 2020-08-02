@@ -39,15 +39,14 @@ func (tts *TendermintTestSuite) TestQueryBlockResult() {
 	result, err := tts.Tendermint().QueryBlockResult(34433)
 	fmt.Println(result)
 	require.NoError(tts.T(), err)
-	require.Equal(tts.T(), int64(1443), result.Height)
+	require.Equal(tts.T(), int64(34433), result.Height)
 }
 
 func (tts *TendermintTestSuite) TestQueryTx() {
 	tx, err := tts.Tendermint().QueryTx("B664260AD9E9E8400B4B865123C84333A4974194ED92BEA185EDFFD9BECEF5D7")
 	fmt.Println(tx)
 	require.NoError(tts.T(), err)
-	fmt.Println(tx)
-
+	require.NotEmpty(tts.T(), tx)
 }
 
 func (tts *TendermintTestSuite) TestQueryValidators() {

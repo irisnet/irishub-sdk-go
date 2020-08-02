@@ -17,7 +17,7 @@ var (
 	_ sdk.Msg = MsgSetWithdrawAddress{}
 	_ sdk.Msg = MsgWithdrawDelegatorReward{}
 	_ sdk.Msg = MsgWithdrawDelegatorRewardsAll{}
-	_ sdk.Msg = MsgWithdrawValidatorRewardsAll{}
+	_ sdk.Msg = MsgWithdrawValidatorCommission{}
 
 	cdc = sdk.NewAminoCodec()
 )
@@ -138,21 +138,21 @@ func (msg MsgWithdrawDelegatorReward) ValidateBasic() error {
 }
 
 // msg struct for validator withdraw
-type MsgWithdrawValidatorRewardsAll struct {
+type MsgWithdrawValidatorCommission struct {
 	ValidatorAddr sdk.ValAddress `json:"validator_addr"`
 }
 
-func (msg MsgWithdrawValidatorRewardsAll) Route() string { return ModuleName }
+func (msg MsgWithdrawValidatorCommission) Route() string { return ModuleName }
 
-func (msg MsgWithdrawValidatorRewardsAll) Type() string { return "withdraw_validator_rewards_all" }
+func (msg MsgWithdrawValidatorCommission) Type() string { return "withdraw_validator_rewards_all" }
 
 // Return address that must sign over msg.GetSignBytes()
-func (msg MsgWithdrawValidatorRewardsAll) GetSigners() []sdk.AccAddress {
+func (msg MsgWithdrawValidatorCommission) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.AccAddress(msg.ValidatorAddr.Bytes())}
 }
 
 // get the bytes for the message signer to sign on
-func (msg MsgWithdrawValidatorRewardsAll) GetSignBytes() []byte {
+func (msg MsgWithdrawValidatorCommission) GetSignBytes() []byte {
 	b, err := cdc.MarshalJSON(msg)
 	if err != nil {
 		panic(err)
@@ -161,7 +161,7 @@ func (msg MsgWithdrawValidatorRewardsAll) GetSignBytes() []byte {
 }
 
 // quick validity check
-func (msg MsgWithdrawValidatorRewardsAll) ValidateBasic() error {
+func (msg MsgWithdrawValidatorCommission) ValidateBasic() error {
 	if msg.ValidatorAddr == nil {
 		return errors.New("validator address is nil")
 	}
@@ -203,12 +203,7 @@ func (v validatorAccumulatedCommission) Convert() interface{} {
 }
 
 func registerCodec(cdc sdk.Codec) {
-	cdc.RegisterConcrete(MsgWithdrawDelegatorRewardsAll{}, "irishub/distr/MsgWithdrawDelegationRewardsAll")
-	cdc.RegisterConcrete(MsgWithdrawDelegatorReward{}, "irishub/distr/MsgWithdrawDelegationReward")
-	cdc.RegisterConcrete(MsgWithdrawValidatorRewardsAll{}, "irishub/distr/MsgWithdrawValidatorRewardsAll")
-	cdc.RegisterConcrete(MsgSetWithdrawAddress{}, "irishub/distr/MsgModifyWithdrawAddress")
-
-	//cdc.RegisterConcrete(DelegationDistInfo{}, "irishub/distr/DelegationDistInfo")
-	//cdc.RegisterConcrete(FeePool{}, "irishub/distr/FeePool")
-	//cdc.RegisterConcrete(&Params{}, "irishub/distr/Params")
+	cdc.RegisterConcrete(&MsgWithdrawDelegatorRewardsAll{}, "cosmos-sdk/MsgWithdrawDelegationReward")
+	cdc.RegisterConcrete(&MsgWithdrawValidatorCommission{}, "cosmos-sdk/MsgWithdrawValidatorCommission")
+	cdc.RegisterConcrete(&MsgSetWithdrawAddress{}, "cosmos-sdk/MsgModifyWithdrawAddress")
 }

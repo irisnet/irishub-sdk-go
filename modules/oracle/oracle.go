@@ -254,9 +254,9 @@ func (o oracleClient) SubscribeFeedValue(feedName string, handler func(value rpc
 		AddCondition(sdk.Cond(tagFeedName).Contains(sdk.EventValue(feedName)))
 	sub1, err = o.SubscribeNewBlock(blockBuilder, func(block sdk.EventDataNewBlock) {
 		tagValue := tagFeedValue(feedName)
-		result := block.ResultEndBlock.Tags.GetValue(tagValue)
+		result := block.ResultEndBlock.Events.GetValues(tagValue, "")
 
-		handleResult(result, sub1, sub2)
+		handleResult(result[0], sub1, sub2)
 	})
 
 	txBuilder := sdk.NewEventQueryBuilder().
@@ -264,9 +264,9 @@ func (o oracleClient) SubscribeFeedValue(feedName string, handler func(value rpc
 		AddCondition(sdk.Cond(sdk.ActionKey).EQ("respond_service"))
 	sub2, err = o.SubscribeTx(txBuilder, func(tx sdk.EventDataTx) {
 		tagValue := tagFeedValue(feedName)
-		result := tx.Result.Tags.GetValue(tagValue)
+		result := tx.Result.Events.GetValues(tagValue, "")
 
-		handleResult(result, sub1, sub2)
+		handleResult(result[0], sub1, sub2)
 	})
 	return err
 }

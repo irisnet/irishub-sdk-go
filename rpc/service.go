@@ -36,9 +36,7 @@ type ServiceTx interface {
 	WithdrawTax(destAddress string,
 		amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	SubscribeServiceRequest(serviceRegistry ServiceRegistry, baseTx sdk.BaseTx) (sdk.Subscription, sdk.Error)
-
-	SubscribeSingleServiceRequest(serviceName string,
+	SubscribeServiceRequest(serviceName string,
 		callback ServiceRespondCallback,
 		baseTx sdk.BaseTx) (sdk.Subscription, sdk.Error)
 
@@ -60,7 +58,7 @@ type ServiceQuery interface {
 	QueryResponses(requestContextID string, batchCounter uint64) ([]ServiceResponse, sdk.Error)
 
 	QueryRequestContext(requestContextID string) (RequestContext, sdk.Error)
-	QueryFees(provider string) (EarnedFees, sdk.Error)
+	QueryFees(provider string) (sdk.Coins, sdk.Error)
 }
 
 type Service interface {
@@ -93,7 +91,7 @@ type ServiceResponse struct {
 	Provider                   sdk.AccAddress `json:"provider"`
 	Consumer                   sdk.AccAddress `json:"consumer"`
 	Output                     string         `json:"output"`
-	Result                     string         `json:"error"`
+	Result                     string         `json:"result"`
 	RequestContextID           string         `json:"request_context_id"`
 	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
 }
@@ -138,9 +136,9 @@ type ServiceBinding struct {
 	Deposit      sdk.Coins `json:"deposit"`
 	Pricing      string    `json:"pricing"`
 	Qos          uint64    `json:"qos"`
+	Owner        string    `json:"owner"`
 	Available    bool      `json:"available"`
 	DisabledTime time.Time `json:"disabled_time"`
-	Owner        string    `json:"owner"`
 }
 
 type ServiceInvocationRequest struct {

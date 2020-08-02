@@ -95,7 +95,7 @@ func (b bankClient) QueryTotalSupply() (sdk.Coins, sdk.Error) {
 }
 
 //Send is responsible for transferring tokens from `From` to `to` account
-func (b bankClient) Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+func (b bankClient) Send(to string, amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	sender, err := b.QueryAddress(baseTx.From)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrapf("%s not found", baseTx.From)
@@ -229,7 +229,7 @@ func (b bankClient) SubscribeSendTx(from, to string, callback rpc.EventMsgSendCa
 
 	subscription, _ := b.SubscribeTx(builder, func(data sdk.EventDataTx) {
 		for _, msg := range data.Tx.Msgs {
-			if value, ok := msg.(MsgSend); ok {
+			if value, ok := msg.(MsgMultiSend); ok {
 				for i, m := range value.Inputs {
 					callback(rpc.EventDataMsgSend{
 						Height: data.Height,

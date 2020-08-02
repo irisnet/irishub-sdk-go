@@ -256,7 +256,7 @@ type BaseTx struct {
 type ResultTx struct {
 	GasWanted int64  `json:"gas_wanted"`
 	GasUsed   int64  `json:"gas_used"`
-	Tags      Tags   `json:"tags"`
+	Events    Events `json:"events"`
 	Hash      string `json:"hash"`
 	Height    int64  `json:"height"`
 }

@@ -139,17 +139,17 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest, baseT
 		providers = append(providers, p)
 	}
 
-	//amt, err := s.ToMinCoin(request.ServiceFeeCap...)
+	amt, err := s.ToMinCoin(request.ServiceFeeCap...)
 	if err != nil {
 		return "", sdk.Wrap(err)
 	}
 
 	msg := MsgCallService{
-		ServiceName: request.ServiceName,
-		Providers:   providers,
-		Consumer:    consumer,
-		Input:       request.Input,
-		//ServiceFeeCap:     amt,
+		ServiceName:       request.ServiceName,
+		Providers:         providers,
+		Consumer:          consumer,
+		Input:             request.Input,
+		ServiceFeeCap:     amt,
 		Timeout:           request.Timeout,
 		SuperMode:         request.SuperMode,
 		Repeated:          request.Repeated,
@@ -165,19 +165,24 @@ func (s serviceClient) InvokeService(request rpc.ServiceInvocationRequest, baseT
 		return "", sdk.Wrap(err)
 	}
 
-	reqCtxID := result.Tags.GetValue(tagRequestContextID)
-	if request.Callback == nil {
-		return reqCtxID, nil
+	reqCtxID, e := result.Events.GetValue(sdk.EventTypeMessage, attributeKeyRequestContextID)
+	if e != nil {
+		return reqCtxID, sdk.Wrap(e)
 	}
+
 	_, err = s.SubscribeServiceResponse(reqCtxID, request.Callback)
 	return reqCtxID, sdk.Wrap(err)
 }
 
 func (s serviceClient) SubscribeServiceResponse(reqCtxID string,
 	callback rpc.ServiceInvokeCallback) (subscription sdk.Subscription, err sdk.Error) {
+	if len(reqCtxID) == 0 {
+		return subscription, sdk.Wrapf("reqCtxID %s should not be empty", reqCtxID)
+	}
+
 	builder := sdk.NewEventQueryBuilder().
-		AddCondition(sdk.Cond(sdk.ActionKey).EQ(tagRespondService)).
-		AddCondition(sdk.Cond(tagRequestContextID).EQ(sdk.EventValue(reqCtxID)))
+		AddCondition(sdk.NewCond(sdk.EventTypeMessage, attributeKeyRequestContextID).
+			EQ(sdk.EventValue(reqCtxID)))
 
 	return s.SubscribeTx(builder, func(tx sdk.EventDataTx) {
 		s.Debug().
@@ -349,42 +354,7 @@ func (s serviceClient) WithdrawTax(destAddress string, amount sdk.DecCoins, base
 }
 
 //SubscribeServiceRequest is responsible for registering a group of service handler
-func (s serviceClient) SubscribeServiceRequest(serviceRegistry rpc.ServiceRegistry,
-	baseTx sdk.BaseTx) (subscription sdk.Subscription, err sdk.Error) {
-	provider, e := s.QueryAddress(baseTx.From)
-	if e != nil {
-		return sdk.Subscription{}, sdk.Wrap(e)
-	}
-	var serviceNames []string
-	for name, _ := range serviceRegistry {
-		serviceNames = append(serviceNames, name)
-	}
-	builder := sdk.NewEventQueryBuilder().
-		AddCondition(sdk.Cond(
-			actionTagKey(actionNewBatchRequest, tagProvider)).
-			Contains(sdk.EventValue(provider.String())))
-	return s.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
-		var msgs []sdk.Msg
-		for _, serviceName := range serviceNames {
-			msgs = append(msgs,
-				s.GenServiceResponseMsgs(block.ResultEndBlock.Tags,
-					serviceName,
-					provider,
-					serviceRegistry[serviceName])...)
-
-		}
-		if msgs == nil || len(msgs) == 0 {
-			return
-		}
-		if _, err = s.SendMsgBatch(msgs, baseTx); err != nil {
-			s.Err(err).Msg("provider respond failed")
-		}
-	})
-}
-
-//SubscribeSingleServiceRequest is responsible for registering a single service handler
-func (s serviceClient) SubscribeSingleServiceRequest(serviceName string,
-	callback rpc.ServiceRespondCallback,
+func (s serviceClient) SubscribeServiceRequest(serviceName string, callback rpc.ServiceRespondCallback,
 	baseTx sdk.BaseTx) (subscription sdk.Subscription, err sdk.Error) {
 	provider, e := s.QueryAddress(baseTx.From)
 	if e != nil {
@@ -392,17 +362,15 @@ func (s serviceClient) SubscribeSingleServiceRequest(serviceName string,
 	}
 
 	builder := sdk.NewEventQueryBuilder().
-		AddCondition(sdk.Cond(
-			actionTagKey(actionNewBatchRequest, tagProvider)).
-			Contains(sdk.EventValue(provider.String()))).
-		AddCondition(sdk.Cond(
-			actionTagKey(actionNewBatchRequest, tagServiceName)).
-			Contains(sdk.EventValue(serviceName)),
+		AddCondition(sdk.NewCond(eventTypeNewBatchRequestProvider, attributeKeyProvider).
+			EQ(sdk.EventValue(provider.String()))).
+		AddCondition(sdk.NewCond(eventTypeNewBatchRequest, attributeKeyServiceName).
+			EQ(sdk.EventValue(serviceName)),
 		)
 	return s.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
-		msgs := s.GenServiceResponseMsgs(block.ResultEndBlock.Tags, serviceName, provider, callback)
+		msgs := s.GenServiceResponseMsgs(block.ResultEndBlock.Events, serviceName, provider, callback)
 		if _, err = s.SendMsgBatch(msgs, baseTx); err != nil {
-			s.Err(err).Msg("provider respond failed")
+			s.Logger.Err(err).Msg("provider respond failed")
 		}
 	})
 }
@@ -556,10 +524,10 @@ func (s serviceClient) QueryRequestContext(reqCtxID string) (rpc.RequestContext,
 }
 
 //QueryFees return the earned fees for a provider
-func (s serviceClient) QueryFees(provider string) (rpc.EarnedFees, sdk.Error) {
+func (s serviceClient) QueryFees(provider string) (sdk.Coins, sdk.Error) {
 	address, err := sdk.AccAddressFromBech32(provider)
 	if err != nil {
-		return rpc.EarnedFees{}, sdk.Wrap(err)
+		return nil, sdk.Wrap(err)
 	}
 
 	param := struct {
@@ -568,47 +536,52 @@ func (s serviceClient) QueryFees(provider string) (rpc.EarnedFees, sdk.Error) {
 		Address: address,
 	}
 
-	var fee earnedFees
-
-	if err := s.QueryWithResponse("custom/service/fees", param, &fee); err != nil {
-		return rpc.EarnedFees{}, sdk.Wrap(err)
+	bz, e := s.Query("custom/service/fees", param)
+	if e != nil {
+		return nil, sdk.Wrap(err)
 	}
-	return fee.Convert().(rpc.EarnedFees), nil
+
+	var fee sdk.Coins
+	if err := cdc.UnmarshalJSON(bz, &fee); err != nil {
+		return nil, sdk.Wrap(err)
+	}
+	return fee, nil
 }
 
-func (s serviceClient) GenServiceResponseMsgs(tags sdk.Tags, serviceName string, provider sdk.AccAddress, handler rpc.ServiceRespondCallback) (msgs []sdk.Msg) {
-	idsKey := actionTagKey(actionNewBatchRequest, serviceName, provider.String())
-	idsStr := tags.GetValue(string(idsKey))
-	if len(idsStr) == 0 {
-		return
-	}
-
-	s.Debug().
-		Str(tagServiceName, serviceName).
-		Str(tagProvider, provider.String()).
-		Str(tagRequestID, idsStr).
-		Msg("received service request")
+func (s serviceClient) GenServiceResponseMsgs(events sdk.Events, serviceName string,
+	provider sdk.AccAddress,
+	handler rpc.ServiceRespondCallback) (msgs []sdk.Msg) {
 
 	var ids []string
-	if err := json.Unmarshal([]byte(idsStr), &ids); err != nil {
-		s.Err(err).
-			Str(tagRequestID, idsStr).
-			Str(tagServiceName, serviceName).
-			Str(tagProvider, provider.String()).
-			Msg("service request don't exist")
-		return
+	for _, e := range events.Filter(eventTypeNewBatchRequestProvider) {
+		svcName := e.Attributes.GetValue(attributeKeyServiceName)
+		prov := e.Attributes.GetValue(attributeKeyProvider)
+		if svcName == serviceName && prov == provider.String() {
+			reqIDsStr := e.Attributes.GetValue(attributeKeyRequests)
+			var idsTemp []string
+			if err := json.Unmarshal([]byte(reqIDsStr), &idsTemp); err != nil {
+				s.Logger.Err(err).
+					Str(attributeKeyRequestID, reqIDsStr).
+					Str(attributeKeyServiceName, serviceName).
+					Str(attributeKeyProvider, provider.String()).
+					Msg("service request don't exist")
+				return
+			}
+			ids = append(ids, idsTemp...)
+		}
 	}
 
 	for _, reqID := range ids {
 		request, err := s.QueryRequest(reqID)
 		if err != nil {
-			s.Err(err).
-				Str(tagRequestID, reqID).
-				Str(tagServiceName, serviceName).
-				Str(tagProvider, provider.String()).
+			s.Logger.Err(err).
+				Str(attributeKeyRequestID, reqID).
+				Str(attributeKeyServiceName, serviceName).
+				Str(attributeKeyProvider, provider.String()).
 				Msg("service request don't exist")
 			continue
 		}
+		//check again
 		if provider.Equals(request.Provider) && request.ServiceName == serviceName {
 			output, result := handler(request.RequestContextID, reqID, request.Input)
 			msgs = append(msgs, MsgRespondService{

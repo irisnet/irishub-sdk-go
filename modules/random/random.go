@@ -34,7 +34,7 @@ func (r randomClient) Request(request rpc.RandomRequest, baseTx sdk.BaseTx) (str
 		return "", sdk.Wrap(err)
 	}
 
-	//amt, err := r.ToMinCoin(request.ServiceFeeCap...)
+	amt, err := r.ToMinCoin(request.ServiceFeeCap...)
 	if err != nil {
 		return "", sdk.Wrap(err)
 	}
@@ -43,7 +43,7 @@ func (r randomClient) Request(request rpc.RandomRequest, baseTx sdk.BaseTx) (str
 		Consumer:      consumer,
 		BlockInterval: request.BlockInterval,
 		Oracle:        request.Oracle,
-		//ServiceFeeCap: amt,
+		ServiceFeeCap: amt,
 	}
 
 	needWatch := request.Callback != nil
@@ -56,14 +56,14 @@ func (r randomClient) Request(request rpc.RandomRequest, baseTx sdk.BaseTx) (str
 		return "", sdk.Wrap(err)
 	}
 
-	requestID := result.Tags.GetValue(tagRequestID)
+	requestID := result.Events.GetValues(tagRequestID, "")
 	if needWatch {
-		_, err := r.SubscribeRandom(requestID, request.Callback)
+		_, err := r.SubscribeRandom(requestID[0], request.Callback)
 		r.Err(err).
-			Str(tagRequestID, requestID).
+			Str(tagRequestID, requestID[0]).
 			Msg("subscribe random failed")
 	}
-	return requestID, nil
+	return requestID[0], nil
 }
 
 func (r randomClient) SubscribeRandom(requestID string,
@@ -81,14 +81,14 @@ func (r randomClient) SubscribeRandom(requestID string,
 		//cancel subscribe
 		unsubscribe(sub1, sub2)
 
-		rand := block.ResultBeginBlock.Tags.GetValue(tagRand(tagRequestID))
+		rand := block.ResultBeginBlock.Events.GetValues(tagRand(tagRequestID), "")
 		r.Debug().
 			Int64("height", block.Block.Height).
 			Str("requestID", requestID).
-			Str("random", rand).
+			Str("random", rand[0]).
 			Msg("received random result")
 
-		callback(requestID, rand, nil)
+		callback(requestID, rand[0], nil)
 	})
 
 	txBuilder := sdk.NewEventQueryBuilder().
@@ -98,14 +98,14 @@ func (r randomClient) SubscribeRandom(requestID string,
 		//cancel subscribe
 		unsubscribe(sub1, sub2)
 
-		rand := tx.Result.Tags.GetValue(tagRand(tagRequestID))
+		rand := tx.Result.Events.GetValues(tagRand(tagRequestID), "")
 		r.Debug().
 			Int64("height", tx.Height).
 			Str("requestID", requestID).
-			Str("random", rand).
+			Str("random", rand[0]).
 			Msg("received random result")
 
-		callback(requestID, rand, nil)
+		callback(requestID, rand[0], nil)
 	})
 	return sub1, err
 }

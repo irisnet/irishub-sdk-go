@@ -593,9 +593,9 @@ func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(unbondingDelegation{}, "irishub/stake/UnbondingDelegation")
 	cdc.RegisterConcrete(redelegation{}, "irishub/stake/Redelegation")
 
-	cdc.RegisterConcrete(MsgCreateValidator{}, "irishub/stake/MsgCreateValidator")
-	cdc.RegisterConcrete(MsgEditValidator{}, "irishub/stake/MsgEditValidator")
-	cdc.RegisterConcrete(MsgDelegate{}, "irishub/stake/MsgDelegate")
-	cdc.RegisterConcrete(MsgUndelegate{}, "irishub/stake/BeginUnbonding") //TODO
-	cdc.RegisterConcrete(MsgBeginRedelegate{}, "irishub/stake/BeginRedelegate")
+	cdc.RegisterConcrete(MsgCreateValidator{}, "cosmos-sdk/MsgCreateValidator")
+	cdc.RegisterConcrete(MsgEditValidator{}, "cosmos-sdk/MsgEditValidator")
+	cdc.RegisterConcrete(MsgDelegate{}, "cosmos-sdk/MsgDelegate")
+	cdc.RegisterConcrete(MsgUndelegate{}, "cosmos-sdk/MsgUndelegate") //TODO
+	cdc.RegisterConcrete(MsgBeginRedelegate{}, "cosmos-sdk/MsgBeginRedelegate")
 }

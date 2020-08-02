@@ -115,7 +115,7 @@ func (d distributionClient) WithdrawRewards(isValidator bool, onlyFromValidator 
 	var msgs []sdk.Msg
 	switch {
 	case isValidator:
-		msgs = append(msgs, MsgWithdrawValidatorRewardsAll{
+		msgs = append(msgs, MsgWithdrawValidatorCommission{
 			ValidatorAddr: sdk.ValAddress(delegator.Bytes()),
 		})
 

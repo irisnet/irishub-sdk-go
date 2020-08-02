@@ -75,6 +75,7 @@ func (base *baseClient) buildTx(msg []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *sdk.
 		Strs("data", tx.GetSignBytes()).
 		Msg("sign transaction success")
 
+	// TODO is this correct??
 	txByte, err := base.cdc.MarshalBinaryLengthPrefixed(tx)
 	if err != nil {
 		return nil, ctx, sdk.Wrap(err)
@@ -130,9 +131,9 @@ func (base baseClient) broadcastTxCommit(tx []byte) (sdk.ResultTx, sdk.Error) {
 	return sdk.ResultTx{
 		GasWanted: res.DeliverTx.GasWanted,
 		GasUsed:   res.DeliverTx.GasUsed,
-		//Tags:      sdk.ParseTags(res.DeliverTx.Tags),
-		Hash:   res.Hash.String(),
-		Height: res.Height,
+		Events:    sdk.ParseEvents(res.DeliverTx.Events),
+		Hash:      res.Hash.String(),
+		Height:    res.Height,
 	}, nil
 }
 

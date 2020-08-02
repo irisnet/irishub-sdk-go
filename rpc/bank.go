@@ -11,7 +11,7 @@ type Bank interface {
 	QueryAccount(address string) (sdk.BaseAccount, sdk.Error)
 	QueryTokenStats(tokenID string) (TokenStats, sdk.Error)
 	QueryTotalSupply() (sdk.Coins, sdk.Error)
-	Send(to string, amount sdk.Coins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	Send(to string, amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 	MultiSend(receipts Receipts, baseTx sdk.BaseTx) ([]sdk.ResultTx, sdk.Error)
 	Burn(amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 	SetMemoRegexp(memoRegexp string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
