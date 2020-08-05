@@ -606,7 +606,7 @@ func ParseDecCoin(coinStr string) (coin DecCoin, err error) {
 		return DecCoin{}, fmt.Errorf("invalid decimal coin expression: %s", coinStr)
 	}
 
-	amountStr, denomStr := matches[1], matches[2]
+	amountStr, denomStr := matches[1], matches[3]
 
 	amount, err := NewDecFromStr(amountStr)
 	if err != nil {

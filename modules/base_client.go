@@ -245,7 +245,6 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
 	ctx.WithCodec(base.cdc).
 		WithChainID(base.cfg.ChainID).
 		WithKeyManager(base.KeyManager).
-		WithNetwork(base.cfg.Network).
 		WithMode(base.cfg.Mode).
 		WithSimulate(false).
 		WithGas(base.cfg.Gas)
@@ -271,10 +270,12 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.TxContext, error) {
 		}
 		ctx.WithFee(fees)
 	} else {
-		fees, err := base.ToMinCoin(base.cfg.Fee...)
+		//fees, err := base.ToMinCoin(base.cfg.Fee...)
 		if err != nil {
 			panic(err)
 		}
+		// TODO test
+		fees, _ := sdk.ParseCoins("1stake")
 		ctx.WithFee(fees)
 	}
 

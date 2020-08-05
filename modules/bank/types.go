@@ -32,9 +32,9 @@ func init() {
 
 // MsgSend - high level transaction of the coin module
 type MsgSend struct {
-	FromAddress types.AccAddress `protobuf:"bytes,1,opt,name=from_address,json=fromAddress,proto3,casttype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"from_address,omitempty" yaml:"from_address"`
-	ToAddress   types.AccAddress `protobuf:"bytes,2,opt,name=to_address,json=toAddress,proto3,casttype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"to_address,omitempty" yaml:"to_address"`
-	Amount      types.Coins      `protobuf:"bytes,3,rep,name=amount,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"amount"`
+	FromAddress types.AccAddress `json:"from_address"`
+	ToAddress   types.AccAddress `json:"to_address"`
+	Amount      types.Coins      `json:"amount"`
 }
 
 type MsgMultiSend struct {

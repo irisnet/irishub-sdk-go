@@ -19,6 +19,7 @@ const (
 	chainID = "test"
 	network = types.Mainnet
 	mode    = types.Commit
+	fee     = "1stake"
 	gas     = 20000
 
 	letterBytes   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -55,12 +56,18 @@ func GetMock() *MockClient {
 }
 
 func newMockClient() MockClient {
+	fees, err := types.ParseDecCoins(fee)
+	if err != nil {
+		panic(err)
+	}
+
 	path := filepath.Join(getPWD(), "test")
 	c := sdk.NewClient(types.ClientConfig{
 		NodeURI:   nodeURI,
 		Network:   network,
 		ChainID:   chainID,
 		Gas:       gas,
+		Fee:       fees,
 		KeyDAO:    types.NewMemoryDB(), //default keybase
 		Mode:      mode,
 		StoreType: types.PrivKey,

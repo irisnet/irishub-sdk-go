@@ -45,7 +45,6 @@ var (
 	_ sdk.Msg = MsgKillRequestContext{}
 	_ sdk.Msg = MsgUpdateRequestContext{}
 	_ sdk.Msg = MsgWithdrawEarnedFees{}
-	_ sdk.Msg = MsgWithdrawTax{}
 
 	cdc = sdk.NewAminoCodec()
 )
@@ -928,16 +927,6 @@ func registerCodec(cdc sdk.Codec) {
 	cdc.RegisterConcrete(&MsgKillRequestContext{}, "irismod/service/MsgKillRequestContext")
 	cdc.RegisterConcrete(&MsgUpdateRequestContext{}, "irismod/service/MsgUpdateRequestContext")
 	cdc.RegisterConcrete(&MsgWithdrawEarnedFees{}, "irismod/service/MsgWithdrawEarnedFees")
-
-	//cdc.RegisterConcrete(MsgWithdrawTax{}, "irismod/service/MsgWithdrawTax")
-	//cdc.RegisterConcrete(serviceDefinition{}, "irismod/service/ServiceDefinition")
-	//cdc.RegisterConcrete(serviceBinding{}, "irismod/service/ServiceBinding")
-	//cdc.RegisterConcrete(requestContext{}, "irismod/service/RequestContext")
-	//cdc.RegisterConcrete(request{}, "irismod/service/Request")
-	//cdc.RegisterConcrete(response{}, "irismod/service/Response")
-	//cdc.RegisterConcrete(earnedFees{}, "irismod/service/EarnedFees")
-
-	//cdc.RegisterConcrete(&Params{}, "irismod/service/Params")
 }
 
 func actionTagKey(key ...string) sdk.EventKey {

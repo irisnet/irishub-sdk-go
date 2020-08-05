@@ -198,6 +198,29 @@ func (sts *ServiceTestSuite) TestDefineService() {
 	require.NotEmpty(sts.T(), result.Hash)
 }
 
+func (sts *ServiceTestSuite) TestBindService() {
+	pricing := `{"price":"stake"}`
+	baseTx := sdk.BaseTx{
+		From:     sts.Account().Name,
+		Gas:      1000,
+		Memo:     "test",
+		Mode:     sdk.Commit,
+		Password: sts.Account().Password,
+	}
+
+	deposit, err := sdk.ParseDecCoins("2000iris")
+	require.NoError(sts.T(), err)
+	binding := rpc.ServiceBindingRequest{
+		ServiceName: "test0803",
+		Deposit:     deposit,
+		Pricing:     pricing,
+		Qos:         1,
+	}
+	result, err := sts.Service().BindService(binding, baseTx)
+	require.NoError(sts.T(), err)
+	require.NotEmpty(sts.T(), result.Hash)
+}
+
 func (sts *ServiceTestSuite) TestQueryDefinition() {
 	bindings, err := sts.Service().QueryDefinition("assettransfer")
 	fmt.Println(bindings)

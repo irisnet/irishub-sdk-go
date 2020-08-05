@@ -7,18 +7,18 @@ import (
 // TxContext implements a transaction context created in SDK modules.
 type TxContext struct {
 	address       string
+	chainID       string
+	memo          string
+	password      string
 	accountNumber uint64
 	sequence      uint64
-	password      string
+	gas           uint64
 
-	gas        uint64
-	chainID    string
-	memo       string
-	fee        Coins
-	network    Network
-	mode       BroadcastMode
-	simulate   bool
-	codec      Codec
+	fee      Coins
+	mode     BroadcastMode
+	simulate bool
+	codec    Codec
+	//txEncoder    TxEncoder
 	keyManager KeyManager
 }
 
@@ -108,17 +108,6 @@ func (txCtx *TxContext) WithKeyManager(keyManager KeyManager) *TxContext {
 // KeyManager returns keyManager.
 func (txCtx *TxContext) KeyManager() KeyManager {
 	return txCtx.keyManager
-}
-
-// WithNetwork returns a pointer of the context with a Network.
-func (txCtx *TxContext) WithNetwork(network Network) *TxContext {
-	txCtx.network = network
-	return txCtx
-}
-
-// Network returns network.
-func (txCtx *TxContext) Network() Network {
-	return txCtx.network
 }
 
 // WithMode returns a pointer of the context with a Mode.
