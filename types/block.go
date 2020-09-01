@@ -1,18 +1,18 @@
 package types
 
 import (
-	"encoding/base64"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/kv"
+	//"github.com/tendermint/tendermint/libs/kv"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmtypes "github.com/tendermint/tendermint/types"
+	"encoding/json"
 )
 
 type Block struct {
-	tmtypes.Header `json:"header"`
-	Data           `json:"data"`
-	Evidence       tmtypes.EvidenceData `json:"evidence"`
-	LastCommit     *tmtypes.Commit      `json:"last_commit"`
+	tmtypes.Header                  `json:"header"`
+	Data                            `json:"data"`
+	Evidence   tmtypes.EvidenceData `json:"evidence"`
+	LastCommit *tmtypes.Commit      `json:"last_commit"`
 }
 
 type Data struct {
@@ -69,10 +69,12 @@ type ResultEndBlock struct {
 func ParseValidatorUpdate(updates []abci.ValidatorUpdate) []ValidatorUpdate {
 	var vUpdates []ValidatorUpdate
 	for _, v := range updates {
+		data, _ := json.Marshal(v.PubKey.Sum)
 		vUpdates = append(vUpdates, ValidatorUpdate{
 			PubKey: PubKey{
-				Type:  v.PubKey.Type,
-				Value: base64.StdEncoding.EncodeToString(v.PubKey.Data),
+				Sum: string(data),
+				//Type:  v.PubKey.Type,
+				//Value: base64.StdEncoding.EncodeToString(v.PubKey.Data),
 			},
 			Power: v.Power,
 		})
@@ -109,7 +111,7 @@ func ParseBlockEvent(event []abci.Event) []Event {
 	return events
 }
 
-func ParsePair(kvPairs []kv.Pair) []Pair {
+func ParsePair(kvPairs []abci.EventAttribute) []Pair {
 	var pairs = make([]Pair, len(kvPairs))
 	for i, v := range kvPairs {
 		pairs[i] = Pair{

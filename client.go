@@ -73,7 +73,7 @@ func (s *Client) registerModule(modules ...sdk.Module) {
 		m.RegisterCodec(s.Cdc)
 		s.modules[m.Name()] = m
 	}
-	sdk.RegisterCodec(s.Cdc)
+	//sdk.RegisterCodec(s.Cdc)
 }
 
 func (s *Client) Bank() rpc.Bank {

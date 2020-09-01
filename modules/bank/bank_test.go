@@ -23,7 +23,7 @@ func (bts *BankTestSuite) SetupTest() {
 }
 
 func (bts BankTestSuite) TestGetAccount() {
-	acc, err := bts.Bank().QueryAccount("iaa1lhjw88yzxwwjafwdz5ztc0fkxrn3atzr7gfjtm")
+	acc, err := bts.Bank().QueryAccount("iaa1na97nt5xfndqph0y98jeq640fzqwhujjzfyjq8")
 	fmt.Println(acc)
 	require.NoError(bts.T(), err)
 	require.NotEmpty(bts.T(), acc)

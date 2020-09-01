@@ -35,7 +35,7 @@ func (base baseClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int) 
 		return sdk.ResultSearchTxs{}, errors.New("must declare at least one tag to search")
 	}
 
-	res, err := base.TxSearch(query, true, page, size, "asc")
+	res, err := base.TxSearch(query, true, &page, &size, "asc")
 	if err != nil {
 		return sdk.ResultSearchTxs{}, err
 	}

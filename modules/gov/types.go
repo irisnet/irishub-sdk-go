@@ -195,7 +195,7 @@ func (msg MsgVote) GetSigners() []sdk.AccAddress {
 }
 
 // Type that represents VoteOption as a byte
-type VoteOption byte
+type VoteOption int32
 
 //nolint
 const (
@@ -264,14 +264,14 @@ func (t tallyResult) Convert() interface{} {
 type vote struct {
 	Voter      sdk.AccAddress `json:"voter"`       //  address of the voter
 	ProposalID uint64         `json:"proposal_id"` //  proposalID of the proposal
-	Option     string         `json:"option"`      //  option from OptionSet chosen by the voter
+	Option     VoteOption     `json:"option"`      //  option from OptionSet chosen by the voter
 }
 
 func (v vote) Convert() interface{} {
 	return rpc.Vote{
 		Voter:      v.Voter.String(),
 		ProposalID: v.ProposalID,
-		Option:     v.Option,
+		Option:     v.Option.String(),
 	}
 }
 

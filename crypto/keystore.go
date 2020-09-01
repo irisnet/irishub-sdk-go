@@ -45,9 +45,9 @@ func (m *keyManager) recoveryFromKeyStore(keystore string, auth string) error {
 	if len(keyBytes) != 32 {
 		return fmt.Errorf("Len of Keybytes is not equal to 32 ")
 	}
-	var keyBytesArray [32]byte
-	copy(keyBytesArray[:], keyBytes[:32])
-	m.privKey = secp256k1.PrivKeySecp256k1(keyBytesArray)
+	var keyBytesArray []byte
+	copy(keyBytesArray, keyBytes[:32])
+	m.privKey = secp256k1.PrivKey(keyBytesArray)
 	return nil
 }
 
@@ -63,7 +63,7 @@ func generateKeyStore(privateKey crypto.PrivKey, password string) (Keystore, err
 
 	derivedKey := pbkdf2.Key([]byte(password), salt, 262144, 32, sha256.New)
 	encryptKey := derivedKey[:16]
-	secpPrivateKey, ok := privateKey.(secp256k1.PrivKeySecp256k1)
+	secpPrivateKey, ok := privateKey.(secp256k1.PrivKey)
 	if !ok {
 		return Keystore{}, fmt.Errorf(" Only PrivKeySecp256k1 key is supported ")
 	}
