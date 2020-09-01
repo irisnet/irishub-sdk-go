@@ -4,8 +4,9 @@ import (
 	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/crypto/multisig"
+	//"github.com/tendermint/tendermint/crypto/multisig"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
+	"github.com/tendermint/tendermint/crypto/sr25519"
 )
 
 var codec Codec
@@ -55,18 +56,22 @@ func RegisterCodec(cdc Codec) {
 	cdc.RegisterConcrete(StdTx{}, "irishub/bank/StdTx")
 	// These are all written here instead of
 	cdc.RegisterInterface((*crypto.PubKey)(nil))
-	cdc.RegisterConcrete(ed25519.PubKeyEd25519{},
-		ed25519.PubKeyAminoName)
-	cdc.RegisterConcrete(secp256k1.PubKeySecp256k1{},
-		secp256k1.PubKeyAminoName)
-	cdc.RegisterConcrete(multisig.PubKeyMultisigThreshold{},
-		multisig.PubKeyMultisigThresholdAminoRoute)
+	cdc.RegisterConcrete(ed25519.PubKey{},
+		ed25519.PubKeyName)
+	cdc.RegisterConcrete(sr25519.PubKey{},
+		sr25519.PubKeyName)
+	cdc.RegisterConcrete(secp256k1.PubKey{},
+		secp256k1.PubKeyName)
+	//cdc.RegisterConcrete(multisig.PubKeyMultisigThreshold{},
+	//	multisig.PubKeyMultisigThresholdAminoRoute)
 
 	cdc.RegisterInterface((*crypto.PrivKey)(nil))
-	cdc.RegisterConcrete(ed25519.PrivKeyEd25519{},
-		ed25519.PrivKeyAminoName)
-	cdc.RegisterConcrete(secp256k1.PrivKeySecp256k1{},
-		secp256k1.PrivKeyAminoName)
+	cdc.RegisterConcrete(ed25519.PrivKey{},
+		ed25519.PubKeyName)
+	cdc.RegisterConcrete(secp256k1.PrivKey{},
+		secp256k1.PubKeyName)
+	cdc.RegisterConcrete(sr25519.PrivKey{},
+		sr25519.PubKeyName)
 
 	cdc.RegisterInterface((*Store)(nil))
 	cdc.RegisterConcrete(PrivKeyInfo{}, "sdk/PrivKeyInfo")

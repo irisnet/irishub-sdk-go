@@ -6,6 +6,7 @@ import (
 	"github.com/irisnet/irishub-sdk-go/rpc"
 
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"fmt"
 )
 
 var (
@@ -38,8 +39,8 @@ func (ps proposals) Convert() interface{} {
 
 // Basic proposals
 type BasicProposal struct {
-	ProposalID      string      `json:"id"`                 //  ID of the proposal
-	Status          string      `json:"status"`             //  Status of the proposal {Pending, Active, Passed, Rejected}
+	ProposalID      string      `json:"proposal_id"`        //  ID of the proposal
+	Status          int32       `json:"status"`             //  Status of the proposal {Pending, Active, Passed, Rejected}
 	TallyResult     tallyResult `json:"final_tally_result"` //  Result of Tallys
 	SubmitTime      time.Time   `json:"submit_time"`        //  Time of the block where TxGovSubmitProposal was included
 	DepositEndTime  time.Time   `json:"deposit_end_time"`   // Time that the proposal would expire if deposit amount isn't met
@@ -53,7 +54,7 @@ func (b BasicProposal) GetProposalID() string {
 }
 
 func (b BasicProposal) GetStatus() string {
-	return b.Status
+	return fmt.Sprint(b.Status)
 }
 
 func (b BasicProposal) GetTallyResult() tallyResult {
@@ -83,7 +84,7 @@ func (b BasicProposal) GetVotingEndTime() time.Time {
 func (b BasicProposal) Convert() interface{} {
 	return rpc.BasicProposal{
 		ProposalID: b.ProposalID,
-		Status:     b.Status,
+		Status:     fmt.Sprint(b.Status),
 		TallyResult: rpc.TallyResult{
 			Yes:        b.TallyResult.Yes,
 			Abstain:    b.TallyResult.Abstain,

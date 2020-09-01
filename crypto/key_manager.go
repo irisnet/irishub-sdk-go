@@ -59,7 +59,7 @@ func (m *keyManager) ExportAsMnemonic() (string, error) {
 }
 
 func (m *keyManager) ExportAsPrivateKey() (string, error) {
-	secpPrivateKey, ok := m.privKey.(secp256k1.PrivKeySecp256k1)
+	secpPrivateKey, ok := m.privKey.(secp256k1.PrivKey)
 	if !ok {
 		return "", fmt.Errorf(" Only PrivKeySecp256k1 key is supported ")
 	}
@@ -89,7 +89,7 @@ func (m *keyManager) recoveryFromMnemonic(mnemonic, keyPath string) error {
 	if err != nil {
 		return err
 	}
-	priKey := secp256k1.PrivKeySecp256k1(derivedPriv)
+	priKey := secp256k1.PrivKey(derivedPriv)
 	if err != nil {
 		return err
 	}
@@ -107,9 +107,9 @@ func (m *keyManager) recoveryFromPrivateKey(privateKey string) error {
 	if len(priBytes) != 32 {
 		return fmt.Errorf("Len of Keybytes is not equal to 32 ")
 	}
-	var keyBytesArray [32]byte
-	copy(keyBytesArray[:], priBytes[:32])
-	priKey := secp256k1.PrivKeySecp256k1(keyBytesArray)
+	var keyBytesArray []byte
+	copy(keyBytesArray, priBytes[:32])
+	priKey := secp256k1.PrivKey(keyBytesArray)
 	m.privKey = priKey
 	return nil
 }

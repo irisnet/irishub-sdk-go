@@ -73,7 +73,9 @@ func (t tmClient) SearchTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk
 }
 
 func (t tmClient) QueryValidators(height int64) (rpc.ResultValidators, sdk.Error) {
-	rs, err := t.Validators(&height, 0, 100)
+	page := 1
+	perPage := 0
+	rs, err := t.Validators(&height, &page, &perPage)
 	if err != nil {
 		return rpc.ResultValidators{}, sdk.Wrap(err)
 	}

@@ -131,9 +131,17 @@ type ValidatorUpdate struct {
 }
 
 type PubKey struct {
-	Type  string `json:"type"`
-	Value string `json:"value"`
+	//Type  string `json:"type"`
+	//Value string `json:"value"`
+	Sum string `json:"sum"`
 }
+
+//// PublicKey defines the keys available for use with Tendermint Validators
+//type PublicKey struct {
+//	// Types that are valid to be assigned to Sum:
+//	//	*PublicKey_Ed25519
+//	Sum isPublicKey_Sum `protobuf_oneof:"sum"`
+//}
 
 type EventNewBlockHandler func(EventDataNewBlock)
 

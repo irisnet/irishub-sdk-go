@@ -6,11 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	cryptoAmino "github.com/tendermint/tendermint/crypto/encoding/amino"
 
 	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/irisnet/irishub-sdk-go/utils/bech32"
+	"github.com/tendermint/go-amino"
 )
 
 const (
@@ -312,7 +312,7 @@ func GetConsPubKeyBech32(pubkey string) (pk crypto.PubKey, err error) {
 		return nil, err
 	}
 
-	pk, err = cryptoAmino.PubKeyFromBytes(bz)
+	pk, err = PubKeyFromBytes(bz)
 	if err != nil {
 		return nil, err
 	}
@@ -336,4 +336,10 @@ func GetFromBech32(bech32str, prefix string) ([]byte, error) {
 	}
 
 	return bz, nil
+}
+
+// PubKeyFromBytes unmarshals public key bytes and returns a PubKey
+func PubKeyFromBytes(pubKeyBytes []byte) (pubKey crypto.PubKey, err error) {
+	err = amino.UnmarshalBinaryBare(pubKeyBytes, &pubKey)
+	return
 }

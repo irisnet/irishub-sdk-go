@@ -7,6 +7,7 @@ import (
 	"github.com/irisnet/irishub-sdk-go/test"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/stretchr/testify/suite"
+	"fmt"
 )
 
 type DistrTestSuite struct {
@@ -24,9 +25,10 @@ func (dts *DistrTestSuite) SetupTest() {
 }
 
 func (dts *DistrTestSuite) TestQueryRewards() {
-	r, err := dts.Distr().QueryRewards("iva1x98k5n7xj0h3udnf5dcdzw85tsfa75qm682jtg")
+	res, err := dts.Distr().QueryRewards("iva1na97nt5xfndqph0y98jeq640fzqwhujjhcwaaq")
 	require.NoError(dts.T(), err)
-	require.NotEmpty(dts.T(), r)
+	require.NotEmpty(dts.T(), res)
+	fmt.Println(res)
 }
 
 func (dts *DistrTestSuite) TestSetWithdrawAddr() {
@@ -55,16 +57,19 @@ func (dts *DistrTestSuite) TestWithdrawRewards() {
 	rs, err := dts.Distr().WithdrawRewards(true, "", baseTx)
 	require.NoError(dts.T(), err)
 	require.NotEmpty(dts.T(), rs.Hash)
+	fmt.Println(rs)
 }
 
 func (dts *DistrTestSuite) TestQueryWithdrawAddr() {
-	res, err := dts.Distr().QueryWithdrawAddr("iva13rtezlhpqms02syv27zc0lqc5nt3z4lcnn820h")
+	res, err := dts.Distr().QueryWithdrawAddr("iva1na97nt5xfndqph0y98jeq640fzqwhujjhcwaaq")
 	require.NoError(dts.T(), err)
 	require.NotEmpty(dts.T(), res)
+	fmt.Println(res)
 }
 
 func (dts *DistrTestSuite) TestQueryCommission() {
-	res, err := dts.Distr().QueryCommission("iva1x98k5n7xj0h3udnf5dcdzw85tsfa75qm682jtg")
+	res, err := dts.Distr().QueryCommission("iva1na97nt5xfndqph0y98jeq640fzqwhujjhcwaaq")
 	require.NoError(dts.T(), err)
 	require.NotEmpty(dts.T(), res)
+	fmt.Println(res)
 }

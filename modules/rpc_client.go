@@ -151,7 +151,7 @@ func (r rpcClient) parseTx(data sdk.EventData) sdk.EventDataTx {
 	if err := r.cdc.UnmarshalBinaryBare(tx.Tx, &stdTx); err != nil {
 		return sdk.EventDataTx{}
 	}
-	hash := bytes.HexBytes(tx.Tx.Hash()).String()
+	hash := bytes.HexBytes(tx.GetTx()).String()
 	result := sdk.TxResult{
 		Code:      tx.Result.Code,
 		Log:       tx.Result.Log,
