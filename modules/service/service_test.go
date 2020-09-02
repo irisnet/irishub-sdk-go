@@ -178,14 +178,14 @@ loop:
 }
 
 func (sts *ServiceTestSuite) TestQueryBindings() {
-	bindings, err := sts.Service().QueryBindings("assettransfer")
+	bindings, err := sts.Service().QueryBindings("DataAuthorization")
 	fmt.Println(bindings)
 	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), bindings)
 }
 
 func (sts *ServiceTestSuite) TestQueryRequestContext() {
-	context, err := sts.Service().QueryRequestContext("45250196BDEC63B4F0E8C4511213B45A9F5987CDF43B2FEE8D3EF9EB1342DDA70000000000000000")
+	context, err := sts.Service().QueryRequestContext("17BBED2C3AE10F63B45FD72E194A9697431AA546EAA16B05A297A43B92182AB20000000000000000")
 	fmt.Println(context)
 	require.NoError(sts.T(), err)
 	require.NotEmpty(sts.T(), context)

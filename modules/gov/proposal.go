@@ -39,7 +39,7 @@ func (ps proposals) Convert() interface{} {
 
 // Basic proposals
 type BasicProposal struct {
-	ProposalID      string      `json:"proposal_id"`        //  ID of the proposal
+	ProposalID      string      `json:"id"`                 //  ID of the proposal
 	Status          int32       `json:"status"`             //  Status of the proposal {Pending, Active, Passed, Rejected}
 	TallyResult     tallyResult `json:"final_tally_result"` //  Result of Tallys
 	SubmitTime      time.Time   `json:"submit_time"`        //  Time of the block where TxGovSubmitProposal was included

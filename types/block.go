@@ -2,10 +2,9 @@ package types
 
 import (
 	abci "github.com/tendermint/tendermint/abci/types"
-	//"github.com/tendermint/tendermint/libs/kv"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"encoding/json"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 )
 
 type Block struct {
@@ -69,13 +68,9 @@ type ResultEndBlock struct {
 func ParseValidatorUpdate(updates []abci.ValidatorUpdate) []ValidatorUpdate {
 	var vUpdates []ValidatorUpdate
 	for _, v := range updates {
-		data, _ := json.Marshal(v.PubKey.Sum)
+		//data, _ := json.Marshal(v.PubKey.Sum)
 		vUpdates = append(vUpdates, ValidatorUpdate{
-			PubKey: PubKey{
-				Sum: string(data),
-				//Type:  v.PubKey.Type,
-				//Value: base64.StdEncoding.EncodeToString(v.PubKey.Data),
-			},
+			PubKey: ed25519.PubKey(v.PubKey.GetEd25519()),
 			Power: v.Power,
 		})
 	}
@@ -156,13 +151,13 @@ func ParseBlockResult(res *ctypes.ResultBlockResults) BlockResult {
 func ParseValidators(vs []*tmtypes.Validator) []Validator {
 	var validators = make([]Validator, len(vs))
 	for i, v := range vs {
-		var pubKey PubKey
-		if bz, err := codec.MarshalJSON(v.PubKey); err == nil {
-			_ = codec.UnmarshalJSON(bz, &pubKey)
-		}
+		address, _ := AccAddressFromHex(v.Address.String())
+		//if bz, err := codec.MarshalJSON(v.PubKey); err == nil {
+		//	_ = codec.UnmarshalJSON(bz, &pubKey)
+		//}
 		validators[i] = Validator{
-			Address:          v.Address.String(),
-			PubKey:           pubKey,
+			Address:          address.String(),
+			PubKey:           ed25519.PubKey(v.PubKey.Bytes()),
 			VotingPower:      v.VotingPower,
 			ProposerPriority: v.ProposerPriority,
 		}

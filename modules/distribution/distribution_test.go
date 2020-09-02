@@ -40,7 +40,7 @@ func (dts *DistrTestSuite) TestSetWithdrawAddr() {
 		Password: dts.Account().Password,
 	}
 
-	rs, err := dts.Distr().SetWithdrawAddr(dts.Account().Address.String(), baseTx)
+	rs, err := dts.Distr().SetWithdrawAddr("iaa1t3a58549t28wr6agk6knww5qlch3edt69uefja", baseTx)
 	require.NoError(dts.T(), err)
 	require.NotEmpty(dts.T(), rs.Hash)
 }
