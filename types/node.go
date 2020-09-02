@@ -4,6 +4,7 @@ import (
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	"github.com/tendermint/tendermint/types"
 	"time"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 )
 
 //=========================================Node Status==============================================================================================
@@ -44,7 +45,7 @@ type SyncInfo struct {
 // Info about the node's validator
 type ValidatorInfo struct {
 	Address     string `json:"address"`
-	PubKey      PubKey `json:"pub_key"`
+	PubKey      ed25519.PubKey `json:"pub_key"`
 	VotingPower int64  `json:"voting_power"`
 }
 
@@ -91,13 +92,13 @@ func ParseNodeStatus(rs *ctypes.ResultStatus) ResultStatus {
 		CatchingUp: rs.SyncInfo.CatchingUp,
 	}
 
-	var pubKey PubKey
-	if bz, err := codec.MarshalJSON(rs.ValidatorInfo.PubKey); err == nil {
-		_ = codec.UnmarshalJSON(bz, &pubKey)
-	}
+	//var pubKey PubKey
+	//if bz, err := codec.MarshalJSON(rs.ValidatorInfo.PubKey); err == nil {
+	//	_ = codec.UnmarshalJSON(bz, &pubKey)
+	//}
 	validatorInfo := ValidatorInfo{
 		Address:     rs.ValidatorInfo.Address.String(),
-		PubKey:      pubKey,
+		PubKey:      ed25519.PubKey(rs.ValidatorInfo.PubKey.Bytes()),
 		VotingPower: rs.ValidatorInfo.VotingPower,
 	}
 	return ResultStatus{
@@ -158,7 +159,7 @@ type EvidenceParams struct {
 // GenesisValidator is an initial validator.
 type GenesisValidator struct {
 	Address string `json:"address"`
-	PubKey  PubKey `json:"pub_key"`
+	PubKey  ed25519.PubKey `json:"pub_key"`
 	Power   int64  `json:"power"`
 	Name    string `json:"name"`
 }
@@ -181,13 +182,13 @@ func ParseGenesis(g *types.GenesisDoc) GenesisDoc {
 
 	validators := make([]GenesisValidator, 0)
 	for _, v := range g.Validators {
-		var pubKey PubKey
-		if bz, err := codec.MarshalJSON(v.PubKey); err == nil {
-			_ = codec.UnmarshalJSON(bz, &pubKey)
-		}
+		//var pubKey PubKey
+		//if bz, err := codec.MarshalJSON(v.PubKey); err == nil {
+		//	_ = codec.UnmarshalJSON(bz, &pubKey)
+		//}
 		validators = append(validators, GenesisValidator{
 			Address: v.Address.String(),
-			PubKey:  pubKey,
+			PubKey:  ed25519.PubKey(v.PubKey.Bytes()),
 			Power:   v.Power,
 			Name:    v.Name,
 		})

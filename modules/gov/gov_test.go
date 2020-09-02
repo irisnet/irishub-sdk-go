@@ -23,14 +23,13 @@ func (gts *GovTestSuite) SetupTest() {
 }
 
 func (gts *GovTestSuite) TestQueryVoters() {
-	votes, err := gts.Gov().QueryVotes(1)
+	votes, err := gts.Gov().QueryVotes(2)
 	require.NoError(gts.T(), err)
 	fmt.Println(votes)
 }
 
 func (gts *GovTestSuite) TestQueryProposal() {
-	proposal, err := gts.Gov().QueryProposal(1)
-	fmt.Println(proposal)
+	proposal, err := gts.Gov().QueryProposal(2)
+	fmt.Printf("%+v\n",proposal)
 	require.NoError(gts.T(), err)
-	fmt.Println(proposal)
 }

@@ -40,6 +40,19 @@ func MustAccAddressFromBech32(address string) AccAddress {
 	}
 	return addr
 }
+// AccAddressFromHex creates an AccAddress from a hex string.
+func AccAddressFromHex(address string) (addr AccAddress, err error) {
+	if len(address) == 0 {
+		return addr, errors.New("decoding Bech32 address failed: must provide an address")
+	}
+
+	bz, err := hex.DecodeString(address)
+	if err != nil {
+		return nil, err
+	}
+
+	return AccAddress(bz), nil
+}
 
 // String implements the Stringer interface.
 func (aa AccAddress) String() string {

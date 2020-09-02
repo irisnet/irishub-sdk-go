@@ -10,6 +10,7 @@ import (
 	tmclient "github.com/tendermint/tendermint/rpc/client"
 
 	tmtypes "github.com/tendermint/tendermint/types"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 )
 
 const (
@@ -126,15 +127,13 @@ type EventDataNewBlock struct {
 }
 
 type ValidatorUpdate struct {
-	PubKey PubKey `json:"pub_key"`
-	Power  int64  `json:"power"`
+	PubKey ed25519.PubKey `json:"pub_key"`
+	Power  int64          `json:"power"`
 }
 
-type PubKey struct {
-	//Type  string `json:"type"`
-	//Value string `json:"value"`
-	Sum string `json:"sum"`
-}
+//type PubKey struct {
+//	Sum string `json:"sum"`
+//}
 
 //// PublicKey defines the keys available for use with Tendermint Validators
 //type PublicKey struct {
@@ -157,10 +156,10 @@ type EventNewBlockHeaderHandler func(EventDataNewBlockHeader)
 
 // Volatile state for each Validator
 type Validator struct {
-	Address          string `json:"address"`
-	PubKey           PubKey `json:"pub_key"`
-	VotingPower      int64  `json:"voting_power"`
-	ProposerPriority int64  `json:"proposer_priority"`
+	Address          string         `json:"address"`
+	PubKey           ed25519.PubKey `json:"pub_key"`
+	VotingPower      int64          `json:"voting_power"`
+	ProposerPriority int64          `json:"proposer_priority"`
 }
 
 type EventDataValidatorSetUpdates struct {
