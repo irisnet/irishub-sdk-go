@@ -2,44 +2,44 @@ package sdk
 
 import (
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/modules/htlc"
-	"github.com/irisnet/irishub-sdk-go/modules/params"
+	"github.com/irisnet/irishub-sdk-go/modules/original"
+	"github.com/irisnet/irishub-sdk-go/modules/original/htlc"
+	"github.com/irisnet/irishub-sdk-go/modules/original/params"
+	original2 "github.com/irisnet/irishub-sdk-go/types/original"
 	"io"
 
-	"github.com/irisnet/irishub-sdk-go/modules"
-	"github.com/irisnet/irishub-sdk-go/modules/asset"
-	"github.com/irisnet/irishub-sdk-go/modules/bank"
-	"github.com/irisnet/irishub-sdk-go/modules/distribution"
-	"github.com/irisnet/irishub-sdk-go/modules/gov"
-	"github.com/irisnet/irishub-sdk-go/modules/keys"
-	"github.com/irisnet/irishub-sdk-go/modules/oracle"
-	"github.com/irisnet/irishub-sdk-go/modules/random"
-	"github.com/irisnet/irishub-sdk-go/modules/service"
-	"github.com/irisnet/irishub-sdk-go/modules/slashing"
-	"github.com/irisnet/irishub-sdk-go/modules/staking"
-	"github.com/irisnet/irishub-sdk-go/modules/tendermint"
+	"github.com/irisnet/irishub-sdk-go/modules/original/asset"
+	"github.com/irisnet/irishub-sdk-go/modules/original/bank"
+	"github.com/irisnet/irishub-sdk-go/modules/original/distribution"
+	"github.com/irisnet/irishub-sdk-go/modules/original/gov"
+	"github.com/irisnet/irishub-sdk-go/modules/original/keys"
+	"github.com/irisnet/irishub-sdk-go/modules/original/oracle"
+	"github.com/irisnet/irishub-sdk-go/modules/original/random"
+	"github.com/irisnet/irishub-sdk-go/modules/original/service"
+	"github.com/irisnet/irishub-sdk-go/modules/original/slashing"
+	"github.com/irisnet/irishub-sdk-go/modules/original/staking"
+	"github.com/irisnet/irishub-sdk-go/modules/original/tendermint"
 	"github.com/irisnet/irishub-sdk-go/rpc"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/utils/log"
 )
 
 type Client struct {
-	Cdc     sdk.Codec
-	modules map[string]sdk.Module
+	Cdc     original2.Codec
+	modules map[string]original2.Module
 	logger  *log.Logger
 
-	sdk.WSClient
-	sdk.TxManager
-	sdk.TokenConvert
+	original2.WSClient
+	original2.TxManager
+	original2.TokenConvert
 }
 
-func NewClient(cfg sdk.ClientConfig) Client {
-	cdc := sdk.NewAminoCodec()
-	baseClient := modules.NewBaseClient(cdc, cfg)
+func NewClient(cfg original2.ClientConfig) Client {
+	cdc := original2.NewAminoCodec()
+	baseClient := original.NewBaseClient(cdc, cfg)
 
 	client := &Client{
 		Cdc:          cdc,
-		modules:      make(map[string]sdk.Module),
+		modules:      make(map[string]original2.Module),
 		logger:       baseClient.Logger(),
 		WSClient:     baseClient.TmClient,
 		TxManager:    baseClient,
@@ -65,7 +65,7 @@ func NewClient(cfg sdk.ClientConfig) Client {
 	return *client
 }
 
-func (s *Client) registerModule(modules ...sdk.Module) {
+func (s *Client) registerModule(modules ...original2.Module) {
 	for _, m := range modules {
 		if _, existed := s.modules[m.Name()]; existed {
 			panic(fmt.Sprintf("module[%s] has existed", m.Name()))
@@ -73,7 +73,7 @@ func (s *Client) registerModule(modules ...sdk.Module) {
 		m.RegisterCodec(s.Cdc)
 		s.modules[m.Name()] = m
 	}
-	sdk.RegisterCodec(s.Cdc)
+	original2.RegisterCodec(s.Cdc)
 }
 
 func (s *Client) Bank() rpc.Bank {

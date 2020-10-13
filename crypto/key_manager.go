@@ -1,13 +1,17 @@
 package crypto
 
 import (
-	"encoding/hex"
 	"fmt"
 	"strings"
 
-	"github.com/cosmos/go-bip39"
+	"github.com/pkg/errors"
+
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
+
+	"github.com/cosmos/go-bip39"
+
+	cryptoAmino "github.com/irisnet/irishub-sdk-go/crypto/codec"
+	"github.com/irisnet/irishub-sdk-go/crypto/hd"
 )
 
 const (
@@ -15,31 +19,25 @@ const (
 )
 
 type KeyManager interface {
+	Generate() (string, crypto.PrivKey)
 	Sign(data []byte) ([]byte, error)
-	GetPrivKey() crypto.PrivKey
-	ExportAsMnemonic() (string, error)
-	ExportAsPrivateKey() (string, error)
-	ExportAsKeystore(password string) (Keystore, error)
+
+	ExportPrivKey(password string) (armor string, err error)
+	ImportPrivKey(armor, passphrase string) (crypto.PrivKey, string, error)
+
+	ExportPubKey() crypto.PubKey
 }
 
 type keyManager struct {
-	privKey  crypto.PrivKey
-	mnemonic string
+	privKey        crypto.PrivKey
+	mnemonic, algo string
 }
 
-func NewMnemonicKeyManager(mnemonic string) (KeyManager, error) {
-	k := keyManager{}
-	err := k.recoveryFromMnemonic(mnemonic, FullPath)
-	return &k, err
+func NewKeyManager() KeyManager {
+	return &keyManager{}
 }
 
-func NewPrivateKeyManager(priKey string) (KeyManager, error) {
-	k := keyManager{}
-	err := k.recoveryFromPrivateKey(priKey)
-	return &k, err
-}
-
-func NewKeyManager() (KeyManager, error) {
+func NewAlgoKeyManager(algo string) (KeyManager, error) {
 	entropy, err := bip39.NewEntropy(256)
 	if err != nil {
 		return nil, err
@@ -48,68 +46,76 @@ func NewKeyManager() (KeyManager, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewMnemonicKeyManager(mnemonic)
+	return NewMnemonicKeyManager(mnemonic, algo)
 }
 
-func (m *keyManager) ExportAsMnemonic() (string, error) {
-	if m.mnemonic == "" {
-		return "", fmt.Errorf("This key manager is not recover from mnemonic or anto generated ")
+func NewMnemonicKeyManager(mnemonic string, algo string) (KeyManager, error) {
+	k := keyManager{
+		mnemonic: mnemonic,
+		algo:     algo,
 	}
-	return m.mnemonic, nil
+	err := k.recoveryFromMnemonic(mnemonic, hd.FullPath, algo)
+	return &k, err
 }
 
-func (m *keyManager) ExportAsPrivateKey() (string, error) {
-	secpPrivateKey, ok := m.privKey.(secp256k1.PrivKeySecp256k1)
-	if !ok {
-		return "", fmt.Errorf(" Only PrivKeySecp256k1 key is supported ")
+func NewPrivateKeyManager(priv []byte, algo string) (KeyManager, error) {
+	privKey, err := cryptoAmino.PrivKeyFromBytes(priv)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to decrypt private key")
 	}
-	return hex.EncodeToString(secpPrivateKey[:]), nil
+	k := keyManager{
+		privKey: privKey,
+		algo:    algo,
+	}
+	return &k, err
+}
+
+func (m *keyManager) Generate() (string, crypto.PrivKey) {
+	return m.mnemonic, m.privKey
 }
 
 func (m *keyManager) Sign(data []byte) ([]byte, error) {
 	return m.privKey.Sign(data)
 }
 
-func (m *keyManager) GetPrivKey() crypto.PrivKey {
-	return m.privKey
-}
-
-func (m *keyManager) recoveryFromMnemonic(mnemonic, keyPath string) error {
+func (m *keyManager) recoveryFromMnemonic(mnemonic, hdPath, algoStr string) error {
 	words := strings.Split(mnemonic, " ")
 	if len(words) != 12 && len(words) != 24 {
 		return fmt.Errorf("mnemonic length should either be 12 or 24")
 	}
-	seed, err := bip39.NewSeedWithErrorChecking(mnemonic, defaultBIP39Passphrase)
+
+	algo, err := hd.NewSigningAlgoFromString(algoStr)
 	if err != nil {
 		return err
 	}
-	// create master key and derive first key:
-	masterPriv, ch := ComputeMastersFromSeed(seed)
-	derivedPriv, err := DerivePrivateKeyForPath(masterPriv, ch, keyPath)
+
+	// create master key and derive first key for keyring
+	derivedPriv, err := algo.Derive()(mnemonic, defaultBIP39Passphrase, hdPath)
 	if err != nil {
 		return err
 	}
-	priKey := secp256k1.PrivKeySecp256k1(derivedPriv)
-	if err != nil {
-		return err
-	}
-	m.privKey = priKey
-	m.mnemonic = mnemonic
+
+	privKey := algo.Generate()(derivedPriv)
+	m.privKey = privKey
+	m.algo = algoStr
 	return nil
 }
 
-func (m *keyManager) recoveryFromPrivateKey(privateKey string) error {
-	priBytes, err := hex.DecodeString(privateKey)
+func (m *keyManager) ExportPrivKey(password string) (armor string, err error) {
+	return EncryptArmorPrivKey(m.privKey, password, m.algo), nil
+}
+
+func (m *keyManager) ImportPrivKey(armor, passphrase string) (crypto.PrivKey, string, error) {
+	privKey, algo, err := DecryptArmorPrivKey(armor, passphrase)
 	if err != nil {
-		return err
+		return nil, "", errors.Wrap(err, "failed to decrypt private key")
 	}
 
-	if len(priBytes) != 32 {
-		return fmt.Errorf("Len of Keybytes is not equal to 32 ")
-	}
-	var keyBytesArray [32]byte
-	copy(keyBytesArray[:], priBytes[:32])
-	priKey := secp256k1.PrivKeySecp256k1(keyBytesArray)
-	m.privKey = priKey
-	return nil
+	m.privKey = privKey
+	m.algo = algo
+	return privKey, algo, nil
+}
+
+func (m *keyManager) ExportPubKey() crypto.PubKey {
+	return m.privKey.PubKey()
 }
