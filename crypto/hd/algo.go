@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/sm2"
+	//"github.com/tendermint/tendermint/crypto/sm2"
 
 	"github.com/cosmos/go-bip39"
 
@@ -21,8 +21,8 @@ func NewSigningAlgoFromString(str string) (SignatureAlgo, error) {
 	switch str {
 	case string(Secp256k1.Name()):
 		return Secp256k1, nil
-	case string(Sm2.Name()):
-		return Sm2, nil
+	//case string(Sm2.Name()):
+	//	return Sm2, nil
 	default:
 		return nil, fmt.Errorf("provided algorithm `%s` is not supported", str)
 	}
@@ -114,10 +114,10 @@ func (s sm2Algo) Derive() DeriveFn {
 }
 
 // Generate generates a sm2 private key from the given bytes.
-func (s sm2Algo) Generate() GenerateFn {
-	return func(bz []byte) crypto.PrivKey {
-		var bzArr [sm2.PrivKeySize]byte
-		copy(bzArr[:], bz)
-		return sm2.PrivKeySm2(bzArr)
-	}
-}
+//func (s sm2Algo) Generate() GenerateFn {
+//	return func(bz []byte) crypto.PrivKey {
+//		var bzArr [sm2.PrivKeySize]byte
+//		copy(bzArr[:], bz)
+//		return sm2.PrivKeySm2(bzArr)
+//	}
+//}
