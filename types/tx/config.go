@@ -4,13 +4,11 @@ import (
 	"fmt"
 
 	"github.com/irisnet/irishub-sdk-go/codec"
-	"github.com/irisnet/irishub-sdk-go/crypto/types"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	signingtypes "github.com/irisnet/irishub-sdk-go/types/tx/signing"
 )
 
 type config struct {
-	pubkeyCodec types.PublicKeyCodec
 	handler     sdk.SignModeHandler
 	decoder     sdk.TxDecoder
 	encoder     sdk.TxEncoder
@@ -19,22 +17,21 @@ type config struct {
 	protoCodec  *codec.ProtoCodec
 }
 
-// NewTxConfig returns a new protobuf TxConfig using the provided ProtoCodec, PublicKeyCodec and sign modes. The
+// NewTxConfig returns a new protobuf TxConfig using the provided ProtoCodec and sign modes. The
 // first enabled sign mode will become the default sign mode.
-func NewTxConfig(protoCodec *codec.ProtoCodec, pubkeyCodec types.PublicKeyCodec, enabledSignModes []signingtypes.SignMode) sdk.TxConfig {
+func NewTxConfig(protoCodec *codec.ProtoCodec, enabledSignModes []signingtypes.SignMode) sdk.TxConfig {
 	return &config{
-		pubkeyCodec: pubkeyCodec,
 		handler:     MakeSignModeHandler(enabledSignModes),
-		decoder:     DefaultTxDecoder(protoCodec, pubkeyCodec),
+		decoder:     DefaultTxDecoder(protoCodec),
 		encoder:     DefaultTxEncoder(),
-		jsonDecoder: DefaultJSONTxDecoder(protoCodec, pubkeyCodec),
+		jsonDecoder: DefaultJSONTxDecoder(protoCodec),
 		jsonEncoder: DefaultJSONTxEncoder(),
 		protoCodec:  protoCodec,
 	}
 }
 
 func (g config) NewTxBuilder() sdk.TxBuilder {
-	return newBuilder(g.pubkeyCodec)
+	return newBuilder()
 }
 
 // WrapTxBuilder returns a builder from provided transaction

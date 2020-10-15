@@ -1,4 +1,4 @@
-package intergration_test
+package integration_test
 
 import (
 	sdk "github.com/irisnet/irishub-sdk-go"
@@ -20,7 +20,7 @@ const (
 	grpcAddr = "localhost:9090"
 	chainID  = "test"
 	charset  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	addr     = "iaa1rgnu8grzt6mwnjg7jss7w0sfyjn67g4et0hzfz"
+	addr     = "iaa1f69a8aq4ampxrmcmg6l4gv73ac42hm9a6lvpw8"
 )
 
 type IntegrationTestSuite struct {
@@ -59,15 +59,15 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.IRISHUBClient = sdk.NewIRISHUBClient(cfg)
 	s.r = rand.New(rand.NewSource(time.Now().UnixNano()))
 	s.rootAccount = MockAccount{
-		Name:     "v1",
-		Password: "YQVGsOjegu",
+		Name:     "validator",
+		Password: "12345678",
 		Address:  types.MustAccAddressFromBech32(addr),
 	}
 	s.SetLogger(log.NewLogger(log.Config{
 		Format: log.FormatJSON,
 		Level:  log.DebugLevel,
 	}))
-	s.initAccount()
+	//s.initAccount()
 }
 
 func (s *IntegrationTestSuite) initAccount() {

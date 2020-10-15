@@ -34,7 +34,7 @@ type SignatureV2 struct {
 	// TLDR;
 	// - false (by default) in SIGN_MODE_DIRECT
 	// - true in SIGN_MODE_LEGACY_AMINO_JSON
-	// ref: https://github.com/cosmos/cosmos-sdk/issues/7229
+	// ref: https://github.com/irisnet/irishub-sdk-go/issues/7229
 	SkipSequenceCheck bool
 }
 

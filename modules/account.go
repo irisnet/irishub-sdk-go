@@ -1,7 +1,9 @@
 package modules
 
 import (
+	"context"
 	"fmt"
+	"github.com/irisnet/irishub-sdk-go/modules/auth"
 	"time"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -31,7 +33,7 @@ func (a accountQuery) QueryAndRefreshAccount(address string) (sdk.BaseAccount, s
 
 	acc := account.(accountInfo)
 	baseAcc := sdk.BaseAccount{
-		Address:       sdk.MustAccAddressFromBech32(address),
+		Address:       address,
 		AccountNumber: acc.N,
 		Sequence:      acc.S + 1,
 	}
@@ -42,31 +44,29 @@ func (a accountQuery) QueryAndRefreshAccount(address string) (sdk.BaseAccount, s
 }
 
 func (a accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) {
-	//conn, err := a.GenConn()
-	//defer func() { _ = conn.Close() }()
-	//if err != nil {
-	//	return sdk.BaseAccount{}, sdk.Wrap(err)
-	//}
-	//
-	//addr, err := sdk.AccAddressFromBech32(address)
-	//if err != nil {
-	//	return sdk.BaseAccount{}, sdk.Wrap(err)
-	//}
-	//
-	//request := &auth.QueryAccountRequest{
-	//	Address: addr,
-	//}
-	//response, err := auth.NewQueryClient(conn).Account(context.Background(), request)
-	//if err != nil {
-	//	return sdk.BaseAccount{}, sdk.Wrap(err)
-	//}
-	//
+	conn, err := a.GenConn()
+	defer func() { _ = conn.Close() }()
+	if err != nil {
+		return sdk.BaseAccount{}, sdk.Wrap(err)
+	}
+
+	request := &auth.QueryAccountRequest{
+		Address: address,
+	}
+
+	response, err := auth.NewQueryClient(conn).Account(context.Background(), request)
+	if err != nil {
+		return sdk.BaseAccount{}, sdk.Wrap(err)
+	}
+	fmt.Println(response)
+
 	//var baseAccount auth.Account
 	//if err := a.cdc.UnpackAny(response.Account, &baseAccount); err != nil {
 	//	return sdk.BaseAccount{}, sdk.Wrap(err)
 	//}
 	//
 	//account := baseAccount.(*auth.BaseAccount).Convert().(sdk.BaseAccount)
+	//fmt.Println(account)
 	//
 	//breq := &bank.QueryAllBalancesRequest{
 	//	Address:    addr,
@@ -78,7 +78,7 @@ func (a accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) 
 	//}
 	//
 	//account.Coins = balances.Balances
-
+	//
 	//return account, nil
 	// todo this
 	return sdk.BaseAccount{}, nil
@@ -125,13 +125,13 @@ func (a accountQuery) refresh(address string) (sdk.BaseAccount, sdk.Error) {
 }
 
 func (a accountQuery) saveAccount(account sdk.BaseAccount) {
-	address := account.Address.String()
+	address := account.Address
 	info := accountInfo{
 		N: account.AccountNumber,
 		S: account.Sequence,
 	}
 	if err := a.SetWithExpire(a.prefixKey(address), info, a.expiration); err != nil {
-		a.Debug("cache user failed", "address", account.Address.String())
+		a.Debug("cache user failed", "address", account.Address)
 		return
 	}
 	a.Debug("cache account", "address", address, "expiration", a.expiration.String())

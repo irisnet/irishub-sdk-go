@@ -32,6 +32,8 @@ func NewSigningAlgoFromString(str string) (SignatureAlgo, error) {
 type PubKeyType string
 
 const (
+	// MultiType implies that a pubkey is a multisignature
+	MultiType = PubKeyType("multi")
 	// Secp256k1Type uses the Bitcoin secp256k1 ECDSA parameters.
 	Secp256k1Type = PubKeyType("secp256k1")
 	// Ed25519Type represents the Ed25519Type signature system.
@@ -39,15 +41,11 @@ const (
 	Ed25519Type = PubKeyType("ed25519")
 	// Sr25519Type represents the Sr25519Type signature system.
 	Sr25519Type = PubKeyType("sr25519")
-
-	// Sm2Type represents the Sm2Type signature system.
-	Sm2Type = PubKeyType("sm2")
 )
 
 var (
 	// Secp256k1 uses the Bitcoin secp256k1 ECDSA parameters.
 	Secp256k1 = secp256k1Algo{}
-	Sm2       = sm2Algo{}
 )
 
 type DeriveFn func(mnemonic string, bip39Passphrase, hdPath string) ([]byte, error)
@@ -58,7 +56,8 @@ type WalletGenerator interface {
 	Generate(bz []byte) crypto.PrivKey
 }
 
-type secp256k1Algo struct{}
+type secp256k1Algo struct {
+}
 
 func (s secp256k1Algo) Name() PubKeyType {
 	return Secp256k1Type
@@ -77,47 +76,17 @@ func (s secp256k1Algo) Derive() DeriveFn {
 			return masterPriv[:], nil
 		}
 		derivedKey, err := DerivePrivateKeyForPath(masterPriv, ch, hdPath)
-		return derivedKey[:], err
+
+		return derivedKey, err
 	}
 }
 
 // Generate generates a secp256k1 private key from the given bytes.
 func (s secp256k1Algo) Generate() GenerateFn {
 	return func(bz []byte) crypto.PrivKey {
-		var bzArr [32]byte
-		copy(bzArr[:], bz)
-		return secp256k1.PrivKey(bzArr[:])
+		var bzArr = make([]byte, secp256k1.PrivKeySize)
+		copy(bzArr, bz)
+
+		return &secp256k1.PrivKey{Key: bzArr}
 	}
 }
-
-type sm2Algo struct{}
-
-func (s sm2Algo) Name() PubKeyType {
-	return Sm2Type
-}
-
-// Derive derives and returns the secp256k1 private key for the given seed and HD path.
-func (s sm2Algo) Derive() DeriveFn {
-	return func(mnemonic string, bip39Passphrase, hdPath string) ([]byte, error) {
-		seed, err := bip39.NewSeedWithErrorChecking(mnemonic, bip39Passphrase)
-		if err != nil {
-			return nil, err
-		}
-
-		masterPriv, ch := ComputeMastersFromSeed(seed)
-		if len(hdPath) == 0 {
-			return masterPriv[:], nil
-		}
-		derivedKey, err := DerivePrivateKeyForPath(masterPriv, ch, hdPath)
-		return derivedKey[:], err
-	}
-}
-
-// Generate generates a sm2 private key from the given bytes.
-//func (s sm2Algo) Generate() GenerateFn {
-//	return func(bz []byte) crypto.PrivKey {
-//		var bzArr [sm2.PrivKeySize]byte
-//		copy(bzArr[:], bz)
-//		return sm2.PrivKeySm2(bzArr)
-//	}
-//}

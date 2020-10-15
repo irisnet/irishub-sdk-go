@@ -3,7 +3,9 @@ package auth
 import (
 	"encoding/json"
 	"errors"
-
+	"fmt"
+	"github.com/gogo/protobuf/proto"
+	codectypes "github.com/irisnet/irishub-sdk-go/codec/types"
 	"github.com/tendermint/tendermint/crypto"
 
 	cryptocodec "github.com/irisnet/irishub-sdk-go/crypto/codec"
@@ -32,57 +34,72 @@ type Account interface {
 
 var _ Account = (*BaseAccount)(nil)
 
-// GetAddress Implements sdk.Account.
+// GetAddress - Implements sdk.AccountI.
 func (acc BaseAccount) GetAddress() sdk.AccAddress {
-	return acc.Address
+	addr, _ := sdk.AccAddressFromBech32(acc.Address)
+	return addr
 }
 
-// SetAddress Implements sdk.Account.
+// SetAddress - Implements sdk.AccountI.
 func (acc *BaseAccount) SetAddress(addr sdk.AccAddress) error {
 	if len(acc.Address) != 0 {
 		return errors.New("cannot override BaseAccount address")
 	}
-	acc.Address = addr
+
+	acc.Address = addr.String()
 	return nil
 }
 
-// GetPubKey - Implements sdk.Account.
+// GetPubKey - Implements sdk.AccountI.
 func (acc BaseAccount) GetPubKey() (pk crypto.PubKey) {
-	if len(acc.PubKey) == 0 {
+	if acc.PubKey == nil {
 		return nil
 	}
-
-	pk, _ = cryptocodec.PubKeyFromBytes(acc.PubKey)
-	return pk
+	content, ok := acc.PubKey.GetCachedValue().(crypto.PubKey)
+	if !ok {
+		return nil
+	}
+	return content
 }
 
-// SetPubKey - Implements sdk.Account.
+// SetPubKey - Implements sdk.AccountI.
 func (acc *BaseAccount) SetPubKey(pubKey crypto.PubKey) error {
 	if pubKey == nil {
 		acc.PubKey = nil
 	} else {
-		acc.PubKey = pubKey.Bytes()
+		protoMsg, ok := pubKey.(proto.Message)
+		if !ok {
+			return sdk.Wrap(fmt.Errorf("err invalid key, can't proto encode %T", protoMsg))
+		}
+
+		any, err := codectypes.NewAnyWithValue(protoMsg)
+		if err != nil {
+			return err
+		}
+
+		acc.PubKey = any
 	}
+
 	return nil
 }
 
-// GetAccountNumber Implements Account
-func (acc *BaseAccount) GetAccountNumber() uint64 {
+// GetAccountNumber - Implements AccountI
+func (acc BaseAccount) GetAccountNumber() uint64 {
 	return acc.AccountNumber
 }
 
-// SetAccountNumber Implements Account
+// SetAccountNumber - Implements AccountI
 func (acc *BaseAccount) SetAccountNumber(accNumber uint64) error {
 	acc.AccountNumber = accNumber
 	return nil
 }
 
-// GetSequence Implements sdk.Account.
-func (acc *BaseAccount) GetSequence() uint64 {
+// GetSequence - Implements sdk.AccountI.
+func (acc BaseAccount) GetSequence() uint64 {
 	return acc.Sequence
 }
 
-// SetSequence Implements sdk.Account.
+// SetSequence - Implements sdk.AccountI.
 func (acc *BaseAccount) SetSequence(seq uint64) error {
 	acc.Sequence = seq
 	return nil
@@ -107,7 +124,8 @@ func (acc *BaseAccount) Convert() interface{} {
 	}
 
 	var pk crypto.PubKey
-	pk, _ = cryptocodec.PubKeyFromBytes(acc.PubKey)
+	// todo this pubkey
+	pk, _ = cryptocodec.PubKeyFromBytes(acc.PubKey.GetValue())
 
 	pkStr, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, pk)
 	if err != nil {

@@ -7,8 +7,8 @@ import (
 	"github.com/tendermint/tendermint/crypto/sr25519"
 
 	"github.com/irisnet/irishub-sdk-go/codec"
+	kmultisig "github.com/irisnet/irishub-sdk-go/crypto/keys/multisig"
 	"github.com/irisnet/irishub-sdk-go/crypto/keys/secp256k1"
-	"github.com/irisnet/irishub-sdk-go/crypto/types/multisig"
 )
 
 var amino *codec.LegacyAmino
@@ -26,7 +26,7 @@ func RegisterCrypto(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(sr25519.PubKey{}, sr25519.PubKeyName, nil)
 	cdc.RegisterConcrete(secp256k1.PubKey{}, secp256k1.PubKeyName, nil)
 	//cdc.RegisterConcrete(sm2.PubKeySm2{}, sm2.PubKeyName, nil)
-	cdc.RegisterConcrete(multisig.PubKeyMultisigThreshold{}, multisig.PubKeyAminoRoute, nil)
+	cdc.RegisterConcrete(&kmultisig.LegacyAminoPubKey{}, kmultisig.PubKeyAminoRoute, nil)
 
 	cdc.RegisterInterface((*crypto.PrivKey)(nil), nil)
 	cdc.RegisterConcrete(ed25519.PrivKey{}, ed25519.PrivKeyName, nil)
