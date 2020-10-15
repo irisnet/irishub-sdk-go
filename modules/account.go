@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/irisnet/irishub-sdk-go/modules/auth"
+	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"time"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -58,30 +59,25 @@ func (a accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) 
 	if err != nil {
 		return sdk.BaseAccount{}, sdk.Wrap(err)
 	}
-	fmt.Println(response)
 
-	//var baseAccount auth.Account
-	//if err := a.cdc.UnpackAny(response.Account, &baseAccount); err != nil {
-	//	return sdk.BaseAccount{}, sdk.Wrap(err)
-	//}
-	//
-	//account := baseAccount.(*auth.BaseAccount).Convert().(sdk.BaseAccount)
-	//fmt.Println(account)
-	//
-	//breq := &bank.QueryAllBalancesRequest{
-	//	Address:    addr,
-	//	Pagination: nil,
-	//}
-	//balances, err := bank.NewQueryClient(conn).AllBalances(context.Background(), breq)
-	//if err != nil {
-	//	return sdk.BaseAccount{}, sdk.Wrap(err)
-	//}
-	//
-	//account.Coins = balances.Balances
-	//
-	//return account, nil
-	// todo this
-	return sdk.BaseAccount{}, nil
+	var baseAccount auth.Account
+	if err := a.cdc.UnpackAny(response.Account, &baseAccount); err != nil {
+		return sdk.BaseAccount{}, sdk.Wrap(err)
+	}
+
+	account := baseAccount.(*auth.BaseAccount).ConvertAccount(a.cdc).(sdk.BaseAccount)
+
+	breq := &bank.QueryAllBalancesRequest{
+		Address:    address,
+		Pagination: nil,
+	}
+	balances, err := bank.NewQueryClient(conn).AllBalances(context.Background(), breq)
+	if err != nil {
+		return sdk.BaseAccount{}, sdk.Wrap(err)
+	}
+
+	account.Coins = balances.Balances
+	return account, nil
 }
 
 func (a accountQuery) QueryAddress(name, password string) (sdk.AccAddress, sdk.Error) {

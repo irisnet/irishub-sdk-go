@@ -3,6 +3,7 @@ package sdk
 import (
 	"fmt"
 	"github.com/irisnet/irishub-sdk-go/modules"
+	"github.com/irisnet/irishub-sdk-go/modules/bank"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -25,7 +26,7 @@ type IRISHUBClient struct {
 	encodingConfig types.EncodingConfig
 
 	types.BaseClient
-	//Bank    bank.BankI
+	Bank bank.BankI
 	//Token   token.TokenI
 	//Record  record.RecordI
 	//NFT     nft.NFTI
@@ -35,10 +36,11 @@ type IRISHUBClient struct {
 
 func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	encodingConfig := makeEncodingConfig()
+	cryptocodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	//create a instance of baseClient
 	baseClient := modules.NewBaseClient(cfg, encodingConfig, nil)
 
-	//bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
+	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
 	//tokenClient := token.NewClient(baseClient, encodingConfig.Marshaler)
 	keysClient := keys.NewClient(baseClient)
 	//recordClient := record.NewClient(baseClient, encodingConfig.Marshaler)
@@ -48,22 +50,22 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	client := &IRISHUBClient{
 		logger:     baseClient.Logger(),
 		BaseClient: baseClient,
-		//Bank:           bankClient,
+		Bank:       bankClient,
 		//Token:          tokenClient,
 		Key: keysClient,
 		//Record:         recordClient,
 		//NFT:            nftClient,
 		//Service:        serviceClient,
-		//moduleManager:  make(map[string]types.Module),
+		moduleManager:  make(map[string]types.Module),
 		encodingConfig: encodingConfig,
 	}
 
 	client.RegisterModule(
-	//bankClient,
-	//tokenClient,
-	//recordClient,
-	//nftClient,
-	//serviceClient,
+		bankClient,
+		//tokenClient,
+		//recordClient,
+		//nftClient,
+		//serviceClient,
 	)
 	return *client
 }

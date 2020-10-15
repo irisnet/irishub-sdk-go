@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gogo/protobuf/proto"
+	"github.com/irisnet/irishub-sdk-go/codec"
 	codectypes "github.com/irisnet/irishub-sdk-go/codec/types"
 	"github.com/tendermint/tendermint/crypto"
 
-	cryptocodec "github.com/irisnet/irishub-sdk-go/crypto/codec"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
@@ -112,6 +112,13 @@ func (acc BaseAccount) String() string {
 
 // Convert return a sdk.BaseAccount
 func (acc *BaseAccount) Convert() interface{} {
+	// error don't use it
+	return nil
+}
+
+// Convert return a sdk.BaseAccount
+// in order to unpack pubKey so not use Convert()
+func (acc *BaseAccount) ConvertAccount(cdc codec.Marshaler) interface{} {
 	account := sdk.BaseAccount{
 		Address:       acc.Address,
 		AccountNumber: acc.AccountNumber,
@@ -124,8 +131,9 @@ func (acc *BaseAccount) Convert() interface{} {
 	}
 
 	var pk crypto.PubKey
-	// todo this pubkey
-	pk, _ = cryptocodec.PubKeyFromBytes(acc.PubKey.GetValue())
+	if err := cdc.UnpackAny(acc.PubKey, &pk); err != nil {
+		return sdk.BaseAccount{}
+	}
 
 	pkStr, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, pk)
 	if err != nil {
