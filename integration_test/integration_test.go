@@ -67,7 +67,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		Format: log.FormatJSON,
 		Level:  log.DebugLevel,
 	}))
-	//s.initAccount()
+	s.initAccount()
 }
 
 func (s *IntegrationTestSuite) initAccount() {

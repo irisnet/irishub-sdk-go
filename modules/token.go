@@ -1,8 +1,11 @@
 package modules
 
 import (
+	"context"
 	"fmt"
+	"github.com/irisnet/irishub-sdk-go/modules/token"
 	"github.com/tendermint/tendermint/libs/log"
+	"strings"
 
 	"github.com/irisnet/irishub-sdk-go/codec"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -18,35 +21,32 @@ type tokenQuery struct {
 }
 
 func (l tokenQuery) QueryToken(denom string) (sdk.Token, error) {
-	//denom = strings.ToLower(denom)
-	//if t, err := l.Get(l.prefixKey(denom)); err == nil {
-	//	return t.(sdk.Token), nil
-	//}
-	//
-	//conn, err := l.GenConn()
-	//defer func() { _ = conn.Close() }()
-	//if err != nil {
-	//	return sdk.Token{}, sdk.Wrap(err)
-	//}
-	//
-	//response, err := token.NewQueryClient(conn).Token(
-	//	context.Background(),
-	//	&token.QueryTokenRequest{Denom: denom},
-	//)
-	//if err != nil {
-	//	return sdk.Token{}, sdk.Wrap(err)
-	//}
-	//
-	//var srcToken token.TokenInterface
-	//if err = l.cdc.UnpackAny(response.Token, &srcToken); err != nil {
-	//	return sdk.Token{}, sdk.Wrap(err)
-	//}
-	//token := srcToken.(*token.Token).Convert().(sdk.Token)
-	//l.SaveTokens(token)
-	//return token, nil
+	denom = strings.ToLower(denom)
+	if t, err := l.Get(l.prefixKey(denom)); err == nil {
+		return t.(sdk.Token), nil
+	}
 
-	// TODO this
-	return sdk.Token{}, nil
+	conn, err := l.GenConn()
+	defer func() { _ = conn.Close() }()
+	if err != nil {
+		return sdk.Token{}, sdk.Wrap(err)
+	}
+
+	response, err := token.NewQueryClient(conn).Token(
+		context.Background(),
+		&token.QueryTokenRequest{Denom: denom},
+	)
+	if err != nil {
+		return sdk.Token{}, sdk.Wrap(err)
+	}
+
+	var srcToken token.TokenInterface
+	if err = l.cdc.UnpackAny(response.Token, &srcToken); err != nil {
+		return sdk.Token{}, sdk.Wrap(err)
+	}
+	token := srcToken.(*token.Token).Convert().(sdk.Token)
+	l.SaveTokens(token)
+	return token, nil
 }
 
 func (l tokenQuery) SaveTokens(tokens ...sdk.Token) {

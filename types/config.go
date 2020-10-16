@@ -9,7 +9,7 @@ import (
 
 const (
 	defaultGas           = 200000
-	defaultFees          = "4point"
+	defaultFees          = "4iris"
 	defaultTimeout       = 5
 	defaultLevel         = "info"
 	defaultMaxTxsBytes   = 1073741824

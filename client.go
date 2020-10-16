@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/irisnet/irishub-sdk-go/modules"
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
+	"github.com/irisnet/irishub-sdk-go/modules/token"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -26,8 +27,8 @@ type IRISHUBClient struct {
 	encodingConfig types.EncodingConfig
 
 	types.BaseClient
-	Bank bank.BankI
-	//Token   token.TokenI
+	Bank  bank.BankI
+	Token token.TokenI
 	//Record  record.RecordI
 	//NFT     nft.NFTI
 	//Service service.ServiceI
@@ -41,7 +42,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	baseClient := modules.NewBaseClient(cfg, encodingConfig, nil)
 
 	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
-	//tokenClient := token.NewClient(baseClient, encodingConfig.Marshaler)
+	tokenClient := token.NewClient(baseClient, encodingConfig.Marshaler)
 	keysClient := keys.NewClient(baseClient)
 	//recordClient := record.NewClient(baseClient, encodingConfig.Marshaler)
 	//nftClient := nft.NewClient(baseClient, encodingConfig.Marshaler)
@@ -51,8 +52,8 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 		logger:     baseClient.Logger(),
 		BaseClient: baseClient,
 		Bank:       bankClient,
-		//Token:          tokenClient,
-		Key: keysClient,
+		Token:      tokenClient,
+		Key:        keysClient,
 		//Record:         recordClient,
 		//NFT:            nftClient,
 		//Service:        serviceClient,
@@ -62,7 +63,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 
 	client.RegisterModule(
 		bankClient,
-		//tokenClient,
+		tokenClient,
 		//recordClient,
 		//nftClient,
 		//serviceClient,
