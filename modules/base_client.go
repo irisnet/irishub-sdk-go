@@ -4,6 +4,7 @@
 package modules
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -207,7 +208,7 @@ func (base baseClient) Query(path string, data interface{}) ([]byte, error) {
 		// Height: cliCtx.Height,
 		Prove: false,
 	}
-	result, err := base.ABCIQueryWithOptions(path, bz, opts)
+	result, err := base.ABCIQueryWithOptions(context.Background(), path, bz, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +228,7 @@ func (base baseClient) QueryStore(key sdk.HexBytes, storeName string, height int
 		Height: height,
 	}
 
-	result, err := base.ABCIQueryWithOptions(path, key, opts)
+	result, err := base.ABCIQueryWithOptions(context.Background(), path, key, opts)
 	if err != nil {
 		return res, err
 	}

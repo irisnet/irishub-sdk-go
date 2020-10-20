@@ -4,11 +4,10 @@ import (
 	"fmt"
 
 	"github.com/tendermint/tendermint/crypto"
-	//"github.com/tendermint/tendermint/crypto/sm2"
 
 	"github.com/cosmos/go-bip39"
 
-	"github.com/irisnet/irishub-sdk-go/crypto/keys/secp256k1"
+	"github.com/bianjieai/irita-sdk-go/crypto/keys/secp256k1"
 )
 
 type SignatureAlgo interface {
@@ -21,8 +20,6 @@ func NewSigningAlgoFromString(str string) (SignatureAlgo, error) {
 	switch str {
 	case string(Secp256k1.Name()):
 		return Secp256k1, nil
-	//case string(Sm2.Name()):
-	//	return Sm2, nil
 	default:
 		return nil, fmt.Errorf("provided algorithm `%s` is not supported", str)
 	}
@@ -32,8 +29,6 @@ func NewSigningAlgoFromString(str string) (SignatureAlgo, error) {
 type PubKeyType string
 
 const (
-	// MultiType implies that a pubkey is a multisignature
-	MultiType = PubKeyType("multi")
 	// Secp256k1Type uses the Bitcoin secp256k1 ECDSA parameters.
 	Secp256k1Type = PubKeyType("secp256k1")
 	// Ed25519Type represents the Ed25519Type signature system.
@@ -56,8 +51,7 @@ type WalletGenerator interface {
 	Generate(bz []byte) crypto.PrivKey
 }
 
-type secp256k1Algo struct {
-}
+type secp256k1Algo struct{}
 
 func (s secp256k1Algo) Name() PubKeyType {
 	return Secp256k1Type
@@ -76,17 +70,15 @@ func (s secp256k1Algo) Derive() DeriveFn {
 			return masterPriv[:], nil
 		}
 		derivedKey, err := DerivePrivateKeyForPath(masterPriv, ch, hdPath)
-
-		return derivedKey, err
+		return derivedKey[:], err
 	}
 }
 
 // Generate generates a secp256k1 private key from the given bytes.
 func (s secp256k1Algo) Generate() GenerateFn {
 	return func(bz []byte) crypto.PrivKey {
-		var bzArr = make([]byte, secp256k1.PrivKeySize)
-		copy(bzArr, bz)
-
-		return &secp256k1.PrivKey{Key: bzArr}
+		var bzArr [32]byte
+		copy(bzArr[:], bz)
+		return secp256k1.PrivKey(bzArr[:])
 	}
 }

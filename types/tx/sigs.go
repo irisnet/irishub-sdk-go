@@ -2,6 +2,7 @@ package tx
 
 import (
 	"fmt"
+
 	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/irisnet/irishub-sdk-go/codec"
@@ -108,12 +109,12 @@ func (g config) MarshalSignatureJSON(sigs []signing.SignatureV2) ([]byte, error)
 	descs := make([]*signing.SignatureDescriptor, len(sigs))
 
 	for i, sig := range sigs {
-		descData := signing.SignatureDataToProto(sig.Data)
-
 		any, err := PubKeyToAny(sig.PubKey)
 		if err != nil {
 			return nil, err
 		}
+
+		descData := signing.SignatureDataToProto(sig.Data)
 
 		descs[i] = &signing.SignatureDescriptor{
 			PublicKey: any,

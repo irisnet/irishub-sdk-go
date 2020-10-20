@@ -3,11 +3,12 @@ package modules
 import (
 	"context"
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/modules/token"
-	"github.com/tendermint/tendermint/libs/log"
 	"strings"
 
+	"github.com/tendermint/tendermint/libs/log"
+
 	"github.com/irisnet/irishub-sdk-go/codec"
+	"github.com/irisnet/irishub-sdk-go/modules/token"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/utils/cache"
 )

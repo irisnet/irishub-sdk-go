@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"fmt"
+
 	"github.com/irisnet/irishub-sdk-go/modules"
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/token"
@@ -11,6 +12,7 @@ import (
 	"github.com/irisnet/irishub-sdk-go/codec"
 	cdctypes "github.com/irisnet/irishub-sdk-go/codec/types"
 	cryptocodec "github.com/irisnet/irishub-sdk-go/crypto/codec"
+
 	//"github.com/irisnet/irishub-sdk-go/modules"
 	//"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/keys"
@@ -37,7 +39,7 @@ type IRISHUBClient struct {
 
 func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	encodingConfig := makeEncodingConfig()
-	cryptocodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+
 	//create a instance of baseClient
 	baseClient := modules.NewBaseClient(cfg, encodingConfig, nil)
 

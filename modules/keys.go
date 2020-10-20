@@ -143,7 +143,6 @@ func (k keyManager) Delete(name, password string) error {
 func (k keyManager) Find(name, password string) (tmcrypto.PubKey, types.AccAddress, error) {
 	info, err := k.keyDAO.Read(name, password)
 	if err != nil {
-
 		return nil, nil, types.WrapWithMessage(err, "name %s not exist", name)
 	}
 

@@ -3,14 +3,13 @@ package modules
 import (
 	"context"
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/modules/auth"
-	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"time"
 
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/irisnet/irishub-sdk-go/codec"
-	//"github.com/irisnet/irishub-sdk-go/modules/bank"
+	"github.com/irisnet/irishub-sdk-go/modules/auth"
+	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/utils/cache"
 )

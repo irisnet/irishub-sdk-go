@@ -16,7 +16,7 @@ type TxManager interface {
 type Queries interface {
 	StoreQuery
 	AccountQuery
-	//TmQuery
+	TmQuery
 }
 
 type GRPCClient interface {

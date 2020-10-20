@@ -2,6 +2,7 @@ package tx
 
 import (
 	"fmt"
+
 	"github.com/gogo/protobuf/proto"
 
 	"github.com/tendermint/tendermint/crypto"

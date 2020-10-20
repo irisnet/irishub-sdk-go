@@ -38,6 +38,7 @@ func BenchmarkSigning(b *testing.B, priv crypto.PrivKey) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, err := priv.Sign(message)
+
 		if err != nil {
 			b.FailNow()
 		}

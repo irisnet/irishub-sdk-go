@@ -1,17 +1,17 @@
 package types
 
-var (
-	POINT = Token{
-		Symbol:        "iris",
-		Name:          "Network staking token",
-		Scale:         0,
-		MinUnit:       "uiris",
-		InitialSupply: 2000000000,
-		MaxSupply:     1000000000000,
-		Mintable:      true,
-		Owner:         "",
-	}
-)
+// var (
+// 	POINT = Token{
+// 		Symbol:        "iris",
+// 		Name:          "Network staking token",
+// 		Scale:         0,
+// 		MinUnit:       "uiris",
+// 		InitialSupply: 2000000000,
+// 		MaxSupply:     1000000000000,
+// 		Mintable:      true,
+// 		Owner:         "",
+// 	}
+// )
 
 type Token struct {
 	Symbol        string `json:"symbol"`

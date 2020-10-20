@@ -6,7 +6,6 @@ package types
 //
 //	"github.com/tendermint/tendermint/crypto"
 //	"github.com/tendermint/tendermint/crypto/ed25519"
-//	//"github.com/tendermint/tendermint/crypto/sm2"
 //	"github.com/tendermint/tendermint/crypto/sr25519"
 //
 //	"github.com/irisnet/irishub-sdk-go/crypto/keys/secp256k1"
@@ -30,15 +29,6 @@ package types
 //		return nil, nil
 //	}
 //	switch key := key.Sum.(type) {
-//	//case *types.PublicKey_Sm2:
-//	//	n := len(key.Sm2)
-//	//	if n != sm2.PubKeySize {
-//	//		return nil, fmt.Errorf("wrong length %d for sm2 public key", n)
-//	//	}
-//	//
-//	//	res := sm2.PubKeySm2{}
-//	//	copy(res[:], key.Sm2)
-//	//	return res, nil
 //	case *types.PublicKey_Secp256K1:
 //		n := len(key.Secp256K1)
 //		if n != secp256k1.PubKeySize {
@@ -90,8 +80,6 @@ package types
 //		return &types.PublicKey{}, nil
 //	}
 //	switch key := key.(type) {
-//	//case sm2.PubKeySm2:
-//	//	return &types.PublicKey{Sum: &types.PublicKey_Sm2{Sm2: key[:]}}, nil
 //	case secp256k1.PubKey:
 //		return &types.PublicKey{Sum: &types.PublicKey_Secp256K1{Secp256K1: key}}, nil
 //	case ed25519.PubKey:
