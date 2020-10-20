@@ -152,11 +152,11 @@ func (pubKey *PubKey) Address() crypto.Address {
 	}
 
 	hasherSHA256 := sha256.New()
-	_, _ = hasherSHA256.Write(pubKey.Key)
+	hasherSHA256.Write(pubKey.Key) // does not error
 	sha := hasherSHA256.Sum(nil)
 
 	hasherRIPEMD160 := ripemd160.New()
-	_, _ = hasherRIPEMD160.Write(sha)
+	hasherRIPEMD160.Write(sha) // does not error
 	return crypto.Address(hasherRIPEMD160.Sum(nil))
 }
 

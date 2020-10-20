@@ -106,7 +106,7 @@ func (m *keyManager) ExportPrivKey(password string) (armor string, err error) {
 }
 
 func (m *keyManager) ImportPrivKey(armor, passphrase string) (crypto.PrivKey, string, error) {
-	privKey, algo, err := DecryptArmorPrivKey(armor, passphrase)
+	privKey, algo, err := UnarmorDecryptPrivKey(armor, passphrase)
 	if err != nil {
 		return nil, "", errors.Wrap(err, "failed to decrypt private key")
 	}

@@ -7,11 +7,11 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/tendermint/crypto/bcrypt"
-
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/armor"
 	"github.com/tendermint/tendermint/crypto/xsalsa20symmetric"
 
+	"github.com/irisnet/irishub-sdk-go/codec/legacy"
 	cryptoAmino "github.com/irisnet/irishub-sdk-go/crypto/codec"
 )
 
@@ -41,7 +41,7 @@ const (
 // For further notes on security parameter choice, see README.md
 var BcryptSecurityParameter = 12
 
-// -----------------------------------------------------------------
+//-----------------------------------------------------------------
 // add armor
 
 // Armor the InfoBytes
@@ -66,7 +66,7 @@ func ArmorPubKeyBytes(bz []byte, algo string) string {
 	return armor.EncodeArmor(blockTypePubKey, header, bz)
 }
 
-// -----------------------------------------------------------------
+//-----------------------------------------------------------------
 // remove armor
 
 // Unarmor the InfoBytes
@@ -121,8 +121,9 @@ func unarmorBytes(armorStr, blockType string) (bz []byte, header map[string]stri
 	return
 }
 
-// -----------------------------------------------------------------
+//-----------------------------------------------------------------
 // encrypt/decrypt with armor
+
 // Encrypt and armor the private key.
 func EncryptArmorPrivKey(privKey crypto.PrivKey, passphrase string, algo string) string {
 	saltBytes, encBytes := encryptPrivKey(privKey, passphrase)
@@ -152,13 +153,13 @@ func encryptPrivKey(privKey crypto.PrivKey, passphrase string) (saltBytes []byte
 	}
 
 	key = crypto.Sha256(key) // get 32 bytes
-	privKeyBytes := cryptoAmino.MarshalPrivKey(privKey)
+	privKeyBytes := legacy.Cdc.Amino.MustMarshalBinaryBare(privKey)
 
 	return saltBytes, xsalsa20symmetric.EncryptSymmetric(privKeyBytes, key)
 }
 
-// DecryptArmorPrivKey returns the privkey byte slice, a string of the algo type, and an error
-func DecryptArmorPrivKey(armorStr string, passphrase string) (privKey crypto.PrivKey, algo string, err error) {
+// UnarmorDecryptPrivKey returns the privkey byte slice, a string of the algo type, and an error
+func UnarmorDecryptPrivKey(armorStr string, passphrase string) (privKey crypto.PrivKey, algo string, err error) {
 	blockType, header, encBytes, err := armor.DecodeArmor(armorStr)
 	if err != nil {
 		return privKey, "", err

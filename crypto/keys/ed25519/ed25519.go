@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"io"
 
-	"golang.org/x/crypto/ed25519"
-
 	"github.com/tendermint/tendermint/crypto"
 	tmed25519 "github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/tmhash"
+	"golang.org/x/crypto/ed25519"
 
 	"github.com/irisnet/irishub-sdk-go/codec"
 	cryptotypes "github.com/irisnet/irishub-sdk-go/crypto/types"

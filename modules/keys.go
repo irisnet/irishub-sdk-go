@@ -1,6 +1,7 @@
 package modules
 
 import (
+	"encoding/hex"
 	"fmt"
 
 	tmcrypto "github.com/tendermint/tendermint/crypto"
@@ -84,6 +85,10 @@ func (k keyManager) Recover(name, password, mnemonic string) (string, error) {
 		PrivKeyArmor: string(cryptoamino.MarshalPrivKey(priv)),
 		Algo:         k.algo,
 	}
+
+	println(hex.EncodeToString(info.PubKey))
+	s, err := cryptoamino.PubKeyFromBytes(info.PubKey)
+	_ = s
 
 	err = k.keyDAO.Write(name, password, info)
 	if err != nil {

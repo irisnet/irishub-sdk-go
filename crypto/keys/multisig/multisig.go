@@ -93,7 +93,7 @@ func (m *LegacyAminoPubKey) VerifyMultisignature(getSignBytes multisigtypes.GetS
 
 // VerifySignature implements crypto.PubKey VerifySignature method,
 // it panics because it can't handle MultiSignatureData
-// cf. https://github.com/irisnet/irishub-sdk-go/issues/7109#issuecomment-686329936
+// cf. https://github.com/cosmos/cosmos-sdk/issues/7109#issuecomment-686329936
 func (m *LegacyAminoPubKey) VerifySignature(msg []byte, sig []byte) bool {
 	panic("not implemented")
 }

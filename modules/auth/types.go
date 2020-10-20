@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/gogo/protobuf/proto"
+	"github.com/tendermint/tendermint/crypto"
+
 	"github.com/irisnet/irishub-sdk-go/codec"
 	codectypes "github.com/irisnet/irishub-sdk-go/codec/types"
-	"github.com/tendermint/tendermint/crypto"
 
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
