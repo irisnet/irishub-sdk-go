@@ -11,14 +11,13 @@ import (
 	"github.com/irisnet/irishub-sdk-go/modules"
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/keys"
+	"github.com/irisnet/irishub-sdk-go/modules/service"
 	"github.com/irisnet/irishub-sdk-go/modules/token"
 	"github.com/irisnet/irishub-sdk-go/types"
 	txtypes "github.com/irisnet/irishub-sdk-go/types/tx"
 	//"github.com/irisnet/irishub-sdk-go/modules"
-	//"github.com/irisnet/irishub-sdk-go/modules/bank"
 	//"github.com/irisnet/irishub-sdk-go/modules/nft"
 	//"github.com/irisnet/irishub-sdk-go/modules/record"
-	//"github.com/irisnet/irishub-sdk-go/modules/service"
 )
 
 type IRISHUBClient struct {
@@ -27,12 +26,12 @@ type IRISHUBClient struct {
 	encodingConfig types.EncodingConfig
 
 	types.BaseClient
-	Key   keys.KeyI
-	Bank  bank.BankI
-	Token token.TokenI
+	Key     keys.KeyI
+	Bank    bank.BankI
+	Token   token.TokenI
+	Service service.ServiceI
 	// Record  record.RecordI
 	// NFT     nft.NFTI
-	// Service service.ServiceI
 }
 
 func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
@@ -44,29 +43,29 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
 	tokenClient := token.NewClient(baseClient, encodingConfig.Marshaler)
 	keysClient := keys.NewClient(baseClient)
+	serviceClient := service.NewClient(baseClient, encodingConfig.Marshaler)
 	// recordClient := record.NewClient(baseClient, encodingConfig.Marshaler)
 	// nftClient := nft.NewClient(baseClient, encodingConfig.Marshaler)
-	// serviceClient := service.NewClient(baseClient, encodingConfig.Marshaler)
 
 	client := &IRISHUBClient{
-		logger:     baseClient.Logger(),
-		BaseClient: baseClient,
-		Bank:       bankClient,
-		Token:      tokenClient,
-		Key:        keysClient,
-		// Record:         recordClient,
-		// NFT:            nftClient,
-		// Service:        serviceClient,
+		logger:         baseClient.Logger(),
+		BaseClient:     baseClient,
 		moduleManager:  make(map[string]types.Module),
 		encodingConfig: encodingConfig,
+		Key:            keysClient,
+		Bank:           bankClient,
+		Token:          tokenClient,
+		Service:        serviceClient,
+		// Record:         recordClient,
+		// NFT:            nftClient,
 	}
 
 	client.RegisterModule(
 		bankClient,
 		tokenClient,
+		serviceClient,
 		// recordClient,
 		// nftClient,
-		// serviceClient,
 	)
 	return *client
 }
