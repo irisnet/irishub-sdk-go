@@ -6,7 +6,7 @@ import (
 	cdctypes "github.com/irisnet/irishub-sdk-go/codec/types"
 )
 
-//The purpose of this interface is to convert the irita system type to the user receiving type
+//The purpose of this interface is to convert the irishub system type to the user receiving type
 // and standardize the user interface
 type Response interface {
 	Convert() interface{}

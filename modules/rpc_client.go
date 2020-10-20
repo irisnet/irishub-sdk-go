@@ -204,7 +204,7 @@ func (r rpcClient) parseValidatorSetUpdates(data sdk.EventData) sdk.EventDataVal
 }
 
 func getSubscriber() string {
-	subscriber := "irita-sdk-go"
+	subscriber := "irishub-sdk-go"
 	id, err := uuid.NewV1()
 	if err == nil {
 		subscriber = fmt.Sprintf("%s-%s", subscriber, id.String())

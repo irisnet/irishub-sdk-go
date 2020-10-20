@@ -20,13 +20,13 @@ const (
 )
 
 type ClientConfig struct {
-	// irita node rpc address
+	// irishub node rpc address
 	NodeURI string
 
-	// irita grpc address
+	// irishub grpc address
 	GRPCAddr string
 
-	// irita chain-id
+	// irishub chain-id
 	ChainID string
 
 	// max gas limit

@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	// RootCodespace is the codespace for all errors defined in irita
+	// RootCodespace is the codespace for all errors defined in irishub
 	RootCodespace = "sdk"
 
 	OK                Code = 0
@@ -82,7 +82,7 @@ type Error interface {
 	Codespace() string
 }
 
-// GetError is used to covert irita error to sdk error
+// GetError is used to covert irishub error to sdk error
 func GetError(codespace string, code uint32, log ...string) Error {
 	codeV1, ok := v17CodeMap[code]
 	if !ok {
@@ -177,7 +177,6 @@ func setUsed(err Error) {
 	usedCodes[errorID(err.Codespace(), err.Code())] = err
 }
 
-// will remove from irita v1.0
 var v17CodeMap = map[uint32]Code{
 	0:  OK,
 	1:  Internal,

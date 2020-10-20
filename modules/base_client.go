@@ -1,4 +1,4 @@
-// Package modules is to warpped the API provided by each module of IRITA
+// Package modules is to warpped the API provided by each module of IRIS-Hub
 //
 //
 package modules
