@@ -19,36 +19,23 @@ func init() {
 	RegisterCrypto(amino)
 }
 
-// RegisterCrypto registers all crypto dependency types with the provided Amino
-// codec.
+// RegisterCrypto registers all crypto dependency types with the provided Amino codec.
 func RegisterCrypto(cdc *codec.LegacyAmino) {
-	// TODO We now register both Tendermint's PubKey and our own PubKey. In the
-	// long-term, we should move away from Tendermint's PubKey, and delete this
-	// first line.
 	cdc.RegisterInterface((*crypto.PubKey)(nil), nil)
 	cdc.RegisterInterface((*cryptotypes.PubKey)(nil), nil)
-	cdc.RegisterConcrete(sr25519.PubKey{},
-		sr25519.PubKeyName, nil)
-	// TODO Same as above, for ED25519
-	cdc.RegisterConcrete(tmed25519.PubKey{},
-		tmed25519.PubKeyName, nil)
-	cdc.RegisterConcrete(&ed25519.PubKey{},
-		ed25519.PubKeyName, nil)
-	cdc.RegisterConcrete(&secp256k1.PubKey{},
-		secp256k1.PubKeyName, nil)
-	cdc.RegisterConcrete(&kmultisig.LegacyAminoPubKey{},
-		kmultisig.PubKeyAminoRoute, nil)
+	cdc.RegisterConcrete(sr25519.PubKey{}, sr25519.PubKeyName, nil)
+
+	cdc.RegisterConcrete(tmed25519.PubKey{}, tmed25519.PubKeyName, nil)
+	cdc.RegisterConcrete(&ed25519.PubKey{}, ed25519.PubKeyName, nil)
+	cdc.RegisterConcrete(&secp256k1.PubKey{}, secp256k1.PubKeyName, nil)
+	cdc.RegisterConcrete(&kmultisig.LegacyAminoPubKey{}, kmultisig.PubKeyAminoRoute, nil)
 
 	cdc.RegisterInterface((*crypto.PrivKey)(nil), nil)
-	cdc.RegisterConcrete(sr25519.PrivKey{},
-		sr25519.PrivKeyName, nil)
-	// TODO Same as above
-	cdc.RegisterConcrete(tmed25519.PrivKey{},
-		tmed25519.PrivKeyName, nil)
-	cdc.RegisterConcrete(&ed25519.PrivKey{},
-		ed25519.PrivKeyName, nil)
-	cdc.RegisterConcrete(&secp256k1.PrivKey{},
-		secp256k1.PrivKeyName, nil)
+	cdc.RegisterConcrete(sr25519.PrivKey{}, sr25519.PrivKeyName, nil)
+
+	cdc.RegisterConcrete(tmed25519.PrivKey{}, tmed25519.PrivKeyName, nil)
+	cdc.RegisterConcrete(&ed25519.PrivKey{}, ed25519.PrivKeyName, nil)
+	cdc.RegisterConcrete(&secp256k1.PrivKey{}, secp256k1.PrivKeyName, nil)
 }
 
 // PrivKeyFromBytes unmarshals private key bytes and returns a PrivKey

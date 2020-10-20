@@ -3,24 +3,22 @@ package sdk
 import (
 	"fmt"
 
-	"github.com/irisnet/irishub-sdk-go/modules"
-	"github.com/irisnet/irishub-sdk-go/modules/bank"
-	"github.com/irisnet/irishub-sdk-go/modules/token"
-
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/irisnet/irishub-sdk-go/codec"
 	cdctypes "github.com/irisnet/irishub-sdk-go/codec/types"
 	cryptocodec "github.com/irisnet/irishub-sdk-go/crypto/codec"
-
+	"github.com/irisnet/irishub-sdk-go/modules"
+	"github.com/irisnet/irishub-sdk-go/modules/bank"
+	"github.com/irisnet/irishub-sdk-go/modules/keys"
+	"github.com/irisnet/irishub-sdk-go/modules/token"
+	"github.com/irisnet/irishub-sdk-go/types"
+	txtypes "github.com/irisnet/irishub-sdk-go/types/tx"
 	//"github.com/irisnet/irishub-sdk-go/modules"
 	//"github.com/irisnet/irishub-sdk-go/modules/bank"
-	"github.com/irisnet/irishub-sdk-go/modules/keys"
 	//"github.com/irisnet/irishub-sdk-go/modules/nft"
 	//"github.com/irisnet/irishub-sdk-go/modules/record"
 	//"github.com/irisnet/irishub-sdk-go/modules/service"
-	"github.com/irisnet/irishub-sdk-go/types"
-	txtypes "github.com/irisnet/irishub-sdk-go/types/tx"
 )
 
 type IRISHUBClient struct {
@@ -29,26 +27,26 @@ type IRISHUBClient struct {
 	encodingConfig types.EncodingConfig
 
 	types.BaseClient
+	Key   keys.KeyI
 	Bank  bank.BankI
 	Token token.TokenI
-	//Record  record.RecordI
-	//NFT     nft.NFTI
-	//Service service.ServiceI
-	Key keys.KeyI
+	// Record  record.RecordI
+	// NFT     nft.NFTI
+	// Service service.ServiceI
 }
 
 func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	encodingConfig := makeEncodingConfig()
 
-	//create a instance of baseClient
+	// create a instance of baseClient
 	baseClient := modules.NewBaseClient(cfg, encodingConfig, nil)
 
 	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
 	tokenClient := token.NewClient(baseClient, encodingConfig.Marshaler)
 	keysClient := keys.NewClient(baseClient)
-	//recordClient := record.NewClient(baseClient, encodingConfig.Marshaler)
-	//nftClient := nft.NewClient(baseClient, encodingConfig.Marshaler)
-	//serviceClient := service.NewClient(baseClient, encodingConfig.Marshaler)
+	// recordClient := record.NewClient(baseClient, encodingConfig.Marshaler)
+	// nftClient := nft.NewClient(baseClient, encodingConfig.Marshaler)
+	// serviceClient := service.NewClient(baseClient, encodingConfig.Marshaler)
 
 	client := &IRISHUBClient{
 		logger:     baseClient.Logger(),
@@ -56,9 +54,9 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 		Bank:       bankClient,
 		Token:      tokenClient,
 		Key:        keysClient,
-		//Record:         recordClient,
-		//NFT:            nftClient,
-		//Service:        serviceClient,
+		// Record:         recordClient,
+		// NFT:            nftClient,
+		// Service:        serviceClient,
 		moduleManager:  make(map[string]types.Module),
 		encodingConfig: encodingConfig,
 	}
@@ -66,9 +64,9 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	client.RegisterModule(
 		bankClient,
 		tokenClient,
-		//recordClient,
-		//nftClient,
-		//serviceClient,
+		// recordClient,
+		// nftClient,
+		// serviceClient,
 	)
 	return *client
 }
@@ -134,4 +132,5 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterInterface("cosmos.v1beta1.Msg", (*types.Msg)(nil))
 	txtypes.RegisterInterfaces(registry)
+	cryptocodec.RegisterInterfaces(registry)
 }

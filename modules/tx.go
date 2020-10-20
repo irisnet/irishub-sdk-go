@@ -34,7 +34,6 @@ func (base baseClient) QueryTx(hash string) (sdk.ResultQueryTx, error) {
 }
 
 func (base baseClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.ResultSearchTxs, error) {
-
 	query := builder.Build()
 	if len(query) == 0 {
 		return sdk.ResultSearchTxs{}, errors.New("must declare at least one tag to search")
@@ -170,8 +169,7 @@ func (base baseClient) broadcastTxSync(tx []byte) (sdk.ResultTx, sdk.Error) {
 	}
 
 	if res.Code != 0 {
-		return sdk.ResultTx{}, sdk.GetError(sdk.RootCodespace,
-			res.Code, res.Log)
+		return sdk.ResultTx{}, sdk.GetError(sdk.RootCodespace, res.Code, res.Log)
 	}
 
 	return sdk.ResultTx{Hash: res.Hash.String()}, nil
