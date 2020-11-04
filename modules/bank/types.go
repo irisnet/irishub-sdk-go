@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	// maxMsgLen  = 5
+	maxMsgLen  = 5
 	ModuleName = "bank"
 
 	TypeMsgSend      = "send"

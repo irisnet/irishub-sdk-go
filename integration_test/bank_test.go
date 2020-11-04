@@ -2,19 +2,52 @@ package integration_test
 
 import (
 	"fmt"
+	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/types"
+	"math/rand"
+	"sync"
+	"time"
 )
 
-func (s IntegrationTestSuite) TestAccount() {
-	account, err := s.Bank.QueryAccount(s.Account().Address.String())
-	s.NoError(err)
-	fmt.Print(account)
+func (s IntegrationTestSuite) TestBank() {
+	cases := []SubTest{
+		{
+			"TestQueryAccount",
+			queryAccount,
+		},
+		{
+			"TestSend",
+			send,
+		},
+		{
+			"TestMultSend",
+			multiSend,
+		},
+	}
+
+	for _, t := range cases {
+		s.Run(t.testName, func() {
+			t.testCase(s)
+		})
+	}
 }
 
-func (s IntegrationTestSuite) TestSend() {
-	coins, err := types.ParseDecCoins("1iris")
+func queryAccount(s IntegrationTestSuite) {
+	account, err := s.Bank.QueryAccount(s.Account().Address.String())
+	s.NoError(err)
+	s.NotEmpty(account)
+}
+
+func send(s IntegrationTestSuite) {
+	coins, err := types.ParseDecCoins("10iris")
 	s.NoError(err)
 	to := s.GetRandAccount().Address.String()
+
+	ch := make(chan int)
+	s.Bank.SubscribeSendTx(s.Account().Address.String(), to, func(send bank.EventDataMsgSend) {
+		ch <- 1
+	})
+
 	baseTx := types.BaseTx{
 		From:     s.Account().Name,
 		Gas:      200000,
@@ -26,5 +59,69 @@ func (s IntegrationTestSuite) TestSend() {
 
 	res, err := s.Bank.Send(to, coins, baseTx)
 	s.NoError(err)
-	fmt.Println(res)
+	s.NotEmpty(res.Hash)
+	time.Sleep(1 * time.Second)
+
+	resp, err := s.Manager().QueryTx(res.Hash)
+	s.NoError(err)
+	s.Equal(resp.Result.Code, uint32(0))
+	s.Equal(resp.Height, res.Height)
+
+	<-ch
+}
+
+func multiSend(s IntegrationTestSuite) {
+	baseTx := types.BaseTx{
+		From:     s.Account().Name,
+		Gas:      2000000,
+		Memo:     "test",
+		Mode:     types.Commit,
+		Password: s.Account().Password,
+	}
+
+	coins, err := types.ParseDecCoins("1000iris")
+	s.NoError(err)
+
+	accNum := 11
+	acc := make([]string, accNum)
+	receipts := make([]bank.Receipt, accNum)
+	for i := 0; i < accNum; i++ {
+		acc[i] = s.RandStringOfLength(10)
+		addr, _, err := s.Key.Add(acc[i], "1234567890")
+
+		s.NoError(err)
+		s.NotEmpty(addr)
+
+		receipts[i] = bank.Receipt{
+			Address: addr,
+			Amount:  coins,
+		}
+	}
+
+	_, err = s.Bank.MultiSend(bank.MultiSendRequest{Receipts: receipts}, baseTx)
+	s.NoError(err)
+
+	coins, err = types.ParseDecCoins("1iris")
+	s.NoError(err)
+	to := s.GetRandAccount().Address.String()
+	begin := time.Now()
+	var wait sync.WaitGroup
+	for i := 1; i < 5; i++ {
+		wait.Add(1)
+		index := rand.Intn(accNum)
+		go func() {
+			defer wait.Done()
+			_, err := s.Bank.Send(to, coins, types.BaseTx{
+				From:     acc[index],
+				Gas:      200000,
+				Memo:     "test",
+				Mode:     types.Commit,
+				Password: "1234567890",
+			})
+			s.NoError(err)
+		}()
+	}
+	wait.Wait()
+	end := time.Now()
+	fmt.Printf("total senconds:%s\n", end.Sub(begin).String())
 }

@@ -2,6 +2,8 @@ package bank
 
 import (
 	"fmt"
+	"github.com/irisnet/irishub-sdk-go/utils"
+	"strings"
 
 	"github.com/irisnet/irishub-sdk-go/codec"
 	"github.com/irisnet/irishub-sdk-go/codec/types"
@@ -59,99 +61,98 @@ func (b bankClient) Send(to string, amount sdk.DecCoins, baseTx sdk.BaseTx) (sdk
 	return b.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
-//
-//func (b bankClient) MultiSend(request MultiSendRequest, baseTx sdk.BaseTx) (resTxs []sdk.ResultTx, err sdk.Error) {
-//	sender, err := b.QueryAddress(baseTx.From, baseTx.Password)
-//	if err != nil {
-//		return nil, sdk.Wrapf("%s not found", baseTx.From)
-//	}
-//
-//	if len(request.Receipts) > maxMsgLen {
-//		return b.SendBatch(sender, request, baseTx)
-//	}
-//
-//	var inputs = make([]Input, len(request.Receipts))
-//	var outputs = make([]Output, len(request.Receipts))
-//	for i, receipt := range request.Receipts {
-//		amt, err := b.ToMinCoin(receipt.Amount...)
-//		if err != nil {
-//			return nil, sdk.Wrap(err)
-//		}
-//
-//		outAddr, e := sdk.AccAddressFromBech32(receipt.Address)
-//		if e != nil {
-//			return nil, sdk.Wrapf(fmt.Sprintf("%s invalid address", receipt.Address))
-//		}
-//
-//		inputs[i] = NewInput(sender, amt)
-//		outputs[i] = NewOutput(outAddr, amt)
-//	}
-//
-//	msg := NewMsgMultiSend(inputs, outputs)
-//	res, err := b.BuildAndSend([]sdk.Msg{msg}, baseTx)
-//	if err != nil {
-//		return nil, sdk.Wrap(err)
-//	}
-//
-//	resTxs = append(resTxs, res)
-//	return
-//}
-//
-//func (b bankClient) SendBatch(sender sdk.AccAddress,
-//	request MultiSendRequest, baseTx sdk.BaseTx) ([]sdk.ResultTx, sdk.Error) {
-//	batchReceipts := utils.SubArray(maxMsgLen, request)
-//
-//	var msgs sdk.Msgs
-//	for _, receipts := range batchReceipts {
-//		req := receipts.(MultiSendRequest)
-//		var inputs = make([]Input, len(req.Receipts))
-//		var outputs = make([]Output, len(req.Receipts))
-//		for i, receipt := range req.Receipts {
-//			amt, err := b.ToMinCoin(receipt.Amount...)
-//			if err != nil {
-//				return nil, sdk.Wrap(err)
-//			}
-//
-//			outAddr, e := sdk.AccAddressFromBech32(receipt.Address)
-//			if e != nil {
-//				return nil, sdk.Wrapf(fmt.Sprintf("%s invalid address", receipt.Address))
-//			}
-//
-//			inputs[i] = NewInput(sender, amt)
-//			outputs[i] = NewOutput(outAddr, amt)
-//		}
-//		msgs = append(msgs, NewMsgMultiSend(inputs, outputs))
-//	}
-//	return b.BaseClient.SendBatch(msgs, baseTx)
-//}
-//
-//// SubscribeSendTx Subscribe MsgSend event and return subscription
-//func (b bankClient) SubscribeSendTx(from, to string, callback EventMsgSendCallback) sdk.Subscription {
-//	var builder = sdk.NewEventQueryBuilder()
-//
-//	from = strings.TrimSpace(from)
-//	if len(from) != 0 {
-//		builder.AddCondition(sdk.NewCond(sdk.EventTypeMessage,
-//			sdk.AttributeKeySender).EQ(sdk.EventValue(from)))
-//	}
-//
-//	to = strings.TrimSpace(to)
-//	if len(to) != 0 {
-//		builder.AddCondition(sdk.Cond("transfer.recipient").EQ(sdk.EventValue(to)))
-//	}
-//
-//	subscription, _ := b.SubscribeTx(builder, func(data sdk.EventDataTx) {
-//		for _, msg := range data.Tx.GetMsgs() {
-//			if value, ok := msg.(*MsgSend); ok {
-//				callback(EventDataMsgSend{
-//					Height: data.Height,
-//					Hash:   data.Hash,
-//					From:   value.FromAddress.String(),
-//					To:     value.ToAddress.String(),
-//					Amount: value.Amount,
-//				})
-//			}
-//		}
-//	})
-//	return subscription
-//}
+func (b bankClient) MultiSend(request MultiSendRequest, baseTx sdk.BaseTx) (resTxs []sdk.ResultTx, err sdk.Error) {
+	sender, err := b.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return nil, sdk.Wrapf("%s not found", baseTx.From)
+	}
+
+	if len(request.Receipts) > maxMsgLen {
+		return b.SendBatch(sender, request, baseTx)
+	}
+
+	var inputs = make([]Input, len(request.Receipts))
+	var outputs = make([]Output, len(request.Receipts))
+	for i, receipt := range request.Receipts {
+		amt, err := b.ToMinCoin(receipt.Amount...)
+		if err != nil {
+			return nil, sdk.Wrap(err)
+		}
+
+		outAddr, e := sdk.AccAddressFromBech32(receipt.Address)
+		if e != nil {
+			return nil, sdk.Wrapf(fmt.Sprintf("%s invalid address", receipt.Address))
+		}
+
+		inputs[i] = NewInput(sender, amt)
+		outputs[i] = NewOutput(outAddr, amt)
+	}
+
+	msg := NewMsgMultiSend(inputs, outputs)
+	res, err := b.BuildAndSend([]sdk.Msg{msg}, baseTx)
+	if err != nil {
+		return nil, sdk.Wrap(err)
+	}
+
+	resTxs = append(resTxs, res)
+	return
+}
+
+func (b bankClient) SendBatch(sender sdk.AccAddress,
+	request MultiSendRequest, baseTx sdk.BaseTx) ([]sdk.ResultTx, sdk.Error) {
+	batchReceipts := utils.SubArray(maxMsgLen, request)
+
+	var msgs sdk.Msgs
+	for _, receipts := range batchReceipts {
+		req := receipts.(MultiSendRequest)
+		var inputs = make([]Input, len(req.Receipts))
+		var outputs = make([]Output, len(req.Receipts))
+		for i, receipt := range req.Receipts {
+			amt, err := b.ToMinCoin(receipt.Amount...)
+			if err != nil {
+				return nil, sdk.Wrap(err)
+			}
+
+			outAddr, e := sdk.AccAddressFromBech32(receipt.Address)
+			if e != nil {
+				return nil, sdk.Wrapf(fmt.Sprintf("%s invalid address", receipt.Address))
+			}
+
+			inputs[i] = NewInput(sender, amt)
+			outputs[i] = NewOutput(outAddr, amt)
+		}
+		msgs = append(msgs, NewMsgMultiSend(inputs, outputs))
+	}
+	return b.BaseClient.SendBatch(msgs, baseTx)
+}
+
+// SubscribeSendTx Subscribe MsgSend event and return subscription
+func (b bankClient) SubscribeSendTx(from, to string, callback EventMsgSendCallback) sdk.Subscription {
+	var builder = sdk.NewEventQueryBuilder()
+
+	from = strings.TrimSpace(from)
+	if len(from) != 0 {
+		builder.AddCondition(sdk.NewCond(sdk.EventTypeMessage,
+			sdk.AttributeKeySender).EQ(sdk.EventValue(from)))
+	}
+
+	to = strings.TrimSpace(to)
+	if len(to) != 0 {
+		builder.AddCondition(sdk.Cond("transfer.recipient").EQ(sdk.EventValue(to)))
+	}
+
+	subscription, _ := b.SubscribeTx(builder, func(data sdk.EventDataTx) {
+		for _, msg := range data.Tx.GetMsgs() {
+			if value, ok := msg.(*MsgSend); ok {
+				callback(EventDataMsgSend{
+					Height: data.Height,
+					Hash:   data.Hash,
+					From:   value.FromAddress,
+					To:     value.ToAddress,
+					Amount: value.Amount,
+				})
+			}
+		}
+	})
+	return subscription
+}
