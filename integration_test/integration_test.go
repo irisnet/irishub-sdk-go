@@ -19,7 +19,7 @@ import (
 const (
 	nodeURI  = "tcp://localhost:26657"
 	grpcAddr = "localhost:9090"
-	chainID  = "test"
+	chainID  = "testing"
 	charset  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	addr     = "iaa1f69a8aq4ampxrmcmg6l4gv73ac42hm9a6lvpw8"
 )
