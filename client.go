@@ -11,12 +11,12 @@ import (
 	"github.com/irisnet/irishub-sdk-go/modules"
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/keys"
+	"github.com/irisnet/irishub-sdk-go/modules/nft"
 	"github.com/irisnet/irishub-sdk-go/modules/service"
 	"github.com/irisnet/irishub-sdk-go/modules/token"
 	"github.com/irisnet/irishub-sdk-go/types"
 	txtypes "github.com/irisnet/irishub-sdk-go/types/tx"
 	//"github.com/irisnet/irishub-sdk-go/modules"
-	//"github.com/irisnet/irishub-sdk-go/modules/nft"
 	//"github.com/irisnet/irishub-sdk-go/modules/record"
 )
 
@@ -30,8 +30,8 @@ type IRISHUBClient struct {
 	Bank    bank.BankI
 	Token   token.TokenI
 	Service service.ServiceI
+	NFT     nft.NFTI
 	// Record  record.RecordI
-	// NFT     nft.NFTI
 }
 
 func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
@@ -44,8 +44,8 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	tokenClient := token.NewClient(baseClient, encodingConfig.Marshaler)
 	keysClient := keys.NewClient(baseClient)
 	serviceClient := service.NewClient(baseClient, encodingConfig.Marshaler)
+	nftClient := nft.NewClient(baseClient, encodingConfig.Marshaler)
 	// recordClient := record.NewClient(baseClient, encodingConfig.Marshaler)
-	// nftClient := nft.NewClient(baseClient, encodingConfig.Marshaler)
 
 	client := &IRISHUBClient{
 		logger:         baseClient.Logger(),
@@ -56,8 +56,8 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 		Bank:           bankClient,
 		Token:          tokenClient,
 		Service:        serviceClient,
+		NFT:            nftClient,
 		// Record:         recordClient,
-		// NFT:            nftClient,
 	}
 
 	client.RegisterModule(
