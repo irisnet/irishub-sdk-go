@@ -1,6 +1,7 @@
 package integration_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/types"
@@ -22,6 +23,9 @@ func (s IntegrationTestSuite) TestBank() {
 		{
 			"TestMultSend",
 			multiSend,
+		}, {
+			"TestSimulate",
+			simulate,
 		},
 	}
 
@@ -36,6 +40,8 @@ func queryAccount(s IntegrationTestSuite) {
 	account, err := s.Bank.QueryAccount(s.Account().Address.String())
 	s.NoError(err)
 	s.NotEmpty(account)
+	bz, _ := json.Marshal(account)
+	fmt.Println(string(bz))
 }
 
 func send(s IntegrationTestSuite) {
@@ -124,4 +130,23 @@ func multiSend(s IntegrationTestSuite) {
 	wait.Wait()
 	end := time.Now()
 	fmt.Printf("total senconds:%s\n", end.Sub(begin).String())
+}
+
+func simulate(s IntegrationTestSuite) {
+	coins, err := types.ParseDecCoins("10iris")
+	s.NoError(err)
+	to := s.GetRandAccount().Address.String()
+	baseTx := types.BaseTx{
+		From:     s.Account().Name,
+		Password: s.Account().Password,
+		Gas:      200000,
+		Memo:     "test",
+		Mode:     types.Commit,
+		Simulate: true,
+	}
+
+	result, err := s.Bank.Send(to, coins, baseTx)
+	s.NoError(err)
+	s.Greater(result.GasWanted, int64(0))
+	fmt.Println(result)
 }
