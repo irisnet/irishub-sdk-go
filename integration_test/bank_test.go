@@ -21,7 +21,7 @@ func (s IntegrationTestSuite) TestBank() {
 			send,
 		},
 		{
-			"TestMultSend",
+			"TestMultiSend",
 			multiSend,
 		}, {
 			"TestSimulate",
