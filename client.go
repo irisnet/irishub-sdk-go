@@ -64,8 +64,8 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 		bankClient,
 		tokenClient,
 		serviceClient,
+		nftClient,
 		// recordClient,
-		// nftClient,
 	)
 	return *client
 }
