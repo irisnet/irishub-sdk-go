@@ -12,6 +12,7 @@ import (
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/keys"
 	"github.com/irisnet/irishub-sdk-go/modules/nft"
+	"github.com/irisnet/irishub-sdk-go/modules/random"
 	"github.com/irisnet/irishub-sdk-go/modules/record"
 	"github.com/irisnet/irishub-sdk-go/modules/service"
 	"github.com/irisnet/irishub-sdk-go/modules/token"
@@ -31,6 +32,7 @@ type IRISHUBClient struct {
 	Service service.ServiceI
 	NFT     nft.NFTI
 	Record  record.RecordI
+	Random  random.RandomI
 }
 
 func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
@@ -45,6 +47,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	serviceClient := service.NewClient(baseClient, encodingConfig.Marshaler)
 	nftClient := nft.NewClient(baseClient, encodingConfig.Marshaler)
 	recordClient := record.NewClient(baseClient, encodingConfig.Marshaler)
+	randomClient := random.NewClient(baseClient, encodingConfig.Marshaler)
 
 	client := &IRISHUBClient{
 		logger:         baseClient.Logger(),
@@ -57,6 +60,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 		Service:        serviceClient,
 		NFT:            nftClient,
 		Record:         recordClient,
+		Random:         randomClient,
 	}
 
 	client.RegisterModule(
@@ -65,6 +69,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 		serviceClient,
 		nftClient,
 		recordClient,
+		randomClient,
 	)
 	return *client
 }
