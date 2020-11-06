@@ -12,12 +12,11 @@ import (
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/keys"
 	"github.com/irisnet/irishub-sdk-go/modules/nft"
+	"github.com/irisnet/irishub-sdk-go/modules/record"
 	"github.com/irisnet/irishub-sdk-go/modules/service"
 	"github.com/irisnet/irishub-sdk-go/modules/token"
 	"github.com/irisnet/irishub-sdk-go/types"
 	txtypes "github.com/irisnet/irishub-sdk-go/types/tx"
-	//"github.com/irisnet/irishub-sdk-go/modules"
-	//"github.com/irisnet/irishub-sdk-go/modules/record"
 )
 
 type IRISHUBClient struct {
@@ -31,7 +30,7 @@ type IRISHUBClient struct {
 	Token   token.TokenI
 	Service service.ServiceI
 	NFT     nft.NFTI
-	// Record  record.RecordI
+	Record  record.RecordI
 }
 
 func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
@@ -45,7 +44,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	keysClient := keys.NewClient(baseClient)
 	serviceClient := service.NewClient(baseClient, encodingConfig.Marshaler)
 	nftClient := nft.NewClient(baseClient, encodingConfig.Marshaler)
-	// recordClient := record.NewClient(baseClient, encodingConfig.Marshaler)
+	recordClient := record.NewClient(baseClient, encodingConfig.Marshaler)
 
 	client := &IRISHUBClient{
 		logger:         baseClient.Logger(),
@@ -57,7 +56,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 		Token:          tokenClient,
 		Service:        serviceClient,
 		NFT:            nftClient,
-		// Record:         recordClient,
+		Record:         recordClient,
 	}
 
 	client.RegisterModule(
@@ -65,7 +64,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 		tokenClient,
 		serviceClient,
 		nftClient,
-		// recordClient,
+		recordClient,
 	)
 	return *client
 }
@@ -93,7 +92,6 @@ func (client *IRISHUBClient) RegisterModule(ms ...types.Module) {
 			panic(fmt.Sprintf("%s has register", m.Name()))
 		}
 
-		// m.RegisterCodec(client.encodingConfig.Amino)
 		m.RegisterInterfaceTypes(client.encodingConfig.InterfaceRegistry)
 		client.moduleManager[m.Name()] = m
 	}
