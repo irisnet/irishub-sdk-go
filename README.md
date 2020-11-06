@@ -38,18 +38,18 @@ client := sdk.NewClient(types.ClientConfig{
 
 The `ClientConfig` component mainly contains the parameters used in the SDK, the specific meaning is shown in the table below
 
-| Iterm     | Type          | Description                                                                             |
-| --------- | ------------- | --------------------------------------------------------------------------------------- |
-| NodeURI   | string        | The RPC address of the irishub node connected to the SDK, for example: localhost: 26657 |
-| Network   | enum          | irishub network type, value: `Testnet`,`Mainnet`                                        |
-| ChainID   | string        | ChainID of irishub, for example: `irishub`                                              |
-| Gas       | uint64        | The maximum gas to be paid for the transaction, for example: `20000`                    |
-| Fee       | DecCoins      | Transaction fees to be paid for transactions                                            |
-| KeyDAO    | KeyDAO        | Private key management interface, If the user does not provide it, the default `LevelDB` will be used                                                        |
-| Mode      | enum          | Transaction broadcast mode, value: `Sync`,`Async`, `Commit`                             |
-| StoreType | enum          | Private key storage method, value: `Keystore`,`PrivKey`                                     |
-| Timeout   | time.Duration | Transaction timeout, for example: `5s`                                                  |
-| Level     | string        | Log output level, for example: `info`                                                   |
+| Iterm     | Type          | Description                                                                                           |
+| --------- | ------------- | ----------------------------------------------------------------------------------------------------- |
+| NodeURI   | string        | The RPC address of the irishub node connected to the SDK, for example: localhost: 26657               |
+| Network   | enum          | irishub network type, value: `Testnet`,`Mainnet`                                                      |
+| ChainID   | string        | ChainID of irishub, for example: `irishub`                                                            |
+| Gas       | uint64        | The maximum gas to be paid for the transaction, for example: `20000`                                  |
+| Fee       | DecCoins      | Transaction fees to be paid for transactions                                                          |
+| KeyDAO    | KeyDAO        | Private key management interface, If the user does not provide it, the default `LevelDB` will be used |
+| Mode      | enum          | Transaction broadcast mode, value: `Sync`,`Async`, `Commit`                                           |
+| StoreType | enum          | Private key storage method, value: `Keystore`,`PrivKey`                                               |
+| Timeout   | time.Duration | Transaction timeout, for example: `5s`                                                                |
+| Level     | string        | Log output level, for example: `info`                                                                 |
 
 If you want to use `SDK` to send a transfer transaction, the example is as follows:
 
@@ -107,39 +107,39 @@ type KeystoreInfo struct {
 }
 ```
 
-You can flexibly choose any of the private key management methods. The `Encrypt` and` Decrypt` interfaces are used to encrypt and decrypt the key. If the user does not implement it, the default is to use `AES`. Examples are as follows:
+You can flexibly choose any of the private key management methods. The `Encrypt` and `Decrypt` interfaces are used to encrypt and decrypt the key. If the user does not implement it, the default is to use `AES`. Examples are as follows:
 
 `KeyDao` implements the `AccountAccess` interface:
 
 ```go
 // Use memory as storage, use with caution in build environment
 type MemoryDB struct {
-	store map[string]Store
-	AES
+    store map[string]Store
+    AES
 }
 
 func NewMemoryDB() MemoryDB {
-	return MemoryDB{
-		store: make(map[string]Store),
-	}
+    return MemoryDB{
+        store: make(map[string]Store),
+    }
 }
 func (m MemoryDB) Write(name string, store Store) error {
-	m.store[name] = store
-	return nil
+    m.store[name] = store
+    return nil
 }
 
 func (m MemoryDB) Read(name string) (Store, error) {
-	return m.store[name], nil
+    return m.store[name], nil
 }
 
 func (m MemoryDB) Delete(name string) error {
-	delete(m.store, name)
-	return nil
+    delete(m.store, name)
+    return nil
 }
 
 func (m MemoryDB) Has(name string) bool {
-	_, ok := m.store[name]
-	return ok
+    _, ok := m.store[name]
+    return ok
 }
 ```
 

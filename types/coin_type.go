@@ -32,17 +32,17 @@ type CoinType struct {
 //ToMainCoin return the main denom coin from args
 func (ct CoinType) ConvertToMainCoin(coin Coin) (DecCoin, error) {
 	if !ct.hasUnit(coin.Denom) {
-		return ZeroDecCoin, errors.New("coinType unit (%s) not defined" + coin.Denom)
+		return DecCoin{}, errors.New("coinType unit (%s) not defined" + coin.Denom)
 	}
 
 	if ct.isMainUnit(coin.Denom) {
-		return ZeroDecCoin, nil
+		return DecCoin{}, nil
 	}
 
 	// dest amount = src amount * (10^(dest scale) / 10^(src scale))
-	dstScale := NewDecimalFromInt(ct.MainUnit.GetScaleFactor())
-	srcScale := NewDecimalFromInt(ct.MinUnit.GetScaleFactor())
-	amount := NewDecimalFromInt(coin.Amount)
+	dstScale := NewDecFromInt(ct.MainUnit.GetScaleFactor())
+	srcScale := NewDecFromInt(ct.MinUnit.GetScaleFactor())
+	amount := NewDecFromInt(coin.Amount)
 
 	amt := amount.Mul(dstScale).Quo(srcScale)
 	return NewDecCoinFromDec(ct.MainUnit.Denom, amt), nil
@@ -60,8 +60,8 @@ func (ct CoinType) ConvertToMinCoin(coin DecCoin) (newCoin Coin, err error) {
 	}
 
 	// dest amount = src amount * (10^(dest scale) / 10^(src scale))
-	srcScale := NewDecimalFromInt(ct.MainUnit.GetScaleFactor())
-	dstScale := NewDecimalFromInt(ct.MinUnit.GetScaleFactor())
+	srcScale := NewDecFromInt(ct.MainUnit.GetScaleFactor())
+	dstScale := NewDecFromInt(ct.MinUnit.GetScaleFactor())
 	amount := coin.Amount
 
 	amt := amount.Mul(dstScale).Quo(srcScale)
@@ -77,8 +77,5 @@ func (ct CoinType) isMinUnit(name string) bool {
 }
 
 func (ct CoinType) hasUnit(name string) bool {
-	if ct.isMainUnit(name) || ct.isMinUnit(name) {
-		return true
-	}
-	return false
+	return ct.isMainUnit(name) || ct.isMinUnit(name)
 }

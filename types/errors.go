@@ -35,7 +35,7 @@ const (
 )
 
 var (
-	errUnknown = register(RootCodespace, 111222, "unknown error")
+	// errUnknown = register(RootCodespace, 111222, "unknown error")
 	errInvalid = register(RootCodespace, 999999, "sdk check error")
 )
 
@@ -177,7 +177,6 @@ func setUsed(err Error) {
 	usedCodes[errorID(err.Codespace(), err.Code())] = err
 }
 
-// will remove from irishub v1.0
 var v17CodeMap = map[uint32]Code{
 	0:  OK,
 	1:  Internal,

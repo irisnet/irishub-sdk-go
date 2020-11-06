@@ -1,36 +1,34 @@
 package types
 
 const (
-	Testnet Network = "testnet"
-	Mainnet Network = "mainnet"
+	// prefixChain defines the prefix of this chain
+	prefixChain = "i"
+
+	// PrefixAcc is the prefix for account
+	prefixAccount = "a"
+
+	// prefixValidator is the prefix for validator keys
+	prefixValidator = "v"
+
+	// prefixConsensus is the prefix for consensus keys
+	prefixConsensus = "c"
+
+	// prefixPublic is the prefix for public
+	prefixPublic = "p"
+
+	// prefixAddress is the prefix for address
+	prefixAddress = "a"
 )
 
-type Network string
-
-// Can be configured through environment variables
 var (
-	defaultNetwork = Testnet
-)
-
-var (
-	testnetEnv = &AddrPrefixCfg{
+	prefixCfg = &AddrPrefixCfg{
 		bech32AddressPrefix: map[string]string{
-			"account_addr":   "faa",
-			"validator_addr": "fva",
-			"consensus_addr": "fca",
-			"account_pub":    "fap",
-			"validator_pub":  "fvp",
-			"consensus_pub":  "fcp",
-		},
-	}
-	mainnetEnv = &AddrPrefixCfg{
-		bech32AddressPrefix: map[string]string{
-			"account_addr":   "iaa",
-			"validator_addr": "iva",
-			"consensus_addr": "ica",
-			"account_pub":    "iap",
-			"validator_pub":  "ivp",
-			"consensus_pub":  "icp",
+			"account_addr":   prefixChain + prefixAccount + prefixAddress,
+			"validator_addr": prefixChain + prefixValidator + prefixAddress,
+			"consensus_addr": prefixChain + prefixConsensus + prefixAddress,
+			"account_pub":    prefixChain + prefixAccount + prefixPublic,
+			"validator_pub":  prefixChain + prefixValidator + prefixPublic,
+			"consensus_pub":  prefixChain + prefixConsensus + prefixPublic,
 		},
 	}
 )
@@ -39,16 +37,9 @@ type AddrPrefixCfg struct {
 	bech32AddressPrefix map[string]string
 }
 
-func SetNetwork(network Network) {
-	defaultNetwork = network
-}
-
 // GetAddrPrefixCfg returns the config instance for the corresponding Network type
 func GetAddrPrefixCfg() *AddrPrefixCfg {
-	if defaultNetwork == Mainnet {
-		return mainnetEnv
-	}
-	return testnetEnv
+	return prefixCfg
 }
 
 // GetBech32AccountAddrPrefix returns the Bech32 prefix for account address

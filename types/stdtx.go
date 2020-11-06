@@ -4,15 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/multisig"
 
-	json2 "github.com/irisnet/irishub-sdk-go/utils/json"
+	"github.com/irisnet/irishub-sdk-go/codec"
 )
 
 const (
-	maxMemoCharacters = 100
-	txSigLimit        = 7
+	// maxMemoCharacters = 100
+	// txSigLimit        = 7
+	maxGasWanted = uint64((1 << 63) - 1)
 
 	Sync   BroadcastMode = "sync"
 	Async  BroadcastMode = "async"
@@ -20,29 +19,6 @@ const (
 )
 
 type BroadcastMode string
-
-// Transactions messages must fulfill the Msg
-type Msg interface {
-	// Return the message type.
-	// Must be alphanumeric or empty.
-	Route() string
-
-	// Returns a human-readable string for the message, intended for utilization
-	// within tags
-	Type() string
-
-	// ValidateBasic does a simple validation check that
-	// doesn't require access to any other information.
-	ValidateBasic() error
-
-	// QueryAndRefreshAccount the canonical byte representation of the Msg.
-	GetSignBytes() []byte
-
-	// Signers returns the addrs of signers that must sign.
-	// CONTRACT: All signatures must be present to be valid.
-	// CONTRACT: Returns addrs in some deterministic order.
-	GetSigners() []AccAddress
-}
 
 type Msgs []Msg
 
@@ -52,16 +28,6 @@ func (m Msgs) Len() int {
 
 func (m Msgs) Sub(begin, end int) SplitAble {
 	return m[begin:end]
-}
-
-// Transactions objects must fulfill the Tx
-type Tx interface {
-
-	// Gets the all the transaction's messages.
-	GetMsgs() []Msg
-	// ValidateBasic does a simple and lightweight validation check that doesn't
-	// require access to any other information.
-	ValidateBasic() error
 }
 
 // StdFee includes the amount of coins paid in fees and the maximum
@@ -81,27 +47,22 @@ func NewStdFee(gas uint64, amount ...Coin) StdFee {
 
 // Fee bytes for signing later
 func (fee StdFee) Bytes() []byte {
-	if len(fee.Amount) == 0 {
-		fee.Amount = Coins{}
-	}
-	bz, err := NewAminoCodec().MarshalJSON(fee)
-	if err != nil {
-		panic(err)
-	}
-	return bz
-}
-
-type Signature struct {
-	crypto.PubKey `json:"pub_key"` // optional
-	Signature     []byte           `json:"signature"`
+	//if len(fee.Amount) == 0 {
+	//	fee.Amount = Coins{}
+	//}
+	//bz, err := NewCodec().MarshalJSON(fee)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//return bz
+	//TODO
+	return nil
 }
 
 // Standard Signature
 type StdSignature struct {
-	crypto.PubKey `json:"pub_key"` // optional
-	Signature     []byte           `json:"signature"`
-	AccountNumber uint64           `json:"account_number"`
-	Sequence      uint64           `json:"sequence"`
+	PubKey    []byte `json:"pub_key" yaml:"pub_key"` // optional
+	Signature []byte `json:"signature" yaml:"signature"`
 }
 
 // StdSignMsg is a convenience structure for passing along
@@ -117,12 +78,12 @@ type StdSignMsg struct {
 }
 
 // get message bytes
-func (msg StdSignMsg) Bytes(cdc Codec) []byte {
+func (msg StdSignMsg) Bytes(cdc codec.Marshaler) []byte {
 	var msgsBytes []json.RawMessage
 	for _, msg := range msg.Msgs {
 		msgsBytes = append(msgsBytes, json.RawMessage(msg.GetSignBytes()))
 	}
-	bz, err := cdc.MarshalJSON(StdSignDoc{
+	bz, err := json.Marshal(StdSignDoc{
 		AccountNumber: msg.AccountNumber,
 		ChainID:       msg.ChainID,
 		Fee:           json.RawMessage(msg.Fee.Bytes()),
@@ -133,7 +94,7 @@ func (msg StdSignMsg) Bytes(cdc Codec) []byte {
 	if err != nil {
 		panic(err)
 	}
-	return json2.MustSort(bz)
+	return MustSortJSON(bz)
 }
 
 // StdSignDoc is replay-prevention structure.
@@ -183,44 +144,27 @@ func (tx StdTx) GetSignBytes() []string {
 // require access to any other information.
 func (tx StdTx) ValidateBasic() error {
 	stdSigs := tx.GetSignatures()
-	if tx.Fee.Amount.IsAnyNegative() {
-		return errors.New(fmt.Sprintf("invalid fee %s amount provided", tx.Fee.Amount))
+
+	if tx.Fee.Gas > maxGasWanted {
+		return fmt.Errorf("invalid gas supplied; %d > %d", tx.Fee.Gas, maxGasWanted)
 	}
+
+	if tx.Fee.Amount.IsAnyNegative() {
+		return fmt.Errorf("invalid fee %s amount provided", tx.Fee.Amount)
+	}
+
 	if len(stdSigs) == 0 {
 		return errors.New("no signers")
 	}
 	if len(stdSigs) != len(tx.GetSigners()) {
 		return errors.New("wrong number of signers")
 	}
-	if len(tx.GetMemo()) > maxMemoCharacters {
-		return errors.New(
-			fmt.Sprintf(
-				"maximum number of characters is %d but received %d characters",
-				maxMemoCharacters, len(tx.GetMemo()),
-			),
+	if len(stdSigs) != len(tx.GetSigners()) {
+		return fmt.Errorf(
+			"wrong number of signers; expected %d, got %d", len(tx.GetSigners()), len(stdSigs),
 		)
 	}
-	sigCount := 0
-	for i := 0; i < len(stdSigs); i++ {
-		sigCount += countSubKeys(stdSigs[i].PubKey)
-		if sigCount > txSigLimit {
-			return errors.New(
-				fmt.Sprintf("ssdk.ErrTooManySignaturesignatures: %d, limit: %d", sigCount, txSigLimit),
-			)
-		}
-	}
 	return nil
-}
-func countSubKeys(pub crypto.PubKey) int {
-	v, ok := pub.(multisig.PubKeyMultisigThreshold)
-	if !ok {
-		return 1
-	}
-	numKeys := 0
-	for _, subkey := range v.PubKeys {
-		numKeys += countSubKeys(subkey)
-	}
-	return numKeys
 }
 
 // GetSigners returns the addresses that must sign the transaction.
@@ -267,11 +211,11 @@ type BaseTx struct {
 // ResultTx encapsulates the return result of the transaction. When the transaction fails,
 // it is an empty object. The specific error information can be obtained through the Error interface.
 type ResultTx struct {
-	GasWanted int64  `json:"gas_wanted"`
-	GasUsed   int64  `json:"gas_used"`
-	Tags      Tags   `json:"tags"`
-	Hash      string `json:"hash"`
-	Height    int64  `json:"height"`
+	GasWanted int64        `json:"gas_wanted"`
+	GasUsed   int64        `json:"gas_used"`
+	Events    StringEvents `json:"events"`
+	Hash      string       `json:"hash"`
+	Height    int64        `json:"height"`
 }
 
 // ResultQueryTx is used to prepare info to display

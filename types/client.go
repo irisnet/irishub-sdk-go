@@ -1,21 +1,26 @@
 package types
 
 import (
-	"github.com/irisnet/irishub-sdk-go/utils/log"
-	cmn "github.com/tendermint/tendermint/libs/common"
+	"google.golang.org/grpc"
+
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 type TxManager interface {
+	TmQuery
 	BuildAndSend(msg []Msg, baseTx BaseTx) (ResultTx, Error)
-	SendMsgBatch(msgs Msgs, baseTx BaseTx) ([]ResultTx, Error)
-	Broadcast(signedTx StdTx, mode BroadcastMode) (ResultTx, Error)
+	SendBatch(msgs Msgs, baseTx BaseTx) ([]ResultTx, Error)
 }
 
 type Queries interface {
 	StoreQuery
 	AccountQuery
-	TxQuery
-	ParamQuery
+	TmQuery
+}
+
+type GRPCClient interface {
+	GenConn() (*grpc.ClientConn, error)
 }
 
 type ParamQuery interface {
@@ -25,21 +30,22 @@ type ParamQuery interface {
 type StoreQuery interface {
 	QueryWithResponse(path string, data interface{}, result Response) error
 	Query(path string, data interface{}) ([]byte, error)
-	QueryStore(key cmn.HexBytes, storeName string) (res []byte, err error)
+	QueryStore(key HexBytes, storeName string, height int64, prove bool) (abci.ResponseQuery, error)
 }
 
 type AccountQuery interface {
 	QueryAccount(address string) (BaseAccount, Error)
-	QueryAddress(name string) (AccAddress, Error)
+	QueryAddress(name, password string) (AccAddress, Error)
 }
 
-type TxQuery interface {
+type TmQuery interface {
 	QueryTx(hash string) (ResultQueryTx, error)
 	QueryTxs(builder *EventQueryBuilder, page, size int) (ResultSearchTxs, error)
+	QueryBlock(height int64) (BlockDetail, error)
 }
 
 type TokenManager interface {
-	QueryToken(symbol string) (Token, error)
+	QueryToken(denom string) (Token, error)
 	SaveTokens(tokens ...Token)
 }
 
@@ -49,14 +55,17 @@ type TokenConvert interface {
 }
 
 type Logger interface {
-	Logger() *log.Logger
+	Logger() log.Logger
+	SetLogger(log.Logger)
 }
 
 type BaseClient interface {
 	TxManager
 	TokenManager
+	KeyManager
 	Queries
 	TokenConvert
 	TmClient
 	Logger
+	GRPCClient
 }

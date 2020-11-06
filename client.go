@@ -2,121 +2,135 @@ package sdk
 
 import (
 	"fmt"
+	"github.com/irisnet/irishub-sdk-go/modules/nft"
 
-	"io"
+	"github.com/tendermint/tendermint/libs/log"
 
+	"github.com/irisnet/irishub-sdk-go/codec"
+	cdctypes "github.com/irisnet/irishub-sdk-go/codec/types"
+	cryptocodec "github.com/irisnet/irishub-sdk-go/crypto/codec"
 	"github.com/irisnet/irishub-sdk-go/modules"
-	"github.com/irisnet/irishub-sdk-go/modules/asset"
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
-	"github.com/irisnet/irishub-sdk-go/modules/distribution"
-	"github.com/irisnet/irishub-sdk-go/modules/gov"
 	"github.com/irisnet/irishub-sdk-go/modules/keys"
-	"github.com/irisnet/irishub-sdk-go/modules/oracle"
-	"github.com/irisnet/irishub-sdk-go/modules/random"
 	"github.com/irisnet/irishub-sdk-go/modules/service"
-	"github.com/irisnet/irishub-sdk-go/modules/slashing"
-	"github.com/irisnet/irishub-sdk-go/modules/staking"
-	"github.com/irisnet/irishub-sdk-go/modules/tendermint"
-	"github.com/irisnet/irishub-sdk-go/rpc"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
-	"github.com/irisnet/irishub-sdk-go/utils/log"
+	"github.com/irisnet/irishub-sdk-go/modules/token"
+	"github.com/irisnet/irishub-sdk-go/types"
+	txtypes "github.com/irisnet/irishub-sdk-go/types/tx"
+	//"github.com/irisnet/irishub-sdk-go/modules"
+	//"github.com/irisnet/irishub-sdk-go/modules/nft"
+	//"github.com/irisnet/irishub-sdk-go/modules/record"
 )
 
-type Client struct {
-	cdc     sdk.Codec
-	modules map[string]sdk.Module
-	logger  *log.Logger
+type IRISHUBClient struct {
+	logger         log.Logger
+	moduleManager  map[string]types.Module
+	encodingConfig types.EncodingConfig
 
-	sdk.WSClient
-	sdk.TxManager
-	sdk.TokenConvert
+	types.BaseClient
+	Key     keys.KeyI
+	Bank    bank.BankI
+	Token   token.TokenI
+	Service service.ServiceI
+	// Record  record.RecordI
+	NFT nft.NFTI
 }
 
-func NewClient(cfg sdk.ClientConfig) Client {
-	cdc := sdk.NewAminoCodec()
-	baseClient := modules.NewBaseClient(cdc, cfg)
+func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
+	encodingConfig := makeEncodingConfig()
 
-	client := &Client{
-		cdc:          cdc,
-		modules:      make(map[string]sdk.Module),
-		logger:       baseClient.Logger(),
-		WSClient:     baseClient.TmClient,
-		TxManager:    baseClient,
-		TokenConvert: baseClient,
+	// create a instance of baseClient
+	baseClient := modules.NewBaseClient(cfg, encodingConfig, nil)
+
+	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
+	tokenClient := token.NewClient(baseClient, encodingConfig.Marshaler)
+	keysClient := keys.NewClient(baseClient)
+	serviceClient := service.NewClient(baseClient, encodingConfig.Marshaler)
+	// recordClient := record.NewClient(baseClient, encodingConfig.Marshaler)
+	nftClient := nft.NewClient(baseClient, encodingConfig.Marshaler)
+
+	client := &IRISHUBClient{
+		logger:         baseClient.Logger(),
+		BaseClient:     baseClient,
+		moduleManager:  make(map[string]types.Module),
+		encodingConfig: encodingConfig,
+		Key:            keysClient,
+		Bank:           bankClient,
+		Token:          tokenClient,
+		Service:        serviceClient,
+		// Record:         recordClient,
+		NFT: nftClient,
 	}
 
-	client.registerModule(
-		bank.Create(baseClient),
-		service.Create(baseClient),
-		oracle.Create(baseClient),
-		staking.Create(baseClient),
-		distribution.Create(baseClient),
-		gov.Create(baseClient),
-		slashing.Create(baseClient),
-		random.Create(baseClient),
-		keys.Create(baseClient.KeyManager),
-		asset.Create(baseClient),
-		tendermint.Create(baseClient),
+	client.RegisterModule(
+		bankClient,
+		tokenClient,
+		serviceClient,
+		// recordClient,
+		nftClient,
 	)
-
 	return *client
 }
 
-func (s *Client) registerModule(modules ...sdk.Module) {
-	for _, m := range modules {
-		if _, existed := s.modules[m.Name()]; existed {
-			panic(fmt.Sprintf("module[%s] has existed", m.Name()))
+func (client *IRISHUBClient) SetLogger(logger log.Logger) {
+	client.BaseClient.SetLogger(logger)
+}
+
+func (client *IRISHUBClient) Codec() *codec.LegacyAmino {
+	return client.encodingConfig.Amino
+}
+
+func (client *IRISHUBClient) AppCodec() codec.Marshaler {
+	return client.encodingConfig.Marshaler
+}
+
+func (client *IRISHUBClient) Manager() types.BaseClient {
+	return client.BaseClient
+}
+
+func (client *IRISHUBClient) RegisterModule(ms ...types.Module) {
+	for _, m := range ms {
+		_, ok := client.moduleManager[m.Name()]
+		if ok {
+			panic(fmt.Sprintf("%s has register", m.Name()))
 		}
-		m.RegisterCodec(s.cdc)
-		s.modules[m.Name()] = m
+
+		// m.RegisterCodec(client.encodingConfig.Amino)
+		m.RegisterInterfaceTypes(client.encodingConfig.InterfaceRegistry)
+		client.moduleManager[m.Name()] = m
 	}
-	sdk.RegisterCodec(s.cdc)
 }
 
-func (s *Client) Bank() rpc.Bank {
-	return s.modules[bank.ModuleName].(rpc.Bank)
+func (client *IRISHUBClient) Module(name string) types.Module {
+	return client.moduleManager[name]
 }
 
-func (s *Client) Distr() rpc.Distribution {
-	return s.modules[distribution.ModuleName].(rpc.Distribution)
+func makeEncodingConfig() types.EncodingConfig {
+	amino := codec.NewLegacyAmino()
+	interfaceRegistry := cdctypes.NewInterfaceRegistry()
+	marshaler := codec.NewProtoCodec(interfaceRegistry)
+	txCfg := txtypes.NewTxConfig(marshaler, txtypes.DefaultSignModes)
+
+	encodingConfig := types.EncodingConfig{
+		InterfaceRegistry: interfaceRegistry,
+		Marshaler:         marshaler,
+		TxConfig:          txCfg,
+		Amino:             amino,
+	}
+	RegisterLegacyAminoCodec(encodingConfig.Amino)
+	RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	return encodingConfig
 }
 
-func (s *Client) Service() rpc.Service {
-	return s.modules[service.ModuleName].(rpc.Service)
+// RegisterLegacyAminoCodec registers the sdk message type.
+func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	cdc.RegisterInterface((*types.Msg)(nil), nil)
+	cdc.RegisterInterface((*types.Tx)(nil), nil)
+	cryptocodec.RegisterCrypto(cdc)
 }
 
-func (s *Client) Oracle() rpc.Oracle {
-	return s.modules[oracle.ModuleName].(rpc.Oracle)
-}
-
-func (s *Client) Staking() rpc.Staking {
-	return s.modules[staking.ModuleName].(rpc.Staking)
-}
-
-func (s *Client) Gov() rpc.Gov {
-	return s.modules[gov.ModuleName].(rpc.Gov)
-}
-
-func (s *Client) Slashing() rpc.Slashing {
-	return s.modules[slashing.ModuleName].(rpc.Slashing)
-}
-
-func (s *Client) Random() rpc.Random {
-	return s.modules[random.ModuleName].(rpc.Random)
-}
-
-func (s *Client) Keys() rpc.Keys {
-	return s.modules[keys.ModuleName].(rpc.Keys)
-}
-
-func (s *Client) Asset() rpc.Asset {
-	return s.modules[asset.ModuleName].(rpc.Asset)
-}
-
-func (s *Client) Tendermint() rpc.Tendermint {
-	return s.modules[tendermint.ModuleName].(rpc.Tendermint)
-}
-
-func (s *Client) SetOutput(w io.Writer) {
-	s.logger.SetOutput(w)
+// RegisterInterfaces registers the sdk message type.
+func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
+	registry.RegisterInterface("cosmos.v1beta1.Msg", (*types.Msg)(nil))
+	txtypes.RegisterInterfaces(registry)
+	cryptocodec.RegisterInterfaces(registry)
 }

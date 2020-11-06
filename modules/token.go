@@ -1,55 +1,61 @@
 package modules
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
+	"github.com/tendermint/tendermint/libs/log"
+
+	"github.com/irisnet/irishub-sdk-go/codec"
+	"github.com/irisnet/irishub-sdk-go/modules/token"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/utils/cache"
-	"github.com/irisnet/irishub-sdk-go/utils/log"
 )
 
 type tokenQuery struct {
 	q sdk.Queries
-	*log.Logger
+	sdk.GRPCClient
+	cdc codec.Marshaler
+	log.Logger
 	cache.Cache
 }
 
-func (l tokenQuery) QueryToken(symbol string) (sdk.Token, error) {
-	symbol = strings.ToLower(symbol)
-	if symbol == sdk.IRIS.Symbol || symbol == sdk.IRIS.MinUnit {
-		return sdk.IRIS, nil
+func (l tokenQuery) QueryToken(denom string) (sdk.Token, error) {
+	denom = strings.ToLower(denom)
+	if t, err := l.Get(l.prefixKey(denom)); err == nil {
+		return t.(sdk.Token), nil
 	}
 
-	token, err := l.Get(l.prefixKey(symbol))
-	if err == nil {
-		return token.(sdk.Token), nil
+	conn, err := l.GenConn()
+	defer func() { _ = conn.Close() }()
+	if err != nil {
+		return sdk.Token{}, sdk.Wrap(err)
 	}
 
-	param := struct {
-		Symbol string
-	}{
-		Symbol: symbol,
+	response, err := token.NewQueryClient(conn).Token(
+		context.Background(),
+		&token.QueryTokenRequest{Denom: denom},
+	)
+	if err != nil {
+		return sdk.Token{}, sdk.Wrap(err)
 	}
 
-	symbol = strings.TrimSuffix(symbol, "-min")
-	var t sdk.Token
-	if err := l.q.QueryWithResponse("custom/asset/token", param, &t); err != nil {
-		return sdk.Token{}, err
+	var srcToken token.TokenInterface
+	if err = l.cdc.UnpackAny(response.Token, &srcToken); err != nil {
+		return sdk.Token{}, sdk.Wrap(err)
 	}
-
-	l.SaveTokens(t)
-	return t, nil
+	token := srcToken.(*token.Token).Convert().(sdk.Token)
+	l.SaveTokens(token)
+	return token, nil
 }
 
 func (l tokenQuery) SaveTokens(tokens ...sdk.Token) {
 	for _, t := range tokens {
 		err1 := l.Set(l.prefixKey(t.Symbol), t)
-		err2 := l.Set(l.prefixKey(t.GetMinUnit()), t)
+		err2 := l.Set(l.prefixKey(t.MinUnit), t)
 		if err1 != nil || err2 != nil {
-			l.Warn().
-				Str("symbol", t.Symbol).
-				Msg("cache token failed")
+			l.Debug("cache token failed", "symbol", t.Symbol)
 		}
 	}
 }

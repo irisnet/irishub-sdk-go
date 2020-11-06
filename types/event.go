@@ -6,20 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-
-	tmclient "github.com/tendermint/tendermint/rpc/client"
-
-	cmn "github.com/tendermint/tendermint/libs/common"
-	tmtypes "github.com/tendermint/tendermint/types"
-)
-
-const (
-	TypeKey      EventKey = "tm.event"
-	ActionKey    EventKey = "action"
-	SenderKey    EventKey = "sender"
-	RecipientKey EventKey = "recipient"
-
-	TxValue EventValue = "Tx"
 )
 
 type WSClient interface {
@@ -31,12 +17,13 @@ type WSClient interface {
 }
 
 type TmClient interface {
-	tmclient.ABCIClient
-	tmclient.SignClient
+	ABCIClient
+	SignClient
 	WSClient
+	StatusClient
+	NetworkClient
 }
 
-type EventType string
 type EventKey string
 type EventValue string
 
@@ -56,7 +43,7 @@ type EventDataTx struct {
 	Hash   string   `json:"hash"`
 	Height int64    `json:"height"`
 	Index  uint32   `json:"index"`
-	Tx     StdTx    `json:"tx"`
+	Tx     Tx       `json:"tx"`
 	Result TxResult `json:"result"`
 }
 
@@ -66,57 +53,39 @@ func (tx EventDataTx) MarshalJson() []byte {
 }
 
 type TxResult struct {
-	Code      uint32 `json:"code"`
-	Log       string `json:"log"`
-	GasWanted int64  `json:"gas_wanted"`
-	GasUsed   int64  `json:"gas_used"`
-	Tags      Tags   `json:"tags"`
+	Code      uint32       `json:"code"`
+	Log       string       `json:"log"`
+	GasWanted int64        `json:"gas_wanted"`
+	GasUsed   int64        `json:"gas_used"`
+	Events    StringEvents `json:"events"`
 }
 
-type Tag struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-type Tags []Tag
+type Attributes []Attribute
 
-func ParseTags(pairs []cmn.KVPair) (tags []Tag) {
-	if pairs == nil || len(pairs) == 0 {
-		return tags
-	}
-	for _, pair := range pairs {
-		key := string(pair.Key)
-		value := string(pair.Value)
-		tags = append(tags, Tag{
-			Key:   key,
-			Value: value,
-		})
-	}
-	return
-}
-func (t Tags) GetValues(key string) (values []string) {
-	for _, tag := range t {
-		if tag.Key == key {
-			values = append(values, tag.Value)
+func (a Attributes) GetValues(key string) (values []string) {
+	for _, attr := range a {
+		if attr.Key == key {
+			values = append(values, attr.Value)
 		}
 	}
 	return
 }
 
-func (t Tags) GetValue(key string) string {
-	for _, tag := range t {
-		if tag.Key == key {
-			return tag.Value
+func (a Attributes) GetValue(key string) string {
+	for _, attr := range a {
+		if attr.Key == key {
+			return attr.Value
 		}
 	}
 	return ""
 }
 
-func (t Tags) String() string {
-	var tags = make([]string, len(t))
-	for i, tag := range t {
-		tags[i] = fmt.Sprintf("%s=%s", tag.Key, tag.Value)
+func (a Attributes) String() string {
+	var attrs = make([]string, len(a))
+	for i, attr := range a {
+		attrs[i] = fmt.Sprintf("%s=%s", attr.Key, attr.Value)
 	}
-	return strings.Join(tags, ",")
+	return strings.Join(attrs, ",")
 }
 
 type EventTxHandler func(EventDataTx)
@@ -142,7 +111,7 @@ type EventNewBlockHandler func(EventDataNewBlock)
 
 //EventDataNewBlockHeader for SubscribeNewBlockHeader
 type EventDataNewBlockHeader struct {
-	Header tmtypes.Header `json:"header"`
+	Header Header `json:"header"`
 
 	ResultBeginBlock ResultBeginBlock `json:"result_begin_block"`
 	ResultEndBlock   ResultEndBlock   `json:"result_end_block"`
@@ -172,9 +141,17 @@ type condition struct {
 	op    string
 }
 
+// Cond return a condition object with a key
 func Cond(key EventKey) *condition {
 	return &condition{
 		key: key,
+	}
+}
+
+// NewCond return a condition object with a complete event type and attrKey
+func NewCond(typ, attrKey string) *condition {
+	return &condition{
+		key: EventKey(fmt.Sprintf("%s.%s", typ, attrKey)),
 	}
 }
 
@@ -198,9 +175,9 @@ func (c *condition) EQ(v EventValue) *condition {
 	return c.fill(v, "=")
 }
 
-func (c *condition) Contains(v EventValue) *condition {
-	return c.fill(v, "CONTAINS")
-}
+//func (c *condition) Contains(v EventValue) *condition {
+//	return c.fill(v, "CONTAINS")
+//}
 
 func (c *condition) fill(v EventValue, op string) *condition {
 	c.value = v

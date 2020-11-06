@@ -1,70 +1,15 @@
 package types
 
 import (
-	"github.com/tendermint/go-amino"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/crypto/multisig"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
+	"github.com/irisnet/irishub-sdk-go/codec"
+	"github.com/irisnet/irishub-sdk-go/codec/types"
 )
 
-var codec Codec
-
-func init() {
-	codec = NewAminoCodec()
-}
-
-type Codec interface {
-	MarshalJSON(o interface{}) ([]byte, error)
-	UnmarshalJSON(bz []byte, ptr interface{}) error
-
-	MarshalBinaryLengthPrefixed(o interface{}) ([]byte, error)
-	UnmarshalBinaryLengthPrefixed(bz []byte, ptr interface{}) error
-
-	RegisterConcrete(o interface{}, name string)
-	RegisterInterface(ptr interface{})
-}
-
-type AminoCodec struct {
-	*amino.Codec
-}
-
-func NewAminoCodec() Codec {
-	cdc := amino.NewCodec()
-	return AminoCodec{cdc}
-}
-
-func (cdc AminoCodec) RegisterConcrete(o interface{}, name string) {
-	cdc.Codec.RegisterConcrete(o, name, nil)
-}
-
-func (cdc AminoCodec) RegisterInterface(ptr interface{}) {
-	cdc.Codec.RegisterInterface(ptr, nil)
-}
-
-func RegisterCodec(cdc Codec) {
-	cdc.RegisterInterface((*Account)(nil))
-	cdc.RegisterInterface((*Msg)(nil))
-	cdc.RegisterConcrete(&BaseAccount{}, "irishub/bank/Account")
-	cdc.RegisterConcrete(StdTx{}, "irishub/bank/StdTx")
-	// These are all written here instead of
-	cdc.RegisterInterface((*crypto.PubKey)(nil))
-	cdc.RegisterConcrete(ed25519.PubKeyEd25519{},
-		ed25519.PubKeyAminoName)
-	cdc.RegisterConcrete(secp256k1.PubKeySecp256k1{},
-		secp256k1.PubKeyAminoName)
-	cdc.RegisterConcrete(multisig.PubKeyMultisigThreshold{},
-		multisig.PubKeyMultisigThresholdAminoRoute)
-
-	cdc.RegisterInterface((*crypto.PrivKey)(nil))
-	cdc.RegisterConcrete(ed25519.PrivKeyEd25519{},
-		ed25519.PrivKeyAminoName)
-	cdc.RegisterConcrete(secp256k1.PrivKeySecp256k1{},
-		secp256k1.PrivKeyAminoName)
-
-	cdc.RegisterInterface((*Store)(nil))
-	cdc.RegisterConcrete(PrivKeyInfo{}, "sdk/PrivKeyInfo")
-	cdc.RegisterConcrete(KeystoreInfo{}, "sdk/KeystoreInfo")
-
-	codec = cdc
+// EncodingConfig specifies the concrete encoding types to use for a given app.
+// This is provided for compatibility between protobuf and amino implementations.
+type EncodingConfig struct {
+	InterfaceRegistry types.InterfaceRegistry
+	Marshaler         codec.Marshaler
+	TxConfig          TxConfig
+	Amino             *codec.LegacyAmino
 }

@@ -4,8 +4,11 @@ import (
 	"encoding/base64"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto/encoding"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/irisnet/irishub-sdk-go/codec"
 )
 
 type Block struct {
@@ -19,19 +22,17 @@ type Data struct {
 	Txs []StdTx `json:"txs"`
 }
 
-func ParseBlock(cdc Codec, block *tmtypes.Block) Block {
+func ParseBlock(cdc *codec.LegacyAmino, block *tmtypes.Block) Block {
 	var txs []StdTx
 	for _, tx := range block.Txs {
 		var stdTx StdTx
-		if err := cdc.UnmarshalBinaryLengthPrefixed(tx, &stdTx); err == nil {
+		if err := cdc.UnmarshalBinaryBare(tx, &stdTx); err == nil {
 			txs = append(txs, stdTx)
 		}
 	}
 	return Block{
-		Header: block.Header,
-		Data: Data{
-			Txs: txs,
-		},
+		Header:     block.Header,
+		Data:       Data{Txs: txs},
 		Evidence:   block.Evidence,
 		LastCommit: block.LastCommit,
 	}
@@ -42,6 +43,12 @@ type BlockResult struct {
 	Results ABCIResponses `json:"results"`
 }
 
+type BlockDetail struct {
+	BlockID     tmtypes.BlockID `json:"block_id"`
+	Block       Block           `json:"block"`
+	BlockResult BlockResult     `json:"block_result"`
+}
+
 type ABCIResponses struct {
 	DeliverTx  []TxResult
 	EndBlock   ResultEndBlock
@@ -49,37 +56,41 @@ type ABCIResponses struct {
 }
 
 type ResultBeginBlock struct {
-	Tags Tags `json:"tags"`
+	Events StringEvents `json:"events"`
 }
 
 type ResultEndBlock struct {
-	Tags             Tags              `json:"tags"`
+	Events           StringEvents      `json:"events"`
 	ValidatorUpdates []ValidatorUpdate `json:"validator_updates"`
 }
 
 func ParseValidatorUpdate(updates []abci.ValidatorUpdate) []ValidatorUpdate {
 	var vUpdates []ValidatorUpdate
 	for _, v := range updates {
-		vUpdates = append(vUpdates, ValidatorUpdate{
-			PubKey: PubKey{
-				Type:  v.PubKey.Type,
-				Value: base64.StdEncoding.EncodeToString(v.PubKey.Data),
+		pubkey, _ := encoding.PubKeyFromProto(v.PubKey)
+		vUpdates = append(
+			vUpdates,
+			ValidatorUpdate{
+				PubKey: PubKey{
+					Type:  pubkey.Type(),
+					Value: base64.StdEncoding.EncodeToString(pubkey.Bytes()),
+				},
+				Power: v.Power,
 			},
-			Power: v.Power,
-		})
+		)
 	}
 	return vUpdates
 }
 
 func ParseBlockResult(res *ctypes.ResultBlockResults) BlockResult {
-	var txResults = make([]TxResult, len(res.Results.DeliverTx))
-	for i, r := range res.Results.DeliverTx {
+	var txResults = make([]TxResult, len(res.TxsResults))
+	for i, r := range res.TxsResults {
 		txResults[i] = TxResult{
 			Code:      r.Code,
 			Log:       r.Log,
 			GasWanted: r.GasWanted,
 			GasUsed:   r.GasUsed,
-			Tags:      ParseTags(r.Tags),
+			Events:    StringifyEvents(r.Events),
 		}
 	}
 	return BlockResult{
@@ -87,25 +98,25 @@ func ParseBlockResult(res *ctypes.ResultBlockResults) BlockResult {
 		Results: ABCIResponses{
 			DeliverTx: txResults,
 			EndBlock: ResultEndBlock{
-				Tags:             ParseTags(res.Results.EndBlock.Tags),
-				ValidatorUpdates: ParseValidatorUpdate(res.Results.EndBlock.ValidatorUpdates),
+				Events:           StringifyEvents(res.EndBlockEvents),
+				ValidatorUpdates: ParseValidatorUpdate(res.ValidatorUpdates),
 			},
 			BeginBlock: ResultBeginBlock{
-				Tags: ParseTags(res.Results.BeginBlock.Tags),
+				Events: StringifyEvents(res.BeginBlockEvents),
 			},
 		},
 	}
 }
 
-func ParseValidators(vs []*tmtypes.Validator) []Validator {
+func ParseValidators(cdc *codec.LegacyAmino, vs []*tmtypes.Validator) []Validator {
 	var validators = make([]Validator, len(vs))
 	for i, v := range vs {
 		bech32Addr, _ := ConsAddressFromHex(v.Address.String())
-		bech32PubKey, _ := Bech32ifyConsPub(v.PubKey)
+		bech32PubKey, _ := Bech32ifyPubKey(Bech32PubKeyTypeConsPub, v.PubKey)
 
 		var pubKey PubKey
-		if bz, err := codec.MarshalJSON(v.PubKey); err == nil {
-			_ = codec.UnmarshalJSON(bz, &pubKey)
+		if bz, err := cdc.MarshalJSON(v.PubKey); err == nil {
+			_ = cdc.UnmarshalJSON(bz, &pubKey)
 		}
 		validators[i] = Validator{
 			Bech32Address:    bech32Addr.String(),

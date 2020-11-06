@@ -4,12 +4,12 @@
 //
 // As a quick start:
 //
-// Create a new key.
+// CreateRecord a new key.
 //
 //  client := test.NewClient()
 //	name, password := "test2", "1234567890"
 //
-//	address, mnemonic, err := client.Keys().Add(name, password)
+//	address, mnemonic, err := client.KeyI.Add(name, password)
 //	require.NoError(client.T(), err)
 //	require.NotEmpty(client.T(), address)
 //	require.NotEmpty(client.T(), mnemonic)

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"crypto/rand"
+
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
@@ -20,7 +21,7 @@ func GenerateRandomBytes(n int) ([]byte, error) {
 	return b, nil
 }
 
-func SplitArray(subLen int, array sdk.SplitAble) (segments []sdk.SplitAble) {
+func SubArray(subLen int, array sdk.SplitAble) (segments []sdk.SplitAble) {
 	maxLen := array.Len()
 	if maxLen <= subLen {
 		return []sdk.SplitAble{array}

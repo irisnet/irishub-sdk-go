@@ -16,13 +16,16 @@ type Dec struct {
 	i *big.Int
 }
 
-// number of decimal places
 const (
-	Precision = 10
+	// number of decimal places
+	Precision = 18
 
 	// bytes required to represent the above precision
 	// Ceiling[Log2[999 999 999 999 999 999]]
-	DecimalPrecisionBits = 34
+	DecimalPrecisionBits = 60
+
+	// max number of iterations in ApproxRoot function
+	maxApproxRootIterations = 100
 )
 
 var (
@@ -75,7 +78,7 @@ func precisionMultiplier(prec int64) *big.Int {
 	return precisionMultipliers[prec]
 }
 
-//______________________________________________________________________________________________
+// ______________________________________________________________________________________________
 
 // create a new Dec from integer assuming whole number
 func NewDec(i int64) Dec {
@@ -157,7 +160,6 @@ func NewDecFromStr(str string) (Dec, error) {
 			return Dec{}, ErrInvalidDecimalLength
 		}
 		combinedStr += strs[1]
-
 	} else if len(strs) > 2 {
 		return Dec{}, ErrInvalidDecimalStr
 	}
@@ -191,7 +193,7 @@ func MustNewDecFromStr(s string) Dec {
 	return dec
 }
 
-//______________________________________________________________________________________________
+// ______________________________________________________________________________________________
 //nolint
 func (d Dec) IsNil() bool       { return d.i == nil }                 // is decimal nil
 func (d Dec) IsZero() bool      { return (d.i).Sign() == 0 }          // is equal to zero
@@ -207,6 +209,10 @@ func (d Dec) Abs() Dec          { return Dec{new(big.Int).Abs(d.i)} } // absolut
 
 // BigInt returns a copy of the underlying big.Int.
 func (d Dec) BigInt() *big.Int {
+	if d.IsNil() {
+		return nil
+	}
+
 	copy := new(big.Int)
 	return copy.Set(d.i)
 }
@@ -275,7 +281,6 @@ func (d Dec) MulInt64(i int64) Dec {
 
 // quotient
 func (d Dec) Quo(d2 Dec) Dec {
-
 	// multiply precision twice
 	mul := new(big.Int).Mul(d.i, precisionReuse)
 	mul.Mul(mul, precisionReuse)
@@ -291,7 +296,6 @@ func (d Dec) Quo(d2 Dec) Dec {
 
 // quotient truncate
 func (d Dec) QuoTruncate(d2 Dec) Dec {
-
 	// multiply precision twice
 	mul := new(big.Int).Mul(d.i, precisionReuse)
 	mul.Mul(mul, precisionReuse)
@@ -336,6 +340,8 @@ func (d Dec) QuoInt64(i int64) Dec {
 // using Newton's method (where n is positive). The algorithm starts with some guess and
 // computes the sequence of improved guesses until an answer converges to an
 // approximate answer.  It returns `|d|.ApproxRoot() * -1` if input is negative.
+// A maximum number of 100 iterations is used a backup boundary condition for
+// cases where the answer never converges enough to satisfy the main condition.
 func (d Dec) ApproxRoot(root uint64) (guess Dec, err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -363,7 +369,7 @@ func (d Dec) ApproxRoot(root uint64) (guess Dec, err error) {
 	rootInt := NewIntFromUint64(root)
 	guess, delta := OneDec(), OneDec()
 
-	for delta.Abs().GT(SmallestDec()) {
+	for iter := 0; delta.Abs().GT(SmallestDec()) && iter < maxApproxRootIterations; iter++ {
 		prev := guess.Power(root - 1)
 		if prev.IsZero() {
 			prev = SmallestDec()
@@ -384,6 +390,7 @@ func (d Dec) Power(power uint64) Dec {
 		return OneDec()
 	}
 	tmp := OneDec()
+
 	for i := power; i > 1; {
 		if i%2 == 0 {
 			i /= 2
@@ -393,6 +400,7 @@ func (d Dec) Power(power uint64) Dec {
 		}
 		d = d.Mul(d)
 	}
+
 	return d.Mul(tmp)
 }
 
@@ -421,7 +429,8 @@ func (d Dec) String() string {
 	}
 
 	isNeg := d.IsNegative()
-	if d.IsNegative() {
+
+	if isNeg {
 		d = d.Neg()
 	}
 
@@ -449,9 +458,7 @@ func (d Dec) String() string {
 
 		// set final digits
 		copy(bzStr[2+(Precision-inputSize):], bzInt)
-
 	} else {
-
 		// inputSize + 1 to account for the decimal point that is being added
 		bzStr = make([]byte, inputSize+1)
 		decPointPlace := inputSize - Precision
@@ -482,7 +489,6 @@ func (d Dec) String() string {
 //
 // Mutates the input. Use the non-mutative version if that is undesired
 func chopPrecisionAndRound(d *big.Int) *big.Int {
-
 	// remove the negative and add it back when returning
 	if d.Sign() == -1 {
 		// make d positive, compute chopped value, and then un-mutate d
@@ -515,7 +521,6 @@ func chopPrecisionAndRound(d *big.Int) *big.Int {
 }
 
 func chopPrecisionAndRoundUp(d *big.Int) *big.Int {
-
 	// remove the negative and add it back when returning
 	if d.Sign() == -1 {
 		// make d positive, compute chopped value, and then un-mutate d
@@ -556,7 +561,7 @@ func (d Dec) RoundInt() Int {
 	return NewIntFromBigInt(chopPrecisionAndRoundNonMutative(d.i))
 }
 
-//___________________________________________________________________________________
+// ___________________________________________________________________________________
 
 // similar to chopPrecisionAndRound, but always rounds down
 func chopPrecisionAndTruncate(d *big.Int) *big.Int {
@@ -607,7 +612,7 @@ func (d Dec) Ceil() Dec {
 	return NewDecFromBigInt(quo.Add(quo, oneInt))
 }
 
-//___________________________________________________________________________________
+// ___________________________________________________________________________________
 
 // MaxSortableDec is the largest Dec that can be passed into SortableDecBytes()
 // Its negative form is the least Dec that can be passed in.
@@ -643,7 +648,7 @@ func SortableDecBytes(dec Dec) []byte {
 	return []byte(fmt.Sprintf(fmt.Sprintf("%%0%ds", Precision*2+1), dec.String()))
 }
 
-//___________________________________________________________________________________
+// ___________________________________________________________________________________
 
 // reuse nil values
 var nilJSON []byte
@@ -702,7 +707,8 @@ func (d *Dec) MarshalTo(data []byte) (n int, err error) {
 	if d.i == nil {
 		d.i = new(big.Int)
 	}
-	if len(d.i.Bytes()) == 0 {
+
+	if d.i.Cmp(zeroInt) == 0 {
 		copy(data, []byte{0x30})
 		return 1, nil
 	}
@@ -748,7 +754,11 @@ func (d *Dec) Size() int {
 func (d Dec) MarshalAmino() ([]byte, error)   { return d.Marshal() }
 func (d *Dec) UnmarshalAmino(bz []byte) error { return d.Unmarshal(bz) }
 
-//___________________________________________________________________________________
+func (dp DecProto) String() string {
+	return dp.Dec.String()
+}
+
+// ___________________________________________________________________________________
 // helpers
 
 // test if two decimal arrays are equal
