@@ -7,13 +7,15 @@ import (
 	"strings"
 )
 
-var (
+type TestNft struct {
 	denomId   string
 	nftId     string
 	recipient string
 
 	anotherName, anotherPasswd string
-)
+}
+
+var testNft TestNft
 
 func (s IntegrationTestSuite) TestNft() {
 	cases := []SubTest{
@@ -92,10 +94,10 @@ func issueDenom(s IntegrationTestSuite) {
 }
 `
 
-	denomId = strings.ToLower(s.RandStringOfLength(10))
+	testNft.denomId = strings.ToLower(s.RandStringOfLength(10))
 	name := s.RandStringOfLength(4)
 	issueReq := nft.IssueDenomRequest{
-		ID:     denomId,
+		ID:     testNft.denomId,
 		Name:   name,
 		Schema: schema,
 	}
@@ -105,9 +107,9 @@ func issueDenom(s IntegrationTestSuite) {
 }
 
 func queryDenom(s IntegrationTestSuite) {
-	denomResp, err := s.NFT.QueryDenom(denomId)
+	denomResp, err := s.NFT.QueryDenom(testNft.denomId)
 	s.NoError(err)
-	s.Equal(denomId, denomResp.ID)
+	s.Equal(testNft.denomId, denomResp.ID)
 	fmt.Println(denomResp)
 }
 
@@ -120,7 +122,7 @@ func mintNft(s IntegrationTestSuite) {
 		Mode:     types.Commit,
 	}
 
-	nftId = strings.ToLower(s.RandStringOfLength(10))
+	testNft.nftId = strings.ToLower(s.RandStringOfLength(10))
 	name := s.RandStringOfLength(4)
 	data := `
 {
@@ -129,8 +131,8 @@ func mintNft(s IntegrationTestSuite) {
 }
 `
 	mintNftReq := nft.MintNFTRequest{
-		Denom: denomId,
-		ID:    nftId,
+		Denom: testNft.denomId,
+		ID:    testNft.nftId,
 		Name:  name,
 		URI:   fmt.Sprintf("https://%s", s.RandStringOfLength(10)),
 		Data:  data,
@@ -141,10 +143,10 @@ func mintNft(s IntegrationTestSuite) {
 }
 
 func queryNft(s IntegrationTestSuite) {
-	nftResp, err := s.NFT.QueryNFT(denomId, nftId)
+	nftResp, err := s.NFT.QueryNFT(testNft.denomId, testNft.nftId)
 	s.NoError(err)
 	s.NotEmpty(nftResp.Data)
-	s.Equal(nftId, nftResp.ID)
+	s.Equal(testNft.nftId, nftResp.ID)
 }
 
 func editNft(s IntegrationTestSuite) {
@@ -157,8 +159,8 @@ func editNft(s IntegrationTestSuite) {
 	}
 
 	editReq := nft.EditNFTRequest{
-		Denom: denomId,
-		ID:    nftId,
+		Denom: testNft.denomId,
+		ID:    testNft.nftId,
 		URI:   fmt.Sprintf("https://%s", s.RandStringOfLength(10)),
 	}
 
@@ -179,18 +181,18 @@ func transferNft(s IntegrationTestSuite) {
 	coins, err := types.ParseDecCoins("100iris")
 	s.NoError(err)
 
-	anotherName = s.RandStringOfLength(10)
-	anotherPasswd = "11111111"
-	recipient, _, err = s.Key.Add(anotherName, anotherPasswd)
+	testNft.anotherName = s.RandStringOfLength(10)
+	testNft.anotherPasswd = "11111111"
+	testNft.recipient, _, err = s.Key.Add(testNft.anotherName, testNft.anotherPasswd)
 	s.NoError(err)
-	_, err = s.Bank.Send(recipient, coins, baseTx)
+	_, err = s.Bank.Send(testNft.recipient, coins, baseTx)
 	s.NoError(err)
 
 	transferNftReq := nft.TransferNFTRequest{
-		Denom:     denomId,
-		ID:        nftId,
+		Denom:     testNft.denomId,
+		ID:        testNft.nftId,
 		URI:       fmt.Sprintf("https://%s", s.RandStringOfLength(10)),
-		Recipient: recipient,
+		Recipient: testNft.recipient,
 	}
 	res, err := s.NFT.TransferNFT(transferNftReq, baseTx)
 	s.NoError(err)
@@ -199,14 +201,14 @@ func transferNft(s IntegrationTestSuite) {
 }
 
 func querySupply(s IntegrationTestSuite) {
-	supplyRes, err := s.NFT.QuerySupply(denomId, s.Account().Address.String())
+	supplyRes, err := s.NFT.QuerySupply(testNft.denomId, s.Account().Address.String())
 	s.NoError(err)
 	fmt.Println(supplyRes)
 }
 
 func queryOwner(s IntegrationTestSuite) {
 	creator := s.Account().Address.String()
-	owner, err := s.NFT.QueryOwner(creator, denomId)
+	owner, err := s.NFT.QueryOwner(creator, testNft.denomId)
 	s.NoError(err)
 	s.Len(owner.IDCs, 1)
 	//s.Len(owner.IDCs[0].TokenIDs, 1)
@@ -219,7 +221,7 @@ func queryDenoms(s IntegrationTestSuite) {
 
 	var flag bool
 	for _, denom := range denoms {
-		if denom.ID == denomId {
+		if denom.ID == testNft.denomId {
 			flag = true
 		}
 	}
@@ -228,16 +230,16 @@ func queryDenoms(s IntegrationTestSuite) {
 
 func burnNft(s IntegrationTestSuite) {
 	baseTx := types.BaseTx{
-		From:     anotherName,
-		Password: anotherPasswd,
+		From:     testNft.anotherName,
+		Password: testNft.anotherPasswd,
 		Gas:      200000,
 		Memo:     "test",
 		Mode:     types.Commit,
 	}
 
 	burnReq := nft.BurnNFTRequest{
-		Denom: denomId,
-		ID:    nftId,
+		Denom: testNft.denomId,
+		ID:    testNft.nftId,
 	}
 
 	res, err := s.NFT.BurnNFT(burnReq, baseTx)
