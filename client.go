@@ -3,6 +3,7 @@ package sdk
 import (
 	"fmt"
 	"github.com/irisnet/irishub-sdk-go/modules/nft"
+	"github.com/irisnet/irishub-sdk-go/modules/random"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -32,7 +33,8 @@ type IRISHUBClient struct {
 	Token   token.TokenI
 	Service service.ServiceI
 	// Record  record.RecordI
-	NFT nft.NFTI
+	Random random.RandomI
+	NFT    nft.NFTI
 }
 
 func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
@@ -47,6 +49,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	serviceClient := service.NewClient(baseClient, encodingConfig.Marshaler)
 	// recordClient := record.NewClient(baseClient, encodingConfig.Marshaler)
 	nftClient := nft.NewClient(baseClient, encodingConfig.Marshaler)
+	randomClient := random.NewClient(baseClient, encodingConfig.Marshaler)
 
 	client := &IRISHUBClient{
 		logger:         baseClient.Logger(),
@@ -58,7 +61,8 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 		Token:          tokenClient,
 		Service:        serviceClient,
 		// Record:         recordClient,
-		NFT: nftClient,
+		Random: randomClient,
+		NFT:    nftClient,
 	}
 
 	client.RegisterModule(
@@ -67,6 +71,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 		serviceClient,
 		// recordClient,
 		nftClient,
+		randomClient,
 	)
 	return *client
 }
