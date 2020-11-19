@@ -1,14 +1,26 @@
 package integration_test
 
-import "strconv"
+import (
+	"github.com/irisnet/irishub-sdk-go/modules/random"
+	"github.com/irisnet/irishub-sdk-go/types"
+	"strconv"
+	"time"
+)
 
-type TestRandom struct{}
+type TestRandom struct {
+	reqId          string
+	generateHeight int64
+}
 
 var testRandom TestRandom
 
 func (s IntegrationTestSuite) TestRandom() {
 
 	cases := []SubTest{
+		{
+			"TestRequestRandom",
+			requestRandom,
+		},
 		{
 			"TestQueryRandom",
 			queryRandom,
@@ -26,8 +38,37 @@ func (s IntegrationTestSuite) TestRandom() {
 	}
 }
 
+func requestRandom(s IntegrationTestSuite) {
+	baseTx := types.BaseTx{
+		From:     s.Account().Name,
+		Password: s.Account().Password,
+		Gas:      200000,
+		Memo:     "test",
+		Mode:     types.Commit,
+	}
+	serviceFeeCap, err := types.ParseCoins("10iris")
+	s.NoError(err)
+
+	req := random.RequestRandomRequest{
+		BlockInterval: 0,
+		Oracle:        false,
+		ServiceFeeCap: serviceFeeCap,
+	}
+
+	resp, res, err := s.Random.RequestRandom(req, baseTx)
+	s.NoError(err)
+	s.NotEmpty(res.Hash)
+	s.Len(resp.ReqID, 64)
+	s.Greater(resp.Height, int64(0))
+
+	testRandom.reqId = resp.ReqID
+	testRandom.generateHeight = resp.Height
+}
+
 func queryRandom(s IntegrationTestSuite) {
-	res, err := s.Random.QueryRandom("4fdf899d73b1b5e564aa9fb8afd9ce397de325c77c0633aed4b93c52275197d1")
+	// Wait for the transaction to be packaged into the block
+	time.Sleep(10 * time.Second)
+	res, err := s.Random.QueryRandom(testRandom.reqId)
 	s.NoError(err)
 	s.NotEmpty(res.RequestTxHash)
 	value, _ := strconv.ParseFloat(res.Value, 10)
@@ -35,7 +76,7 @@ func queryRandom(s IntegrationTestSuite) {
 }
 
 func queryRandomRequestQueue(s IntegrationTestSuite) {
-	queue, err := s.Random.QueryRandomRequestQueue(12145)
+	_, err := s.Random.QueryRandomRequestQueue(testRandom.generateHeight)
 	s.NoError(err)
-	s.NotEmpty(queue)
+	//s.NotEmpty(queue)
 }

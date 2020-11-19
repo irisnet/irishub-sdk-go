@@ -6,8 +6,21 @@ import sdk "github.com/irisnet/irishub-sdk-go/types"
 type RandomI interface {
 	sdk.Module
 
+	RequestRandom(request RequestRandomRequest, basTx sdk.BaseTx) (RequestRandomResp, sdk.ResultTx, sdk.Error)
+
 	QueryRandom(ReqId string) (QueryRandomResp, sdk.Error)
 	QueryRandomRequestQueue(height int64) ([]QueryRandomRequestQueueResp, sdk.Error)
+}
+
+type RequestRandomRequest struct {
+	BlockInterval uint64    `json:"block_interval"`
+	Oracle        bool      `json:"oracle"`
+	ServiceFeeCap sdk.Coins `json:"service_fee_cap"`
+}
+
+type RequestRandomResp struct {
+	Height int64  `json:"height"`
+	ReqID  string `json:"req_id"`
 }
 
 type QueryRandomResp struct {

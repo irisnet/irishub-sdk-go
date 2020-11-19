@@ -5,6 +5,7 @@ import (
 	"github.com/irisnet/irishub-sdk-go/codec"
 	cdctypes "github.com/irisnet/irishub-sdk-go/codec/types"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"strconv"
 )
 
 type randomClient struct {
@@ -25,6 +26,43 @@ func (rc randomClient) Name() string {
 
 func (rc randomClient) RegisterInterfaceTypes(registry cdctypes.InterfaceRegistry) {
 	RegisterInterfaces(registry)
+}
+
+func (rc randomClient) RequestRandom(request RequestRandomRequest, basTx sdk.BaseTx) (RequestRandomResp, sdk.ResultTx, sdk.Error) {
+	author, err := rc.QueryAddress(basTx.From, basTx.Password)
+	if err != nil {
+		return RequestRandomResp{}, sdk.ResultTx{}, nil
+	}
+
+	msg := &MsgRequestRandom{
+		BlockInterval: request.BlockInterval,
+		Consumer:      author,
+		Oracle:        request.Oracle,
+		ServiceFeeCap: request.ServiceFeeCap,
+	}
+	result, err := rc.BuildAndSend([]sdk.Msg{msg}, basTx)
+	if err != nil {
+		return RequestRandomResp{}, sdk.ResultTx{}, err
+	}
+
+	reqID, e := result.Events.GetValue(eventTypeRequestRequestRandom, attributeKeyRequestID)
+	if e != nil {
+		return RequestRandomResp{}, result, sdk.Wrap(e)
+	}
+	generateHeight, e := result.Events.GetValue(eventTypeRequestRequestRandom, attributeKeyGenerateHeight)
+	if e != nil {
+		return RequestRandomResp{}, result, sdk.Wrap(e)
+	}
+	height, e := strconv.Atoi(generateHeight)
+	if e != nil {
+		return RequestRandomResp{}, result, sdk.Wrap(e)
+	}
+
+	res := RequestRandomResp{
+		Height: int64(height),
+		ReqID:  reqID,
+	}
+	return res, result, nil
 }
 
 func (rc randomClient) QueryRandom(reqID string) (QueryRandomResp, sdk.Error) {
