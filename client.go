@@ -34,7 +34,7 @@ type IRISHUBClient struct {
 	Service service.ServiceI
 	// Record  record.RecordI
 	Random random.RandomI
-	NFT    nft.NFTI
+	NFT    nft.Client
 }
 
 func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {

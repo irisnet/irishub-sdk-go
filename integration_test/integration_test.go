@@ -18,10 +18,10 @@ import (
 
 const (
 	nodeURI  = "tcp://localhost:26657"
-	grpcAddr = "localhost:9090"
+	grpcAddr = "localhost:9091"
 	chainID  = "testing"
 	charset  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	addr     = "iaa1f69a8aq4ampxrmcmg6l4gv73ac42hm9a6lvpw8"
+	addr     = "iaa19gd09wppvlxtmrtevzq4w2gprpq0k8k88vmesx"
 )
 
 type IntegrationTestSuite struct {
