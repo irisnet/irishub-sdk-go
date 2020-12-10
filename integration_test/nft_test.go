@@ -3,247 +3,128 @@ package integration_test
 import (
 	"fmt"
 	"github.com/irisnet/irishub-sdk-go/modules/nft"
-	"github.com/irisnet/irishub-sdk-go/types"
+	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/stretchr/testify/require"
 	"strings"
 )
 
-type TestNft struct {
-	denomId   string
-	nftId     string
-	recipient string
-
-	anotherName, anotherPasswd string
-}
-
-var testNft TestNft
-
-func (s IntegrationTestSuite) TestNft() {
-	cases := []SubTest{
-		{
-			"TestIssueDenom",
-			issueDenom,
-		},
-		{
-			"TestQueryDenom",
-			queryDenom,
-		},
-		{
-			"TestMintNft",
-			mintNft,
-		},
-		{
-			"TestQueryNft",
-			queryNft,
-		},
-		{
-			"TestEditNft",
-			editNft,
-		},
-		{
-			"TestTransferNft",
-			transferNft,
-		},
-		{
-			"TestQuerySupply",
-			querySupply,
-		},
-		{
-			"TestQueryOwner",
-			queryOwner,
-		},
-		{
-			"TestQueryDenoms",
-			queryDenoms,
-		},
-		{
-			"TestBurnNft",
-			burnNft,
-		},
-	}
-
-	for _, t := range cases {
-		s.Run(t.testName, func() {
-			t.testCase(s)
-		})
-	}
-}
-
-func issueDenom(s IntegrationTestSuite) {
-	baseTx := types.BaseTx{
+func (s IntegrationTestSuite) TestNFT() {
+	baseTx := sdk.BaseTx{
 		From:     s.Account().Name,
-		Password: s.Account().Password,
 		Gas:      200000,
 		Memo:     "test",
-		Mode:     types.Commit,
+		Mode:     sdk.Commit,
+		Password: s.Account().Password,
 	}
 
-	schema := `
-{
-  "$id": "https://example.com/nft.schema.json",
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "description": "nft test",
-  "type": "object",
-  "properties": {
-    "id": {
-      "type": "number"
-    },
-    "name": {
-      "type": "string"
-    }
-  }
-}
-`
-
-	testNft.denomId = strings.ToLower(s.RandStringOfLength(10))
-	name := s.RandStringOfLength(4)
+	denomID := strings.ToLower(s.RandStringOfLength(4))
+	denomName := strings.ToLower(s.RandStringOfLength(4))
+	schema := strings.ToLower(s.RandStringOfLength(10))
 	issueReq := nft.IssueDenomRequest{
-		ID:     testNft.denomId,
-		Name:   name,
+		ID:     denomID,
+		Name:   denomName,
 		Schema: schema,
 	}
-	denom, err := s.NFT.IssueDenom(issueReq, baseTx)
-	s.NoError(err)
-	s.NotEmpty(denom.Hash)
-}
+	res, err := s.NFT.IssueDenom(issueReq, baseTx)
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), res.Hash)
 
-func queryDenom(s IntegrationTestSuite) {
-	denomResp, err := s.NFT.QueryDenom(testNft.denomId)
-	s.NoError(err)
-	s.Equal(testNft.denomId, denomResp.ID)
-	fmt.Println(denomResp)
-}
-
-func mintNft(s IntegrationTestSuite) {
-	baseTx := types.BaseTx{
-		From:     s.Account().Name,
-		Password: s.Account().Password,
-		Gas:      200000,
-		Memo:     "test",
-		Mode:     types.Commit,
-	}
-
-	testNft.nftId = strings.ToLower(s.RandStringOfLength(10))
-	name := s.RandStringOfLength(4)
-	data := `
-{
-  "id": 1,
-  "name": "hello nft"
-}
-`
-	mintNftReq := nft.MintNFTRequest{
-		Denom: testNft.denomId,
-		ID:    testNft.nftId,
-		Name:  name,
+	tokenID := strings.ToLower(s.RandStringOfLength(7))
+	tokenName := strings.ToLower(s.RandStringOfLength(7))
+	tokenData := strings.ToLower(s.RandStringOfLength(7))
+	mintReq := nft.MintNFTRequest{
+		Denom: denomID,
+		ID:    tokenID,
+		Name:  tokenName,
 		URI:   fmt.Sprintf("https://%s", s.RandStringOfLength(10)),
-		Data:  data,
+		Data:  tokenData,
 	}
-	res, err := s.NFT.MintNFT(mintNftReq, baseTx)
-	s.NoError(err)
-	s.NotEmpty(res.Hash)
-}
-
-func queryNft(s IntegrationTestSuite) {
-	nftResp, err := s.NFT.QueryNFT(testNft.denomId, testNft.nftId)
-	s.NoError(err)
-	s.NotEmpty(nftResp.Data)
-	s.Equal(testNft.nftId, nftResp.ID)
-}
-
-func editNft(s IntegrationTestSuite) {
-	baseTx := types.BaseTx{
-		From:     s.Account().Name,
-		Password: s.Account().Password,
-		Gas:      200000,
-		Memo:     "test",
-		Mode:     types.Commit,
-	}
+	res, err = s.NFT.MintNFT(mintReq, baseTx)
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), res.Hash)
 
 	editReq := nft.EditNFTRequest{
-		Denom: testNft.denomId,
-		ID:    testNft.nftId,
+		Denom: mintReq.Denom,
+		ID:    mintReq.ID,
 		URI:   fmt.Sprintf("https://%s", s.RandStringOfLength(10)),
 	}
+	res, err = s.NFT.EditNFT(editReq, baseTx)
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), res.Hash)
 
-	res, err := s.NFT.EditNFT(editReq, baseTx)
-	s.NoError(err)
-	s.NotEmpty(res.Hash)
-	s.Greater(res.GasUsed, int64(0))
-}
+	nftRes, err := s.NFT.QueryNFT(mintReq.Denom, mintReq.ID)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), editReq.URI, nftRes.URI)
 
-func transferNft(s IntegrationTestSuite) {
-	baseTx := types.BaseTx{
-		From:     s.Account().Name,
-		Password: s.Account().Password,
-		Gas:      200000,
-		Memo:     "test",
-		Mode:     types.Commit,
-	}
-	coins, err := types.ParseDecCoins("100iris")
-	s.NoError(err)
+	supply, err := s.NFT.QuerySupply(mintReq.Denom, nftRes.Creator)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), uint64(1), supply)
 
-	testNft.anotherName = s.RandStringOfLength(10)
-	testNft.anotherPasswd = "11111111"
-	testNft.recipient, _, err = s.Key.Add(testNft.anotherName, testNft.anotherPasswd)
-	s.NoError(err)
-	_, err = s.Bank.Send(testNft.recipient, coins, baseTx)
-	s.NoError(err)
+	owner, err := s.NFT.QueryOwner(nftRes.Creator, mintReq.Denom)
+	require.NoError(s.T(), err)
+	require.Len(s.T(), owner.IDCs, 1)
+	require.Len(s.T(), owner.IDCs[0].TokenIDs, 1)
+	require.Equal(s.T(), tokenID, owner.IDCs[0].TokenIDs[0])
 
-	transferNftReq := nft.TransferNFTRequest{
-		Denom:     testNft.denomId,
-		ID:        testNft.nftId,
+	uName := s.RandStringOfLength(10)
+	pwd := "11111111"
+
+	recipient, _, err := s.Key.Add(uName, pwd)
+	require.NoError(s.T(), err)
+
+	transferReq := nft.TransferNFTRequest{
+		Recipient: recipient,
+		Denom:     mintReq.Denom,
+		ID:        mintReq.ID,
 		URI:       fmt.Sprintf("https://%s", s.RandStringOfLength(10)),
-		Recipient: testNft.recipient,
 	}
-	res, err := s.NFT.TransferNFT(transferNftReq, baseTx)
-	s.NoError(err)
-	s.NotEmpty(res.Hash)
-	fmt.Println(res)
-}
+	res, err = s.NFT.TransferNFT(transferReq, baseTx)
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), res.Hash)
 
-func querySupply(s IntegrationTestSuite) {
-	supplyRes, err := s.NFT.QuerySupply(testNft.denomId, s.Account().Address.String())
-	s.NoError(err)
-	fmt.Println(supplyRes)
-}
+	owner, err = s.NFT.QueryOwner(transferReq.Recipient, mintReq.Denom)
+	require.NoError(s.T(), err)
+	require.Len(s.T(), owner.IDCs, 1)
+	require.Len(s.T(), owner.IDCs[0].TokenIDs, 1)
+	require.Equal(s.T(), tokenID, owner.IDCs[0].TokenIDs[0])
 
-func queryOwner(s IntegrationTestSuite) {
-	creator := s.Account().Address.String()
-	owner, err := s.NFT.QueryOwner(creator, testNft.denomId)
-	s.NoError(err)
-	s.Len(owner.IDCs, 1)
-	//s.Len(owner.IDCs[0].TokenIDs, 1)
-}
+	supply, err = s.NFT.QuerySupply(mintReq.Denom, transferReq.Recipient)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), uint64(1), supply)
 
-func queryDenoms(s IntegrationTestSuite) {
 	denoms, err := s.NFT.QueryDenoms()
-	s.NoError(err)
-	s.NotEmpty(denoms)
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), denoms)
 
-	var flag bool
-	for _, denom := range denoms {
-		if denom.ID == testNft.denomId {
-			flag = true
-		}
-	}
-	s.Equal(true, flag)
-}
+	d, err := s.NFT.QueryDenom(denomID)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), denomID, d.ID)
+	require.Equal(s.T(), denomName, d.Name)
+	require.Equal(s.T(), schema, d.Schema)
 
-func burnNft(s IntegrationTestSuite) {
-	baseTx := types.BaseTx{
-		From:     testNft.anotherName,
-		Password: testNft.anotherPasswd,
-		Gas:      200000,
-		Memo:     "test",
-		Mode:     types.Commit,
-	}
+	col, err := s.NFT.QueryCollection(denomID)
+	require.NoError(s.T(), err)
+	require.EqualValues(s.T(), d, col.Denom)
+	require.Len(s.T(), col.NFTs, 1)
+	require.Equal(s.T(), mintReq.ID, col.NFTs[0].ID)
 
 	burnReq := nft.BurnNFTRequest{
-		Denom: testNft.denomId,
-		ID:    testNft.nftId,
+		Denom: mintReq.Denom,
+		ID:    mintReq.ID,
 	}
 
-	res, err := s.NFT.BurnNFT(burnReq, baseTx)
-	s.NoError(err)
-	s.NotEmpty(res.Hash)
-	s.Greater(res.GasUsed, int64(0))
+	amount, e := sdk.ParseDecCoins("10iris")
+	require.NoError(s.T(), e)
+	_, err = s.Bank.Send(recipient, amount, baseTx)
+	require.NoError(s.T(), err)
+
+	baseTx.From = uName
+	baseTx.Password = pwd
+	res, err = s.NFT.BurnNFT(burnReq, baseTx)
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), res.Hash)
+
+	supply, err = s.NFT.QuerySupply(mintReq.Denom, transferReq.Recipient)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), uint64(0), supply)
 }

@@ -1,21 +1,13 @@
 package nft
 
 import (
-	"errors"
-	"fmt"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
-	"regexp"
 	"strings"
-	"unicode/utf8"
+
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 const (
 	ModuleName = "nft"
-
-	MinDenomLen = 3
-	MaxDenomLen = 64
-
-	MaxTokenURILen = 256
 )
 
 var (
@@ -26,219 +18,248 @@ var (
 	_ sdk.Msg = &MsgBurnNFT{}
 )
 
-var (
-	// IsAlphaNumeric only accepts alphanumeric characters
-	IsAlphaNumeric   = regexp.MustCompile(`^[a-zA-Z0-9]+$`).MatchString
-	IsBeginWithAlpha = regexp.MustCompile(`^[a-zA-Z].*`).MatchString
-)
+func (m MsgIssueDenom) Route() string {
+	return ModuleName
+}
 
-// Route Implements Msg
-func (msg MsgIssueDenom) Route() string { return ModuleName }
+func (m MsgIssueDenom) Type() string {
+	return "issue_denom"
+}
 
-// Type Implements Msg
-func (msg MsgIssueDenom) Type() string { return "issue_denom" }
-
-// ValidateBasic Implements Msg.
-func (msg MsgIssueDenom) ValidateBasic() error {
-	if err := ValidateDenomID(msg.Id); err != nil {
-		return err
+func (m MsgIssueDenom) ValidateBasic() error {
+	if len(m.Sender) == 0 {
+		return sdk.Wrapf("missing sender address")
 	}
 
-	name := strings.TrimSpace(msg.Name)
-	if len(name) > 0 && !utf8.ValidString(name) {
-		return errors.New("denom name is invalid")
+	if err := sdk.ValidateAccAddress(m.Sender); err != nil {
+		return sdk.Wrap(err)
 	}
-
-	if msg.Sender.Empty() {
-		return errors.New("missing sender address")
+	id := strings.TrimSpace(m.Id)
+	if len(id) == 0 {
+		return sdk.Wrapf("missing id")
 	}
 	return nil
 }
 
-func (msg MsgIssueDenom) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
+func (m MsgIssueDenom) GetSignBytes() []byte {
+	bz, err := ModuleCdc.MarshalJSON(&m)
+	if err != nil {
+		panic(err)
+	}
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgIssueDenom) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+func (m MsgIssueDenom) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
 }
 
-func (msg MsgTransferNFT) Route() string { return ModuleName }
-
-func (msg MsgTransferNFT) Type() string { return "transfer_nft" }
-
-func (msg MsgTransferNFT) ValidateBasic() error {
-	if err := ValidateDenomID(msg.Denom); err != nil {
-		return err
-	}
-
-	if msg.Sender.Empty() {
-		return errors.New("missing sender address")
-	}
-
-	if msg.Recipient.Empty() {
-		return errors.New("missing recipient address")
-	}
-	return ValidateTokenID(msg.Id)
+func (m MsgTransferNFT) Route() string {
+	return ModuleName
 }
 
-func (msg MsgTransferNFT) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
+func (m MsgTransferNFT) Type() string {
+	return "transfer_nft"
 }
 
-func (msg MsgTransferNFT) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
-}
-
-func (msg MsgEditNFT) Route() string { return ModuleName }
-
-func (msg MsgEditNFT) Type() string { return "edit_nft" }
-
-func (msg MsgEditNFT) ValidateBasic() error {
-	if msg.Sender.Empty() {
-		return errors.New("missing sender address")
+func (m MsgTransferNFT) ValidateBasic() error {
+	if len(m.Sender) == 0 {
+		return sdk.Wrapf("missing sender address")
+	}
+	if err := sdk.ValidateAccAddress(m.Sender); err != nil {
+		return sdk.Wrap(err)
 	}
 
-	if err := ValidateDenomID(msg.Denom); err != nil {
-		return err
+	if len(m.Recipient) == 0 {
+		return sdk.Wrapf("missing recipient address")
+	}
+	if err := sdk.ValidateAccAddress(m.Recipient); err != nil {
+		return sdk.Wrap(err)
 	}
 
-	if err := ValidateTokenURI(msg.URI); err != nil {
-		return err
-	}
-	return ValidateTokenID(msg.Id)
-}
-
-func (msg MsgEditNFT) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// GetSigners Implements Msg.
-func (msg MsgEditNFT) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
-}
-
-func (msg MsgMintNFT) Route() string { return ModuleName }
-
-func (msg MsgMintNFT) Type() string { return "mint_nft" }
-
-func (msg MsgMintNFT) ValidateBasic() error {
-	if msg.Sender.Empty() {
-		return errors.New("missing sender address")
-	}
-	if msg.Recipient.Empty() {
-		return errors.New("missing receipt address")
-	}
-	if err := ValidateDenomID(msg.Denom); err != nil {
-		return err
+	denom := strings.TrimSpace(m.DenomId)
+	if len(denom) == 0 {
+		return sdk.Wrapf("missing denom")
 	}
 
-	if err := ValidateTokenURI(msg.URI); err != nil {
-		return err
-	}
-	return ValidateTokenID(msg.Id)
-}
-
-func (msg MsgMintNFT) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-func (msg MsgMintNFT) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
-}
-
-func NewMsgBurnNFT(sender sdk.AccAddress, id string, denom string) *MsgBurnNFT {
-	return &MsgBurnNFT{
-		Sender: sender,
-		Id:     strings.ToLower(strings.TrimSpace(id)),
-		Denom:  strings.TrimSpace(denom),
-	}
-}
-
-func (msg MsgBurnNFT) Route() string { return ModuleName }
-
-func (msg MsgBurnNFT) Type() string { return "burn_nft" }
-
-func (msg MsgBurnNFT) ValidateBasic() error {
-	if msg.Sender.Empty() {
-		return errors.New("missing sender address")
-	}
-
-	if err := ValidateDenomID(msg.Denom); err != nil {
-		return err
-	}
-	return ValidateTokenID(msg.Id)
-}
-
-func (msg MsgBurnNFT) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
-func (msg MsgBurnNFT) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
-}
-
-func ValidateDenomID(denomID string) error {
-	denomID = strings.TrimSpace(denomID)
-	if len(denomID) < MinDenomLen || len(denomID) > MaxDenomLen {
-		return fmt.Errorf("invalid denom %s, only accepts value [%d, %d]", denomID, MinDenomLen, MaxDenomLen)
-	}
-	if !IsBeginWithAlpha(denomID) || !IsAlphaNumeric(denomID) {
-		return fmt.Errorf("invalid denom %s, only accepts alphanumeric characters,and begin with an english letter", denomID)
+	tokenID := strings.TrimSpace(m.Id)
+	if len(tokenID) == 0 {
+		return sdk.Wrapf("missing ID")
 	}
 	return nil
 }
 
-func ValidateTokenID(tokenID string) error {
-	tokenID = strings.TrimSpace(tokenID)
-	if len(tokenID) < MinDenomLen || len(tokenID) > MaxDenomLen {
-		return fmt.Errorf("invalid tokenID %s, only accepts value [%d, %d]", tokenID, MinDenomLen, MaxDenomLen)
+func (m MsgTransferNFT) GetSignBytes() []byte {
+	bz, err := ModuleCdc.MarshalJSON(&m)
+	if err != nil {
+		panic(err)
 	}
-	if !IsBeginWithAlpha(tokenID) || !IsAlphaNumeric(tokenID) {
-		return fmt.Errorf("invalid tokenID %s, only accepts alphanumeric characters,and begin with an english letter", tokenID)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m MsgTransferNFT) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
+}
+
+func (m MsgEditNFT) Route() string {
+	return ModuleName
+}
+
+func (m MsgEditNFT) Type() string {
+	return "edit_nft"
+}
+
+func (m MsgEditNFT) ValidateBasic() error {
+	if len(m.Sender) == 0 {
+		return sdk.Wrapf("missing sender address")
+	}
+	if err := sdk.ValidateAccAddress(m.Sender); err != nil {
+		return sdk.Wrap(err)
+	}
+
+	denom := strings.TrimSpace(m.DenomId)
+	if len(denom) == 0 {
+		return sdk.Wrapf("missing denom")
+	}
+
+	tokenID := strings.TrimSpace(m.Id)
+	if len(tokenID) == 0 {
+		return sdk.Wrapf("missing ID")
 	}
 	return nil
 }
 
-func ValidateTokenURI(tokenURI string) error {
-	if len(tokenURI) > MaxTokenURILen {
-		return fmt.Errorf("invalid tokenURI %s, only accepts value [0, %d]", tokenURI, MaxTokenURILen)
+func (m MsgEditNFT) GetSignBytes() []byte {
+	bz, err := ModuleCdc.MarshalJSON(&m)
+	if err != nil {
+		panic(err)
+	}
+	return sdk.MustSortJSON(bz)
+}
+
+func (m MsgEditNFT) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
+}
+
+func (m MsgMintNFT) Route() string {
+	return ModuleName
+}
+
+func (m MsgMintNFT) Type() string {
+	return "mint_nft"
+}
+
+func (m MsgMintNFT) ValidateBasic() error {
+	if len(m.Sender) == 0 {
+		return sdk.Wrapf("missing sender address")
+	}
+	if err := sdk.ValidateAccAddress(m.Sender); err != nil {
+		return sdk.Wrap(err)
+	}
+
+	denom := strings.TrimSpace(m.DenomId)
+	if len(denom) == 0 {
+		return sdk.Wrapf("missing denom")
+	}
+
+	tokenID := strings.TrimSpace(m.Id)
+	if len(tokenID) == 0 {
+		return sdk.Wrapf("missing ID")
 	}
 	return nil
+}
+
+func (m MsgMintNFT) GetSignBytes() []byte {
+	bz, err := ModuleCdc.MarshalJSON(&m)
+	if err != nil {
+		panic(err)
+	}
+	return sdk.MustSortJSON(bz)
+}
+
+func (m MsgMintNFT) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
+}
+
+func (m MsgBurnNFT) Route() string {
+	return ModuleName
+}
+
+func (m MsgBurnNFT) Type() string {
+	return "burn_nft"
+}
+
+func (m MsgBurnNFT) ValidateBasic() error {
+	if len(m.Sender) == 0 {
+		return sdk.Wrapf("missing sender address")
+	}
+	if err := sdk.ValidateAccAddress(m.Sender); err != nil {
+		return sdk.Wrap(err)
+	}
+
+	denom := strings.TrimSpace(m.DenomId)
+	if len(denom) == 0 {
+		return sdk.Wrapf("missing denom")
+	}
+
+	tokenID := strings.TrimSpace(m.Id)
+	if len(tokenID) == 0 {
+		return sdk.Wrapf("missing ID")
+	}
+	return nil
+}
+
+func (m MsgBurnNFT) GetSignBytes() []byte {
+	bz, err := ModuleCdc.MarshalJSON(&m)
+	if err != nil {
+		panic(err)
+	}
+	return sdk.MustSortJSON(bz)
+}
+
+func (m MsgBurnNFT) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
 }
 
 func (o Owner) Convert() interface{} {
 	var idcs []IDC
 	for _, idc := range o.IDCollections {
 		idcs = append(idcs, IDC{
-			Denom:    idc.Denom,
-			TokenIDs: idc.Ids,
+			Denom:    idc.DenomId,
+			TokenIDs: idc.TokenIds,
 		})
 	}
 	return QueryOwnerResp{
-		Address: o.Address.String(),
+		Address: o.Address,
 		IDCs:    idcs,
 	}
 }
 
-func (d Denom) Convert() interface{} {
+func (this BaseNFT) Convert() interface{} {
+	return QueryNFTResp{
+		ID:      this.Id,
+		Name:    this.Name,
+		URI:     this.URI,
+		Data:    this.Data,
+		Creator: this.Owner,
+	}
+}
+
+type NFTs []BaseNFT
+
+func (this Denom) Convert() interface{} {
 	return QueryDenomResp{
-		ID:      d.Id,
-		Name:    d.Name,
-		Schema:  d.Schema,
-		Creator: d.Creator.String(),
+		ID:      this.Id,
+		Name:    this.Name,
+		Schema:  this.Schema,
+		Creator: this.Creator,
 	}
 }
 
 type denoms []Denom
 
-func (ds denoms) Convert() interface{} {
+func (this denoms) Convert() interface{} {
 	var denoms []QueryDenomResp
-	for _, denom := range ds {
+	for _, denom := range this {
 		denoms = append(denoms, denom.Convert().(QueryDenomResp))
 	}
 	return denoms
@@ -252,21 +273,11 @@ func (c Collection) Convert() interface{} {
 			Name:    nft.Name,
 			URI:     nft.URI,
 			Data:    nft.Data,
-			Creator: nft.Owner.String(),
+			Creator: nft.Owner,
 		})
 	}
 	return QueryCollectionResp{
 		Denom: c.Denom.Convert().(QueryDenomResp),
 		NFTs:  nfts,
-	}
-}
-
-func (baseNft BaseNFT) Convert() interface{} {
-	return QueryNFTResp{
-		ID:      baseNft.Id,
-		Name:    baseNft.Name,
-		URI:     baseNft.URI,
-		Data:    baseNft.Data,
-		Creator: baseNft.Owner.String(),
 	}
 }
