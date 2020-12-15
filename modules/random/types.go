@@ -1,7 +1,6 @@
 package random
 
 import (
-	"errors"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
@@ -25,8 +24,8 @@ func (msg MsgRequestRandom) Type() string { return "request_rand" }
 
 // ValidateBasic implements Msg.
 func (msg MsgRequestRandom) ValidateBasic() error {
-	if len(msg.Consumer) == 0 {
-		return errors.New("the consumer address must be specified")
+	if _, err := sdk.AccAddressFromBech32(msg.Consumer); err != nil {
+		return sdk.Wrapf("invalid consumer address (%s)", err)
 	}
 	return nil
 }
@@ -42,12 +41,16 @@ func (msg MsgRequestRandom) GetSignBytes() []byte {
 
 // GetSigners implements Msg.
 func (msg MsgRequestRandom) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Consumer}
+	consumer, err := sdk.AccAddressFromBech32(msg.Consumer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{consumer}
 }
 
 func (m Random) Convert() interface{} {
 	return QueryRandomResp{
-		RequestTxHash: m.RequestTxHash.String(),
+		RequestTxHash: m.RequestTxHash,
 		Height:        m.Height,
 		Value:         m.Value,
 	}
@@ -61,11 +64,11 @@ func (m Requests) Convert() interface{} {
 	for _, request := range m {
 		q := QueryRandomRequestQueueResp{
 			Height:           request.Height,
-			Consumer:         request.Consumer.String(),
-			TxHash:           request.TxHash.String(),
+			Consumer:         request.Consumer,
+			TxHash:           request.TxHash,
 			Oracle:           request.Oracle,
 			ServiceFeeCap:    request.ServiceFeeCap,
-			ServiceContextID: request.ServiceContextID.String(),
+			ServiceContextId: request.ServiceContextId,
 		}
 		res = append(res, q)
 	}

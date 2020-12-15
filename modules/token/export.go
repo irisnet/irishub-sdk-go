@@ -4,7 +4,7 @@ import (
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
-type TokenI interface {
+type Client interface {
 	sdk.Module
 
 	IssueToken(req IssueTokenRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)

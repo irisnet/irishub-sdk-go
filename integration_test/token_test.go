@@ -1,181 +1,87 @@
 package integration_test
 
 import (
+	"strings"
+
+	"github.com/stretchr/testify/require"
+
 	"github.com/irisnet/irishub-sdk-go/modules/token"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
-	"strings"
 )
 
-type TestToken struct {
-	symbol    string
-	scale     uint32
-	minUnit   string
-	recipient string
-}
-
-var testToken TestToken
-
 func (s IntegrationTestSuite) TestToken() {
-	cases := []SubTest{
-		{
-			"TestIssueToken",
-			issueToken,
-		},
-		{
-			"TestMintToken",
-			mintToken,
-		},
-		{
-			"TestEditToken",
-			editToken,
-		},
-		{
-			"TestQueryTokens",
-			queryTokens,
-		},
-		{
-			"TestTransferToken",
-			transferToken,
-		},
-		{
-			"TestQueryToken",
-			queryToken,
-		},
-		{
-			"TestQueryFees",
-			queryFees,
-		},
-		{
-			"TestQueryParams",
-			queryParams,
-		},
-	}
-
-	for _, t := range cases {
-		s.Run(t.testName, func() {
-			t.testCase(s)
-		})
-	}
-}
-
-func issueToken(s IntegrationTestSuite) {
 	baseTx := sdk.BaseTx{
 		From:     s.Account().Name,
-		Password: s.Account().Password,
 		Gas:      200000,
 		Memo:     "test",
 		Mode:     sdk.Commit,
+		Password: s.Account().Password,
 	}
-
-	// init testToken
-	testToken.symbol = strings.ToLower(s.RandStringOfLength(8))
-	testToken.scale = 9
-	testToken.minUnit = strings.ToLower(s.RandStringOfLength(3))
 
 	issueTokenReq := token.IssueTokenRequest{
-		Symbol:        testToken.symbol,
-		Name:          strings.ToLower(s.RandStringOfLength(8)),
-		Scale:         testToken.scale,
-		MinUnit:       testToken.minUnit,
+		Symbol:        strings.ToLower(s.RandStringOfLength(3)),
+		Name:          s.RandStringOfLength(8),
+		Scale:         9,
+		MinUnit:       strings.ToLower(s.RandStringOfLength(3)),
 		InitialSupply: 10000000,
-		MaxSupply:     20000000,
+		MaxSupply:     21000000,
 		Mintable:      true,
 	}
-	res, err := s.Token.IssueToken(issueTokenReq, baseTx)
-	s.NoError(err)
-	s.NotEmpty(res.Hash)
-}
 
-func mintToken(s IntegrationTestSuite) {
-	baseTx := sdk.BaseTx{
-		From:     s.Account().Name,
-		Password: s.Account().Password,
-		Gas:      200000,
-		Memo:     "test",
-		Mode:     sdk.Commit,
-	}
+	//test issue token
+	rs, err := s.Token.IssueToken(issueTokenReq, baseTx)
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), rs.Hash)
 
-	recipient := s.GetRandAccount().Address.String()
-	res, err := s.Token.MintToken(testToken.symbol, 1000, recipient, baseTx)
-	s.NoError(err)
-	s.NotEmpty(res.Hash)
+	//test mint token
+	receipt := s.GetRandAccount().Address.String()
+	rs, err = s.Token.MintToken(issueTokenReq.Symbol, 1000, receipt, baseTx)
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), rs.Hash)
 
-	account, err := s.Bank.QueryAccount(recipient)
-	s.NoError(err)
+	account, err := s.Bank.QueryAccount(receipt)
+	require.NoError(s.T(), err)
 
-	amt := sdk.NewIntWithDecimal(1000, int(testToken.scale))
-	s.Equal(amt, account.Coins.AmountOf(testToken.minUnit))
-}
-
-func editToken(s IntegrationTestSuite) {
-	baseTx := sdk.BaseTx{
-		From:     s.Account().Name,
-		Password: s.Account().Password,
-		Gas:      200000,
-		Memo:     "test",
-		Mode:     sdk.Commit,
-	}
+	amt := sdk.NewIntWithDecimal(1000, int(issueTokenReq.Scale))
+	require.Equal(s.T(), amt, account.Coins.AmountOf(issueTokenReq.MinUnit))
 
 	editTokenReq := token.EditTokenRequest{
-		Symbol:    testToken.symbol,
-		Name:      "my network",
-		MaxSupply: 2000000000,
+		Symbol:    issueTokenReq.Symbol,
+		Name:      "ethereum network",
+		MaxSupply: 20000000,
 		Mintable:  false,
 	}
-	res, err := s.Token.EditToken(editTokenReq, baseTx)
-	s.NoError(err)
-	s.NotEmpty(res.Hash)
-}
 
-func queryTokens(s IntegrationTestSuite) {
-	tokens, err := s.Token.QueryTokens(s.Account().Address.String())
-	s.NoError(err)
+	//test edit token
+	rs, err = s.Token.EditToken(editTokenReq, baseTx)
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), rs.Hash)
 
-	var flag bool
-	for _, token := range tokens {
-		if testToken.symbol == token.Symbol {
-			flag = true
-		}
-	}
-	s.True(flag)
-}
+	//test transfer token
+	rs, err = s.Token.TransferToken(receipt, issueTokenReq.Symbol, baseTx)
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), rs.Hash)
 
-func transferToken(s IntegrationTestSuite) {
-	baseTx := sdk.BaseTx{
-		From:     s.Account().Name,
-		Password: s.Account().Password,
-		Gas:      200000,
-		Memo:     "test",
-		Mode:     sdk.Commit,
-	}
+	t1, er := s.Token.QueryToken(issueTokenReq.Symbol)
+	require.NoError(s.T(), er)
+	require.Equal(s.T(), t1.Name, editTokenReq.Name)
+	require.Equal(s.T(), t1.MaxSupply, editTokenReq.MaxSupply)
+	require.Equal(s.T(), t1.Mintable, editTokenReq.Mintable)
+	require.Equal(s.T(), receipt, t1.Owner)
 
-	testToken.recipient = s.GetRandAccount().Address.String()
-	res, err := s.Token.TransferToken(testToken.recipient, testToken.symbol, baseTx)
-	s.NoError(err)
-	s.NotEmpty(res.Hash)
-}
+	tokens, er := s.Token.QueryTokens("")
+	require.NoError(s.T(), er)
+	require.Contains(s.T(), tokens, t1)
 
-func queryToken(s IntegrationTestSuite) {
-	token, err := s.Token.QueryToken(testToken.symbol)
-	s.NoError(err)
-	s.Equal(testToken.symbol, token.Symbol)
-	s.Equal(testToken.recipient, token.Owner)
-	s.NotEmpty(token.Owner)
-	s.Greater(token.InitialSupply, uint64(1))
-	s.Greater(token.MaxSupply, uint64(1))
-}
+	feeToken, er := s.Token.QueryFees(issueTokenReq.Symbol)
+	require.NoError(s.T(), er)
+	require.Equal(s.T(), true, feeToken.Exist)
+	require.Equal(s.T(), "60000000000uiris", feeToken.IssueFee.String())
+	require.Equal(s.T(), "6000000000uiris", feeToken.MintFee.String())
 
-func queryFees(s IntegrationTestSuite) {
-	fees, err := s.Token.QueryFees(testToken.symbol)
-	s.NoError(err)
-	s.Greater(fees.IssueFee.Amount.Int64(), int64(1))
-	s.Greater(fees.MintFee.Amount.Int64(), int64(1))
-}
-
-func queryParams(s IntegrationTestSuite) {
-	params, err := s.Token.QueryParams()
-	s.NoError(err)
-	s.NotEmpty(params.IssueTokenBaseFee)
-	s.NotEmpty(params.IssueTokenBaseFee)
-	s.NotEmpty(params.TokenTaxRate)
+	res, er := s.Token.QueryParams()
+	require.NoError(s.T(), er)
+	require.Equal(s.T(), "0.100000000000000000", res.MintTokenFeeRatio)
+	require.Equal(s.T(), "0.400000000000000000", res.TokenTaxRate)
+	require.Equal(s.T(), "60000000000iris", res.IssueTokenBaseFee)
 }

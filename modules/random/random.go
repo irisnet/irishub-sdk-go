@@ -36,7 +36,7 @@ func (rc randomClient) RequestRandom(request RequestRandomRequest, basTx sdk.Bas
 
 	msg := &MsgRequestRandom{
 		BlockInterval: request.BlockInterval,
-		Consumer:      author,
+		Consumer:      author.String(),
 		Oracle:        request.Oracle,
 		ServiceFeeCap: request.ServiceFeeCap,
 	}
