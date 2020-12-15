@@ -31,7 +31,7 @@ type IRISHUBClient struct {
 	Key     keys.KeyI
 	Bank    bank.BankI
 	Token   token.Client
-	Service service.ServiceI
+	Service service.Client
 	// Record  record.RecordI
 	Random random.Client
 	NFT    nft.Client
