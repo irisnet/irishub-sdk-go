@@ -30,7 +30,7 @@ type IRISHUBClient struct {
 	types.BaseClient
 	Key     keys.KeyI
 	Bank    bank.BankI
-	Token   token.TokenI
+	Token   token.Client
 	Service service.ServiceI
 	// Record  record.RecordI
 	Random random.Client
