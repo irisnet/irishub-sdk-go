@@ -3,7 +3,7 @@ package random
 import sdk "github.com/irisnet/irishub-sdk-go/types"
 
 // expose Random module api for user
-type RandomI interface {
+type Client interface {
 	sdk.Module
 
 	RequestRandom(request RequestRandomRequest, basTx sdk.BaseTx) (RequestRandomResp, sdk.ResultTx, sdk.Error)
@@ -35,5 +35,5 @@ type QueryRandomRequestQueueResp struct {
 	TxHash           string    `json:"tx_hash" yaml:"tx_hash"`
 	Oracle           bool      `json:"oracle" yaml:"oracle"`
 	ServiceFeeCap    sdk.Coins `json:"service_fee_cap" yaml:"service_fee_cap"`
-	ServiceContextID string    `json:"service_context_id" yaml:"service_context_id"`
+	ServiceContextId string    `json:"service_context_id" yaml:"service_context_id"`
 }
