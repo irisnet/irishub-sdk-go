@@ -1,4 +1,4 @@
-package random
+package htlc
 
 import (
 	"github.com/irisnet/irishub-sdk-go/codec"
@@ -14,11 +14,12 @@ var (
 
 func init() {
 	cryptocodec.RegisterCrypto(amino)
-	amino.Seal()
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgRequestRandom{},
+		&MsgCreateHTLC{},
+		&MsgClaimHTLC{},
+		&MsgRefundHTLC{},
 	)
 }

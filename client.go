@@ -2,7 +2,9 @@ package sdk
 
 import (
 	"fmt"
+	"github.com/irisnet/irishub-sdk-go/modules/htlc"
 	"github.com/irisnet/irishub-sdk-go/modules/nft"
+	"github.com/irisnet/irishub-sdk-go/modules/oracle"
 	"github.com/irisnet/irishub-sdk-go/modules/random"
 	"github.com/irisnet/irishub-sdk-go/modules/record"
 
@@ -18,9 +20,6 @@ import (
 	"github.com/irisnet/irishub-sdk-go/modules/token"
 	"github.com/irisnet/irishub-sdk-go/types"
 	txtypes "github.com/irisnet/irishub-sdk-go/types/tx"
-	//"github.com/irisnet/irishub-sdk-go/modules"
-	//"github.com/irisnet/irishub-sdk-go/modules/nft"
-	//"github.com/irisnet/irishub-sdk-go/modules/record"
 )
 
 type IRISHUBClient struct {
@@ -29,13 +28,15 @@ type IRISHUBClient struct {
 	encodingConfig types.EncodingConfig
 
 	types.BaseClient
-	Key     keys.KeyI
-	Bank    bank.BankI
+	Key     keys.Client
+	Bank    bank.Client
 	Token   token.Client
 	Service service.Client
 	Record  record.Client
 	Random  random.Client
 	NFT     nft.Client
+	Oracle  oracle.Client
+	HTLC    htlc.Client
 }
 
 func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
@@ -51,6 +52,8 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	recordClient := record.NewClient(baseClient, encodingConfig.Marshaler)
 	nftClient := nft.NewClient(baseClient, encodingConfig.Marshaler)
 	randomClient := random.NewClient(baseClient, encodingConfig.Marshaler)
+	oracleClient := oracle.NewClient(baseClient, encodingConfig.Marshaler)
+	htlcClient := htlc.NewClient(baseClient, encodingConfig.Marshaler)
 
 	client := &IRISHUBClient{
 		logger:         baseClient.Logger(),
@@ -64,6 +67,8 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 		Record:         recordClient,
 		Random:         randomClient,
 		NFT:            nftClient,
+		Oracle:         oracleClient,
+		HTLC:           htlcClient,
 	}
 
 	client.RegisterModule(
@@ -73,6 +78,8 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 		recordClient,
 		nftClient,
 		randomClient,
+		oracleClient,
+		htlcClient,
 	)
 	return *client
 }
