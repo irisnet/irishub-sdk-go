@@ -12,8 +12,8 @@ type htlcClient struct {
 	codec.Marshaler
 }
 
-func NewClient(baseClient sdk.BaseClient, marshaler codec.Marshaler) *htlcClient {
-	return &htlcClient{
+func NewClient(baseClient sdk.BaseClient, marshaler codec.Marshaler) Client {
+	return htlcClient{
 		BaseClient: baseClient,
 		Marshaler:  marshaler,
 	}
