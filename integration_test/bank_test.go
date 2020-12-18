@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/types"
+	"github.com/stretchr/testify/require"
 	"math/rand"
 	"sync"
 	"time"
@@ -23,9 +24,14 @@ func (s IntegrationTestSuite) TestBank() {
 		{
 			"TestMultiSend",
 			multiSend,
-		}, {
+		},
+		{
 			"TestSimulate",
 			simulate,
+		},
+		{
+			"TestSendWitchSpecAccountInfo",
+			sendWitchSpecAccountInfo,
 		},
 	}
 
@@ -149,4 +155,30 @@ func simulate(s IntegrationTestSuite) {
 	s.NoError(err)
 	s.Greater(result.GasWanted, int64(0))
 	fmt.Println(result)
+}
+
+func sendWitchSpecAccountInfo(s IntegrationTestSuite) {
+	for i := 0; i < 10; i++ {
+		coins, err := types.ParseDecCoins("10iris")
+		baseTx := types.BaseTx{
+			From:     s.Account().Name,
+			Gas:      200000,
+			Fee:      coins,
+			Memo:     "TEST",
+			Mode:     types.Commit,
+			Password: s.Account().Password,
+		}
+
+		radmonAccount, err := s.Bank.QueryAccount(s.Account().Address.String())
+		require.NoError(s.T(), err)
+
+		accountNumber := radmonAccount.AccountNumber
+		sequence := radmonAccount.Sequence
+		randomAddr := s.GetRandAccount().Address.String()
+		amount, _ := types.ParseDecCoins("10iris")
+
+		res, err := s.Bank.SendWitchSpecAccountInfo(randomAddr, sequence, accountNumber, amount, baseTx)
+		require.NoError(s.T(), err)
+		require.NotEmpty(s.T(), res.Hash)
+	}
 }
