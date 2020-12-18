@@ -169,11 +169,11 @@ func sendWitchSpecAccountInfo(s IntegrationTestSuite) {
 			Password: s.Account().Password,
 		}
 
-		radmonAccount, err := s.Bank.QueryAccount(s.Account().Address.String())
+		curAccount, err := s.Bank.QueryAccount(s.Account().Address.String())
 		require.NoError(s.T(), err)
 
-		accountNumber := radmonAccount.AccountNumber
-		sequence := radmonAccount.Sequence
+		accountNumber := curAccount.AccountNumber
+		sequence := curAccount.Sequence
 		randomAddr := s.GetRandAccount().Address.String()
 		amount, _ := types.ParseDecCoins("10iris")
 
