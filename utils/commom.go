@@ -43,3 +43,16 @@ func SubArray(subLen int, array sdk.SplitAble) (segments []sdk.SplitAble) {
 	}
 	return segments
 }
+
+func ParsePage(page uint64, size uint64) (offset, limit uint64) {
+	if page == 0 {
+		page = 1
+	}
+	if size == 0 {
+		size = 10
+	}
+
+	offset = (page - 1) * size
+	limit = size
+	return
+}

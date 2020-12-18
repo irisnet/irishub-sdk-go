@@ -7,6 +7,7 @@ import (
 	"github.com/irisnet/irishub-sdk-go/modules/oracle"
 	"github.com/irisnet/irishub-sdk-go/modules/random"
 	"github.com/irisnet/irishub-sdk-go/modules/record"
+	"github.com/irisnet/irishub-sdk-go/modules/staking"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -31,6 +32,7 @@ type IRISHUBClient struct {
 	Key     keys.Client
 	Bank    bank.Client
 	Token   token.Client
+	Staking staking.Client
 	Service service.Client
 	Record  record.Client
 	Random  random.Client
@@ -44,10 +46,12 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 
 	// create a instance of baseClient
 	baseClient := modules.NewBaseClient(cfg, encodingConfig, nil)
+	keysClient := keys.NewClient(baseClient)
 
 	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
 	tokenClient := token.NewClient(baseClient, encodingConfig.Marshaler)
-	keysClient := keys.NewClient(baseClient)
+	stakingClient := staking.NewClient(baseClient, encodingConfig.Marshaler)
+
 	serviceClient := service.NewClient(baseClient, encodingConfig.Marshaler)
 	recordClient := record.NewClient(baseClient, encodingConfig.Marshaler)
 	nftClient := nft.NewClient(baseClient, encodingConfig.Marshaler)
@@ -63,6 +67,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 		Key:            keysClient,
 		Bank:           bankClient,
 		Token:          tokenClient,
+		Staking:        stakingClient,
 		Service:        serviceClient,
 		Record:         recordClient,
 		Random:         randomClient,
@@ -74,6 +79,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	client.RegisterModule(
 		bankClient,
 		tokenClient,
+		stakingClient,
 		serviceClient,
 		recordClient,
 		nftClient,

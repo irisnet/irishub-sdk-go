@@ -12,8 +12,8 @@ type oracleClient struct {
 	codec.Marshaler
 }
 
-func NewClient(baseClient sdk.BaseClient, marshaler codec.Marshaler) *oracleClient {
-	return &oracleClient{
+func NewClient(baseClient sdk.BaseClient, marshaler codec.Marshaler) Client {
+	return oracleClient{
 		BaseClient: baseClient,
 		Marshaler:  marshaler,
 	}
