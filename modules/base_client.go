@@ -115,6 +115,18 @@ func (base *baseClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Resu
 	return base.broadcastTx(txByte, ctx.Mode(), baseTx.Simulate)
 }
 
+func (base *baseClient) BuildAndSendWithAccount(addr string, accountNumber, sequence uint64, msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+	txByte, ctx, err := base.buildTxWithAccount(addr, accountNumber, sequence, msg, baseTx)
+	if err != nil {
+		return sdk.ResultTx{}, err
+	}
+
+	if err := base.ValidateTxSize(len(txByte), msg); err != nil {
+		return sdk.ResultTx{}, err
+	}
+	return base.broadcastTx(txByte, ctx.Mode(), baseTx.Simulate)
+}
+
 func (base *baseClient) SendBatch(msgs sdk.Msgs, baseTx sdk.BaseTx) (rs []sdk.ResultTx, err sdk.Error) {
 	if msgs == nil || len(msgs) == 0 {
 		return rs, sdk.Wrapf("must have at least one message in list")
@@ -262,6 +274,50 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.Factory, error) {
 	}
 	factory.WithAccountNumber(account.AccountNumber).
 		WithSequence(account.Sequence).
+		WithPassword(baseTx.Password)
+
+	if !baseTx.Fee.Empty() && baseTx.Fee.IsValid() {
+		fees, err := base.ToMinCoin(baseTx.Fee...)
+		if err != nil {
+			return nil, err
+		}
+		factory.WithFee(fees)
+	} else {
+		fees, err := base.ToMinCoin(base.cfg.Fee...)
+		if err != nil {
+			panic(err)
+		}
+		factory.WithFee(fees)
+	}
+
+	if len(baseTx.Mode) > 0 {
+		factory.WithMode(baseTx.Mode)
+	}
+
+	if baseTx.Gas > 0 {
+		factory.WithGas(baseTx.Gas)
+	}
+
+	if len(baseTx.Memo) > 0 {
+		factory.WithMemo(baseTx.Memo)
+	}
+	return factory, nil
+}
+
+// TODO
+func (base *baseClient) prepareTemp(addr string, accountNumber, sequence uint64, baseTx sdk.BaseTx) (*sdk.Factory, error) {
+	factory := sdk.NewFactory().
+		WithChainID(base.cfg.ChainID).
+		WithKeyManager(base.KeyManager).
+		WithMode(base.cfg.Mode).
+		WithSimulate(baseTx.Simulate).
+		WithGas(base.cfg.Gas).
+		WithSignModeHandler(tx.MakeSignModeHandler(tx.DefaultSignModes)).
+		WithTxConfig(base.encodingConfig.TxConfig)
+
+	factory.WithAddress(addr).
+		WithAccountNumber(accountNumber).
+		WithSequence(sequence).
 		WithPassword(baseTx.Password)
 
 	if !baseTx.Fee.Empty() && baseTx.Fee.IsValid() {
