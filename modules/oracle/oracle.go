@@ -33,6 +33,11 @@ func (oc oracleClient) CreateFeed(request CreateFeedRequest, baseTx sdk.BaseTx) 
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
+	serviceFeeCap, e := oc.ToMinCoin(request.ServiceFeeCap...)
+	if e != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
 	msg := &MsgCreateFeed{
 		FeedName:          request.FeedName,
 		LatestHistory:     request.LatestHistory,
@@ -42,7 +47,7 @@ func (oc oracleClient) CreateFeed(request CreateFeedRequest, baseTx sdk.BaseTx) 
 		Providers:         request.Providers,
 		Input:             request.Input,
 		Timeout:           request.Timeout,
-		ServiceFeeCap:     request.ServiceFeeCap,
+		ServiceFeeCap:     serviceFeeCap,
 		RepeatedFrequency: request.RepeatedFrequency,
 		AggregateFunc:     request.AggregateFunc,
 		ValueJsonPath:     request.ValueJsonPath,
@@ -51,27 +56,27 @@ func (oc oracleClient) CreateFeed(request CreateFeedRequest, baseTx sdk.BaseTx) 
 	return oc.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
-func (oc oracleClient) StartFeed(request StartFeedRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+func (oc oracleClient) StartFeed(feedName string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	sender, err := oc.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	msg := &MsgStartFeed{
-		FeedName: request.FeedName,
+		FeedName: feedName,
 		Creator:  sender.String(),
 	}
 	return oc.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
-func (oc oracleClient) PauseFeed(request PauseFeedRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+func (oc oracleClient) PauseFeed(feedName string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	sender, err := oc.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	msg := &MsgPauseFeed{
-		FeedName: request.FeedName,
+		FeedName: feedName,
 		Creator:  sender.String(),
 	}
 	return oc.BuildAndSend([]sdk.Msg{msg}, baseTx)
@@ -83,13 +88,18 @@ func (oc oracleClient) EditFeed(request EditFeedRequest, baseTx sdk.BaseTx) (sdk
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
+	serviceFeeCap, e := oc.ToMinCoin(request.ServiceFeeCap...)
+	if e != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
 	msg := &MsgEditFeed{
 		FeedName:          request.FeedName,
 		Description:       request.Description,
 		LatestHistory:     request.LatestHistory,
 		Providers:         request.Providers,
 		Timeout:           request.Timeout,
-		ServiceFeeCap:     request.ServiceFeeCap,
+		ServiceFeeCap:     serviceFeeCap,
 		RepeatedFrequency: request.RepeatedFrequency,
 		ResponseThreshold: request.ResponseThreshold,
 		Creator:           sender.String(),

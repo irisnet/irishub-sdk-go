@@ -10,8 +10,8 @@ type Client interface {
 	sdk.Module
 
 	CreateFeed(request CreateFeedRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
-	StartFeed(request StartFeedRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
-	PauseFeed(request PauseFeedRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	StartFeed(feedName string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	PauseFeed(FeedName string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 	EditFeed(request EditFeedRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
 	QueryFeed(feedName string) (QueryFeedResp, sdk.Error)
@@ -20,39 +20,29 @@ type Client interface {
 }
 
 type CreateFeedRequest struct {
-	FeedName          string    `json:"feed_name"`
-	LatestHistory     uint64    `json:"latest_history"`
-	Description       string    `json:"description"`
-	ServiceName       string    `json:"service_name"`
-	Providers         []string  `json:"providers"`
-	Input             string    `json:"input"`
-	Timeout           int64     `json:"timeout"`
-	ServiceFeeCap     sdk.Coins `json:"service_fee_cap"`
-	RepeatedFrequency uint64    `json:"repeated_frequency"`
-	AggregateFunc     string    `json:"aggregate_func"`
-	ValueJsonPath     string    `json:"value_json_path"`
-	ResponseThreshold uint32    `json:"response_threshold"`
-}
-
-type StartFeedRequest struct {
-	FeedName string `json:"feed_name"`
-	Creator  string `json:"creator"`
-}
-
-type PauseFeedRequest struct {
-	FeedName string `json:"feed_name"`
-	Creator  string `json:"creator"`
+	FeedName          string       `json:"feed_name"`
+	LatestHistory     uint64       `json:"latest_history"`
+	Description       string       `json:"description"`
+	ServiceName       string       `json:"service_name"`
+	Providers         []string     `json:"providers"`
+	Input             string       `json:"input"`
+	Timeout           int64        `json:"timeout"`
+	ServiceFeeCap     sdk.DecCoins `json:"service_fee_cap"`
+	RepeatedFrequency uint64       `json:"repeated_frequency"`
+	AggregateFunc     string       `json:"aggregate_func"`
+	ValueJsonPath     string       `json:"value_json_path"`
+	ResponseThreshold uint32       `json:"response_threshold"`
 }
 
 type EditFeedRequest struct {
-	FeedName          string    `json:"feed_name"`
-	Description       string    `json:"description"`
-	LatestHistory     uint64    `json:"latest_history"`
-	Providers         []string  `json:"providers"`
-	Timeout           int64     `json:"timeout"`
-	ServiceFeeCap     sdk.Coins `json:"service_fee_cap"`
-	RepeatedFrequency uint64    `json:"repeated_frequency"`
-	ResponseThreshold uint32    `json:"response_threshold"`
+	FeedName          string       `json:"feed_name"`
+	Description       string       `json:"description"`
+	LatestHistory     uint64       `json:"latest_history"`
+	Providers         []string     `json:"providers"`
+	Timeout           int64        `json:"timeout"`
+	ServiceFeeCap     sdk.DecCoins `json:"service_fee_cap"`
+	RepeatedFrequency uint64       `json:"repeated_frequency"`
+	ResponseThreshold uint32       `json:"response_threshold"`
 }
 
 type QueryFeedResp struct {
