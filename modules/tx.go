@@ -11,6 +11,7 @@ import (
 
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
+	clienttx "github.com/irisnet/irishub-sdk-go/client/tx"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
@@ -97,7 +98,7 @@ func (base baseClient) EstimateTxGas(txBytes []byte) (uint64, error) {
 	return adjusted, nil
 }
 
-func (base *baseClient) buildTx(msgs []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *sdk.Factory, sdk.Error) {
+func (base *baseClient) buildTx(msgs []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *clienttx.Factory, sdk.Error) {
 	builder, err := base.prepare(baseTx)
 	if err != nil {
 		return nil, builder, sdk.Wrap(err)
@@ -112,7 +113,7 @@ func (base *baseClient) buildTx(msgs []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *sdk
 	return txByte, builder, nil
 }
 
-func (base *baseClient) buildTxWithAccount(addr string, accountNumber, sequence uint64, msgs []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *sdk.Factory, sdk.Error) {
+func (base *baseClient) buildTxWithAccount(addr string, accountNumber, sequence uint64, msgs []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *clienttx.Factory, sdk.Error) {
 	builder, err := base.prepareTemp(addr, accountNumber, sequence, baseTx)
 	if err != nil {
 		return nil, builder, sdk.Wrap(err)

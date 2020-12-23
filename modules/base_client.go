@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	clienttx "github.com/irisnet/irishub-sdk-go/client/tx"
 	"time"
 
 	"github.com/gogo/protobuf/proto"
@@ -252,12 +253,12 @@ func (base baseClient) QueryStore(key sdk.HexBytes, storeName string, height int
 	return resp, nil
 }
 
-func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.Factory, error) {
-	factory := sdk.NewFactory().
+func (base *baseClient) prepare(baseTx sdk.BaseTx) (*clienttx.Factory, error) {
+	factory := clienttx.NewFactory().
 		WithChainID(base.cfg.ChainID).
 		WithKeyManager(base.KeyManager).
 		WithMode(base.cfg.Mode).
-		WithSimulate(baseTx.Simulate).
+		WithSimulateAndExecute(baseTx.Simulate).
 		WithGas(base.cfg.Gas).
 		WithSignModeHandler(tx.MakeSignModeHandler(tx.DefaultSignModes)).
 		WithTxConfig(base.encodingConfig.TxConfig)
@@ -305,12 +306,12 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.Factory, error) {
 }
 
 // TODO
-func (base *baseClient) prepareTemp(addr string, accountNumber, sequence uint64, baseTx sdk.BaseTx) (*sdk.Factory, error) {
-	factory := sdk.NewFactory().
+func (base *baseClient) prepareTemp(addr string, accountNumber, sequence uint64, baseTx sdk.BaseTx) (*clienttx.Factory, error) {
+	factory := clienttx.NewFactory().
 		WithChainID(base.cfg.ChainID).
 		WithKeyManager(base.KeyManager).
 		WithMode(base.cfg.Mode).
-		WithSimulate(baseTx.Simulate).
+		WithSimulateAndExecute(baseTx.Simulate).
 		WithGas(base.cfg.Gas).
 		WithSignModeHandler(tx.MakeSignModeHandler(tx.DefaultSignModes)).
 		WithTxConfig(base.encodingConfig.TxConfig)

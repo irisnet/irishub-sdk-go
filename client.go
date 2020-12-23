@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"fmt"
+	"github.com/irisnet/irishub-sdk-go/modules/gov"
 	"github.com/irisnet/irishub-sdk-go/modules/htlc"
 	"github.com/irisnet/irishub-sdk-go/modules/nft"
 	"github.com/irisnet/irishub-sdk-go/modules/oracle"
@@ -33,6 +34,7 @@ type IRISHUBClient struct {
 	Bank    bank.Client
 	Token   token.Client
 	Staking staking.Client
+	Gov     gov.Client
 	Service service.Client
 	Record  record.Client
 	Random  random.Client
@@ -51,6 +53,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
 	tokenClient := token.NewClient(baseClient, encodingConfig.Marshaler)
 	stakingClient := staking.NewClient(baseClient, encodingConfig.Marshaler)
+	govClient := gov.NewClient(baseClient, encodingConfig.Marshaler)
 
 	serviceClient := service.NewClient(baseClient, encodingConfig.Marshaler)
 	recordClient := record.NewClient(baseClient, encodingConfig.Marshaler)
@@ -68,6 +71,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 		Bank:           bankClient,
 		Token:          tokenClient,
 		Staking:        stakingClient,
+		Gov:            govClient,
 		Service:        serviceClient,
 		Record:         recordClient,
 		Random:         randomClient,
@@ -80,6 +84,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 		bankClient,
 		tokenClient,
 		stakingClient,
+		govClient,
 		serviceClient,
 		recordClient,
 		nftClient,

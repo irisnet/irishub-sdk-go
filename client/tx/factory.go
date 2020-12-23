@@ -1,31 +1,42 @@
-package types
+package tx
 
 import (
 	"errors"
 	"fmt"
 
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/types/tx/signing"
 )
 
-// Factory implements a transaction context created in SDK modules.
-type Factory struct {
-	address         string
-	chainID         string
-	memo            string
-	password        string
-	accountNumber   uint64
-	sequence        uint64
-	gas             uint64
-	simulate        bool
-	fees            Coins
-	gasPrices       DecCoins
-	mode            BroadcastMode
-	signMode        signing.SignMode
-	signModeHandler SignModeHandler
-	keyManager      KeyManager
-	txConfig        TxConfig
-}
+// Factory defines a client transaction factory that facilitates generating and
+// signing an application-specific transaction.
+type (
+	// Factory implements a transaction context created in SDK modules.
+	Factory struct {
+		address            string
+		chainID            string
+		memo               string
+		password           string
+		accountNumber      uint64
+		sequence           uint64
+		gas                uint64
+		gasAdjustment      float64
+		simulateAndExecute bool
+		fees               sdk.Coins
+		gasPrices          sdk.DecCoins
+		mode               sdk.BroadcastMode
+		signMode           signing.SignMode
+		signModeHandler    sdk.SignModeHandler
+		keyManager         sdk.KeyManager
+		txConfig           sdk.TxConfig
+		queryFunc          QueryWithData
+	}
 
+	// QueryWithData implements a query method from cschain.
+	QueryWithData func(string, []byte) ([]byte, int64, error)
+)
+
+// NewFactory return a point of the instance of Factory.
 func NewFactory() *Factory {
 	return &Factory{}
 }
@@ -36,8 +47,11 @@ func (f *Factory) ChainID() string { return f.chainID }
 // Gas returns the gas of the transaction.
 func (f *Factory) Gas() uint64 { return f.gas }
 
-// Fee returns the fee of the transaction.
-func (f *Factory) Fees() Coins { return f.fees }
+// GasAdjustment returns the gasAdjustment.
+func (f Factory) GasAdjustment() float64 { return f.gasAdjustment }
+
+// Fees returns the fee of the transaction.
+func (f *Factory) Fees() sdk.Coins { return f.fees }
 
 // Sequence returns the sequence of the account.
 func (f *Factory) Sequence() uint64 { return f.sequence }
@@ -49,13 +63,14 @@ func (f *Factory) Memo() string { return f.memo }
 func (f *Factory) AccountNumber() uint64 { return f.accountNumber }
 
 // KeyManager returns keyManager.
-func (f *Factory) KeyManager() KeyManager { return f.keyManager }
+func (f *Factory) KeyManager() sdk.KeyManager { return f.keyManager }
 
 // Mode returns mode.
-func (f *Factory) Mode() BroadcastMode { return f.mode }
+func (f *Factory) Mode() sdk.BroadcastMode { return f.mode }
 
-// Simulate returns simulate.
-func (f *Factory) Simulate() bool { return f.simulate }
+// SimulateAndExecute returns the option to simulateAndExecute and then execute the transaction
+// using the gas from the simulation results
+func (f *Factory) SimulateAndExecute() bool { return f.simulateAndExecute }
 
 // Password returns password.
 func (f *Factory) Password() string { return f.password }
@@ -75,8 +90,14 @@ func (f *Factory) WithGas(gas uint64) *Factory {
 	return f
 }
 
+// WithGasAdjustment returns a pointer of the context with an updated gasAdjustment.
+func (f *Factory) WithGasAdjustment(gasAdjustment float64) *Factory {
+	f.gasAdjustment = gasAdjustment
+	return f
+}
+
 // WithFee returns a pointer of the context with an updated Fee.
-func (f *Factory) WithFee(fee Coins) *Factory {
+func (f *Factory) WithFee(fee sdk.Coins) *Factory {
 	f.fees = fee
 	return f
 }
@@ -99,25 +120,25 @@ func (f *Factory) WithAccountNumber(accnum uint64) *Factory {
 	return f
 }
 
-// WithAccountNumber returns a pointer of the context with a keyDao.
-func (f *Factory) WithKeyManager(keyManager KeyManager) *Factory {
+// WithKeyManager returns a pointer of the context with a KeyManager.
+func (f *Factory) WithKeyManager(keyManager sdk.KeyManager) *Factory {
 	f.keyManager = keyManager
 	return f
 }
 
 // WithMode returns a pointer of the context with a Mode.
-func (f *Factory) WithMode(mode BroadcastMode) *Factory {
+func (f *Factory) WithMode(mode sdk.BroadcastMode) *Factory {
 	f.mode = mode
 	return f
 }
 
-// WithRPC returns a pointer of the context with a simulate.
-func (f *Factory) WithSimulate(simulate bool) *Factory {
-	f.simulate = simulate
+// WithSimulateAndExecute returns a pointer of the context with a simulateAndExecute.
+func (f *Factory) WithSimulateAndExecute(simulate bool) *Factory {
+	f.simulateAndExecute = simulate
 	return f
 }
 
-// WithRPC returns a pointer of the context with a password.
+// WithPassword returns a pointer of the context with a password.
 func (f *Factory) WithPassword(password string) *Factory {
 	f.password = password
 	return f
@@ -129,19 +150,25 @@ func (f *Factory) WithAddress(address string) *Factory {
 	return f
 }
 
-// WithGas returns a pointer of the context with an updated Gas.
-func (f *Factory) WithTxConfig(txConfig TxConfig) *Factory {
+// WithTxConfig returns a pointer of the context with an TxConfig
+func (f *Factory) WithTxConfig(txConfig sdk.TxConfig) *Factory {
 	f.txConfig = txConfig
 	return f
 }
 
-// WithGas returns a pointer of the context with an updated Gas.
-func (f *Factory) WithSignModeHandler(signModeHandler SignModeHandler) *Factory {
+// WithSignModeHandler returns a pointer of the context with an signModeHandler.
+func (f *Factory) WithSignModeHandler(signModeHandler sdk.SignModeHandler) *Factory {
 	f.signModeHandler = signModeHandler
 	return f
 }
 
-func (f *Factory) BuildAndSign(name string, msgs []Msg) ([]byte, error) {
+// WithQueryFunc returns a pointer of the context with an queryFunc.
+func (f *Factory) WithQueryFunc(queryFunc QueryWithData) *Factory {
+	f.queryFunc = queryFunc
+	return f
+}
+
+func (f *Factory) BuildAndSign(name string, msgs []sdk.Msg) ([]byte, error) {
 	tx, err := f.BuildUnsignedTx(msgs)
 	if err != nil {
 		return nil, err
@@ -159,7 +186,7 @@ func (f *Factory) BuildAndSign(name string, msgs []Msg) ([]byte, error) {
 	return txBytes, nil
 }
 
-func (f *Factory) BuildUnsignedTx(msgs []Msg) (TxBuilder, error) {
+func (f *Factory) BuildUnsignedTx(msgs []sdk.Msg) (sdk.TxBuilder, error) {
 	if f.chainID == "" {
 		return nil, fmt.Errorf("chain ID required but not specified")
 	}
@@ -171,15 +198,15 @@ func (f *Factory) BuildUnsignedTx(msgs []Msg) (TxBuilder, error) {
 			return nil, errors.New("cannot provide both fees and gas prices")
 		}
 
-		glDec := NewDec(int64(f.gas))
+		glDec := sdk.NewDec(int64(f.gas))
 
 		// Derive the fees based on the provided gas prices, where
 		// fee = ceil(gasPrice * gasLimit).
-		fees = make(Coins, len(f.gasPrices))
+		fees = make(sdk.Coins, len(f.gasPrices))
 
 		for i, gp := range f.gasPrices {
 			fee := gp.Amount.Mul(glDec)
-			fees[i] = NewCoin(gp.Denom, fee.Ceil().RoundInt())
+			fees[i] = sdk.NewCoin(gp.Denom, fee.Ceil().RoundInt())
 		}
 	}
 
@@ -199,13 +226,13 @@ func (f *Factory) BuildUnsignedTx(msgs []Msg) (TxBuilder, error) {
 
 // Sign signs a transaction given a name, passphrase, and a single message to
 // signed. An error is returned if signing fails.
-func (f *Factory) Sign(name string, txBuilder TxBuilder) error {
+func (f *Factory) Sign(name string, txBuilder sdk.TxBuilder) error {
 	signMode := f.signMode
 	if signMode == signing.SignMode_SIGN_MODE_UNSPECIFIED {
 		// use the SignModeHandler's default mode if unspecified
 		signMode = f.txConfig.SignModeHandler().DefaultMode()
 	}
-	signerData := SignerData{
+	signerData := sdk.SignerData{
 		ChainID:       f.chainID,
 		AccountNumber: f.accountNumber,
 		Sequence:      f.sequence,

@@ -1,13 +1,68 @@
 package integration_test
 
 import (
+	"fmt"
 	"github.com/irisnet/irishub-sdk-go/modules/oracle"
+	"github.com/irisnet/irishub-sdk-go/modules/service"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/stretchr/testify/require"
+	"time"
 )
 
+var serviceName = generateServiceName()
+
+func (s *IntegrationTestSuite) SetupService(ch chan<- int) {
+	schemas := `{"input":{"type":"object"},"output":{"type":"object"},"error":{"type":"object"}}`
+	pricing := `{"price":"1uiris"}`
+	output := `{"header":{},"body":{"last":"100"}}`
+	testResult := `{"code":200,"message":""}`
+
+	coin, _ := sdk.ParseDecCoins("4iris")
+	baseTx := sdk.BaseTx{
+		From:     s.Account().Name,
+		Gas:      200000,
+		Fee:      coin,
+		Memo:     "test",
+		Mode:     sdk.Commit,
+		Password: s.Account().Password,
+	}
+
+	definition := service.DefineServiceRequest{
+		ServiceName:       serviceName,
+		Description:       "this is a test service",
+		Tags:              nil,
+		AuthorDescription: "service provider",
+		Schemas:           schemas,
+	}
+
+	_, err := s.Service.DefineService(definition, baseTx)
+	require.NoError(s.T(), err)
+	deposit, _ := sdk.ParseDecCoins("6000iris")
+	binding := service.BindServiceRequest{
+		ServiceName: definition.ServiceName,
+		Deposit:     deposit,
+		Pricing:     pricing,
+		QoS:         10,
+		Options:     `{}`,
+	}
+	_, err = s.Service.BindService(binding, baseTx)
+	require.NoError(s.T(), err)
+
+	_, err = s.Service.SubscribeServiceRequest(
+		definition.ServiceName,
+		func(reqCtxID, reqID, input string) (string, string) {
+			s.Logger().Info("Service received request", "input", input, "reqCtxID", reqCtxID, "reqID", reqID, "output", output)
+			ch <- 1
+			return output, testResult
+		}, baseTx)
+
+	require.NoError(s.T(), err)
+}
+
 func (s IntegrationTestSuite) TestOracle() {
-	// todo complete oracle module
+	var ch = make(chan int)
+	s.SetupService(ch)
+
 	baseTx := sdk.BaseTx{
 		From:     s.Account().Name,
 		Gas:      200000,
@@ -15,55 +70,77 @@ func (s IntegrationTestSuite) TestOracle() {
 		Mode:     sdk.Commit,
 		Password: s.Account().Password,
 	}
+	input := `{"header":{},"body":{"pair":"iris-usdt"}}`
+	feedName := generateFeedName(serviceName)
+	serviceFeeCap, _ := sdk.ParseDecCoins("1000iris")
 
-	input := ``
-
-	feedName := s.RandStringOfLength(6)
-	createFeedRequest := oracle.CreateFeedRequest{
+	sender := s.rootAccount.Address
+	createReq := oracle.CreateFeedRequest{
 		FeedName:          feedName,
-		LatestHistory:     0,
-		Description:       s.RandStringOfLength(10),
-		ServiceName:       s.RandStringOfLength(6),
-		Providers:         nil,
+		LatestHistory:     5,
+		Description:       "fetch USDT-CNY ",
+		ServiceName:       serviceName,
+		Providers:         []string{sender.String()},
 		Input:             input,
-		Timeout:           0,
-		ServiceFeeCap:     nil,
-		RepeatedFrequency: 0,
-		AggregateFunc:     "",
-		ValueJsonPath:     "",
-		ResponseThreshold: 0,
+		Timeout:           50,
+		ServiceFeeCap:     serviceFeeCap,
+		RepeatedFrequency: 50,
+		AggregateFunc:     "avg",
+		ValueJsonPath:     "last",
+		ResponseThreshold: 1,
 	}
-	res, err := s.Oracle.CreateFeed(createFeedRequest, baseTx)
-	require.NoError(s.T(), err)
-	require.NotEmpty(s.T(), res.Hash)
 
-	pauseFeedRequest := oracle.PauseFeedRequest{
-		FeedName: feedName,
-		Creator:  "",
-	}
-	res, err = s.Oracle.PauseFeed(pauseFeedRequest, baseTx)
+	cfrs, err := s.Oracle.CreateFeed(createReq, baseTx)
 	require.NoError(s.T(), err)
-	require.NotEmpty(s.T(), res.Hash)
+	require.NotEmpty(s.T(), cfrs.Hash)
 
-	startFeedRequest := oracle.StartFeedRequest{
-		FeedName: feedName,
-		Creator:  "",
-	}
-	res, err = s.Oracle.StartFeed(startFeedRequest, baseTx)
+	sfrs, err := s.Oracle.StartFeed(feedName, baseTx)
 	require.NoError(s.T(), err)
-	require.NotEmpty(s.T(), res.Hash)
+	require.NotEmpty(s.T(), sfrs.Hash)
 
-	editFeedRequest := oracle.EditFeedRequest{
-		FeedName:          feedName,
-		Description:       s.RandStringOfLength(10),
-		LatestHistory:     0,
-		Providers:         nil,
-		Timeout:           0,
-		ServiceFeeCap:     nil,
-		RepeatedFrequency: 0,
-		ResponseThreshold: 0,
+	select {
+	case <-ch:
+
+		time.Sleep(2 * time.Second)
+
+		feedValuesRep, err := s.Oracle.QueryFeedValue(feedName)
+		require.NoError(s.T(), err)
+		s.Logger().Info("Query feed value", "feedName", feedName, "result", feedValuesRep)
+
+		editReq := oracle.EditFeedRequest{
+			FeedName:          feedName,
+			LatestHistory:     5,
+			Description:       "fetch USDT-CNY ",
+			Timeout:           3,
+			ServiceFeeCap:     serviceFeeCap,
+			ResponseThreshold: 1,
+			RepeatedFrequency: 5,
+			Providers:         []string{sender.String()},
+		}
+
+		efrs, err := s.Oracle.EditFeed(editReq, baseTx)
+		require.NoError(s.T(), err)
+		require.NotEmpty(s.T(), efrs.Hash)
+
+		pfrs, err := s.Oracle.PauseFeed(feedName, baseTx)
+		require.NoError(s.T(), err)
+		require.NotEmpty(s.T(), pfrs.Hash)
+
+		feedRep, err := s.Oracle.QueryFeed(feedName)
+		require.NoError(s.T(), err)
+		require.NotEmpty(s.T(), feedRep)
+
+		feedsRep, err := s.Oracle.QueryFeeds("PAUSED")
+		require.NoError(s.T(), err)
+		require.NotEmpty(s.T(), feedsRep)
+		require.Equal(s.T(), int32(service.PAUSED), feedRep.State)
 	}
-	res, err = s.Oracle.EditFeed(editFeedRequest, baseTx)
-	require.NoError(s.T(), err)
-	require.NotEmpty(s.T(), res.Hash)
+}
+
+func generateServiceName() string {
+	return fmt.Sprintf("service-%d", time.Now().Nanosecond())
+}
+
+func generateFeedName(serviceName string) string {
+	return fmt.Sprintf("feed-%s", serviceName)
 }
