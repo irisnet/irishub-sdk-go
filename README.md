@@ -143,4 +143,6 @@ func (m MemoryDB) Has(name string) bool {
 }
 ```
 
+If your keystore generated before irishub V0.16, you can see package keystore to convert
+
 For more API usage documentation, please check [documentation](https://pkg.go.dev/mod/github.com/irisnet/irishub-sdk-go)。
