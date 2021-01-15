@@ -1,7 +1,6 @@
 package keys
 
 import (
-	keystoreutil "github.com/irisnet/irishub-sdk-go/keystore"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
@@ -25,16 +24,6 @@ func (k keysClient) Recover(name, password, mnemonic string) (string, sdk.Error)
 
 func (k keysClient) Import(name, password, privKeyArmor string) (string, sdk.Error) {
 	address, err := k.KeyManager.Import(name, password, privKeyArmor)
-	return address, sdk.Wrap(err)
-}
-
-func (k keysClient) ImportFromOlderKeystore(name, password, keystore string) (string, sdk.Error) {
-	armorStr, err := keystoreutil.RecoveryAndExportPrivKeyArmor([]byte(keystore), password)
-	if err != nil {
-		return "", sdk.Wrap(err)
-	}
-
-	address, err := k.KeyManager.Import(name, password, armorStr)
 	return address, sdk.Wrap(err)
 }
 
