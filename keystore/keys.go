@@ -18,8 +18,8 @@ func RecoveryAndExportPrivKeyArmor(keystore []byte, password string) (armor stri
 	return exportPrivKeyArmor(priv, password)
 }
 
-func recoveryFromKeyStore(keystore []byte, auth string) (tmcrypto.PrivKey, error) {
-	if auth == "" {
+func recoveryFromKeyStore(keystore []byte, password string) (tmcrypto.PrivKey, error) {
+	if password == "" {
 		return nil, fmt.Errorf("Password is missing ")
 	}
 
@@ -28,7 +28,7 @@ func recoveryFromKeyStore(keystore []byte, auth string) (tmcrypto.PrivKey, error
 		return nil, err
 	}
 
-	keyBytes, err := decryptKey(&encryptedKey, auth)
+	keyBytes, err := decryptKey(&encryptedKey, password)
 	if err != nil {
 		return nil, err
 	}

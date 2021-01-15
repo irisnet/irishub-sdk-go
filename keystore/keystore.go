@@ -46,7 +46,7 @@ type cipherparamsJSON struct {
 	IV string `json:"iv"`
 }
 
-func decryptKey(keyProtected *EncryptedKeyJSON, auth string) ([]byte, error) {
+func decryptKey(keyProtected *EncryptedKeyJSON, password string) ([]byte, error) {
 	mac, err := hex.DecodeString(keyProtected.Crypto.MAC)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func decryptKey(keyProtected *EncryptedKeyJSON, auth string) ([]byte, error) {
 		return nil, err
 	}
 
-	derivedKey, err := getKDFKey(keyProtected.Crypto, auth)
+	derivedKey, err := getKDFKey(keyProtected.Crypto, password)
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +82,8 @@ func decryptKey(keyProtected *EncryptedKeyJSON, auth string) ([]byte, error) {
 	return plainText, err
 }
 
-func getKDFKey(cryptoJSON CryptoJSON, auth string) ([]byte, error) {
-	authArray := []byte(auth)
+func getKDFKey(cryptoJSON CryptoJSON, password string) ([]byte, error) {
+	authArray := []byte(password)
 	if cryptoJSON.KDFParams["salt"] == nil || cryptoJSON.KDFParams["dklen"] == nil ||
 		cryptoJSON.KDFParams["c"] == nil || cryptoJSON.KDFParams["prf"] == nil {
 		return nil, errors.New("invalid KDF params, must contains c, dklen, prf and salt")
