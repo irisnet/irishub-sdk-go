@@ -23,17 +23,15 @@ require (
 The initialization SDK code is as follows:
 
 ```go
-client := sdk.NewClient(types.ClientConfig{
-    NodeURI:   "localhost:26657",
-    Network:   types.Mainnet,
-    ChainID:   "irishub",
-    Gas:       2000,
-    Fee:       fees,
-    Mode:      types.Commit,
-    StoreType: types.PrivKey,
-    Timeout:   10 * time.Second,
-    Level:     "info",
-})
+options := []types.Option{
+types.KeyDAOOption(store.NewMemory(nil)),
+types.TimeoutOption(10),
+}
+cfg, err := types.NewClientConfig(nodeURI, chainID, options...)
+if err != nil {
+panic(err)
+}
+client := sdk.NewIRISHUBClient(cfg)
 ```
 
 The `ClientConfig` component mainly contains the parameters used in the SDK, the specific meaning is shown in the table below
@@ -41,6 +39,7 @@ The `ClientConfig` component mainly contains the parameters used in the SDK, the
 | Iterm     | Type          | Description                                                                                           |
 | --------- | ------------- | ----------------------------------------------------------------------------------------------------- |
 | NodeURI   | string        | The RPC address of the irishub node connected to the SDK, for example: localhost: 26657               |
+| GRPCAddr   | string       | The GRPC address of the irishub node connected to the SDK, for example: localhost: 9090               |
 | Network   | enum          | irishub network type, value: `Testnet`,`Mainnet`                                                      |
 | ChainID   | string        | ChainID of irishub, for example: `irishub`                                                            |
 | Gas       | uint64        | The maximum gas to be paid for the transaction, for example: `20000`                                  |
@@ -53,9 +52,11 @@ The `ClientConfig` component mainly contains the parameters used in the SDK, the
 
 If you want to use `SDK` to send a transfer transaction, the example is as follows:
 
+There is more example of query and send tx
+
 ```go
 coins, err := types.ParseDecCoins("0.1iris")
-to := "faa1hp29kuh22vpjjlnctmyml5s75evsnsd8r4x0mm"
+to := "iaa1hp29kuh22vpjjlnctmyml5s75evsnsd8r4x0mm"
 baseTx := types.BaseTx{
     From:     "username",
     Gas:      20000,
@@ -65,6 +66,17 @@ baseTx := types.BaseTx{
 }
 
 result, err := client.Bank().Send(to, coins, baseTx)
+```
+
+query Latest Block info
+```go
+block, err := s.BaseClient.Block(context.Background(),nil)
+```
+
+query Tx from specify TxHash
+```go
+txHash := "D9280C9217B5626107DF9BC97A44C42357537806343175F869F0D8A5A0D94ADD"
+txResult, err := s.BaseClient.QueryTx(txHash)
 ```
 
 **Note**: If you use the relevant API for sending transactions, you should implement the `KeyDAO` interface. Use the `NewKeyDaoWithAES` method to initialize a `KeyDAO` instance, which will use the `AES` encryption method by default.

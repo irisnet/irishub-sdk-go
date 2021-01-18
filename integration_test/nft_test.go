@@ -1,6 +1,7 @@
 package integration_test
 
 import (
+	"context"
 	"fmt"
 	"github.com/irisnet/irishub-sdk-go/modules/nft"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -9,6 +10,9 @@ import (
 )
 
 func (s IntegrationTestSuite) TestNFT() {
+	block, err := s.BaseClient.Block(context.Background(), nil)
+	fmt.Print(block)
+
 	baseTx := sdk.BaseTx{
 		From:     s.Account().Name,
 		Gas:      200000,
@@ -127,4 +131,5 @@ func (s IntegrationTestSuite) TestNFT() {
 	supply, err = s.NFT.QuerySupply(mintReq.Denom, transferReq.Recipient)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), uint64(0), supply)
+
 }
