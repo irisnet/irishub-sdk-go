@@ -65,18 +65,18 @@ baseTx := types.BaseTx{
     Password: "password",
 }
 
-result, err := client.Bank().Send(to, coins, baseTx)
+result, err := client.Bank.Send(to, coins, baseTx)
 ```
 
 query Latest Block info
 ```go
-block, err := s.BaseClient.Block(context.Background(),nil)
+block, err := client.BaseClient.Block(context.Background(),nil)
 ```
 
 query Tx from specify TxHash
 ```go
 txHash := "D9280C9217B5626107DF9BC97A44C42357537806343175F869F0D8A5A0D94ADD"
-txResult, err := s.BaseClient.QueryTx(txHash)
+txResult, err := client.BaseClient.QueryTx(txHash)
 ```
 
 **Note**: If you use the relevant API for sending transactions, you should implement the `KeyDAO` interface. Use the `NewKeyDaoWithAES` method to initialize a `KeyDAO` instance, which will use the `AES` encryption method by default.
