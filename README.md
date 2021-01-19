@@ -90,11 +90,14 @@ baseTx := types.BaseTx{
     Password: "password",
 }
 
-msg := &nft.MsgIssueDenom{
-		Id:     "denomid",
-		Name:   "denomName",
-		Schema: "schema",
-		Sender: "iaa1hp29kuh22vpjjlnctmyml5s75evsnsd8r4x0mm",
+amt, err := types.ParseCoins("10iris")
+
+from := "iaa12py6r8hhzpwdhat93cde4p3rfl6w4qnmwcqfhn"
+to := "iaa1hp29kuh22vpjjlnctmyml5s75evsnsd8r4x0mm"
+msg := &bank.MsgSend{
+	FromAddress: addr,
+	ToAddress:   to,
+	Amount:      amt,
 }
 txhash, err := s.GetTxHash([]sdk.Msg{msg}, baseTx)
 ```
