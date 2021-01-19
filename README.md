@@ -99,7 +99,7 @@ msg := &bank.MsgSend{
 	ToAddress:   to,
 	Amount:      amt,
 }
-txhash, err := s.GetTxHash([]sdk.Msg{msg}, baseTx)
+txhash, err := s.BuildTxHash([]sdk.Msg{msg}, baseTx)
 ```
 
 **Note**: If you use the relevant API for sending transactions, you should implement the `KeyDAO` interface. Use the `NewKeyDaoWithAES` method to initialize a `KeyDAO` instance, which will use the `AES` encryption method by default.

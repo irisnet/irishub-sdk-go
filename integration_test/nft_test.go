@@ -33,7 +33,7 @@ func (s IntegrationTestSuite) TestNFT() {
 		Schema: schema,
 		Sender: addr,
 	}
-	txhash, err := s.GetTxHash([]sdk.Msg{msg}, baseTx)
+	txhash, err := s.BuildTxHash([]sdk.Msg{msg}, baseTx)
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), txhash)
 	fmt.Println(txhash)

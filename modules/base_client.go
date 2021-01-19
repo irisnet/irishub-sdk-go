@@ -107,7 +107,7 @@ func (base *baseClient) Marshaler() codec.Marshaler {
 	return base.encodingConfig.Marshaler
 }
 
-func (base *baseClient) GetTxHash(msg []sdk.Msg, baseTx sdk.BaseTx) (string, sdk.Error) {
+func (base *baseClient) BuildTxHash(msg []sdk.Msg, baseTx sdk.BaseTx) (string, sdk.Error) {
 	txByte, _, err := base.buildTx(msg, baseTx)
 	if err != nil {
 		return "", sdk.Wrap(err)
