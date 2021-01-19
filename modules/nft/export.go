@@ -11,6 +11,7 @@ type Client interface {
 	EditNFT(request EditNFTRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 	TransferNFT(request TransferNFTRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 	BurnNFT(request BurnNFTRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	GetHash(request NFTRequestHash, baseTx sdk.BaseTx) (string, sdk.Error)
 
 	QuerySupply(denomID, creator string) (uint64, sdk.Error)
 	QueryOwner(creator, denomID string) (QueryOwnerResp, sdk.Error)

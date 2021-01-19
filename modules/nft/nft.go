@@ -2,6 +2,7 @@ package nft
 
 import (
 	"context"
+	"fmt"
 	"github.com/irisnet/irishub-sdk-go/codec"
 	"github.com/irisnet/irishub-sdk-go/codec/types"
 
@@ -26,6 +27,21 @@ func (nc nftClient) Name() string {
 
 func (nc nftClient) RegisterInterfaceTypes(registry types.InterfaceRegistry) {
 	RegisterInterfaces(registry)
+}
+
+func (nc nftClient) GetHash(request NFTRequestHash, baseTx sdk.BaseTx) (string, sdk.Error) {
+	sender, err := nc.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return "", sdk.Wrap(err)
+	}
+	msg, err := request.GetMsgs(sender)
+	if err != nil {
+		return "", sdk.Wrap(err)
+	}
+	if len(msg) <= 0 {
+		return "", sdk.Wrap(fmt.Errorf("msg is empty"))
+	}
+	return nc.GetTxHash(msg, baseTx)
 }
 
 func (nc nftClient) IssueDenom(request IssueDenomRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {

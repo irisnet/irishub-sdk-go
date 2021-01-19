@@ -10,6 +10,7 @@ import (
 type TxManager interface {
 	TmQuery
 	BuildAndSend(msg []Msg, baseTx BaseTx) (ResultTx, Error)
+	GetTxHash(msg []Msg, baseTx BaseTx) (string, Error)
 	SendBatch(msgs Msgs, baseTx BaseTx) ([]ResultTx, Error)
 	BuildAndSendWithAccount(addr string, accountNumber, sequence uint64, msg []Msg, baseTx BaseTx) (ResultTx, Error)
 }
