@@ -58,6 +58,15 @@ func NewMnemonicKeyManager(mnemonic string, algo string) (KeyManager, error) {
 	return &k, err
 }
 
+func NewMnemonicKeyManagerWithHDPath(mnemonic, algo, hdPath string) (KeyManager, error) {
+	k := keyManager{
+		mnemonic: mnemonic,
+		algo:     algo,
+	}
+	err := k.recoveryFromMnemonic(mnemonic, hdPath, algo)
+	return &k, err
+}
+
 func NewPrivateKeyManager(priv []byte, algo string) (KeyManager, error) {
 	privKey, err := cryptoAmino.PrivKeyFromBytes(priv)
 	if err != nil {
