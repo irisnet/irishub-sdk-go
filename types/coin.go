@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+const (
+	BaseDenom = "uiris"
+)
+
 // NewCoin returns a new coin with a denomination and amount. It will panic if
 // the amount is negative.
 func NewCoin(denom string, amount Int) Coin {
@@ -575,7 +579,7 @@ func (coins Coins) Sort() Coins {
 
 var (
 	// Denominations can be 3 ~ 64 characters long.
-	reDnmString = `[a-z][a-z0-9:-]{2,15}`
+	reDnmString = `[a-zA-Z][a-zA-Z0-9/:]{2,127}`
 	reAmt       = `[[:digit:]]+`
 	reDecAmt    = `[[:digit:]]*[.]*[[:digit:]]+`
 	reSpc       = `[[:space:]]*`
