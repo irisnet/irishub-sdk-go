@@ -1,10 +1,9 @@
 package coinswap
 
 import (
+	"context"
 	"fmt"
 	"strings"
-
-	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/irisnet/irishub-sdk-go/codec"
 	"github.com/irisnet/irishub-sdk-go/codec/types"
@@ -14,12 +13,14 @@ import (
 type coinswapClient struct {
 	sdk.BaseClient
 	codec.Marshaler
+	queryTotalSupply func() (sdk.Coins, sdk.Error)
 }
 
-func NewClient(bc sdk.BaseClient, cdc codec.Marshaler) Client {
+func NewClient(bc sdk.BaseClient, cdc codec.Marshaler,queryTotalSupply func() (sdk.Coins, sdk.Error)) Client {
 	return coinswapClient{
 		BaseClient: bc,
 		Marshaler:  cdc,
+		queryTotalSupply: queryTotalSupply,
 	}
 }
 
@@ -176,21 +177,41 @@ func (swap coinswapClient) SwapCoin(request SwapCoinRequest, baseTx sdk.BaseTx) 
 }
 
 func (swap coinswapClient) QueryPool(denom string) (*QueryPoolResponse, error) {
-	poolTokenDenom := getLiquidityDenomFrom(denom)
-	poolAddress := sdk.AccAddress(crypto.AddressHash([]byte(poolTokenDenom)))
-	account, err := swap.QueryAccount(poolAddress.String())
+	conn, err := swap.GenConn()
+	defer func() { _ = conn.Close() }()
 	if err != nil {
-		return nil, err
+		return nil, sdk.Wrap(err)
 	}
 
-	baseCoinAmt := account.Coins.AmountOf(sdk.BaseDenom)
-	tokenCoinAmt := account.Coins.AmountOf(denom)
-	liquidityCoinAmt := account.Coins.AmountOf(denom)
-	return &QueryPoolResponse{
-		BaseCoin:  sdk.NewCoin(sdk.BaseDenom, baseCoinAmt),
-		TokenCoin: sdk.NewCoin(denom, tokenCoinAmt),
-		Liquidity: sdk.NewCoin(poolTokenDenom, liquidityCoinAmt),
-	}, err
+	resp, err := NewQueryClient(conn).Liquidity(
+		context.Background(),
+		&QueryLiquidityRequest{Denom: denom},
+	)
+	if err != nil {
+		return nil, sdk.Wrap(err)
+	}
+	return resp.Convert().(*QueryPoolResponse), err
+}
+
+func (swap coinswapClient) QueryAllPools() (*QueryAllPoolsResponse,error){
+	coins,err :=swap.queryTotalSupply()
+	if err != nil {
+		return nil, sdk.Wrap(err)
+	}
+
+	var pools []QueryPoolResponse
+	for _,coin := range coins {
+		denom,err := getTokenDenomFrom(coin.Denom)
+		if err != nil {
+			continue
+		}
+		res,err := swap.QueryPool(denom)
+		if err != nil {
+			return nil, sdk.Wrap(err)
+		}
+		pools= append(pools,*res)
+	}
+	return &QueryAllPoolsResponse{pools}, err
 }
 
 func getLiquidityDenomFrom(denom string) string {

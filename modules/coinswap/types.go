@@ -7,15 +7,11 @@ import (
 const (
 	ModuleName = "coinswap"
 
-
 	eventTypeTransfer = "transfer"
-	eventTypeSwap = "swap"
+	eventTypeSwap     = "swap"
 
-	attributeKeyAmount  = "amount"
+	attributeKeyAmount = "amount"
 )
-
-
-
 
 var (
 	_ sdk.Msg = &MsgAddLiquidity{}
@@ -100,4 +96,13 @@ func (msg MsgSwapOrder) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{from}
+}
+
+func (m QueryLiquidityResponse) Convert() interface{} {
+	return &QueryPoolResponse{
+		BaseCoin:  m.Standard,
+		TokenCoin: m.Token,
+		Liquidity: m.Liquidity,
+		Fee:       m.Fee,
+	}
 }

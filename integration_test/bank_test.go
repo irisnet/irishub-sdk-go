@@ -51,9 +51,9 @@ func queryAccount(s IntegrationTestSuite) {
 }
 
 func send(s IntegrationTestSuite) {
-	coins, err := types.ParseDecCoins("10iris")
+	coins, err := types.ParseDecCoins("10bnb")
 	s.NoError(err)
-	to := s.GetRandAccount().Address.String()
+	to := "iaa1pq0e7fgcw3e2cc58nfjuswz898jvwpuga7fup3"
 
 	ch := make(chan int)
 	s.Bank.SubscribeSendTx(s.Account().Address.String(), to, func(send bank.EventDataMsgSend) {
@@ -63,7 +63,6 @@ func send(s IntegrationTestSuite) {
 	baseTx := types.BaseTx{
 		From:     s.Account().Name,
 		Gas:      200000,
-		Fee:      coins,
 		Memo:     "TEST",
 		Mode:     types.Commit,
 		Password: s.Account().Password,

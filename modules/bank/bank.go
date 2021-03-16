@@ -1,6 +1,7 @@
 package bank
 
 import (
+	"context"
 	"fmt"
 	"github.com/irisnet/irishub-sdk-go/utils"
 	"strings"
@@ -38,6 +39,24 @@ func (b bankClient) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) {
 	}
 
 	return account, nil
+}
+
+//  TotalSupply queries the total supply of all coins.
+func (b bankClient) TotalSupply() (sdk.Coins, sdk.Error) {
+	conn, err := b.GenConn()
+	defer func() { _ = conn.Close() }()
+	if err != nil {
+		return nil, sdk.Wrap(err)
+	}
+
+	resp, err := NewQueryClient(conn).TotalSupply(
+		context.Background(),
+		&QueryTotalSupplyRequest{},
+	)
+	if err != nil {
+		return nil, sdk.Wrap(err)
+	}
+	return resp.Supply, nil
 }
 
 // Send is responsible for transferring tokens from `From` to `to` account

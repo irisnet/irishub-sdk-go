@@ -15,6 +15,7 @@ type Client interface {
 	SwapCoin(request SwapCoinRequest,
 		baseTx sdk.BaseTx) (*SwapCoinResponse, error)
 	QueryPool(denom string) (*QueryPoolResponse, error)
+	QueryAllPools() (*QueryAllPoolsResponse,error)
 }
 
 type AddLiquidityRequest struct {
@@ -63,4 +64,9 @@ type QueryPoolResponse struct {
 	BaseCoin  types.Coin
 	TokenCoin types.Coin
 	Liquidity types.Coin
+	Fee       string
+}
+
+type QueryAllPoolsResponse struct {
+	Pools []QueryPoolResponse
 }

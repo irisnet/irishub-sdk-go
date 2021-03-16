@@ -63,7 +63,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	randomClient := random.NewClient(baseClient, encodingConfig.Marshaler)
 	oracleClient := oracle.NewClient(baseClient, encodingConfig.Marshaler)
 	htlcClient := htlc.NewClient(baseClient, encodingConfig.Marshaler)
-	swapClient := coinswap.NewClient(baseClient, encodingConfig.Marshaler)
+	swapClient := coinswap.NewClient(baseClient, encodingConfig.Marshaler,bankClient.TotalSupply)
 
 	client := &IRISHUBClient{
 		logger:         baseClient.Logger(),
