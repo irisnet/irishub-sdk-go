@@ -2,6 +2,7 @@ package coinswap
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -13,14 +14,14 @@ import (
 type coinswapClient struct {
 	sdk.BaseClient
 	codec.Marshaler
-	queryTotalSupply func() (sdk.Coins, sdk.Error)
+	totalSupply
 }
 
-func NewClient(bc sdk.BaseClient, cdc codec.Marshaler,queryTotalSupply func() (sdk.Coins, sdk.Error)) Client {
+func NewClient(bc sdk.BaseClient, cdc codec.Marshaler, queryTotalSupply totalSupply) Client {
 	return coinswapClient{
-		BaseClient: bc,
-		Marshaler:  cdc,
-		queryTotalSupply: queryTotalSupply,
+		BaseClient:  bc,
+		Marshaler:   cdc,
+		totalSupply: queryTotalSupply,
 	}
 }
 
@@ -176,6 +177,66 @@ func (swap coinswapClient) SwapCoin(request SwapCoinRequest, baseTx sdk.BaseTx) 
 	return response, nil
 }
 
+func (swap coinswapClient) BuyToken(paidTokenDenom string, boughtCoin sdk.Coin,
+	deadline int64,
+	baseTx sdk.BaseTx,
+) (res *SwapCoinResponse, err error) {
+	var amount = sdk.ZeroInt()
+	switch {
+	case paidTokenDenom == sdk.BaseDenom:
+		amount, err = swap.TradeBaseForBoughtToken(boughtCoin)
+		break
+	case boughtCoin.Denom == sdk.BaseDenom:
+		amount, err = swap.TradeTokenForBoughtBase(paidTokenDenom, boughtCoin.Amount)
+		break
+	default:
+		amount, err = swap.TradeTokenForBoughtToken(paidTokenDenom, boughtCoin)
+		break
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	req := SwapCoinRequest{
+		Input:      sdk.NewCoin(paidTokenDenom, amount),
+		Output:     boughtCoin,
+		Deadline:   deadline,
+		IsBuyOrder: true,
+	}
+	return swap.SwapCoin(req, baseTx)
+}
+
+func (swap coinswapClient) SellToken(gotTokenDenom string, soldCoin sdk.Coin,
+	deadline int64,
+	baseTx sdk.BaseTx,
+) (res *SwapCoinResponse, err error) {
+	var amount = sdk.ZeroInt()
+	switch {
+	case gotTokenDenom == sdk.BaseDenom:
+		amount, err = swap.TradeBaseForSoldToken(soldCoin)
+		break
+	case soldCoin.Denom == sdk.BaseDenom:
+		amount, err = swap.TradeTokenForSoldBase(gotTokenDenom, soldCoin.Amount)
+		break
+	default:
+		amount, err = swap.TradeTokenForSoldToken(gotTokenDenom, soldCoin)
+		break
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	req := SwapCoinRequest{
+		Input:      soldCoin,
+		Output:     sdk.NewCoin(gotTokenDenom, amount),
+		Deadline:   deadline,
+		IsBuyOrder: false,
+	}
+	return swap.SwapCoin(req, baseTx)
+}
+
 func (swap coinswapClient) QueryPool(denom string) (*QueryPoolResponse, error) {
 	conn, err := swap.GenConn()
 	defer func() { _ = conn.Close() }()
@@ -193,25 +254,98 @@ func (swap coinswapClient) QueryPool(denom string) (*QueryPoolResponse, error) {
 	return resp.Convert().(*QueryPoolResponse), err
 }
 
-func (swap coinswapClient) QueryAllPools() (*QueryAllPoolsResponse,error){
-	coins,err :=swap.queryTotalSupply()
+func (swap coinswapClient) QueryAllPools() (*QueryAllPoolsResponse, error) {
+	coins, err := swap.totalSupply()
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}
 
 	var pools []QueryPoolResponse
-	for _,coin := range coins {
-		denom,err := getTokenDenomFrom(coin.Denom)
+	for _, coin := range coins {
+		denom, err := getTokenDenomFrom(coin.Denom)
 		if err != nil {
 			continue
 		}
-		res,err := swap.QueryPool(denom)
+		res, err := swap.QueryPool(denom)
 		if err != nil {
 			return nil, sdk.Wrap(err)
 		}
-		pools= append(pools,*res)
+		pools = append(pools, *res)
 	}
 	return &QueryAllPoolsResponse{pools}, err
+}
+
+func (swap coinswapClient) TradeTokenForSoldBase(tokenDenom string,
+	soldBaseAmt sdk.Int,
+) (sdk.Int, error) {
+	result, err := swap.QueryPool(tokenDenom)
+	if err != nil {
+		return sdk.ZeroInt(), err
+	}
+	fee := sdk.MustNewDecFromStr(result.Fee)
+	amount := getInputPrice(soldBaseAmt,
+		result.BaseCoin.Amount, result.TokenCoin.Amount, fee)
+	return amount, nil
+}
+
+func (swap coinswapClient) TradeBaseForSoldToken(soldToken sdk.Coin) (sdk.Int, error) {
+	result, err := swap.QueryPool(soldToken.Denom)
+	if err != nil {
+		return sdk.ZeroInt(), err
+	}
+	fee := sdk.MustNewDecFromStr(result.Fee)
+	amount := getInputPrice(soldToken.Amount,
+		result.TokenCoin.Amount, result.BaseCoin.Amount, fee)
+	return amount, nil
+}
+
+func (swap coinswapClient) TradeTokenForSoldToken(boughtTokenDenom string,
+	soldToken sdk.Coin) (sdk.Int, error) {
+	if boughtTokenDenom == soldToken.Denom {
+		return sdk.ZeroInt(), errors.New("invalid trade")
+	}
+
+	boughtBaseAmt, err := swap.TradeBaseForSoldToken(soldToken)
+	if err != nil {
+		return sdk.ZeroInt(), err
+	}
+	return swap.TradeTokenForSoldBase(boughtTokenDenom, boughtBaseAmt)
+}
+
+func (swap coinswapClient) TradeTokenForBoughtBase(soldTokenDenom string,
+	exactBoughtBaseAmt sdk.Int) (sdk.Int, error) {
+	result, err := swap.QueryPool(soldTokenDenom)
+	if err != nil {
+		return sdk.ZeroInt(), err
+	}
+	fee := sdk.MustNewDecFromStr(result.Fee)
+	amount := getOutputPrice(exactBoughtBaseAmt,
+		result.TokenCoin.Amount, result.BaseCoin.Amount, fee)
+	return amount, nil
+}
+
+func (swap coinswapClient) TradeBaseForBoughtToken(boughtToken sdk.Coin) (sdk.Int, error) {
+	result, err := swap.QueryPool(boughtToken.Denom)
+	if err != nil {
+		return sdk.ZeroInt(), err
+	}
+	fee := sdk.MustNewDecFromStr(result.Fee)
+	amount := getOutputPrice(boughtToken.Amount,
+		result.BaseCoin.Amount, result.TokenCoin.Amount, fee)
+	return amount, nil
+}
+
+func (swap coinswapClient) TradeTokenForBoughtToken(soldTokenDenom string,
+	boughtToken sdk.Coin) (sdk.Int, error) {
+	if soldTokenDenom == boughtToken.Denom {
+		return sdk.ZeroInt(), errors.New("invalid trade")
+	}
+
+	soldBaseAmt, err := swap.TradeBaseForBoughtToken(boughtToken)
+	if err != nil {
+		return sdk.ZeroInt(), err
+	}
+	return swap.TradeTokenForBoughtBase(soldTokenDenom, soldBaseAmt)
 }
 
 func getLiquidityDenomFrom(denom string) string {
@@ -224,4 +358,24 @@ func getTokenDenomFrom(liquidityDenom string) (string, error) {
 		return "", sdk.Wrapf("wrong liquidity denom : %s", liquidityDenom)
 	}
 	return sp[1], nil
+}
+
+// getInputPrice returns the amount of coins bought (calculated) given the input amount being sold (exact)
+// The fee is included in the input coins being bought
+// https://github.com/runtimeverification/verified-smart-contracts/blob/uniswap/uniswap/x-y-k.pdf
+func getInputPrice(inputAmt, inputReserve, outputReserve sdk.Int, fee sdk.Dec) sdk.Int {
+	deltaFee := sdk.OneDec().Sub(fee)
+	inputAmtWithFee := inputAmt.Mul(sdk.NewIntFromBigInt(deltaFee.BigInt()))
+	numerator := inputAmtWithFee.Mul(outputReserve)
+	denominator := inputReserve.Mul(sdk.NewIntWithDecimal(1, sdk.Precision)).Add(inputAmtWithFee)
+	return numerator.Quo(denominator)
+}
+
+// getOutputPrice returns the amount of coins sold (calculated) given the output amount being bought (exact)
+// The fee is included in the output coins being bought
+func getOutputPrice(outputAmt, inputReserve, outputReserve sdk.Int, fee sdk.Dec) sdk.Int {
+	deltaFee := sdk.OneDec().Sub(fee)
+	numerator := inputReserve.Mul(outputAmt).Mul(sdk.NewIntWithDecimal(1, sdk.Precision))
+	denominator := (outputReserve.Sub(outputAmt)).Mul(sdk.NewIntFromBigInt(deltaFee.BigInt()))
+	return numerator.Quo(denominator).Add(sdk.OneInt())
 }
