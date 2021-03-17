@@ -18,7 +18,12 @@ func (k keysClient) Add(name, password string) (string, string, sdk.Error) {
 }
 
 func (k keysClient) Recover(name, password, mnemonic string) (string, sdk.Error) {
-	address, err := k.KeyManager.Recover(name, password, mnemonic)
+	address, err := k.KeyManager.Recover(name, password, mnemonic, "")
+	return address, sdk.Wrap(err)
+}
+
+func (k keysClient) RecoverWithHDPath(name, password, mnemonic, hdPath string) (string, sdk.Error) {
+	address, err := k.KeyManager.Recover(name, password, mnemonic, hdPath)
 	return address, sdk.Wrap(err)
 }
 
