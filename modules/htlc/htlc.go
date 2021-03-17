@@ -2,6 +2,7 @@ package htlc
 
 import (
 	"context"
+
 	"github.com/irisnet/irishub-sdk-go/codec"
 	"github.com/irisnet/irishub-sdk-go/codec/types"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -46,6 +47,7 @@ func (hc htlcClient) CreateHTLC(request CreateHTLCRequest, baseTx sdk.BaseTx) (s
 		Sender:               sender.String(),
 		To:                   request.To,
 		ReceiverOnOtherChain: request.ReceiverOnOtherChain,
+		SenderOnOtherChain:   request.SenderOnOtherChain,
 		Amount:               amount,
 		HashLock:             request.HashLock,
 		Timestamp:            request.Timestamp,
@@ -54,40 +56,23 @@ func (hc htlcClient) CreateHTLC(request CreateHTLCRequest, baseTx sdk.BaseTx) (s
 	return hc.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
-func (hc htlcClient) ClaimHTLC(hashLock string, secret string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+func (hc htlcClient) ClaimHTLC(hashLockId string, secret string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	sender, err := hc.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	msg := &MsgClaimHTLC{
-		Sender:   sender.String(),
-		HashLock: hashLock,
-		Secret:   secret,
+		Sender: sender.String(),
+		Id:     hashLockId,
+		Secret: secret,
 	}
 	return hc.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
-func (hc htlcClient) RefundHTLC(hashLock string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	if len(hashLock) == 0 {
-		return sdk.ResultTx{}, sdk.Wrapf("hashLock is required")
-	}
-
-	sender, err := hc.QueryAddress(baseTx.From, baseTx.Password)
-	if err != nil {
-		return sdk.ResultTx{}, sdk.Wrap(err)
-	}
-
-	msg := &MsgRefundHTLC{
-		Sender:   sender.String(),
-		HashLock: hashLock,
-	}
-	return hc.BuildAndSend([]sdk.Msg{msg}, baseTx)
-}
-
-func (hc htlcClient) QueryHTLC(hashLock string) (QueryHTLCResp, sdk.Error) {
-	if len(hashLock) == 0 {
-		return QueryHTLCResp{}, sdk.Wrapf("hashLock is required")
+func (hc htlcClient) QueryHTLC(hashLockId string) (QueryHTLCResp, sdk.Error) {
+	if len(hashLockId) == 0 {
+		return QueryHTLCResp{}, sdk.Wrapf("hashLock id is required")
 	}
 
 	conn, err := hc.GenConn()
@@ -99,7 +84,7 @@ func (hc htlcClient) QueryHTLC(hashLock string) (QueryHTLCResp, sdk.Error) {
 	res, err := NewQueryClient(conn).HTLC(
 		context.Background(),
 		&QueryHTLCRequest{
-			HashLock: hashLock,
+			Id: hashLockId,
 		})
 	if err != nil {
 		return QueryHTLCResp{}, sdk.Wrap(err)

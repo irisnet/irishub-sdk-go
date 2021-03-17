@@ -2,11 +2,13 @@ package staking
 
 import (
 	"bytes"
+
+	tmtypes "github.com/tendermint/tendermint/types"
+
 	"github.com/irisnet/irishub-sdk-go/codec"
 	codectypes "github.com/irisnet/irishub-sdk-go/codec/types"
 	crypto "github.com/irisnet/irishub-sdk-go/crypto/types"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 const (

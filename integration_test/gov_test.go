@@ -3,9 +3,11 @@ package integration_test
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/stretchr/testify/require"
+
 	"github.com/irisnet/irishub-sdk-go/modules/gov"
 	"github.com/irisnet/irishub-sdk-go/types"
-	"github.com/stretchr/testify/require"
 )
 
 func (s IntegrationTestSuite) TestGov() {

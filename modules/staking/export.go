@@ -1,8 +1,9 @@
 package staking
 
 import (
-	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"time"
+
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 // expose Staking module api for user
