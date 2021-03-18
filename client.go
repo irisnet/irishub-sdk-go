@@ -108,6 +108,10 @@ func (client *IRISHUBClient) AppCodec() codec.Marshaler {
 	return client.encodingConfig.Marshaler
 }
 
+func (client *IRISHUBClient) EncodingConfig() types.EncodingConfig {
+	return client.encodingConfig
+}
+
 func (client *IRISHUBClient) Manager() types.BaseClient {
 	return client.BaseClient
 }
