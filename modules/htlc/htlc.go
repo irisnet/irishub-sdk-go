@@ -52,6 +52,7 @@ func (hc htlcClient) CreateHTLC(request CreateHTLCRequest, baseTx sdk.BaseTx) (s
 		HashLock:             request.HashLock,
 		Timestamp:            request.Timestamp,
 		TimeLock:             request.TimeLock,
+		Transfer:             request.Transfer,
 	}
 	return hc.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
