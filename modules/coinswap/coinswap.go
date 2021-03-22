@@ -180,20 +180,20 @@ func (swap coinswapClient) SwapCoin(request SwapCoinRequest, baseTx sdk.BaseTx) 
 	return response, nil
 }
 
-func (swap coinswapClient) BuyToken(paidTokenDenom string, boughtCoin sdk.Coin,
+func (swap coinswapClient) BuyTokenWithAutoEstimate(paidTokenDenom string, boughtCoin sdk.Coin,
 	deadline int64,
 	baseTx sdk.BaseTx,
 ) (res *SwapCoinResponse, err error) {
 	var amount = sdk.ZeroInt()
 	switch {
 	case paidTokenDenom == sdk.BaseDenom:
-		amount, err = swap.TradeBaseForBoughtToken(boughtCoin)
+		amount, err = swap.EstimateBaseForBoughtToken(boughtCoin)
 		break
 	case boughtCoin.Denom == sdk.BaseDenom:
-		amount, err = swap.TradeTokenForBoughtBase(paidTokenDenom, boughtCoin.Amount)
+		amount, err = swap.EstimateTokenForBoughtBase(paidTokenDenom, boughtCoin.Amount)
 		break
 	default:
-		amount, err = swap.TradeTokenForBoughtToken(paidTokenDenom, boughtCoin)
+		amount, err = swap.EstimateTokenForBoughtToken(paidTokenDenom, boughtCoin)
 		break
 	}
 
@@ -210,20 +210,20 @@ func (swap coinswapClient) BuyToken(paidTokenDenom string, boughtCoin sdk.Coin,
 	return swap.SwapCoin(req, baseTx)
 }
 
-func (swap coinswapClient) SellToken(gotTokenDenom string, soldCoin sdk.Coin,
+func (swap coinswapClient) SellTokenWithAutoEstimate(gotTokenDenom string, soldCoin sdk.Coin,
 	deadline int64,
 	baseTx sdk.BaseTx,
 ) (res *SwapCoinResponse, err error) {
 	var amount = sdk.ZeroInt()
 	switch {
 	case gotTokenDenom == sdk.BaseDenom:
-		amount, err = swap.TradeBaseForSoldToken(soldCoin)
+		amount, err = swap.EstimateBaseForSoldToken(soldCoin)
 		break
 	case soldCoin.Denom == sdk.BaseDenom:
-		amount, err = swap.TradeTokenForSoldBase(gotTokenDenom, soldCoin.Amount)
+		amount, err = swap.EstimateTokenForSoldBase(gotTokenDenom, soldCoin.Amount)
 		break
 	default:
-		amount, err = swap.TradeTokenForSoldToken(gotTokenDenom, soldCoin)
+		amount, err = swap.EstimateTokenForSoldToken(gotTokenDenom, soldCoin)
 		break
 	}
 
@@ -278,7 +278,7 @@ func (swap coinswapClient) QueryAllPools() (*QueryAllPoolsResponse, error) {
 	return &QueryAllPoolsResponse{pools}, err
 }
 
-func (swap coinswapClient) TradeTokenForSoldBase(tokenDenom string,
+func (swap coinswapClient) EstimateTokenForSoldBase(tokenDenom string,
 	soldBaseAmt sdk.Int,
 ) (sdk.Int, error) {
 	result, err := swap.QueryPool(tokenDenom)
@@ -291,7 +291,7 @@ func (swap coinswapClient) TradeTokenForSoldBase(tokenDenom string,
 	return amount, nil
 }
 
-func (swap coinswapClient) TradeBaseForSoldToken(soldToken sdk.Coin) (sdk.Int, error) {
+func (swap coinswapClient) EstimateBaseForSoldToken(soldToken sdk.Coin) (sdk.Int, error) {
 	result, err := swap.QueryPool(soldToken.Denom)
 	if err != nil {
 		return sdk.ZeroInt(), err
@@ -302,20 +302,20 @@ func (swap coinswapClient) TradeBaseForSoldToken(soldToken sdk.Coin) (sdk.Int, e
 	return amount, nil
 }
 
-func (swap coinswapClient) TradeTokenForSoldToken(boughtTokenDenom string,
+func (swap coinswapClient) EstimateTokenForSoldToken(boughtTokenDenom string,
 	soldToken sdk.Coin) (sdk.Int, error) {
 	if boughtTokenDenom == soldToken.Denom {
 		return sdk.ZeroInt(), errors.New("invalid trade")
 	}
 
-	boughtBaseAmt, err := swap.TradeBaseForSoldToken(soldToken)
+	boughtBaseAmt, err := swap.EstimateBaseForSoldToken(soldToken)
 	if err != nil {
 		return sdk.ZeroInt(), err
 	}
-	return swap.TradeTokenForSoldBase(boughtTokenDenom, boughtBaseAmt)
+	return swap.EstimateTokenForSoldBase(boughtTokenDenom, boughtBaseAmt)
 }
 
-func (swap coinswapClient) TradeTokenForBoughtBase(soldTokenDenom string,
+func (swap coinswapClient) EstimateTokenForBoughtBase(soldTokenDenom string,
 	exactBoughtBaseAmt sdk.Int) (sdk.Int, error) {
 	result, err := swap.QueryPool(soldTokenDenom)
 	if err != nil {
@@ -327,7 +327,7 @@ func (swap coinswapClient) TradeTokenForBoughtBase(soldTokenDenom string,
 	return amount, nil
 }
 
-func (swap coinswapClient) TradeBaseForBoughtToken(boughtToken sdk.Coin) (sdk.Int, error) {
+func (swap coinswapClient) EstimateBaseForBoughtToken(boughtToken sdk.Coin) (sdk.Int, error) {
 	result, err := swap.QueryPool(boughtToken.Denom)
 	if err != nil {
 		return sdk.ZeroInt(), err
@@ -338,17 +338,17 @@ func (swap coinswapClient) TradeBaseForBoughtToken(boughtToken sdk.Coin) (sdk.In
 	return amount, nil
 }
 
-func (swap coinswapClient) TradeTokenForBoughtToken(soldTokenDenom string,
+func (swap coinswapClient) EstimateTokenForBoughtToken(soldTokenDenom string,
 	boughtToken sdk.Coin) (sdk.Int, error) {
 	if soldTokenDenom == boughtToken.Denom {
 		return sdk.ZeroInt(), errors.New("invalid trade")
 	}
 
-	soldBaseAmt, err := swap.TradeBaseForBoughtToken(boughtToken)
+	soldBaseAmt, err := swap.EstimateBaseForBoughtToken(boughtToken)
 	if err != nil {
 		return sdk.ZeroInt(), err
 	}
-	return swap.TradeTokenForBoughtBase(soldTokenDenom, soldBaseAmt)
+	return swap.EstimateTokenForBoughtBase(soldTokenDenom, soldBaseAmt)
 }
 
 func GetLiquidityDenomFrom(denom string) (string, error) {

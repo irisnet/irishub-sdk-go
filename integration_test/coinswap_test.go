@@ -51,13 +51,13 @@ func (s IntegrationTestSuite) TestCoinSwap() {
 
 	boughtCoin := sdk.NewCoin("uiris", sdk.NewInt(100))
 	deadline := time.Now().Add(10 * time.Second).Unix()
-	resp, err := s.Swap.BuyToken("ubnb", boughtCoin, deadline, baseTx)
+	resp, err := s.Swap.BuyTokenWithAutoEstimate("ubnb", boughtCoin, deadline, baseTx)
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), resp.TxHash)
 	require.True(s.T(), resp.InputAmt.Equal(sdk.NewInt(101)))
 
 	soldCoin := sdk.NewCoin("uiris", sdk.NewInt(100))
-	resp, err = s.Swap.SellToken("ubnb", soldCoin, deadline, baseTx)
+	resp, err = s.Swap.SellTokenWithAutoEstimate("ubnb", soldCoin, deadline, baseTx)
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), resp.TxHash)
 	require.True(s.T(), resp.OutputAmt.Equal(sdk.NewInt(99)))

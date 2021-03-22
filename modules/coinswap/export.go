@@ -13,11 +13,12 @@ type Client interface {
 		baseTx sdk.BaseTx) (*RemoveLiquidityResponse, error)
 	SwapCoin(request SwapCoinRequest,
 		baseTx sdk.BaseTx) (*SwapCoinResponse, error)
-	BuyToken(paidTokenDenom string, boughtCoin sdk.Coin,
+
+	BuyTokenWithAutoEstimate(paidTokenDenom string, boughtCoin sdk.Coin,
 		deadline int64,
 		baseTx sdk.BaseTx,
 	) (res *SwapCoinResponse, err error)
-	SellToken(gotTokenDenom string, soldCoin sdk.Coin,
+	SellTokenWithAutoEstimate(gotTokenDenom string, soldCoin sdk.Coin,
 		deadline int64,
 		baseTx sdk.BaseTx,
 	) (res *SwapCoinResponse, err error)
@@ -25,16 +26,16 @@ type Client interface {
 	QueryPool(denom string) (*QueryPoolResponse, error)
 	QueryAllPools() (*QueryAllPoolsResponse, error)
 
-	TradeTokenForSoldBase(tokenDenom string,
+	EstimateTokenForSoldBase(tokenDenom string,
 		soldBase sdk.Int,
 	) (sdk.Int, error)
-	TradeBaseForSoldToken(soldToken sdk.Coin) (sdk.Int, error)
-	TradeTokenForSoldToken(boughtTokenDenom string,
+	EstimateBaseForSoldToken(soldToken sdk.Coin) (sdk.Int, error)
+	EstimateTokenForSoldToken(boughtTokenDenom string,
 		soldToken sdk.Coin) (sdk.Int, error)
-	TradeTokenForBoughtBase(soldTokenDenom string,
+	EstimateTokenForBoughtBase(soldTokenDenom string,
 		boughtBase sdk.Int) (sdk.Int, error)
-	TradeBaseForBoughtToken(boughtToken sdk.Coin) (sdk.Int, error)
-	TradeTokenForBoughtToken(soldTokenDenom string,
+	EstimateBaseForBoughtToken(boughtToken sdk.Coin) (sdk.Int, error)
+	EstimateTokenForBoughtToken(soldTokenDenom string,
 		boughtToken sdk.Coin) (sdk.Int, error)
 }
 
