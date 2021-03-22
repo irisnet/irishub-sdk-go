@@ -63,7 +63,6 @@ func send(s IntegrationTestSuite) {
 	baseTx := types.BaseTx{
 		From:     s.Account().Name,
 		Gas:      200000,
-		Fee:      coins,
 		Memo:     "TEST",
 		Mode:     types.Commit,
 		Password: s.Account().Password,
