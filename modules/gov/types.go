@@ -2,10 +2,12 @@ package gov
 
 import (
 	fmt "fmt"
+
 	"github.com/gogo/protobuf/proto"
+	yaml "gopkg.in/yaml.v2"
+
 	"github.com/irisnet/irishub-sdk-go/codec/types"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
-	yaml "gopkg.in/yaml.v2"
 )
 
 const (

@@ -2,6 +2,7 @@ package nft
 
 import (
 	"context"
+
 	"github.com/irisnet/irishub-sdk-go/codec"
 	"github.com/irisnet/irishub-sdk-go/codec/types"
 

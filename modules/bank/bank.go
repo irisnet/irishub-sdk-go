@@ -3,8 +3,9 @@ package bank
 import (
 	"context"
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/utils"
 	"strings"
+
+	"github.com/irisnet/irishub-sdk-go/utils"
 
 	"github.com/irisnet/irishub-sdk-go/codec"
 	"github.com/irisnet/irishub-sdk-go/codec/types"

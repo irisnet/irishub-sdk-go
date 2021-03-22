@@ -3,9 +3,10 @@ package oracle
 import (
 	"bytes"
 	"fmt"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"regexp"
 	"strings"
+
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 const (

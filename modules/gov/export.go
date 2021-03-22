@@ -1,8 +1,9 @@
 package gov
 
 import (
-	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"time"
+
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 // expose Gov module api for user

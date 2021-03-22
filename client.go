@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"fmt"
+
 	"github.com/irisnet/irishub-sdk-go/modules/coinswap"
 	"github.com/irisnet/irishub-sdk-go/modules/gov"
 	"github.com/irisnet/irishub-sdk-go/modules/htlc"
@@ -110,6 +111,10 @@ func (client *IRISHUBClient) Codec() *codec.LegacyAmino {
 
 func (client *IRISHUBClient) AppCodec() codec.Marshaler {
 	return client.encodingConfig.Marshaler
+}
+
+func (client *IRISHUBClient) EncodingConfig() types.EncodingConfig {
+	return client.encodingConfig
 }
 
 func (client *IRISHUBClient) Manager() types.BaseClient {
