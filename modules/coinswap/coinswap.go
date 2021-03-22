@@ -64,7 +64,10 @@ func (swap coinswapClient) AddLiquidity(request AddLiquidityRequest,
 		totalCoins = totalCoins.Add(coins...)
 	}
 
-	liquidityDenom := getLiquidityDenomFrom(request.MaxToken.Denom)
+	liquidityDenom, er := GetLiquidityDenomFrom(request.MaxToken.Denom)
+	if er != nil {
+		return nil, er
+	}
 	response := &AddLiquidityResponse{
 		TokenAmt:  totalCoins.AmountOf(request.MaxToken.Denom),
 		BaseAmt:   request.BaseAmt,
@@ -105,7 +108,7 @@ func (swap coinswapClient) RemoveLiquidity(request RemoveLiquidityRequest,
 		totalCoins = totalCoins.Add(coins...)
 	}
 
-	tokenDenom, er := getTokenDenomFrom(request.Liquidity.Denom)
+	tokenDenom, er := GetTokenDenomFrom(request.Liquidity.Denom)
 	if er != nil {
 		return nil, er
 	}
@@ -262,7 +265,7 @@ func (swap coinswapClient) QueryAllPools() (*QueryAllPoolsResponse, error) {
 
 	var pools []QueryPoolResponse
 	for _, coin := range coins {
-		denom, err := getTokenDenomFrom(coin.Denom)
+		denom, err := GetTokenDenomFrom(coin.Denom)
 		if err != nil {
 			continue
 		}
@@ -348,16 +351,18 @@ func (swap coinswapClient) TradeTokenForBoughtToken(soldTokenDenom string,
 	return swap.TradeTokenForBoughtBase(soldTokenDenom, soldBaseAmt)
 }
 
-func getLiquidityDenomFrom(denom string) string {
-	return fmt.Sprintf("swap/%s", denom)
+func GetLiquidityDenomFrom(denom string) (string, error) {
+	if denom == sdk.BaseDenom {
+		return "", sdk.Wrapf("should not be base denom : %s", denom)
+	}
+	return fmt.Sprintf("swap%s", denom), nil
 }
 
-func getTokenDenomFrom(liquidityDenom string) (string, error) {
-	sp := strings.Split(liquidityDenom, "/")
-	if len(sp) != 2 {
+func GetTokenDenomFrom(liquidityDenom string) (string, error) {
+	if !strings.HasPrefix(liquidityDenom, "swap") {
 		return "", sdk.Wrapf("wrong liquidity denom : %s", liquidityDenom)
 	}
-	return sp[1], nil
+	return strings.TrimPrefix(liquidityDenom, "swap"), nil
 }
 
 // getInputPrice returns the amount of coins bought (calculated) given the input amount being sold (exact)
