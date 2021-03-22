@@ -3,6 +3,7 @@ package sdk
 import (
 	"fmt"
 
+	"github.com/irisnet/irishub-sdk-go/modules/coinswap"
 	"github.com/irisnet/irishub-sdk-go/modules/gov"
 	"github.com/irisnet/irishub-sdk-go/modules/htlc"
 	"github.com/irisnet/irishub-sdk-go/modules/nft"
@@ -42,6 +43,7 @@ type IRISHUBClient struct {
 	NFT     nft.Client
 	Oracle  oracle.Client
 	HTLC    htlc.Client
+	Swap    coinswap.Client
 }
 
 func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
@@ -62,6 +64,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	randomClient := random.NewClient(baseClient, encodingConfig.Marshaler)
 	oracleClient := oracle.NewClient(baseClient, encodingConfig.Marshaler)
 	htlcClient := htlc.NewClient(baseClient, encodingConfig.Marshaler)
+	swapClient := coinswap.NewClient(baseClient, encodingConfig.Marshaler,bankClient.TotalSupply)
 
 	client := &IRISHUBClient{
 		logger:         baseClient.Logger(),
@@ -79,6 +82,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 		NFT:            nftClient,
 		Oracle:         oracleClient,
 		HTLC:           htlcClient,
+		Swap:           swapClient,
 	}
 
 	client.RegisterModule(
@@ -92,6 +96,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 		randomClient,
 		oracleClient,
 		htlcClient,
+		swapClient,
 	)
 	return *client
 }
