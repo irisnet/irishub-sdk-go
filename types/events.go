@@ -248,3 +248,16 @@ func (se StringEvents) GetValue(typ, key string) (string, error) {
 	}
 	return "", fmt.Errorf("not found type:%s key:%s", typ, key)
 }
+
+func (se StringEvents) GetValues(typ, key string) (res []string) {
+	for _, e := range se {
+		if e.Type == typ {
+			for _, attr := range e.Attributes {
+				if attr.Key == key {
+					res = append(res,attr.Value)
+				}
+			}
+		}
+	}
+	return res
+}

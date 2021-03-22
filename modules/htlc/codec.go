@@ -14,12 +14,12 @@ var (
 
 func init() {
 	cryptocodec.RegisterCrypto(amino)
+	amino.Seal()
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCreateHTLC{},
 		&MsgClaimHTLC{},
-		&MsgRefundHTLC{},
 	)
 }

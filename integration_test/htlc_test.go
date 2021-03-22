@@ -3,10 +3,12 @@ package integration_test
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/modules/htlc"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
+
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/tmhash"
+
+	"github.com/irisnet/irishub-sdk-go/modules/htlc"
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 func (s IntegrationTestSuite) TestHTLC() {
@@ -26,8 +28,9 @@ func (s IntegrationTestSuite) TestHTLC() {
 	fmt.Println("secret: " + secret)
 	receiverOnOtherChain := "0x" + s.RandStringOfLength(14)
 
+	to := s.GetRandAccount().Address
 	createHTLCRequest := htlc.CreateHTLCRequest{
-		To:                   s.GetRandAccount().Address.String(),
+		To:                   to.String(),
 		ReceiverOnOtherChain: receiverOnOtherChain,
 		Amount:               amount,
 		HashLock:             hashLock,
@@ -36,11 +39,15 @@ func (s IntegrationTestSuite) TestHTLC() {
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), res.Hash)
 
-	queryHTLCResp, err := s.HTLC.QueryHTLC(hashLock)
+	hashLockBytes, _ := hex.DecodeString(hashLock)
+	minCoins, _ := s.ToMinCoin(amount...)
+	htlcId := hex.EncodeToString(tmhash.Sum(append(append(append(hashLockBytes, s.Account().Address...), to...), []byte(minCoins.Sort().String())...)))
+
+	queryHTLCResp, err := s.HTLC.QueryHTLC(htlcId)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), receiverOnOtherChain, queryHTLCResp.ReceiverOnOtherChain)
 
-	res, err = s.HTLC.ClaimHTLC(hashLock, secret, baseTx)
+	res, err = s.HTLC.ClaimHTLC(htlcId, secret, baseTx)
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), res.Hash)
 }

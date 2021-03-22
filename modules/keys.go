@@ -63,12 +63,22 @@ func (k keyManager) Insert(name, password string) (string, string, error) {
 	return address, mnemonic, nil
 }
 
-func (k keyManager) Recover(name, password, mnemonic string) (string, error) {
+func (k keyManager) Recover(name, password, mnemonic, hdPath string) (string, error) {
 	if k.keyDAO.Has(name) {
 		return "", fmt.Errorf("name %s has existed", name)
 	}
 
-	km, err := crypto.NewMnemonicKeyManager(mnemonic, k.algo)
+	var (
+		km  crypto.KeyManager
+		err error
+	)
+
+	if hdPath == "" {
+		km, err = crypto.NewMnemonicKeyManager(mnemonic, k.algo)
+	} else {
+		km, err = crypto.NewMnemonicKeyManagerWithHDPath(mnemonic, k.algo, hdPath)
+	}
+
 	if err != nil {
 		return "", err
 	}
