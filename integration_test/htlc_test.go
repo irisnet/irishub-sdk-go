@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 
 	"github.com/stretchr/testify/require"
@@ -66,4 +67,11 @@ func (s IntegrationTestSuite) GetSecret() string {
 	random := s.RandStringOfLength(10)
 	sum := tmhash.Sum([]byte(random))
 	return hex.EncodeToString(sum)
+}
+
+func (s IntegrationTestSuite) TestQueryParams() {
+	res, err := s.HTLC.QueryParams()
+	require.NoError(s.T(), err)
+	data, _ := json.Marshal(res)
+	fmt.Println(string(data))
 }

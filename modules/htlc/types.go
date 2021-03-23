@@ -114,3 +114,28 @@ func (h HTLC) Convert() interface{} {
 		Transfer:             h.Transfer,
 	}
 }
+
+func (h Params) Convert() interface{} {
+	var params []AssetParamDto
+	for _, val := range h.AssetParams {
+		params = append(params, AssetParamDto{
+			Denom:         val.Denom,
+			Active:        val.Active,
+			DeputyAddress: val.DeputyAddress,
+			FixedFee:      val.FixedFee.Uint64(),
+			MinSwapAmount: val.MinSwapAmount.Uint64(),
+			MinBlockLock:  val.MinBlockLock,
+			MaxSwapAmount: val.MaxSwapAmount.Uint64(),
+			MaxBlockLock:  val.MaxBlockLock,
+			SupplyLimit: SupplyLimitDto{
+				Limit:          val.SupplyLimit.Limit.Uint64(),
+				TimeLimited:    val.SupplyLimit.TimeLimited,
+				TimePeriod:     int64(val.SupplyLimit.TimePeriod),
+				TimeBasedLimit: val.SupplyLimit.TimeBasedLimit.Uint64(),
+			},
+		})
+	}
+	return QueryParamsResp{
+		AssetParams: params,
+	}
+}
