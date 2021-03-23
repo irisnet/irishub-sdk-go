@@ -92,3 +92,20 @@ func (hc htlcClient) QueryHTLC(hashLockId string) (QueryHTLCResp, sdk.Error) {
 	}
 	return res.Htlc.Convert().(QueryHTLCResp), nil
 }
+
+func (hc htlcClient) QueryParams() (QueryParamsResp, sdk.Error) {
+
+	conn, err := hc.GenConn()
+	defer func() { _ = conn.Close() }()
+	if err != nil {
+		return QueryParamsResp{}, sdk.Wrap(err)
+	}
+
+	res, err := NewQueryClient(conn).Params(
+		context.Background(),
+		&QueryParamsRequest{})
+	if err != nil {
+		return QueryParamsResp{}, sdk.Wrap(err)
+	}
+	return res.Params.Convert().(QueryParamsResp), nil
+}
