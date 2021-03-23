@@ -5,11 +5,13 @@ package modules
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
-	"time"
-
 	clienttx "github.com/irisnet/irishub-sdk-go/client/tx"
+	"github.com/tendermint/tendermint/crypto/tmhash"
+	"strings"
+	"time"
 
 	"github.com/gogo/protobuf/proto"
 
@@ -103,6 +105,14 @@ func (base *baseClient) SetLogger(logger log.Logger) {
 // Codec returns codec.
 func (base *baseClient) Marshaler() codec.Marshaler {
 	return base.encodingConfig.Marshaler
+}
+
+func (base *baseClient) BuildTxHash(msg []sdk.Msg, baseTx sdk.BaseTx) (string, sdk.Error) {
+	txByte, _, err := base.buildTx(msg, baseTx)
+	if err != nil {
+		return "", sdk.Wrap(err)
+	}
+	return strings.ToUpper(hex.EncodeToString(tmhash.Sum(txByte))), nil
 }
 
 func (base *baseClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {

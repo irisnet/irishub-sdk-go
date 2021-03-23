@@ -79,6 +79,29 @@ txHash := "D9280C9217B5626107DF9BC97A44C42357537806343175F869F0D8A5A0D94ADD"
 txResult, err := client.BaseClient.QueryTx(txHash)
 ```
 
+
+get TxHash before sending transactions
+```go
+baseTx := types.BaseTx{
+    From:     "username",
+    Gas:      20000,
+    Memo:     "test",
+    Mode:     types.Commit,
+    Password: "password",
+}
+
+amt, err := types.ParseCoins("10iris")
+
+from := "iaa12py6r8hhzpwdhat93cde4p3rfl6w4qnmwcqfhn"
+to := "iaa1hp29kuh22vpjjlnctmyml5s75evsnsd8r4x0mm"
+msg := &bank.MsgSend{
+	FromAddress: addr,
+	ToAddress:   to,
+	Amount:      amt,
+}
+txhash, err := s.BuildTxHash([]sdk.Msg{msg}, baseTx)
+```
+
 **Note**: If you use the relevant API for sending transactions, you should implement the `KeyDAO` interface. Use the `NewKeyDaoWithAES` method to initialize a `KeyDAO` instance, which will use the `AES` encryption method by default.
 
 ### KeyDAO
