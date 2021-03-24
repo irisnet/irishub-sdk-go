@@ -1,7 +1,6 @@
 package types
 
 import (
-	"errors"
 	"strings"
 )
 
@@ -32,7 +31,11 @@ type CoinType struct {
 //ToMainCoin return the main denom coin from args
 func (ct CoinType) ConvertToMainCoin(coin Coin) (DecCoin, error) {
 	if !ct.hasUnit(coin.Denom) {
-		return DecCoin{}, errors.New("coinType unit (%s) not defined" + coin.Denom)
+		return DecCoin{
+			Amount: NewDecFromInt(coin.Amount),
+			Denom:  coin.Denom,
+		}, nil
+		//return DecCoin{}, errors.New("coinType unit (%s) not defined" + coin.Denom)
 	}
 
 	if ct.isMainUnit(coin.Denom) {
@@ -51,7 +54,11 @@ func (ct CoinType) ConvertToMainCoin(coin Coin) (DecCoin, error) {
 //ToMinCoin return the min denom coin from args
 func (ct CoinType) ConvertToMinCoin(coin DecCoin) (newCoin Coin, err error) {
 	if !ct.hasUnit(coin.Denom) {
-		return newCoin, errors.New("coinType unit (%s) not defined" + coin.Denom)
+		return Coin{
+			Amount: coin.Amount.TruncateInt(),
+			Denom:  coin.Denom,
+		}, nil
+		//return newCoin, errors.New("coinType unit (%s) not defined" + coin.Denom)
 	}
 
 	if ct.isMinUnit(coin.Denom) {
