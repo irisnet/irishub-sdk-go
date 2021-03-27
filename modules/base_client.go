@@ -8,10 +8,11 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	clienttx "github.com/irisnet/irishub-sdk-go/client/tx"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 	"strings"
 	"time"
+
+	clienttx "github.com/irisnet/irishub-sdk-go/client/tx"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/gogo/protobuf/proto"
 
@@ -113,6 +114,21 @@ func (base *baseClient) BuildTxHash(msg []sdk.Msg, baseTx sdk.BaseTx) (string, s
 		return "", sdk.Wrap(err)
 	}
 	return strings.ToUpper(hex.EncodeToString(tmhash.Sum(txByte))), nil
+}
+
+func (base *baseClient) BuildAndSign(msg []sdk.Msg, baseTx sdk.BaseTx) ([]byte, sdk.Error) {
+	builder, err := base.prepare(baseTx)
+	if err != nil {
+		return nil, sdk.Wrap(err)
+	}
+
+	txByte, err := builder.BuildAndSign(baseTx.From, msg, true)
+	if err != nil {
+		return nil, sdk.Wrap(err)
+	}
+
+	base.Logger().Debug("sign transaction success")
+	return txByte, nil
 }
 
 func (base *baseClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {

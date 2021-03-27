@@ -168,7 +168,7 @@ func (f *Factory) WithQueryFunc(queryFunc QueryWithData) *Factory {
 	return f
 }
 
-func (f *Factory) BuildAndSign(name string, msgs []sdk.Msg) ([]byte, error) {
+func (f *Factory) BuildAndSign(name string, msgs []sdk.Msg, json bool) ([]byte, error) {
 	tx, err := f.BuildUnsignedTx(msgs)
 	if err != nil {
 		return nil, err
@@ -176,6 +176,14 @@ func (f *Factory) BuildAndSign(name string, msgs []sdk.Msg) ([]byte, error) {
 
 	if err = f.Sign(name, tx); err != nil {
 		return nil, err
+	}
+
+	if json {
+		txBytes, err := f.txConfig.TxJSONEncoder()(tx.GetTx())
+		if err != nil {
+			return nil, err
+		}
+		return txBytes, nil
 	}
 
 	txBytes, err := f.txConfig.TxEncoder()(tx.GetTx())

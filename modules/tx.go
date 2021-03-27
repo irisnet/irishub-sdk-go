@@ -34,13 +34,13 @@ func (base baseClient) QueryTx(hash string) (sdk.ResultQueryTx, error) {
 	return base.parseTxResult(res, resBlocks[res.Height])
 }
 
-func (base baseClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.ResultSearchTxs, error) {
+func (base baseClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size *int) (sdk.ResultSearchTxs, error) {
 	query := builder.Build()
 	if len(query) == 0 {
 		return sdk.ResultSearchTxs{}, errors.New("must declare at least one tag to search")
 	}
 
-	res, err := base.TxSearch(context.Background(), query, true, &page, &size, "asc")
+	res, err := base.TxSearch(context.Background(), query, true, page, size, "asc")
 	if err != nil {
 		return sdk.ResultSearchTxs{}, err
 	}
@@ -104,7 +104,7 @@ func (base *baseClient) buildTx(msgs []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *cli
 		return nil, builder, sdk.Wrap(err)
 	}
 
-	txByte, err := builder.BuildAndSign(baseTx.From, msgs)
+	txByte, err := builder.BuildAndSign(baseTx.From, msgs, false)
 	if err != nil {
 		return nil, builder, sdk.Wrap(err)
 	}
@@ -119,7 +119,7 @@ func (base *baseClient) buildTxWithAccount(addr string, accountNumber, sequence 
 		return nil, builder, sdk.Wrap(err)
 	}
 
-	txByte, err := builder.BuildAndSign(baseTx.From, msgs)
+	txByte, err := builder.BuildAndSign(baseTx.From, msgs, false)
 	if err != nil {
 		return nil, builder, sdk.Wrap(err)
 	}
