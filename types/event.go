@@ -189,10 +189,13 @@ func (c *condition) String() string {
 	if len(c.key) == 0 || len(c.op) == 0 {
 		return ""
 	}
-	if v, ok := c.value.(string); ok {
-		return fmt.Sprintf("%s %s '%s'", c.key, c.op, v)
+
+	switch c.value.(type) {
+	case int64, uint64:
+		return fmt.Sprintf("%s %s %d", c.key, c.op, c.value)
+	default:
+		return fmt.Sprintf("%s %s '%s'", c.key, c.op, c.value)
 	}
-	return fmt.Sprintf("%s %s %s", c.key, c.op, c.value)
 }
 
 //EventQueryBuilder is responsible for constructing listening conditions
