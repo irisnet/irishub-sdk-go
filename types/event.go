@@ -192,9 +192,9 @@ func (c *condition) String() string {
 
 	switch c.value.(type) {
 	case int64, uint64:
-		return fmt.Sprintf("%s %s %d", c.key, c.op, c.value)
+		return fmt.Sprintf("%s%s%d", c.key, c.op, c.value)
 	default:
-		return fmt.Sprintf("%s %s '%s'", c.key, c.op, c.value)
+		return fmt.Sprintf("%s%s'%s'", c.key, c.op, c.value)
 	}
 }
 
