@@ -25,7 +25,7 @@ type TmClient interface {
 }
 
 type EventKey string
-type EventValue string
+type EventValue interface{}
 
 type Subscription struct {
 	Ctx   context.Context `json:"-"`
@@ -186,10 +186,13 @@ func (c *condition) fill(v EventValue, op string) *condition {
 }
 
 func (c *condition) String() string {
-	if len(c.key) == 0 || len(c.value) == 0 || len(c.op) == 0 {
+	if len(c.key) == 0 || len(c.op) == 0 {
 		return ""
 	}
-	return fmt.Sprintf("%s %s '%s'", c.key, c.op, c.value)
+	if v, ok := c.value.(string); ok {
+		return fmt.Sprintf("%s %s '%s'", c.key, c.op, v)
+	}
+	return fmt.Sprintf("%s %s %s", c.key, c.op, c.value)
 }
 
 //EventQueryBuilder is responsible for constructing listening conditions
