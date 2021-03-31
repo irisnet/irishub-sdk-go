@@ -38,7 +38,10 @@ func (l tokenQuery) QueryToken(denom string) (sdk.Token, error) {
 		&token.QueryTokenRequest{Denom: denom},
 	)
 	if err != nil {
-		return sdk.Token{}, sdk.Wrap(err)
+		l.Debug("client query token failed",
+			" denom ", denom,
+			" err ", err.Error())
+		return sdk.Token{}, nil
 	}
 
 	var srcToken token.TokenInterface

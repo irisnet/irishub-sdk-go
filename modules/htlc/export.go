@@ -10,6 +10,7 @@ type Client interface {
 	ClaimHTLC(hashLock string, secret string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
 	QueryHTLC(hashLock string) (QueryHTLCResp, sdk.Error)
+	QueryParams() (QueryParamsResp, sdk.Error)
 }
 
 type CreateHTLCRequest struct {
@@ -34,4 +35,27 @@ type QueryHTLCResp struct {
 	ExpirationHeight     uint64    `json:"expiration_height"`
 	State                int32     `json:"state"`
 	Transfer             bool      ` json:"transfer"`
+}
+
+type QueryParamsResp struct {
+	AssetParams []AssetParamDto `json:"asset_params"`
+}
+
+type AssetParamDto struct {
+	Denom         string         `json:"denom"`
+	SupplyLimit   SupplyLimitDto `json:"supply_limit"`
+	Active        bool           `json:"active"`
+	DeputyAddress string         `json:"deputy_address"`
+	FixedFee      uint64         `json:"fixed_fee"`
+	MinSwapAmount uint64         `json:"min_swap_amount"`
+	MaxSwapAmount uint64         `json:"max_swap_amount"`
+	MinBlockLock  uint64         `json:"min_block_lock"`
+	MaxBlockLock  uint64         `json:"max_block_lock"`
+}
+
+type SupplyLimitDto struct {
+	Limit          uint64 `json:"limit"`
+	TimeLimited    bool   `json:"time_limited"`
+	TimePeriod     int64  `json:"time_period"`
+	TimeBasedLimit uint64 `json:"time_based_limit"`
 }
