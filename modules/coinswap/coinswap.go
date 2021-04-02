@@ -265,6 +265,10 @@ func (swap coinswapClient) QueryAllPools() (*QueryAllPoolsResponse, error) {
 
 	var pools []QueryPoolResponse
 	for _, coin := range coins {
+		//Compatible with old data
+		if strings.HasPrefix(coin.Denom,"swap/") {
+			continue
+		}
 		denom, err := GetTokenDenomFrom(coin.Denom)
 		if err != nil {
 			continue
