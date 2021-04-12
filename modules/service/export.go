@@ -65,7 +65,6 @@ type QueryServiceRequestResponse struct {
 	Consumer                   string    `json:"consumer"`
 	Input                      string    `json:"input"`
 	ServiceFee                 sdk.Coins `json:"service_fee"`
-	SuperMode                  bool      `json:"super_mode"`
 	RequestHeight              int64     `json:"request_height"`
 	ExpirationHeight           int64     `json:"expiration_height"`
 	RequestContextID           string    `json:"request_context_id"`
@@ -140,7 +139,6 @@ type InvokeServiceRequest struct {
 	Input             string       `json:"input"`
 	ServiceFeeCap     sdk.DecCoins `json:"service_fee_cap"`
 	Timeout           int64        `json:"timeout"`
-	SuperMode         bool         `json:"super_mode"`
 	Repeated          bool         `json:"repeated"`
 	RepeatedFrequency uint64       `json:"repeated_frequency"`
 	RepeatedTotal     int64        `json:"repeated_total"`
@@ -172,7 +170,6 @@ type QueryRequestContextResp struct {
 	Input              string    `json:"input"`
 	ServiceFeeCap      sdk.Coins `json:"service_fee_cap"`
 	Timeout            int64     `json:"timeout"`
-	SuperMode          bool      `json:"super_mode"`
 	Repeated           bool      `json:"repeated"`
 	RepeatedFrequency  uint64    `json:"repeated_frequency"`
 	RepeatedTotal      int64     `json:"repeated_total"`

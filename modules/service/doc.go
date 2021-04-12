@@ -75,7 +75,6 @@
 //		Input:             input,
 //		ServiceFeeCap:     serviceFeeCap,
 //		Timeout:           3,
-//		SuperMode:         false,
 //		Repeated:          true,
 //		RepeatedFrequency: 5,
 //		RepeatedTotal:     -1,
