@@ -19,7 +19,7 @@ import (
 const (
 	nodeURI  = "tcp://localhost:26657"
 	grpcAddr = "localhost:9090"
-	chainID  = "test"
+	chainID  = "testing"
 	charset  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	addr     = "iaa1qzds87rxyrv4ak9gr2mx9ptjhsqs5thcha0e5n"
 )
@@ -51,7 +51,6 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	options := []types.Option{
 		types.KeyDAOOption(store.NewMemory(nil)),
 		types.TimeoutOption(10),
-		types.CachedOption(true),
 	}
 	cfg, err := types.NewClientConfig(nodeURI, grpcAddr, chainID, options...)
 	if err != nil {
@@ -62,7 +61,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.r = rand.New(rand.NewSource(time.Now().UnixNano()))
 	s.rootAccount = MockAccount{
 		Name:     "validator",
-		Password: "1234567890",
+		Password: "12345678",
 		Address:  types.MustAccAddressFromBech32(addr),
 	}
 	s.SetLogger(log.NewLogger(log.Config{
@@ -83,20 +82,20 @@ func (s *IntegrationTestSuite) initAccount() {
 	}
 
 	//var receipts bank.Receipts
-	//for i := 0; i < 5; i++ {
-	//	name := s.RandStringOfLength(10)
-	//	pwd := s.RandStringOfLength(16)
-	//	address, _, err := s.Key.Add(name, "11111111")
-	//	if err != nil {
-	//		panic("generate test account failed")
-	//	}
-	//
-	//	s.randAccounts = append(s.randAccounts, MockAccount{
-	//		Name:     name,
-	//		Password: pwd,
-	//		Address:  types.MustAccAddressFromBech32(address),
-	//	})
-	//}
+	for i := 0; i < 5; i++ {
+		name := s.RandStringOfLength(10)
+		pwd := s.RandStringOfLength(16)
+		address, _, err := s.Key.Add(name, "11111111")
+		if err != nil {
+			panic("generate test account failed")
+		}
+
+		s.randAccounts = append(s.randAccounts, MockAccount{
+			Name:     name,
+			Password: pwd,
+			Address:  types.MustAccAddressFromBech32(address),
+		})
+	}
 }
 
 // RandStringOfLength return a random string
