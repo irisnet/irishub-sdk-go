@@ -53,34 +53,23 @@ func queryAccount(s IntegrationTestSuite) {
 }
 
 func send(s IntegrationTestSuite) {
-	coins, err := types.ParseDecCoins("10iris")
+	coins, err := types.ParseDecCoins("1iris")
 	s.NoError(err)
-	to := s.GetRandAccount().Address.String()
-
-	ch := make(chan int)
-	s.Bank.SubscribeSendTx(s.Account().Address.String(), to, func(send bank.EventDataMsgSend) {
-		ch <- 1
-	})
+	to := "iaa1ekm8qfqcl54z5l4pm9d4v7th72vd5qfu5k2642"
 
 	baseTx := types.BaseTx{
 		From:     s.Account().Name,
 		Gas:      200000,
-		Memo:     "TEST",
-		Mode:     types.Commit,
+		Memo:     "unstake/1/1000",
+		Mode:     types.Async,
 		Password: s.Account().Password,
 	}
-
-	res, err := s.Bank.Send(to, coins, baseTx)
-	s.NoError(err)
-	s.NotEmpty(res.Hash)
-	time.Sleep(1 * time.Second)
-
-	resp, err := s.Manager().QueryTx(res.Hash)
-	s.NoError(err)
-	s.Equal(resp.Result.Code, uint32(0))
-	s.Equal(resp.Height, res.Height)
-
-	<-ch
+	for i:= 0;i < 500;i++{
+		res, err := s.Bank.Send(to, coins, baseTx)
+		s.NoError(err)
+		s.NotEmpty(res.Hash)
+		fmt.Println(res.Height)
+	}
 }
 
 func multiSend(s IntegrationTestSuite) {
