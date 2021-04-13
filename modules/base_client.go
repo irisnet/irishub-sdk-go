@@ -140,7 +140,17 @@ func (base *baseClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Resu
 	if err := base.ValidateTxSize(len(txByte), msg); err != nil {
 		return sdk.ResultTx{}, err
 	}
-	return base.broadcastTx(txByte, ctx.Mode(), baseTx.Simulate)
+
+	res, err := base.broadcastTx(txByte, ctx.Mode(), baseTx.Simulate)
+	if err != nil {
+		if sdk.Code(err.Code()) == sdk.InvalidSequence && base.cfg.Cached {
+			_ = base.removeCache(ctx.Address())
+		}
+
+		base.Logger().Error("broadcast transaction failed", "errMsg", err.Error())
+		return res, err
+	}
+	return res, nil
 }
 
 func (base *baseClient) BuildAndSendWithAccount(addr string, accountNumber, sequence uint64, msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
