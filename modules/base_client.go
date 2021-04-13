@@ -143,7 +143,7 @@ func (base *baseClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.Resu
 
 	res, err := base.broadcastTx(txByte, ctx.Mode(), baseTx.Simulate)
 	if err != nil {
-		if sdk.Code(err.Code()) == sdk.InvalidSequence && base.cfg.Cached {
+		if base.cfg.Cached {
 			_ = base.removeCache(ctx.Address())
 		}
 
@@ -211,8 +211,8 @@ resize:
 
 		res, err := base.broadcastTx(txByte, ctx.Mode(), baseTx.Simulate)
 		if err != nil {
-			if sdk.Code(err.Code()) == sdk.InvalidSequence {
-				base.Logger().Debug("wrong sequence,retrying ...", "address", ctx.Address(), "tryCnt", tryCnt)
+			if base.cfg.Cached {
+				base.Logger().Debug("something wrong,retrying ...", "address", ctx.Address(), "tryCnt", tryCnt)
 
 				_ = base.removeCache(ctx.Address())
 				if tryCnt++; tryCnt >= tryThreshold {
