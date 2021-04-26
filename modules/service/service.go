@@ -193,7 +193,6 @@ func (s serviceClient) InvokeService(request InvokeServiceRequest, baseTx sdk.Ba
 		Input:             request.Input,
 		ServiceFeeCap:     amt,
 		Timeout:           request.Timeout,
-		SuperMode:         request.SuperMode,
 		Repeated:          request.Repeated,
 		RepeatedFrequency: request.RepeatedFrequency,
 		RepeatedTotal:     request.RepeatedTotal,
@@ -429,9 +428,14 @@ func (s serviceClient) WithdrawEarnedFees(provider string, baseTx sdk.BaseTx) (s
 }
 
 //SubscribeSingleServiceRequest is responsible for registering a single service handler
-func (s serviceClient) SubscribeServiceRequest(serviceName string,
+func (s serviceClient) SubscribeServiceRequest(
+	serviceName string,
 	callback RespondCallback,
-	baseTx sdk.BaseTx) (subscription sdk.Subscription, err sdk.Error) {
+	baseTx sdk.BaseTx,
+) (
+	subscription sdk.Subscription,
+	err sdk.Error,
+) {
 	provider, e := s.QueryAddress(baseTx.From, baseTx.Password)
 	if e != nil {
 		return sdk.Subscription{}, sdk.Wrap(e)
@@ -445,8 +449,9 @@ func (s serviceClient) SubscribeServiceRequest(serviceName string,
 
 	return s.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
 		msgs := s.GenServiceResponseMsgs(block.ResultEndBlock.Events, serviceName, provider, callback)
-		if msgs == nil || len(msgs) == 0 {
-			s.Logger().Error("no message created",
+		if len(msgs) == 0 {
+			s.Logger().Error(
+				"no message created",
 				"serviceName", serviceName,
 				"provider", provider,
 			)
@@ -685,10 +690,12 @@ func (s serviceClient) QueryParams() (QueryParamsResp, sdk.Error) {
 	return res.Params.Convert().(QueryParamsResp), nil
 }
 
-func (s serviceClient) GenServiceResponseMsgs(events sdk.StringEvents, serviceName string,
+func (s serviceClient) GenServiceResponseMsgs(
+	events sdk.StringEvents,
+	serviceName string,
 	provider sdk.AccAddress,
-	handler RespondCallback) (msgs []sdk.Msg) {
-
+	handler RespondCallback,
+) (msgs []sdk.Msg) {
 	var ids []string
 	for _, e := range events {
 		if e.Type != eventTypeNewBatchRequestProvider {
