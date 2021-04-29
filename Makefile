@@ -12,9 +12,9 @@ test-unit:
 
 test-integration:
 	cd integration_test/scripts/ && sh build.sh && sh start.sh
-#	sleep 2s
-#	@go test -v $(PACKAGES)
-#	cd integration_test/scripts/ && sh clean.sh
+	sleep 2s
+	@go test -v $(PACKAGES)
+	cd integration_test/scripts/ && sh clean.sh
 
 proto-gen:
 	@./third_party/protocgen.sh

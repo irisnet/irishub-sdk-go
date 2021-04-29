@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/types/query"
 
 	"github.com/irisnet/irishub-sdk-go/modules/service"
 )
@@ -63,7 +64,7 @@ func (s IntegrationTestSuite) TestService() {
 	require.Equal(s.T(), s.Account().Address.String(), bindResp.Provider)
 	require.Equal(s.T(), binding.Pricing, bindResp.Pricing)
 
-	input := `{"header":{},"body":{"pair":"iris-usdt"}}`
+	input := `{"header":{},"body":{"pair":"uiris-usdt"}}`
 	output := `{"header":{},"body":{"last":"1:100"}}`
 	testResult := `{"code":200,"message":""}`
 
@@ -77,7 +78,7 @@ func (s IntegrationTestSuite) TestService() {
 	require.NoError(s.T(), err)
 	s.Logger().Info("SubscribeServiceRequest", "condition", sub1.Query)
 
-	serviceFeeCap, e := sdk.ParseDecCoins("200iris")
+	serviceFeeCap, e := sdk.ParseDecCoins("200uiris")
 	require.NoError(s.T(), e)
 
 	invocation := service.InvokeServiceRequest{
@@ -100,6 +101,10 @@ func (s IntegrationTestSuite) TestService() {
 		"hash", result.Hash,
 		"requestContextID", requestContextID,
 	)
+
+	requestid, err := s.Service.QueryRequestsByReqCtx(requestContextID, 1, &query.PageRequest{})
+	require.NoError(s.T(), err)
+	s.Logger().Info("request_id: ", requestid)
 
 	sub2, err = s.Service.SubscribeServiceResponse(requestContextID, func(reqCtxID, reqID, responses string) {
 		require.Equal(s.T(), reqCtxID, requestContextID)
@@ -128,11 +133,11 @@ func (s IntegrationTestSuite) TestService() {
 	}
 
 loop:
-	_, err = s.Service.PauseRequestContext(requestContextID, baseTx)
-	require.NoError(s.T(), err)
-
-	_, err = s.Service.StartRequestContext(requestContextID, baseTx)
-	require.NoError(s.T(), err)
+	//_, err = s.Service.PauseRequestContext(requestContextID, baseTx)
+	//require.NoError(s.T(), err)
+	//
+	//_, err = s.Service.StartRequestContext(requestContextID, baseTx)
+	//require.NoError(s.T(), err)
 
 	request, err := s.Service.QueryRequestContext(requestContextID)
 	require.NoError(s.T(), err)

@@ -579,7 +579,7 @@ func (s serviceClient) QueryRequestsByReqCtx(reqCtxID string, batchCounter uint6
 	return requests(resp.Requests).Convert().([]QueryServiceRequestResponse), nil
 }
 
-// QueryResponse returns a response with the speicified request ID
+// QueryServiceResponse returns a response with the speicified request ID
 func (s serviceClient) QueryServiceResponse(requestID string) (QueryServiceResponseResponse, sdk.Error) {
 	conn, err := s.GenConn()
 	defer func() { _ = conn.Close() }()

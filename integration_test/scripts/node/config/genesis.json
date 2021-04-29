@@ -186,7 +186,14 @@
       }
     },
     "guardian": {
-      "supers": []
+      "supers": [
+        {
+          "description": "genesis",
+          "account_type": "GENESIS",
+          "address": "iaa1w9lvhwlvkwqvg08q84n2k4nn896u9pqx93velx",
+          "added_by": "iaa1w9lvhwlvkwqvg08q84n2k4nn896u9pqx93velx"
+        }
+      ]
     },
     "htlc": {
       "params": {
