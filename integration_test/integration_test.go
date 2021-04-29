@@ -19,9 +19,9 @@ import (
 const (
 	nodeURI  = "tcp://localhost:26657"
 	grpcAddr = "localhost:9090"
-	chainID  = "testing"
+	chainID  = "test"
 	charset  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	addr     = "iaa1qzds87rxyrv4ak9gr2mx9ptjhsqs5thcha0e5n"
+	addr     = "iaa1w9lvhwlvkwqvg08q84n2k4nn896u9pqx93velx"
 )
 
 type IntegrationTestSuite struct {
@@ -61,7 +61,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.r = rand.New(rand.NewSource(time.Now().UnixNano()))
 	s.rootAccount = MockAccount{
 		Name:     "validator",
-		Password: "12345678",
+		Password: "1234567890",
 		Address:  types.MustAccAddressFromBech32(addr),
 	}
 	s.SetLogger(log.NewLogger(log.Config{

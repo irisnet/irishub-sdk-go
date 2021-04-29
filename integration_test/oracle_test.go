@@ -76,7 +76,7 @@ func (s IntegrationTestSuite) TestOracle() {
 	feedName := generateFeedName(serviceName)
 	serviceFeeCap, _ := sdk.ParseDecCoins("1000iris")
 
-	sender := s.rootAccount.Address
+	sender := s.Account().Address
 	createReq := oracle.CreateFeedRequest{
 		FeedName:          feedName,
 		LatestHistory:     5,

@@ -44,7 +44,7 @@ func (msg MsgCreateFeed) ValidateBasic() error {
 	}
 
 	if len(msg.Description) == 0 {
-		return sdk.Wrapf("missing description: %s")
+		return sdk.Wrapf("missing description")
 	}
 
 	if len(msg.ServiceName) == 0 {
@@ -192,7 +192,7 @@ func (msg MsgEditFeed) ValidateBasic() error {
 	}
 
 	if len(msg.Description) == 0 {
-		return sdk.Wrapf("missing description: %s")
+		return sdk.Wrapf("missing description")
 	}
 
 	if msg.ServiceFeeCap != nil && !msg.ServiceFeeCap.IsValid() {

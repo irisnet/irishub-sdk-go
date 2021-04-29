@@ -83,5 +83,5 @@ func (s IntegrationTestSuite) TestToken() {
 	require.NoError(s.T(), er)
 	require.Equal(s.T(), "0.100000000000000000", res.MintTokenFeeRatio)
 	require.Equal(s.T(), "0.400000000000000000", res.TokenTaxRate)
-	require.Equal(s.T(), "60000000000iris", res.IssueTokenBaseFee)
+	require.Equal(s.T(), "60000iris", res.IssueTokenBaseFee)
 }

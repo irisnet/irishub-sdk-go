@@ -272,7 +272,7 @@ func queryParams(s IntegrationTestSuite) {
 	// this params is irishub default params
 	const (
 		bondDenom         = "uiris"
-		defaultHistorical = uint32(100)
+		defaultHistorical = uint32(10000)
 		MaxValidators     = uint32(100)
 		MaxEntries        = uint32(7)
 	)
