@@ -4,7 +4,6 @@ go 1.15
 
 require (
 	github.com/DataDog/zstd v1.4.5 // indirect
-	github.com/bianjieai/irita-sdk-go v1.1.0
 	github.com/bluele/gcache v0.0.0-20190518031135-bc40bd653833
 	github.com/btcsuite/btcd v0.21.0-beta
 	github.com/btcsuite/btcutil v1.0.2
