@@ -199,13 +199,15 @@ func (tx StdTx) GetMemo() string { return tx.Memo }
 func (tx StdTx) GetSignatures() []StdSignature { return tx.Signatures }
 
 type BaseTx struct {
-	From     string        `json:"from"`
-	Password string        `json:"password"`
-	Gas      uint64        `json:"gas"`
-	Fee      DecCoins      `json:"fee"`
-	Memo     string        `json:"memo"`
-	Mode     BroadcastMode `json:"broadcast_mode"`
-	Simulate bool          `json:"simulate"`
+	From          string        `json:"from"`
+	Password      string        `json:"password"`
+	Gas           uint64        `json:"gas"`
+	Fee           DecCoins      `json:"fee"`
+	Memo          string        `json:"memo"`
+	Mode          BroadcastMode `json:"broadcast_mode"`
+	Simulate      bool          `json:"simulate"`
+	AccountNumber uint64        `json:"account_number"`
+	Sequence      uint64        `json:"sequence"`
 }
 
 // ResultTx encapsulates the return result of the transaction. When the transaction fails,
