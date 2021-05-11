@@ -306,13 +306,19 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*clienttx.Factory, error) {
 	}
 	factory.WithAddress(addr.String())
 
-	account, err := base.QueryAndRefreshAccount(addr.String())
-	if err != nil {
-		return nil, err
+	if baseTx.AccountNumber != 0 && baseTx.Sequence != 0 {
+		factory.WithAccountNumber(baseTx.AccountNumber).
+			WithSequence(baseTx.Sequence).
+			WithPassword(baseTx.Password)
+	} else {
+		account, err := base.QueryAndRefreshAccount(addr.String())
+		if err != nil {
+			return nil, err
+		}
+		factory.WithAccountNumber(account.AccountNumber).
+			WithSequence(account.Sequence).
+			WithPassword(baseTx.Password)
 	}
-	factory.WithAccountNumber(account.AccountNumber).
-		WithSequence(account.Sequence).
-		WithPassword(baseTx.Password)
 
 	if !baseTx.Fee.Empty() && baseTx.Fee.IsValid() {
 		fees, err := base.ToMinCoin(baseTx.Fee...)
