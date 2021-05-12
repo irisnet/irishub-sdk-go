@@ -2,14 +2,12 @@ package service
 
 import (
 	"context"
-	"encoding/binary"
-	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"strings"
 
 	"github.com/irisnet/irishub-sdk-go/codec"
 	"github.com/irisnet/irishub-sdk-go/codec/types"
+	"github.com/irisnet/irishub-sdk-go/types/query"
 
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
@@ -282,24 +280,6 @@ func (s serviceClient) SubscribeServiceResponse(reqCtxID string,
 	})
 }
 
-// SplitRequestID splits the given contextID to contextID, batchCounter, requestHeight, batchRequestIndex
-func splitRequestID(reqID string) (sdk.HexBytes, uint64, int64, int16, error) {
-	requestID, err := hex.DecodeString(reqID)
-	if err != nil {
-		return nil, 0, 0, 0, errors.New("invalid request id")
-	}
-
-	if len(requestID) != requestIDLen {
-		return nil, 0, 0, 0, errors.New("invalid request id")
-	}
-
-	reqCtxID := requestID[0:40]
-	batchCounter := binary.BigEndian.Uint64(requestID[40:48])
-	requestHeight := int64(binary.BigEndian.Uint64(requestID[48:56]))
-	batchRequestIndex := int16(binary.BigEndian.Uint16(requestID[56:]))
-	return reqCtxID, batchCounter, requestHeight, batchRequestIndex, nil
-}
-
 // SetWithdrawAddress sets a new withdrawal address for the specified service binding
 func (s serviceClient) SetWithdrawAddress(withdrawAddress string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	owner, err := s.QueryAddress(baseTx.From, baseTx.Password)
@@ -427,15 +407,10 @@ func (s serviceClient) WithdrawEarnedFees(provider string, baseTx sdk.BaseTx) (s
 	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
-//SubscribeSingleServiceRequest is responsible for registering a single service handler
-func (s serviceClient) SubscribeServiceRequest(
-	serviceName string,
+//SubscribeServiceRequest is responsible for registering a single service handler
+func (s serviceClient) SubscribeServiceRequest(serviceName string,
 	callback RespondCallback,
-	baseTx sdk.BaseTx,
-) (
-	subscription sdk.Subscription,
-	err sdk.Error,
-) {
+	baseTx sdk.BaseTx) (subscription sdk.Subscription, err sdk.Error) {
 	provider, e := s.QueryAddress(baseTx.From, baseTx.Password)
 	if e != nil {
 		return sdk.Subscription{}, sdk.Wrap(e)
@@ -449,9 +424,8 @@ func (s serviceClient) SubscribeServiceRequest(
 
 	return s.SubscribeNewBlock(builder, func(block sdk.EventDataNewBlock) {
 		msgs := s.GenServiceResponseMsgs(block.ResultEndBlock.Events, serviceName, provider, callback)
-		if len(msgs) == 0 {
-			s.Logger().Error(
-				"no message created",
+		if msgs == nil || len(msgs) == 0 {
+			s.Logger().Error("no message created",
 				"serviceName", serviceName,
 				"provider", provider,
 			)
@@ -462,7 +436,7 @@ func (s serviceClient) SubscribeServiceRequest(
 	})
 }
 
-// QueryDefinition return a service definition of the specified name
+// QueryServiceDefinition return a service definition of the specified name
 func (s serviceClient) QueryServiceDefinition(serviceName string) (QueryServiceDefinitionResponse, sdk.Error) {
 	conn, err := s.GenConn()
 	defer func() { _ = conn.Close() }()
@@ -481,7 +455,7 @@ func (s serviceClient) QueryServiceDefinition(serviceName string) (QueryServiceD
 	return resp.ServiceDefinition.Convert().(QueryServiceDefinitionResponse), nil
 }
 
-// QueryBinding return the specified service binding
+// QueryServiceBinding return the specified service binding
 func (s serviceClient) QueryServiceBinding(serviceName string, provider string) (QueryServiceBindingResponse, sdk.Error) {
 	conn, err := s.GenConn()
 	defer func() { _ = conn.Close() }()
@@ -507,8 +481,8 @@ func (s serviceClient) QueryServiceBinding(serviceName string, provider string) 
 	return resp.ServiceBinding.Convert().(QueryServiceBindingResponse), nil
 }
 
-// QueryBindings returns all bindings of the specified service
-func (s serviceClient) QueryServiceBindings(serviceName string) ([]QueryServiceBindingResponse, sdk.Error) {
+// QueryServiceBindings returns all bindings of the specified service
+func (s serviceClient) QueryServiceBindings(serviceName string, pageReq *query.PageRequest) ([]QueryServiceBindingResponse, sdk.Error) {
 	conn, err := s.GenConn()
 	defer func() { _ = conn.Close() }()
 	if err != nil {
@@ -517,7 +491,10 @@ func (s serviceClient) QueryServiceBindings(serviceName string) ([]QueryServiceB
 
 	resp, err := NewQueryClient(conn).Bindings(
 		context.Background(),
-		&QueryBindingsRequest{ServiceName: serviceName},
+		&QueryBindingsRequest{
+			ServiceName: serviceName,
+			Pagination:  pageReq,
+		},
 	)
 	if err != nil {
 		return nil, sdk.Wrap(err)
@@ -526,7 +503,7 @@ func (s serviceClient) QueryServiceBindings(serviceName string) ([]QueryServiceB
 	return serviceBindings(resp.ServiceBindings).Convert().([]QueryServiceBindingResponse), nil
 }
 
-// QueryRequest returns  the active request of the specified requestID
+// QueryServiceRequest returns  the active request of the specified requestID
 func (s serviceClient) QueryServiceRequest(requestID string) (QueryServiceRequestResponse, sdk.Error) {
 	conn, err := s.GenConn()
 	defer func() { _ = conn.Close() }()
@@ -538,15 +515,22 @@ func (s serviceClient) QueryServiceRequest(requestID string) (QueryServiceReques
 		context.Background(),
 		&QueryRequestRequest{RequestId: requestID},
 	)
+
+	if err == nil && !resp.Request.Empty() {
+		return resp.Request.Convert().(QueryServiceRequestResponse), nil
+	}
+
+	//query service Request by block
+	request, err := s.queryRequestByTxQuery(requestID)
 	if err != nil {
 		return QueryServiceRequestResponse{}, sdk.Wrap(err)
 	}
 
-	return resp.Request.Convert().(QueryServiceRequestResponse), nil
+	return request.Convert().(QueryServiceRequestResponse), nil
 }
 
-// QueryRequest returns all the active requests of the specified service binding
-func (s serviceClient) QueryServiceRequests(serviceName string, provider string) ([]QueryServiceRequestResponse, sdk.Error) {
+// QueryServiceRequests returns all the active requests of the specified service binding
+func (s serviceClient) QueryServiceRequests(serviceName string, provider string, pageReq *query.PageRequest) ([]QueryServiceRequestResponse, sdk.Error) {
 	conn, err := s.GenConn()
 	defer func() { _ = conn.Close() }()
 	if err != nil {
@@ -559,7 +543,11 @@ func (s serviceClient) QueryServiceRequests(serviceName string, provider string)
 
 	resp, err := NewQueryClient(conn).Requests(
 		context.Background(),
-		&QueryRequestsRequest{ServiceName: serviceName, Provider: provider},
+		&QueryRequestsRequest{
+			ServiceName: serviceName,
+			Provider:    provider,
+			Pagination:  pageReq,
+		},
 	)
 	if err != nil {
 		return nil, sdk.Wrap(err)
@@ -569,7 +557,7 @@ func (s serviceClient) QueryServiceRequests(serviceName string, provider string)
 }
 
 // QueryRequestsByReqCtx returns all requests of the specified request context ID and batch counter
-func (s serviceClient) QueryRequestsByReqCtx(reqCtxID string, batchCounter uint64) ([]QueryServiceRequestResponse, sdk.Error) {
+func (s serviceClient) QueryRequestsByReqCtx(reqCtxID string, batchCounter uint64, pageReq *query.PageRequest) ([]QueryServiceRequestResponse, sdk.Error) {
 	conn, err := s.GenConn()
 	defer func() { _ = conn.Close() }()
 	if err != nil {
@@ -581,6 +569,7 @@ func (s serviceClient) QueryRequestsByReqCtx(reqCtxID string, batchCounter uint6
 		&QueryRequestsByReqCtxRequest{
 			RequestContextId: reqCtxID,
 			BatchCounter:     batchCounter,
+			Pagination:       pageReq,
 		},
 	)
 	if err != nil {
@@ -590,7 +579,7 @@ func (s serviceClient) QueryRequestsByReqCtx(reqCtxID string, batchCounter uint6
 	return requests(resp.Requests).Convert().([]QueryServiceRequestResponse), nil
 }
 
-// QueryResponse returns a response with the speicified request ID
+// QueryServiceResponse returns a response with the speicified request ID
 func (s serviceClient) QueryServiceResponse(requestID string) (QueryServiceResponseResponse, sdk.Error) {
 	conn, err := s.GenConn()
 	defer func() { _ = conn.Close() }()
@@ -602,15 +591,21 @@ func (s serviceClient) QueryServiceResponse(requestID string) (QueryServiceRespo
 		context.Background(),
 		&QueryResponseRequest{RequestId: requestID},
 	)
-	if err != nil {
-		return QueryServiceResponseResponse{}, sdk.Wrap(err)
+
+	if err == nil {
+		return resp.Response.Convert().(QueryServiceResponseResponse), nil
 	}
 
-	return resp.Response.Convert().(QueryServiceResponseResponse), nil
+	response, err := s.queryResponseByTxQuery(requestID)
+	if err != nil {
+		return QueryServiceResponseResponse{}, sdk.Wrap(nil)
+	}
+
+	return response.Convert().(QueryServiceResponseResponse), nil
 }
 
-// QueryResponses returns all responses of the specified request context and batch counter
-func (s serviceClient) QueryServiceResponses(reqCtxID string, batchCounter uint64) ([]QueryServiceResponseResponse, sdk.Error) {
+// QueryServiceResponses returns all responses of the specified request context and batch counter
+func (s serviceClient) QueryServiceResponses(reqCtxID string, batchCounter uint64, pageReq *query.PageRequest) ([]QueryServiceResponseResponse, sdk.Error) {
 	conn, err := s.GenConn()
 	defer func() { _ = conn.Close() }()
 	if err != nil {
@@ -622,6 +617,7 @@ func (s serviceClient) QueryServiceResponses(reqCtxID string, batchCounter uint6
 		&QueryResponsesRequest{
 			RequestContextId: reqCtxID,
 			BatchCounter:     batchCounter,
+			Pagination:       pageReq,
 		},
 	)
 	if err != nil {
@@ -643,11 +639,16 @@ func (s serviceClient) QueryRequestContext(reqCtxID string) (QueryRequestContext
 		context.Background(),
 		&QueryRequestContextRequest{RequestContextId: reqCtxID},
 	)
+	if err == nil && !resp.RequestContext.Empty() {
+		return resp.RequestContext.Convert().(QueryRequestContextResp), nil
+	}
+
+	reqCtx, err := s.queryRequestContextByTxQuery(reqCtxID)
 	if err != nil {
 		return QueryRequestContextResp{}, sdk.Wrap(err)
 	}
 
-	return resp.RequestContext.Convert().(QueryRequestContextResp), nil
+	return reqCtx.Convert().(QueryRequestContextResp), nil
 }
 
 //QueryFees return the earned fees for a provider
@@ -690,12 +691,10 @@ func (s serviceClient) QueryParams() (QueryParamsResp, sdk.Error) {
 	return res.Params.Convert().(QueryParamsResp), nil
 }
 
-func (s serviceClient) GenServiceResponseMsgs(
-	events sdk.StringEvents,
-	serviceName string,
+func (s serviceClient) GenServiceResponseMsgs(events sdk.StringEvents, serviceName string,
 	provider sdk.AccAddress,
-	handler RespondCallback,
-) (msgs []sdk.Msg) {
+	handler RespondCallback) (msgs []sdk.Msg) {
+
 	var ids []string
 	for _, e := range events {
 		if e.Type != eventTypeNewBatchRequestProvider {
