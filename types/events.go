@@ -254,7 +254,7 @@ func (se StringEvents) GetValues(typ, key string) (res []string) {
 		if e.Type == typ {
 			for _, attr := range e.Attributes {
 				if attr.Key == key {
-					res = append(res,attr.Value)
+					res = append(res, attr.Value)
 				}
 			}
 		}

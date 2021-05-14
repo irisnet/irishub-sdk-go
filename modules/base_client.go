@@ -11,8 +11,9 @@ import (
 	"strings"
 	"time"
 
-	clienttx "github.com/irisnet/irishub-sdk-go/client/tx"
 	"github.com/tendermint/tendermint/crypto/tmhash"
+
+	clienttx "github.com/irisnet/irishub-sdk-go/client/tx"
 
 	"github.com/gogo/protobuf/proto"
 
