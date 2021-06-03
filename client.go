@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"fmt"
+	"github.com/irisnet/irishub-sdk-go/modules"
 
 	"github.com/irisnet/irishub-sdk-go/modules/coinswap"
 	"github.com/irisnet/irishub-sdk-go/modules/gov"
@@ -17,7 +18,7 @@ import (
 	"github.com/irisnet/irishub-sdk-go/codec"
 	cdctypes "github.com/irisnet/irishub-sdk-go/codec/types"
 	cryptocodec "github.com/irisnet/irishub-sdk-go/crypto/codec"
-	"github.com/irisnet/irishub-sdk-go/modules"
+
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/keys"
 	"github.com/irisnet/irishub-sdk-go/modules/service"
