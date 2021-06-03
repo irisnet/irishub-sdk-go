@@ -1,10 +1,9 @@
 package modules
 
 import (
-	"fmt"
-
 	tmcrypto "github.com/tendermint/tendermint/crypto"
 
+	"fmt"
 	"github.com/irisnet/irishub-sdk-go/crypto"
 	cryptoamino "github.com/irisnet/irishub-sdk-go/crypto/codec"
 	"github.com/irisnet/irishub-sdk-go/types"
