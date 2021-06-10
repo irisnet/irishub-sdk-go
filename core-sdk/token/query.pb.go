@@ -9,7 +9,6 @@ import (
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
-	types "github.com/irisnet/irishub-sdk-go/codec/types"
 	_ "github.com/irisnet/irishub-sdk-go/types"
 	github_com_irisnet_irishub_sdk_go_types "github.com/irisnet/irishub-sdk-go/types"
 	query "github.com/irisnet/irishub-sdk-go/types/query"
@@ -81,7 +80,7 @@ func (m *QueryTokenRequest) GetDenom() string {
 
 // QueryTokenResponse is response type for the Query/Token RPC method
 type QueryTokenResponse struct {
-	Token *types.Any `protobuf:"bytes,1,opt,name=Token,proto3" json:"Token,omitempty"`
+	Token *github_com_irisnet_irishub_sdk_go_types.Any `protobuf:"bytes,1,opt,name=Token,proto3" json:"Token,omitempty"`
 }
 
 func (m *QueryTokenResponse) Reset()         { *m = QueryTokenResponse{} }
@@ -117,7 +116,7 @@ func (m *QueryTokenResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryTokenResponse proto.InternalMessageInfo
 
-func (m *QueryTokenResponse) GetToken() *types.Any {
+func (m *QueryTokenResponse) GetToken() *github_com_irisnet_irishub_sdk_go_types.Any {
 	if m != nil {
 		return m.Token
 	}
@@ -171,7 +170,7 @@ func (m *QueryTokensRequest) GetOwner() string {
 
 // QueryTokensResponse is response type for the Query/Tokens RPC method
 type QueryTokensResponse struct {
-	Tokens []*types.Any `protobuf:"bytes,1,rep,name=Tokens,proto3" json:"Tokens,omitempty"`
+	Tokens []*github_com_irisnet_irishub_sdk_go_types.Any `protobuf:"bytes,1,rep,name=Tokens,proto3" json:"Tokens,omitempty"`
 }
 
 func (m *QueryTokensResponse) Reset()         { *m = QueryTokensResponse{} }
@@ -207,7 +206,7 @@ func (m *QueryTokensResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryTokensResponse proto.InternalMessageInfo
 
-func (m *QueryTokensResponse) GetTokens() []*types.Any {
+func (m *QueryTokensResponse) GetTokens() []*github_com_irisnet_irishub_sdk_go_types.Any {
 	if m != nil {
 		return m.Tokens
 	}
@@ -1214,7 +1213,7 @@ func (m *QueryTokenResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Token == nil {
-				m.Token = &types.Any{}
+				m.Token = &github_com_irisnet_irishub_sdk_go_types.Any{}
 			}
 			if err := m.Token.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1381,7 +1380,7 @@ func (m *QueryTokensResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Tokens = append(m.Tokens, &types.Any{})
+			m.Tokens = append(m.Tokens, &github_com_irisnet_irishub_sdk_go_types.Any{})
 			if err := m.Tokens[len(m.Tokens)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

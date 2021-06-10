@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/irisnet/irishub-sdk-go/codec"
 	"github.com/irisnet/irishub-sdk-go/auth"
 	"github.com/irisnet/irishub-sdk-go/bank"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/utils/cache"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 // Must be used with locker, otherwise there are thread safety issues
@@ -19,7 +18,7 @@ type accountQuery struct {
 	sdk.GRPCClient
 	log.Logger
 	cache.Cache
-	cdc        codec.Marshaler
+	cdc        sdk.Marshaler
 	km         sdk.KeyManager
 	expiration time.Duration
 }

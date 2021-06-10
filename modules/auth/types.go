@@ -9,7 +9,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/irisnet/irishub-sdk-go/codec"
-	codectypes "github.com/irisnet/irishub-sdk-go/codec/types"
+	codectypes "github.com/irisnet/irishub-sdk-go/types/codec/types"
 
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )

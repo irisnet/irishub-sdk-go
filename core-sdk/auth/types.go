@@ -8,9 +8,6 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/irisnet/irishub-sdk-go/codec"
-	codectypes "github.com/irisnet/irishub-sdk-go/codec/types"
-
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
@@ -74,7 +71,7 @@ func (acc *BaseAccount) SetPubKey(pubKey crypto.PubKey) error {
 			return sdk.Wrap(fmt.Errorf("err invalid key, can't proto encode %T", protoMsg))
 		}
 
-		any, err := codectypes.NewAnyWithValue(protoMsg)
+		any, err := sdk.NewAnyWithValue(protoMsg)
 		if err != nil {
 			return err
 		}
@@ -120,7 +117,7 @@ func (acc *BaseAccount) Convert() interface{} {
 
 // Convert return a sdk.BaseAccount
 // in order to unpack pubKey so not use Convert()
-func (acc *BaseAccount) ConvertAccount(cdc codec.Marshaler) interface{} {
+func (acc *BaseAccount) ConvertAccount(cdc sdk.Marshaler) interface{} {
 	account := sdk.BaseAccount{
 		Address:       acc.Address,
 		AccountNumber: acc.AccountNumber,

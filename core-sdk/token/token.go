@@ -7,17 +7,15 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/irisnet/irishub-sdk-go/codec"
-	"github.com/irisnet/irishub-sdk-go/codec/types"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type tokenClient struct {
 	sdk.BaseClient
-	codec.Marshaler
+	sdk.Marshaler
 }
 
-func NewClient(bc sdk.BaseClient, cdc codec.Marshaler) Client {
+func NewClient(bc sdk.BaseClient, cdc sdk.Marshaler) Client {
 	return tokenClient{
 		BaseClient: bc,
 		Marshaler:  cdc,
@@ -28,7 +26,7 @@ func (t tokenClient) Name() string {
 	return ModuleName
 }
 
-func (t tokenClient) RegisterInterfaceTypes(registry types.InterfaceRegistry) {
+func (t tokenClient) RegisterInterfaceTypes(registry sdk.InterfaceRegistry) {
 	RegisterInterfaces(registry)
 }
 

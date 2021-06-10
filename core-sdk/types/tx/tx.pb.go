@@ -7,7 +7,6 @@ import (
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
-	types "github.com/irisnet/irishub-sdk-go/codec/types"
 	types1 "github.com/irisnet/irishub-sdk-go/crypto/types"
 	github_com_irisnet_irishub_sdk_go_types "github.com/irisnet/irishub-sdk-go/types"
 	types2 "github.com/irisnet/irishub-sdk-go/types"
@@ -254,7 +253,7 @@ type TxBody struct {
 	// By convention, the first required signer (usually from the first message)
 	// is referred to as the primary signer and pays the fee for the whole
 	// transaction.
-	Messages []*types.Any `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
+	Messages []*types2.Any `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
 	// memo is any arbitrary memo to be added to the transaction
 	Memo string `protobuf:"bytes,2,opt,name=memo,proto3" json:"memo,omitempty"`
 	// timeout is the block height after which this transaction will not
@@ -263,11 +262,11 @@ type TxBody struct {
 	// extension_options are arbitrary options that can be added by chains
 	// when the default options are not sufficient. If any of these are present
 	// and can't be handled, the transaction will be rejected
-	ExtensionOptions []*types.Any `protobuf:"bytes,1023,rep,name=extension_options,json=extensionOptions,proto3" json:"extension_options,omitempty"`
+	ExtensionOptions []*types2.Any `protobuf:"bytes,1023,rep,name=extension_options,json=extensionOptions,proto3" json:"extension_options,omitempty"`
 	// extension_options are arbitrary options that can be added by chains
 	// when the default options are not sufficient. If any of these are present
 	// and can't be handled, they will be ignored
-	NonCriticalExtensionOptions []*types.Any `protobuf:"bytes,2047,rep,name=non_critical_extension_options,json=nonCriticalExtensionOptions,proto3" json:"non_critical_extension_options,omitempty"`
+	NonCriticalExtensionOptions []*types2.Any `protobuf:"bytes,2047,rep,name=non_critical_extension_options,json=nonCriticalExtensionOptions,proto3" json:"non_critical_extension_options,omitempty"`
 }
 
 func (m *TxBody) Reset()         { *m = TxBody{} }
@@ -303,7 +302,7 @@ func (m *TxBody) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_TxBody proto.InternalMessageInfo
 
-func (m *TxBody) GetMessages() []*types.Any {
+func (m *TxBody) GetMessages() []*types2.Any {
 	if m != nil {
 		return m.Messages
 	}
@@ -324,14 +323,14 @@ func (m *TxBody) GetTimeoutHeight() uint64 {
 	return 0
 }
 
-func (m *TxBody) GetExtensionOptions() []*types.Any {
+func (m *TxBody) GetExtensionOptions() []*types2.Any {
 	if m != nil {
 		return m.ExtensionOptions
 	}
 	return nil
 }
 
-func (m *TxBody) GetNonCriticalExtensionOptions() []*types.Any {
+func (m *TxBody) GetNonCriticalExtensionOptions() []*types2.Any {
 	if m != nil {
 		return m.NonCriticalExtensionOptions
 	}
@@ -406,7 +405,7 @@ type SignerInfo struct {
 	// public_key is the public key of the signer. It is optional for accounts
 	// that already exist in state. If unset, the verifier can use the required \
 	// signer address for this position and lookup the public key.
-	PublicKey *types.Any `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	PublicKey *types2.Any `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
 	// mode_info describes the signing mode of the signer and is a nested
 	// structure to support nested multisig pubkey's
 	ModeInfo *ModeInfo `protobuf:"bytes,2,opt,name=mode_info,json=modeInfo,proto3" json:"mode_info,omitempty"`
@@ -449,7 +448,7 @@ func (m *SignerInfo) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SignerInfo proto.InternalMessageInfo
 
-func (m *SignerInfo) GetPublicKey() *types.Any {
+func (m *SignerInfo) GetPublicKey() *types2.Any {
 	if m != nil {
 		return m.PublicKey
 	}
@@ -2140,7 +2139,7 @@ func (m *TxBody) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Messages = append(m.Messages, &types.Any{})
+			m.Messages = append(m.Messages, &types2.Any{})
 			if err := m.Messages[len(m.Messages)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -2225,7 +2224,7 @@ func (m *TxBody) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ExtensionOptions = append(m.ExtensionOptions, &types.Any{})
+			m.ExtensionOptions = append(m.ExtensionOptions, &types2.Any{})
 			if err := m.ExtensionOptions[len(m.ExtensionOptions)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -2259,7 +2258,7 @@ func (m *TxBody) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.NonCriticalExtensionOptions = append(m.NonCriticalExtensionOptions, &types.Any{})
+			m.NonCriticalExtensionOptions = append(m.NonCriticalExtensionOptions, &types2.Any{})
 			if err := m.NonCriticalExtensionOptions[len(m.NonCriticalExtensionOptions)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -2464,7 +2463,7 @@ func (m *SignerInfo) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.PublicKey == nil {
-				m.PublicKey = &types.Any{}
+				m.PublicKey = &types2.Any{}
 			}
 			if err := m.PublicKey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

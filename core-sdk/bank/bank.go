@@ -5,19 +5,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/irisnet/irishub-sdk-go/utils"
-
-	"github.com/irisnet/irishub-sdk-go/codec"
-	"github.com/irisnet/irishub-sdk-go/codec/types"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 type bankClient struct {
 	sdk.BaseClient
-	codec.Marshaler
+	sdk.Marshaler
 }
 
-func NewClient(bc sdk.BaseClient, cdc codec.Marshaler) Client {
+func NewClient(bc sdk.BaseClient, cdc sdk.Marshaler) Client {
 	return bankClient{
 		BaseClient: bc,
 		Marshaler:  cdc,
@@ -28,7 +24,7 @@ func (b bankClient) Name() string {
 	return ModuleName
 }
 
-func (b bankClient) RegisterInterfaceTypes(registry types.InterfaceRegistry) {
+func (b bankClient) RegisterInterfaceTypes(registry sdk.InterfaceRegistry) {
 	RegisterInterfaces(registry)
 }
 
@@ -140,10 +136,11 @@ func (b bankClient) MultiSend(request MultiSendRequest, baseTx sdk.BaseTx) (resT
 
 func (b bankClient) SendBatch(sender sdk.AccAddress,
 	request MultiSendRequest, baseTx sdk.BaseTx) ([]sdk.ResultTx, sdk.Error) {
-	batchReceipts := utils.SubArray(maxMsgLen, request)
+	batchReceipts := sdk.SubArray(maxMsgLen, request)
 
 	var msgs sdk.Msgs
 	for _, receipts := range batchReceipts {
+
 		req := receipts.(MultiSendRequest)
 		var inputs = make([]Input, len(req.Receipts))
 		var outputs = make([]Output, len(req.Receipts))

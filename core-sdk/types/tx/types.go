@@ -4,14 +4,13 @@ import (
 	"errors"
 	"fmt"
 
-	codectypes "github.com/irisnet/irishub-sdk-go/codec/types"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 // MaxGasWanted defines the max gas allowed.
 const MaxGasWanted = uint64((1 << 63) - 1)
 
-var _, _ codectypes.UnpackInterfacesMessage = &Tx{}, &TxBody{}
+var _, _ sdk.UnpackInterfacesMessage = &Tx{}, &TxBody{}
 var _ sdk.Tx = &Tx{}
 
 // GetMsgs implements the GetMsgs method on sdk.Tx.
@@ -95,7 +94,7 @@ func (t *Tx) GetSigners() []sdk.AccAddress {
 }
 
 // UnpackInterfaces implements the UnpackInterfaceMessages.UnpackInterfaces method
-func (t *Tx) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+func (t *Tx) UnpackInterfaces(unpacker sdk.AnyUnpacker) error {
 	if t.Body != nil {
 		return t.Body.UnpackInterfaces(unpacker)
 	}
@@ -103,7 +102,7 @@ func (t *Tx) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 }
 
 // UnpackInterfaces implements the UnpackInterfaceMessages.UnpackInterfaces method
-func (m *TxBody) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+func (m *TxBody) UnpackInterfaces(unpacker sdk.AnyUnpacker) error {
 	for _, any := range m.Messages {
 		var msg sdk.Msg
 		if err := unpacker.UnpackAny(any, &msg); err != nil {
@@ -114,7 +113,7 @@ func (m *TxBody) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 }
 
 // RegisterInterfaces registers the sdk.Tx interface.
-func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+func RegisterInterfaces(registry sdk.InterfaceRegistry) {
 	registry.RegisterInterface("cosmos.tx.v1beta1.Tx", (*sdk.Tx)(nil))
 	registry.RegisterImplementations((*sdk.Tx)(nil), &Tx{})
 }

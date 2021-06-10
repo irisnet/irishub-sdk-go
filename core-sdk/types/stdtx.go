@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
-	"github.com/irisnet/irishub-sdk-go/codec"
 )
 
 const (
@@ -78,7 +76,7 @@ type StdSignMsg struct {
 }
 
 // get message bytes
-func (msg StdSignMsg) Bytes(cdc codec.Marshaler) []byte {
+func (msg StdSignMsg) Bytes(cdc Marshaler) []byte {
 	var msgsBytes []json.RawMessage
 	for _, msg := range msg.Msgs {
 		msgsBytes = append(msgsBytes, json.RawMessage(msg.GetSignBytes()))

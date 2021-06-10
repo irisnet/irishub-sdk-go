@@ -12,7 +12,6 @@ import (
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/irisnet/irishub-sdk-go/codec"
-	codectypes "github.com/irisnet/irishub-sdk-go/codec/types"
 )
 
 var cdc = codec.NewLegacyAmino()
@@ -60,7 +59,7 @@ func (logs ABCIMessageLogs) String() (str string) {
 }
 
 // NewResponseResultTx returns a TxResponse given a ResultTx from tendermint
-func NewResponseResultTx(res *ctypes.ResultTx, anyTx *codectypes.Any, timestamp string) *TxResponse {
+func NewResponseResultTx(res *ctypes.ResultTx, anyTx *Any, timestamp string) *TxResponse {
 	if res == nil {
 		return nil
 	}
@@ -231,15 +230,15 @@ func ParseABCILogs(logs string) (res ABCIMessageLogs, err error) {
 	return res, err
 }
 
-var _, _ codectypes.UnpackInterfacesMessage = SearchTxsResult{}, TxResponse{}
+var _, _ UnpackInterfacesMessage = SearchTxsResult{}, TxResponse{}
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 //
 // types.UnpackInterfaces needs to be called for each nested Tx because
 // there are generally interfaces to unpack in Tx's
-func (s SearchTxsResult) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+func (s SearchTxsResult) UnpackInterfaces(unpacker AnyUnpacker) error {
 	for _, tx := range s.Txs {
-		err := codectypes.UnpackInterfaces(tx, unpacker)
+		err := UnpackInterfaces(tx, unpacker)
 		if err != nil {
 			return err
 		}
@@ -248,7 +247,7 @@ func (s SearchTxsResult) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (r TxResponse) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+func (r TxResponse) UnpackInterfaces(unpacker AnyUnpacker) error {
 	if r.Tx != nil {
 		var tx Tx
 		return unpacker.UnpackAny(r.Tx, &tx)

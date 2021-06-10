@@ -5,18 +5,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/irisnet/irishub-sdk-go/codec"
-
 	"github.com/irisnet/irishub-sdk-go/token"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/utils/cache"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 type tokenQuery struct {
 	q sdk.Queries
 	sdk.GRPCClient
-	cdc codec.Marshaler
+	cdc sdk.Marshaler
 	log.Logger
 	cache.Cache
 }

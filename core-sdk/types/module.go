@@ -2,8 +2,6 @@ package types
 
 import (
 	"github.com/tendermint/tendermint/crypto"
-
-	cdctypes "github.com/irisnet/irishub-sdk-go/codec/types"
 )
 
 //The purpose of this interface is to convert the irishub system type to the user receiving type
@@ -19,7 +17,7 @@ type SplitAble interface {
 
 type Module interface {
 	Name() string
-	RegisterInterfaceTypes(registry cdctypes.InterfaceRegistry)
+	RegisterInterfaceTypes(registry InterfaceRegistry)
 }
 
 type KeyManager interface {

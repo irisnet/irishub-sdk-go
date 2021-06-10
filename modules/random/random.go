@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/irisnet/irishub-sdk-go/codec"
-	cdctypes "github.com/irisnet/irishub-sdk-go/codec/types"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	cdctypes "github.com/irisnet/irishub-sdk-go/types/codec/types"
 )
 
 type randomClient struct {

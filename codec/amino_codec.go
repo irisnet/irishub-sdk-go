@@ -1,17 +1,20 @@
 package codec
 
-import "github.com/gogo/protobuf/proto"
+import (
+	"github.com/gogo/protobuf/proto"
+	"github.com/irisnet/irishub-sdk-go/types/codec"
+)
 
 // AminoCodec defines a codec that utilizes Codec for both binary and JSON
 // encoding.
 type AminoCodec struct {
-	*LegacyAmino
+	*codec.LegacyAmino
 }
 
 var _ Marshaler = &AminoCodec{}
 
 // NewAminoCodec returns a reference to a new AminoCodec
-func NewAminoCodec(codec *LegacyAmino) *AminoCodec {
+func NewAminoCodec(codec *codec.LegacyAmino) *AminoCodec {
 	return &AminoCodec{LegacyAmino: codec}
 }
 

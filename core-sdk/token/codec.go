@@ -2,7 +2,6 @@ package token
 
 import (
 	"github.com/irisnet/irishub-sdk-go/codec"
-	"github.com/irisnet/irishub-sdk-go/codec/types"
 	cryptocodec "github.com/irisnet/irishub-sdk-go/crypto/codec"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
@@ -17,7 +16,7 @@ func init() {
 	amino.Seal()
 }
 
-func RegisterInterfaces(registry types.InterfaceRegistry) {
+func RegisterInterfaces(registry sdk.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgIssueToken{},

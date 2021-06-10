@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/irisnet/irishub-sdk-go/codec"
-	"github.com/irisnet/irishub-sdk-go/codec/types"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/types/codec/types"
 	"github.com/irisnet/irishub-sdk-go/types/query"
 )
 

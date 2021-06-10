@@ -6,8 +6,8 @@ package signing
 import (
 	fmt "fmt"
 	proto "github.com/gogo/protobuf/proto"
-	types "github.com/irisnet/irishub-sdk-go/codec/types"
 	types1 "github.com/irisnet/irishub-sdk-go/crypto/types"
+	types2 "github.com/irisnet/irishub-sdk-go/types"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -117,7 +117,7 @@ func (m *SignatureDescriptors) GetSignatures() []*SignatureDescriptor {
 // clients.
 type SignatureDescriptor struct {
 	// public_key is the public key of the signer
-	PublicKey *types.Any                `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	PublicKey *types2.Any               `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
 	Data      *SignatureDescriptor_Data `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
 	// sequence is the sequence of the account, which describes the
 	// number of committed transactions signed by a given address. It is used to prevent
@@ -158,7 +158,7 @@ func (m *SignatureDescriptor) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SignatureDescriptor proto.InternalMessageInfo
 
-func (m *SignatureDescriptor) GetPublicKey() *types.Any {
+func (m *SignatureDescriptor) GetPublicKey() *types2.Any {
 	if m != nil {
 		return m.PublicKey
 	}
@@ -942,7 +942,7 @@ func (m *SignatureDescriptor) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.PublicKey == nil {
-				m.PublicKey = &types.Any{}
+				m.PublicKey = &types2.Any{}
 			}
 			if err := m.PublicKey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

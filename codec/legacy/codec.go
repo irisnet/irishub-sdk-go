@@ -1,19 +1,19 @@
 package legacy
 
 import (
-	"github.com/irisnet/irishub-sdk-go/codec"
 	cryptocodec "github.com/irisnet/irishub-sdk-go/crypto/codec"
+	codec2 "github.com/irisnet/irishub-sdk-go/types/codec"
 )
 
 // Cdc defines a global generic sealed Amino codec to be used throughout sdk. It
 // has all Tendermint crypto and evidence types registered.
 //
 // TODO: Deprecated - remove this global.
-var Cdc *codec.LegacyAmino
+var Cdc *codec2.LegacyAmino
 
 func init() {
-	Cdc = codec.NewLegacyAmino()
+	Cdc = codec2.NewLegacyAmino()
 	cryptocodec.RegisterCrypto(Cdc)
-	codec.RegisterEvidences(Cdc)
+	codec2.RegisterEvidences(Cdc)
 	Cdc.Seal()
 }

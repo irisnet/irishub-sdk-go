@@ -2,13 +2,14 @@ package coinswap
 
 import (
 	"github.com/irisnet/irishub-sdk-go/codec"
-	"github.com/irisnet/irishub-sdk-go/codec/types"
 	cryptocodec "github.com/irisnet/irishub-sdk-go/crypto/codec"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	codec2 "github.com/irisnet/irishub-sdk-go/types/codec"
+	"github.com/irisnet/irishub-sdk-go/types/codec/types"
 )
 
 var (
-	amino     = codec.NewLegacyAmino()
+	amino     = codec2.NewLegacyAmino()
 	ModuleCdc = codec.NewAminoCodec(amino)
 )
 
