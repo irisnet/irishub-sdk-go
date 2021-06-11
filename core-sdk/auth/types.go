@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
 	"github.com/gogo/protobuf/proto"
-	"github.com/tendermint/tendermint/crypto"
-
+	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
+	codectypes "github.com/irisnet/irishub-sdk-go/common/codec/types"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 // Account is an interface used to store coins at a given address within state.
@@ -71,7 +71,7 @@ func (acc *BaseAccount) SetPubKey(pubKey crypto.PubKey) error {
 			return sdk.Wrap(fmt.Errorf("err invalid key, can't proto encode %T", protoMsg))
 		}
 
-		any, err := sdk.NewAnyWithValue(protoMsg)
+		any, err := codectypes.NewAnyWithValue(protoMsg)
 		if err != nil {
 			return err
 		}
@@ -117,7 +117,7 @@ func (acc *BaseAccount) Convert() interface{} {
 
 // Convert return a sdk.BaseAccount
 // in order to unpack pubKey so not use Convert()
-func (acc *BaseAccount) ConvertAccount(cdc sdk.Marshaler) interface{} {
+func (acc *BaseAccount) ConvertAccount(cdc commoncodec.Marshaler) interface{} {
 	account := sdk.BaseAccount{
 		Address:       acc.Address,
 		AccountNumber: acc.AccountNumber,

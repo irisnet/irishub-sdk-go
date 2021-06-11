@@ -6,8 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
-	"github.com/irisnet/irishub-sdk-go/utils/bech32"
+	"github.com/irisnet/irishub-sdk-go/common/bech32"
 )
 
 const (
@@ -22,7 +21,7 @@ type AccAddress []byte
 // AccAddressFromBech32 creates an AccAddress from a Bech32 string.
 func AccAddressFromBech32(address string) (AccAddress, Error) {
 	bech32PrefixAccAddr := GetAddrPrefixCfg().GetBech32AccountAddrPrefix()
-	bz, err := bech32.GetFromBech32(address, bech32PrefixAccAddr)
+	bz, err := GetFromBech32(address, bech32PrefixAccAddr)
 	if err != nil {
 		return nil, Wrap(err)
 	}
@@ -32,7 +31,7 @@ func AccAddressFromBech32(address string) (AccAddress, Error) {
 
 func ValidateAccAddress(address string) Error {
 	bech32PrefixAccAddr := GetAddrPrefixCfg().GetBech32AccountAddrPrefix()
-	_, err := bech32.GetFromBech32(address, bech32PrefixAccAddr)
+	_, err := GetFromBech32(address, bech32PrefixAccAddr)
 	if err != nil {
 		return Wrap(err)
 	}
@@ -348,5 +347,5 @@ func GetPubKeyFromBech32(pkt Bech32PubKeyType, pubkeyStr string) (TmPubKey, erro
 		return nil, err
 	}
 
-	return PubKeyFromBytes(bz)
+	return PubkeyFromBytes(bz)
 }

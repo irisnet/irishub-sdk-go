@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	codectypes "github.com/irisnet/irishub-sdk-go/codec/types"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
-	codectypes "github.com/irisnet/irishub-sdk-go/types/codec/types"
 )
 
 // MaxGasWanted defines the max gas allowed.

@@ -2,8 +2,6 @@ package codec
 
 import (
 	"github.com/gogo/protobuf/proto"
-
-	"github.com/irisnet/irishub-sdk-go/types"
 )
 
 type (
@@ -32,7 +30,7 @@ type (
 		UnmarshalBinaryLengthPrefixed(bz []byte, ptr ProtoMarshaler) error
 		MustUnmarshalBinaryLengthPrefixed(bz []byte, ptr ProtoMarshaler)
 
-		types.AnyUnpacker
+		//types.AnyUnpacker
 	}
 
 	JSONMarshaler interface {

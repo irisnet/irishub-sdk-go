@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/irisnet/irishub-sdk-go/common/crypto/types"
 	"github.com/tendermint/tendermint/crypto"
 )
 
@@ -17,7 +18,7 @@ type SplitAble interface {
 
 type Module interface {
 	Name() string
-	RegisterInterfaceTypes(registry InterfaceRegistry)
+	RegisterInterfaceTypes(registry types.InterfaceRegistry)
 }
 
 type KeyManager interface {

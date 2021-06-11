@@ -2,10 +2,8 @@ package store
 
 import (
 	"fmt"
-
+	"github.com/irisnet/irishub-sdk-go/common/crypto/hd"
 	"github.com/tendermint/tendermint/crypto"
-
-	"github.com/irisnet/irishub-sdk-go/crypto/hd"
 )
 
 var (

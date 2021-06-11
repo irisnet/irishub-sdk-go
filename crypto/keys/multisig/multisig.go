@@ -7,9 +7,9 @@ import (
 
 	proto "github.com/gogo/protobuf/proto"
 
+	"github.com/irisnet/irishub-sdk-go/codec/types"
 	crypto "github.com/irisnet/irishub-sdk-go/crypto/types"
 	multisigtypes "github.com/irisnet/irishub-sdk-go/crypto/types/multisig"
-	"github.com/irisnet/irishub-sdk-go/types/codec/types"
 	"github.com/irisnet/irishub-sdk-go/types/tx/signing"
 )
 

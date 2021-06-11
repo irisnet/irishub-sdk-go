@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/irisnet/irishub-sdk-go/utils/bech32"
+	"github.com/irisnet/irishub-sdk-go/common/bech32"
 )
 
 func TestGetFromBech32(t *testing.T) {

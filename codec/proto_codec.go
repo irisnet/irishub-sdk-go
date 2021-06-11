@@ -3,12 +3,10 @@ package codec
 import (
 	"encoding/binary"
 	"fmt"
-	"strings"
-
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/gogo/protobuf/proto"
-
-	"github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/codec/types"
+	"strings"
 )
 
 // ProtoCodec defines a codec that utilizes Protobuf for both binary and JSON

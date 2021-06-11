@@ -9,7 +9,7 @@ import (
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
-	types2 "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/common/codec/types"
 	_ "github.com/regen-network/cosmos-proto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
@@ -73,7 +73,7 @@ var xxx_messageInfo_QueryAccountRequest proto.InternalMessageInfo
 // QueryAccountResponse is the response type for the Query/Account RPC method.
 type QueryAccountResponse struct {
 	// account defines the account of the corresponding address.
-	Account *types2.Any `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
+	Account *types.Any `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
 }
 
 func (m *QueryAccountResponse) Reset()         { *m = QueryAccountResponse{} }
@@ -109,7 +109,7 @@ func (m *QueryAccountResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAccountResponse proto.InternalMessageInfo
 
-func (m *QueryAccountResponse) GetAccount() *types2.Any {
+func (m *QueryAccountResponse) GetAccount() *types.Any {
 	if m != nil {
 		return m.Account
 	}
@@ -684,7 +684,7 @@ func (m *QueryAccountResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Account == nil {
-				m.Account = &types2.Any{}
+				m.Account = &types.Any{}
 			}
 			if err := m.Account.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

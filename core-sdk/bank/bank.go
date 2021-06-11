@@ -3,17 +3,19 @@ package bank
 import (
 	"context"
 	"fmt"
-	"strings"
-
+	"github.com/irisnet/irishub-sdk-go/common"
+	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
+	"github.com/irisnet/irishub-sdk-go/common/codec/types"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"strings"
 )
 
 type bankClient struct {
 	sdk.BaseClient
-	sdk.Marshaler
+	commoncodec.Marshaler
 }
 
-func NewClient(bc sdk.BaseClient, cdc sdk.Marshaler) Client {
+func NewClient(bc sdk.BaseClient, cdc commoncodec.Marshaler) Client {
 	return bankClient{
 		BaseClient: bc,
 		Marshaler:  cdc,
@@ -24,7 +26,7 @@ func (b bankClient) Name() string {
 	return ModuleName
 }
 
-func (b bankClient) RegisterInterfaceTypes(registry sdk.InterfaceRegistry) {
+func (b bankClient) RegisterInterfaceTypes(registry types.InterfaceRegistry) {
 	RegisterInterfaces(registry)
 }
 
@@ -136,7 +138,7 @@ func (b bankClient) MultiSend(request MultiSendRequest, baseTx sdk.BaseTx) (resT
 
 func (b bankClient) SendBatch(sender sdk.AccAddress,
 	request MultiSendRequest, baseTx sdk.BaseTx) ([]sdk.ResultTx, sdk.Error) {
-	batchReceipts := sdk.SubArray(maxMsgLen, request)
+	batchReceipts := common.SubArray(maxMsgLen, request)
 
 	var msgs sdk.Msgs
 	for _, receipts := range batchReceipts {

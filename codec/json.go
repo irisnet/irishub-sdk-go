@@ -3,7 +3,7 @@ package codec
 import (
 	"bytes"
 
-	"github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/codec/types"
 
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/gogo/protobuf/proto"

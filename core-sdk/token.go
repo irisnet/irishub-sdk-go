@@ -1,22 +1,21 @@
 package sdk
 
 import (
-	"context"
 	"fmt"
+	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"strings"
 
-	"github.com/irisnet/irishub-sdk-go/token"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
-	"github.com/irisnet/irishub-sdk-go/utils/cache"
+	common "github.com/irisnet/irishub-sdk-go/common/cache"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
 type tokenQuery struct {
 	q sdk.Queries
 	sdk.GRPCClient
-	cdc sdk.Marshaler
+	cdc commoncodec.Marshaler
 	log.Logger
-	cache.Cache
+	common.Cache
 }
 
 func (l tokenQuery) QueryToken(denom string) (sdk.Token, error) {
@@ -31,22 +30,23 @@ func (l tokenQuery) QueryToken(denom string) (sdk.Token, error) {
 		return sdk.Token{}, sdk.Wrap(err)
 	}
 
-	response, err := token.NewQueryClient(conn).Token(
-		context.Background(),
-		&token.QueryTokenRequest{Denom: denom},
-	)
-	if err != nil {
-		l.Debug("client query token failed",
-			" denom ", denom,
-			" err ", err.Error())
-		return sdk.Token{}, nil
-	}
-
-	var srcToken token.TokenInterface
-	if err = l.cdc.UnpackAny(response.Token, &srcToken); err != nil {
-		return sdk.Token{}, sdk.Wrap(err)
-	}
-	token := srcToken.(*token.Token).Convert().(sdk.Token)
+	//response, err := NewQueryClient(conn).Token(
+	//	context.Background(),
+	//	&token.QueryTokenRequest{Denom: denom},
+	//)
+	//if err != nil {
+	//	l.Debug("client query token failed",
+	//		" denom ", denom,
+	//		" err ", err.Error())
+	//	return sdk.Token{}, nil
+	//}
+	//
+	//var srcToken token.TokenInterface
+	//if err = l.cdc.UnpackAny(response.Token, &srcToken); err != nil {
+	//	return sdk.Token{}, sdk.Wrap(err)
+	//}
+	var token sdk.Token
+	//token = srcToken.(*token.Token).Convert().(sdk.Token)
 	l.SaveTokens(token)
 	return token, nil
 }

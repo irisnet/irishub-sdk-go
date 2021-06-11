@@ -3,28 +3,27 @@ package sdk
 import (
 	"context"
 	"fmt"
-
+	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/libs/log"
 	rpc "github.com/tendermint/tendermint/rpc/client"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	"github.com/irisnet/irishub-sdk-go/codec"
+	"github.com/irisnet/irishub-sdk-go/common/uuid"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
-	"github.com/irisnet/irishub-sdk-go/utils/uuid"
 )
 
 type rpcClient struct {
 	rpc.Client
 	log.Logger
-	cdc       *codec.LegacyAmino
+	cdc       *commoncodec.LegacyAmino
 	txDecoder sdk.TxDecoder
 }
 
 func NewRPCClient(
 	remote string,
-	cdc *codec.LegacyAmino,
+	cdc *commoncodec.LegacyAmino,
 	txDecoder sdk.TxDecoder,
 	logger log.Logger,
 	timeout uint,

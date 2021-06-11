@@ -1,7 +1,7 @@
 package codec
 
 import (
-	codec2 "github.com/irisnet/irishub-sdk-go/types/codec"
+	codec2 "github.com/irisnet/irishub-sdk-go/codec"
 	"github.com/tendermint/tendermint/crypto"
 	tmed25519 "github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/sr25519"

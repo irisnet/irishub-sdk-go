@@ -7,6 +7,7 @@ import (
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
+	ctypes "github.com/irisnet/irishub-sdk-go/common/crypto/types"
 	types1 "github.com/tendermint/tendermint/abci/types"
 	io "io"
 	math "math"
@@ -51,7 +52,7 @@ type TxResponse struct {
 	// Amount of gas consumed by transaction.
 	GasUsed int64 `protobuf:"varint,10,opt,name=gas_used,json=gasUsed,proto3" json:"gas_used,omitempty"`
 	// The request transaction bytes.
-	Tx *Any `protobuf:"bytes,11,opt,name=tx,proto3" json:"tx,omitempty"`
+	Tx *ctypes.Any `protobuf:"bytes,11,opt,name=tx,proto3" json:"tx,omitempty"`
 	// Time of the previous block. For heights > 1, it's the weighted median of
 	// the timestamps of the valid votes in the block.LastCommit. For height == 1,
 	// it's genesis time.
@@ -1837,7 +1838,7 @@ func (m *TxResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Tx == nil {
-				m.Tx = &Any{}
+				m.Tx = &ctypes.Any{}
 			}
 			if err := m.Tx.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

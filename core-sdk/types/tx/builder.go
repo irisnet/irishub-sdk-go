@@ -6,12 +6,10 @@ import (
 	"github.com/gogo/protobuf/proto"
 
 	"github.com/tendermint/tendermint/crypto"
-
 	//codectypes "github.com/irisnet/irishub-sdk-go/codec/types"
 	//"github.com/irisnet/irishub-sdk-go/types"
 	//sdk "github.com/irisnet/irishub-sdk-go/types"
 	//"github.com/irisnet/irishub-sdk-go/types/tx/signing"
-
 )
 
 // wrapper is a wrapper around the tx.Tx proto.Message which retain the raw

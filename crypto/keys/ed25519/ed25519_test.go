@@ -2,7 +2,6 @@ package ed25519_test
 
 import (
 	"encoding/base64"
-	codec2 "github.com/irisnet/irishub-sdk-go/types/codec"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -113,7 +112,7 @@ func TestPrivKeyEquals(t *testing.T) {
 }
 
 func TestMarshalAmino(t *testing.T) {
-	aminoCdc := codec2.NewLegacyAmino()
+	aminoCdc := codec.NewLegacyAmino()
 	privKey := ed25519.GenPrivKey()
 	pubKey := privKey.PubKey().(*ed25519.PubKey)
 
@@ -166,7 +165,7 @@ func TestMarshalAmino(t *testing.T) {
 }
 
 func TestMarshalAmino_BackwardsCompatibility(t *testing.T) {
-	aminoCdc := codec2.NewLegacyAmino()
+	aminoCdc := codec.NewLegacyAmino()
 	// Create Tendermint keys.
 	tmPrivKey := tmed25519.GenPrivKey()
 	tmPubKey := tmPrivKey.PubKey()

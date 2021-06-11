@@ -8,11 +8,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gogo/protobuf/proto"
-	clienttx "github.com/irisnet/irishub-sdk-go/client/tx"
+	"github.com/irisnet/irishub-sdk-go/common"
+	commoncache "github.com/irisnet/irishub-sdk-go/common/cache"
+	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
+	sdklog "github.com/irisnet/irishub-sdk-go/common/log"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/types/tx"
-	"github.com/irisnet/irishub-sdk-go/utils/cache"
-	sdklog "github.com/irisnet/irishub-sdk-go/utils/log"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/libs/log"
@@ -66,7 +67,7 @@ func NewBaseClient(cfg sdk.ClientConfig, encodingConfig sdk.EncodingConfig, logg
 		algo:   cfg.Algo,
 	}
 
-	c := cache.NewCache(cacheCapacity, cfg.Cached)
+	c := commoncache.NewCache(cacheCapacity, cfg.Cached)
 	base.accountQuery = accountQuery{
 		Queries:    base,
 		GRPCClient: base.GRPCClient,
@@ -97,7 +98,7 @@ func (base *baseClient) SetLogger(logger log.Logger) {
 }
 
 // Codec returns codec.
-func (base *baseClient) Marshaler() sdk.Marshaler {
+func (base *baseClient) Marshaler() commoncodec.Marshaler {
 	return base.encodingConfig.Marshaler
 }
 
@@ -182,7 +183,7 @@ func (base *baseClient) SendBatch(msgs sdk.Msgs, baseTx sdk.BaseTx) (rs []sdk.Re
 	var tryCnt = 0
 
 resize:
-	for i, ms := range sdk.SubArray(batch, msgs) {
+	for i, ms := range common.SubArray(batch, msgs) {
 		mss := ms.(sdk.Msgs)
 
 	retry:
@@ -283,8 +284,8 @@ func (base baseClient) QueryStore(key sdk.HexBytes, storeName string, height int
 	return resp, nil
 }
 
-func (base *baseClient) prepare(baseTx sdk.BaseTx) (*clienttx.Factory, error) {
-	factory := clienttx.NewFactory().
+func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.Factory, error) {
+	factory := sdk.NewFactory().
 		WithChainID(base.cfg.ChainID).
 		WithKeyManager(base.KeyManager).
 		WithMode(base.cfg.Mode).
@@ -342,8 +343,8 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*clienttx.Factory, error) {
 }
 
 // TODO
-func (base *baseClient) prepareTemp(addr string, accountNumber, sequence uint64, baseTx sdk.BaseTx) (*clienttx.Factory, error) {
-	factory := clienttx.NewFactory().
+func (base *baseClient) prepareTemp(addr string, accountNumber, sequence uint64, baseTx sdk.BaseTx) (*sdk.Factory, error) {
+	factory := sdk.NewFactory().
 		WithChainID(base.cfg.ChainID).
 		WithKeyManager(base.KeyManager).
 		WithMode(base.cfg.Mode).

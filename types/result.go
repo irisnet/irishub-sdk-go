@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	codec2 "github.com/irisnet/irishub-sdk-go/types/codec"
 	"math"
 	"strings"
 
@@ -12,10 +11,11 @@ import (
 
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
-	codectypes "github.com/irisnet/irishub-sdk-go/types/codec/types"
+	"github.com/irisnet/irishub-sdk-go/codec"
+	codectypes "github.com/irisnet/irishub-sdk-go/codec/types"
 )
 
-var cdc = codec2.NewLegacyAmino()
+var cdc = codec.NewLegacyAmino()
 
 func (gi GasInfo) String() string {
 	bz, _ := yaml.Marshal(gi)

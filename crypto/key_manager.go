@@ -2,16 +2,12 @@ package crypto
 
 import (
 	"fmt"
-	"strings"
-
-	"github.com/pkg/errors"
-
-	"github.com/tendermint/tendermint/crypto"
-
 	"github.com/cosmos/go-bip39"
-
 	cryptoAmino "github.com/irisnet/irishub-sdk-go/crypto/codec"
 	"github.com/irisnet/irishub-sdk-go/crypto/hd"
+	"github.com/pkg/errors"
+	"github.com/tendermint/tendermint/crypto"
+	"strings"
 )
 
 const (

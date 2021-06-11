@@ -1,12 +1,12 @@
 package sdk
 
 import (
-	tmcrypto "github.com/tendermint/tendermint/crypto"
-	"github.com/irisnet/irishub-sdk-go/crypto"
-	cryptoamino "github.com/irisnet/irishub-sdk-go/crypto/codec"
+	"fmt"
+	kmg "github.com/irisnet/irishub-sdk-go/common/crypto"
+	cryptoamino "github.com/irisnet/irishub-sdk-go/common/crypto/codec"
 	"github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/types/store"
-	"fmt"
+	tmcrypto "github.com/tendermint/tendermint/crypto"
 )
 
 type keyManager struct {
@@ -20,7 +20,7 @@ func (k keyManager) Sign(name, password string, data []byte) ([]byte, tmcrypto.P
 		return nil, nil, fmt.Errorf("name %s not exist", name)
 	}
 
-	km, err := crypto.NewPrivateKeyManager([]byte(info.PrivKeyArmor), string(info.Algo))
+	km, err := kmg.NewPrivateKeyManager([]byte(info.PrivKeyArmor), string(info.Algo))
 	if err != nil {
 		return nil, nil, fmt.Errorf("name %s not exist", name)
 	}
@@ -38,7 +38,7 @@ func (k keyManager) Insert(name, password string) (string, string, error) {
 		return "", "", fmt.Errorf("name %s has existed", name)
 	}
 
-	km, err := crypto.NewAlgoKeyManager(k.algo)
+	km, err := kmg.NewAlgoKeyManager(k.algo)
 	if err != nil {
 		return "", "", err
 	}
@@ -67,14 +67,14 @@ func (k keyManager) Recover(name, password, mnemonic, hdPath string) (string, er
 	}
 
 	var (
-		km  crypto.KeyManager
+		km  kmg.KeyManager
 		err error
 	)
 
 	if hdPath == "" {
-		km, err = crypto.NewMnemonicKeyManager(mnemonic, k.algo)
+		km, err = kmg.NewMnemonicKeyManager(mnemonic, k.algo)
 	} else {
-		km, err = crypto.NewMnemonicKeyManagerWithHDPath(mnemonic, k.algo, hdPath)
+		km, err = kmg.NewMnemonicKeyManagerWithHDPath(mnemonic, k.algo, hdPath)
 	}
 
 	if err != nil {
@@ -105,7 +105,7 @@ func (k keyManager) Import(name, password, armor string) (string, error) {
 		return "", fmt.Errorf("%s has existed", name)
 	}
 
-	km := crypto.NewKeyManager()
+	km := kmg.NewKeyManager()
 
 	priv, _, err := km.ImportPrivKey(armor, password)
 	if err != nil {
@@ -135,7 +135,7 @@ func (k keyManager) Export(name, password string) (armor string, err error) {
 		return armor, fmt.Errorf("name %s not exist", name)
 	}
 
-	km, err := crypto.NewPrivateKeyManager([]byte(info.PrivKeyArmor), info.Algo)
+	km, err := kmg.NewPrivateKeyManager([]byte(info.PrivKeyArmor), info.Algo)
 	if err != nil {
 		return "", err
 	}

@@ -5,7 +5,7 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/codec/types"
 )
 
 // MarshalAny is a convenience function for packing the provided value in an

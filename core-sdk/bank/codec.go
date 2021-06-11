@@ -2,21 +2,24 @@ package bank
 
 import (
 	"github.com/irisnet/irishub-sdk-go/auth"
+	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
+	"github.com/irisnet/irishub-sdk-go/common/codec/types"
+	commoncryptocodec "github.com/irisnet/irishub-sdk-go/common/crypto/codec"
 
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 var (
-	amino     = sdk.NewLegacyAmino()
-	ModuleCdc = sdk.NewAminoCodec(amino)
+	amino     = commoncodec.NewLegacyAmino()
+	ModuleCdc = commoncodec.NewAminoCodec(amino)
 )
 
 func init() {
-	sdk.RegisterCrypto(amino)
+	commoncryptocodec.RegisterCrypto(amino)
 	amino.Seal()
 }
 
-func RegisterInterfaces(registry sdk.InterfaceRegistry) {
+func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgSend{},

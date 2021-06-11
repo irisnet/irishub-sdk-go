@@ -7,7 +7,8 @@ import (
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
-	types2 "github.com/irisnet/irishub-sdk-go/types"
+	types "github.com/irisnet/irishub-sdk-go/common/codec/types"
+
 	_ "github.com/regen-network/cosmos-proto"
 	io "io"
 	math "math"
@@ -29,10 +30,10 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // for basic account functionality. Any custom account type should extend this
 // type for additional functionality (e.g. vesting).
 type BaseAccount struct {
-	Address       string      `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-	PubKey        *types2.Any `protobuf:"bytes,2,opt,name=pub_key,json=pubKey,proto3" json:"public_key,omitempty" yaml:"public_key"`
-	AccountNumber uint64      `protobuf:"varint,3,opt,name=account_number,json=accountNumber,proto3" json:"account_number,omitempty" yaml:"account_number"`
-	Sequence      uint64      `protobuf:"varint,4,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	Address       string     `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	PubKey        *types.Any `protobuf:"bytes,2,opt,name=pub_key,json=pubKey,proto3" json:"public_key,omitempty" yaml:"public_key"`
+	AccountNumber uint64     `protobuf:"varint,3,opt,name=account_number,json=accountNumber,proto3" json:"account_number,omitempty" yaml:"account_number"`
+	Sequence      uint64     `protobuf:"varint,4,opt,name=sequence,proto3" json:"sequence,omitempty"`
 }
 
 func (m *BaseAccount) Reset()      { *m = BaseAccount{} }
@@ -602,7 +603,7 @@ func (m *BaseAccount) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.PubKey == nil {
-				m.PubKey = &types2.Any{}
+				m.PubKey = &types.Any{}
 			}
 			if err := m.PubKey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

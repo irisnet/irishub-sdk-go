@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	crypto2 "github.com/irisnet/irishub-sdk-go/common/crypto"
 	"math"
 	"strings"
 
@@ -11,10 +12,10 @@ import (
 
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
-	"github.com/irisnet/irishub-sdk-go/codec"
+	cryptotypes "github.com/irisnet/irishub-sdk-go/common/crypto/types"
 )
 
-var cdc = codec.NewLegacyAmino()
+var cdc = crypto2.NewLegacyAmino()
 
 func (gi GasInfo) String() string {
 	bz, _ := yaml.Marshal(gi)
@@ -59,7 +60,7 @@ func (logs ABCIMessageLogs) String() (str string) {
 }
 
 // NewResponseResultTx returns a TxResponse given a ResultTx from tendermint
-func NewResponseResultTx(res *ctypes.ResultTx, anyTx *Any, timestamp string) *TxResponse {
+func NewResponseResultTx(res *ctypes.ResultTx, anyTx *cryptotypes.Any, timestamp string) *TxResponse {
 	if res == nil {
 		return nil
 	}
@@ -230,15 +231,15 @@ func ParseABCILogs(logs string) (res ABCIMessageLogs, err error) {
 	return res, err
 }
 
-var _, _ UnpackInterfacesMessage = SearchTxsResult{}, TxResponse{}
+var _, _ cryptotypes.UnpackInterfacesMessage = SearchTxsResult{}, TxResponse{}
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 //
 // types.UnpackInterfaces needs to be called for each nested Tx because
 // there are generally interfaces to unpack in Tx's
-func (s SearchTxsResult) UnpackInterfaces(unpacker AnyUnpacker) error {
+func (s SearchTxsResult) UnpackInterfaces(unpacker cryptotypes.AnyUnpacker) error {
 	for _, tx := range s.Txs {
-		err := UnpackInterfaces(tx, unpacker)
+		err := cryptotypes.UnpackInterfaces(tx, unpacker)
 		if err != nil {
 			return err
 		}
@@ -247,7 +248,7 @@ func (s SearchTxsResult) UnpackInterfaces(unpacker AnyUnpacker) error {
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (r TxResponse) UnpackInterfaces(unpacker AnyUnpacker) error {
+func (r TxResponse) UnpackInterfaces(unpacker cryptotypes.AnyUnpacker) error {
 	if r.Tx != nil {
 		var tx Tx
 		return unpacker.UnpackAny(r.Tx, &tx)

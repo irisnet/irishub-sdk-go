@@ -1,10 +1,10 @@
 package multisig
 
 import (
-	codec2 "github.com/irisnet/irishub-sdk-go/types/codec"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/sr25519"
 
+	"github.com/irisnet/irishub-sdk-go/codec"
 	"github.com/irisnet/irishub-sdk-go/crypto/keys/ed25519"
 	"github.com/irisnet/irishub-sdk-go/crypto/keys/secp256k1"
 	cryptotypes "github.com/irisnet/irishub-sdk-go/crypto/types"
@@ -16,7 +16,7 @@ const (
 	PubKeyAminoRoute = "tendermint/PubKeyMultisigThreshold"
 )
 
-var AminoCdc = codec2.NewLegacyAmino()
+var AminoCdc = codec.NewLegacyAmino()
 
 func init() {
 	// TODO We now register both Tendermint's PubKey and our own PubKey. In the

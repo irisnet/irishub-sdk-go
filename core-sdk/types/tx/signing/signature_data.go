@@ -1,7 +1,7 @@
 package signing
 
 import (
-	"github.com/irisnet/irishub-sdk-go/crypto/types"
+	"github.com/irisnet/irishub-sdk-go/common/crypto/types"
 )
 
 // SignatureData represents either a *SingleSignatureData or *MultiSignatureData.

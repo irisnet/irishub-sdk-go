@@ -2,8 +2,7 @@ package types
 
 import (
 	"github.com/irisnet/irishub-sdk-go/codec"
-	codec2 "github.com/irisnet/irishub-sdk-go/types/codec"
-	"github.com/irisnet/irishub-sdk-go/types/codec/types"
+	"github.com/irisnet/irishub-sdk-go/codec/types"
 )
 
 // EncodingConfig specifies the concrete encoding types to use for a given app.
@@ -12,5 +11,5 @@ type EncodingConfig struct {
 	InterfaceRegistry types.InterfaceRegistry
 	Marshaler         codec.Marshaler
 	TxConfig          TxConfig
-	Amino             *codec2.LegacyAmino
+	Amino             *codec.LegacyAmino
 }

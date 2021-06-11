@@ -1,0 +1,29 @@
+package types
+
+import (
+	"bytes"
+	"github.com/irisnet/irishub-sdk-go/types/crypto/types"
+
+	"github.com/gogo/protobuf/jsonpb"
+	"github.com/gogo/protobuf/proto"
+)
+
+// ProtoMarshalJSON provides an auxiliary function to return Proto3 JSON encoded
+// bytes of a message.
+func ProtoMarshalJSON(msg proto.Message) ([]byte, error) {
+	// We use the OrigName because camel casing fields just doesn't make sense.
+	// EmitDefaults is also often the more expected behavior for CLI users
+	jm := &jsonpb.Marshaler{OrigName: true, EmitDefaults: true}
+	err := types.UnpackInterfaces(msg, types.ProtoJSONPacker{JSONPBMarshaler: jm})
+	if err != nil {
+		return nil, err
+	}
+
+	buf := new(bytes.Buffer)
+
+	if err := jm.Marshal(buf, msg); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}

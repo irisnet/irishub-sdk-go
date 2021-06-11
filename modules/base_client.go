@@ -1,25 +1,28 @@
+// Package modules is to warpped the API provided by each module of IRIS-Hub
 //
 //
 package modules
 
 import (
 	"context"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
-
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
-	clienttx "github.com/irisnet/irishub-sdk-go/client/tx"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/tmhash"
+
+	clienttx "github.com/irisnet/irishub-sdk-go/client/tx"
+
+	"github.com/gogo/protobuf/proto"
+
+	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 
 	"github.com/irisnet/irishub-sdk-go/codec"
+	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/types/tx"
 	"github.com/irisnet/irishub-sdk-go/utils"
 	"github.com/irisnet/irishub-sdk-go/utils/cache"

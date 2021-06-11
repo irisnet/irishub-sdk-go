@@ -2,8 +2,6 @@ package sdk
 
 import (
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/modules"
-	codec2 "github.com/irisnet/irishub-sdk-go/types/codec"
 
 	"github.com/irisnet/irishub-sdk-go/modules/coinswap"
 	"github.com/irisnet/irishub-sdk-go/modules/gov"
@@ -17,9 +15,9 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/irisnet/irishub-sdk-go/codec"
+	cdctypes "github.com/irisnet/irishub-sdk-go/codec/types"
 	cryptocodec "github.com/irisnet/irishub-sdk-go/crypto/codec"
-	cdctypes "github.com/irisnet/irishub-sdk-go/types/codec/types"
-
+	"github.com/irisnet/irishub-sdk-go/modules"
 	"github.com/irisnet/irishub-sdk-go/modules/bank"
 	"github.com/irisnet/irishub-sdk-go/modules/keys"
 	"github.com/irisnet/irishub-sdk-go/modules/service"
@@ -107,7 +105,7 @@ func (client *IRISHUBClient) SetLogger(logger log.Logger) {
 	client.BaseClient.SetLogger(logger)
 }
 
-func (client *IRISHUBClient) Codec() *codec2.LegacyAmino {
+func (client *IRISHUBClient) Codec() *codec.LegacyAmino {
 	return client.encodingConfig.Amino
 }
 
@@ -141,7 +139,7 @@ func (client *IRISHUBClient) Module(name string) types.Module {
 }
 
 func makeEncodingConfig() types.EncodingConfig {
-	amino := codec2.NewLegacyAmino()
+	amino := codec.NewLegacyAmino()
 	interfaceRegistry := cdctypes.NewInterfaceRegistry()
 	marshaler := codec.NewProtoCodec(interfaceRegistry)
 	txCfg := txtypes.NewTxConfig(marshaler, txtypes.DefaultSignModes)
@@ -158,7 +156,7 @@ func makeEncodingConfig() types.EncodingConfig {
 }
 
 // RegisterLegacyAminoCodec registers the sdk message type.
-func RegisterLegacyAminoCodec(cdc *codec2.LegacyAmino) {
+func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterInterface((*types.Msg)(nil), nil)
 	cdc.RegisterInterface((*types.Tx)(nil), nil)
 	cryptocodec.RegisterCrypto(cdc)

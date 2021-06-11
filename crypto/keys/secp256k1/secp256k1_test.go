@@ -3,7 +3,6 @@ package secp256k1_test
 import (
 	"encoding/base64"
 	"encoding/hex"
-	codec2 "github.com/irisnet/irishub-sdk-go/types/codec"
 	"math/big"
 	"testing"
 
@@ -199,7 +198,7 @@ func TestPrivKeyEquals(t *testing.T) {
 }
 
 func TestMarshalAmino(t *testing.T) {
-	aminoCdc := codec2.NewLegacyAmino()
+	aminoCdc := codec.NewLegacyAmino()
 	privKey := secp256k1.GenPrivKey()
 	pubKey := privKey.PubKey().(*secp256k1.PubKey)
 

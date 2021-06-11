@@ -3,12 +3,13 @@ package sdk
 import (
 	"context"
 	"fmt"
+	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
 	"time"
 
 	"github.com/irisnet/irishub-sdk-go/auth"
 	"github.com/irisnet/irishub-sdk-go/bank"
+	commoncache "github.com/irisnet/irishub-sdk-go/common/cache"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
-	"github.com/irisnet/irishub-sdk-go/utils/cache"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -17,8 +18,8 @@ type accountQuery struct {
 	sdk.Queries
 	sdk.GRPCClient
 	log.Logger
-	cache.Cache
-	cdc        sdk.Marshaler
+	commoncache.Cache
+	cdc        commoncodec.Marshaler
 	km         sdk.KeyManager
 	expiration time.Duration
 }
