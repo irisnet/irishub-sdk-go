@@ -2,9 +2,7 @@ package codec
 
 import (
 	"fmt"
-
 	"github.com/gogo/protobuf/proto"
-
 	"github.com/irisnet/irishub-sdk-go/codec/types"
 )
 
