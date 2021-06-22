@@ -7,9 +7,9 @@ import (
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
-	types1 "github.com/irisnet/irishub-sdk-go/crypto/types"
-	github_com_irisnet_irishub_sdk_go_types "github.com/irisnet/irishub-sdk-go/types"
-	types2 "github.com/irisnet/irishub-sdk-go/types"
+	types2 "github.com/irisnet/irishub-sdk-go/common/codec/types"
+	types1 "github.com/irisnet/irishub-sdk-go/common/crypto/types"
+	types "github.com/irisnet/irishub-sdk-go/types"
 	signing "github.com/irisnet/irishub-sdk-go/types/tx/signing"
 	io "io"
 	math "math"
@@ -667,7 +667,7 @@ func (m *ModeInfo_Multi) GetModeInfos() []*ModeInfo {
 // which must be above some miminum to be accepted into the mempool.
 type Fee struct {
 	// amount is the amount of coins to be paid as a fee
-	Amount github_com_irisnet_irishub_sdk_go_types.Coins `protobuf:"bytes,1,rep,name=amount,proto3,castrepeated=github.com/irisnet/irishub-sdk-go/types.Coins" json:"amount"`
+	Amount types.Coins `protobuf:"bytes,1,rep,name=amount,proto3,castrepeated=github.com/irisnet/irishub-sdk-go/types.Coins" json:"amount"`
 	// gas_limit is the maximum gas that can be used in transaction processing
 	// before an out of gas error occurs
 	GasLimit uint64 `protobuf:"varint,2,opt,name=gas_limit,json=gasLimit,proto3" json:"gas_limit,omitempty"`
@@ -714,7 +714,7 @@ func (m *Fee) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Fee proto.InternalMessageInfo
 
-func (m *Fee) GetAmount() github_com_irisnet_irishub_sdk_go_types.Coins {
+func (m *Fee) GetAmount() types.Coins {
 	if m != nil {
 		return m.Amount
 	}
@@ -2912,7 +2912,7 @@ func (m *Fee) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Amount = append(m.Amount, types2.Coin{})
+			m.Amount = append(m.Amount, types.Coin{})
 			if err := m.Amount[len(m.Amount)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

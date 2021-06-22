@@ -3,7 +3,7 @@ package tx
 import (
 	"errors"
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/types/crypto/types"
+	"github.com/irisnet/irishub-sdk-go/common/codec/types"
 
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )

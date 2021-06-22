@@ -3,7 +3,7 @@ package tx
 import (
 	"fmt"
 
-	"github.com/irisnet/irishub-sdk-go/codec"
+	"github.com/irisnet/irishub-sdk-go/common/codec"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	signingtypes "github.com/irisnet/irishub-sdk-go/types/tx/signing"
 )

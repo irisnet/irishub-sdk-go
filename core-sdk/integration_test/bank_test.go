@@ -38,9 +38,7 @@ func (s IntegrationTestSuite) TestBank() {
 	}
 
 	for _, t := range cases {
-		s.Run(t.testName, func() {
-			t.testCase(s)
-		})
+		s.Run(t.testName, func() { t.testCase(s) })
 	}
 }
 

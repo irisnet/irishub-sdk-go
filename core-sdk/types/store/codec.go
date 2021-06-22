@@ -1,19 +1,17 @@
 package store
 
-/* zs
 import (
+	"github.com/irisnet/irishub-sdk-go/common/codec"
+	cryptocodec "github.com/irisnet/irishub-sdk-go/common/crypto/codec"
+	"github.com/irisnet/irishub-sdk-go/common/crypto/hd"
 	"github.com/tendermint/tendermint/crypto"
-
-	"github.com/irisnet/irishub-sdk-go/types"
-	cryptoAmino "github.com/irisnet/irishub-sdk-go/types/crypto"
-	"github.com/irisnet/irishub-sdk-go/crypto/hd"
 )
 
-var cdc *types.LegacyAmino
+var cdc *codec.LegacyAmino
 
 func init() {
 	cdc = codec.NewLegacyAmino()
-	cryptoAmino.RegisterCrypto(cdc)
+	cryptocodec.RegisterCrypto(cdc)
 	RegisterCodec(cdc)
 	cdc.Seal()
 }
@@ -30,4 +28,3 @@ func PubKeyFromBytes(pubKeyBytes []byte) (pubKey crypto.PubKey, err error) {
 	err = cdc.UnmarshalBinaryBare(pubKeyBytes, &pubKey)
 	return
 }
-*/

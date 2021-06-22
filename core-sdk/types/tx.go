@@ -1,6 +1,7 @@
 package types
 
 import (
+	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
 	"github.com/tendermint/tendermint/crypto"
 )
 
@@ -32,7 +33,7 @@ type (
 	// also know how to encode itself.
 	ClientTx interface {
 		Tx
-		ProtoMarshaler
+		commoncodec.ProtoMarshaler
 
 		SetMsgs(...Msg) error
 		GetSignatures() []Signature

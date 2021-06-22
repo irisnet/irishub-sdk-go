@@ -5,8 +5,8 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/irisnet/irishub-sdk-go/codec"
-	"github.com/irisnet/irishub-sdk-go/crypto/types"
+	"github.com/irisnet/irishub-sdk-go/common/codec"
+	"github.com/irisnet/irishub-sdk-go/common/crypto/types"
 	"github.com/irisnet/irishub-sdk-go/types/tx/signing"
 )
 

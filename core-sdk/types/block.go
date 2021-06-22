@@ -2,7 +2,7 @@ package types
 
 import (
 	"encoding/base64"
-	crypto2 "github.com/irisnet/irishub-sdk-go/common/crypto"
+	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/encoding"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
@@ -20,7 +20,7 @@ type Data struct {
 	Txs []StdTx `json:"txs"`
 }
 
-func ParseBlock(cdc *crypto2.LegacyAmino, block *tmtypes.Block) Block {
+func ParseBlock(cdc *commoncodec.LegacyAmino, block *tmtypes.Block) Block {
 	var txs []StdTx
 	for _, tx := range block.Txs {
 		var stdTx StdTx
@@ -106,7 +106,7 @@ func ParseBlockResult(res *ctypes.ResultBlockResults) BlockResult {
 	}
 }
 
-func ParseValidators(cdc *crypto2.LegacyAmino, vs []*tmtypes.Validator) []Validator {
+func ParseValidators(cdc *commoncodec.LegacyAmino, vs []*tmtypes.Validator) []Validator {
 	var validators = make([]Validator, len(vs))
 	for i, v := range vs {
 		bech32Addr, _ := ConsAddressFromHex(v.Address.String())

@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/irisnet/irishub-sdk-go/common/crypto/types"
+	codectypes "github.com/irisnet/irishub-sdk-go/common/codec/types"
 	"github.com/tendermint/tendermint/crypto"
 )
 
@@ -18,7 +18,7 @@ type SplitAble interface {
 
 type Module interface {
 	Name() string
-	RegisterInterfaceTypes(registry types.InterfaceRegistry)
+	RegisterInterfaceTypes(registry codectypes.InterfaceRegistry)
 }
 
 type KeyManager interface {

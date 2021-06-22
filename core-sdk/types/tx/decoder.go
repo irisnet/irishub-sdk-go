@@ -1,8 +1,8 @@
 package tx
 
 import (
-	"github.com/irisnet/irishub-sdk-go/codec"
-	"github.com/irisnet/irishub-sdk-go/codec/unknownproto"
+	"github.com/irisnet/irishub-sdk-go/common/codec"
+	"github.com/irisnet/irishub-sdk-go/common/codec/unknownproto"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 

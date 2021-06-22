@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/hex"
+	cryptoAmino "github.com/irisnet/irishub-sdk-go/common/crypto/codec"
 	"github.com/irisnet/irishub-sdk-go/types/kv"
 	"github.com/tendermint/tendermint/crypto"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
@@ -23,7 +24,7 @@ type (
 )
 
 var (
-	PubKeyFromBytes = PubkeyFromBytes
+	PubKeyFromBytes = cryptoAmino.PubKeyFromBytes
 )
 
 func MustHexBytesFrom(hexStr string) HexBytes {
