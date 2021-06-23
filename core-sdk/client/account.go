@@ -3,14 +3,13 @@ package client
 import (
 	"context"
 	"fmt"
-	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
-	"time"
-
 	"github.com/irisnet/irishub-sdk-go/auth"
 	"github.com/irisnet/irishub-sdk-go/bank"
-	commoncache "github.com/irisnet/irishub-sdk-go/common/cache"
+	cache "github.com/irisnet/irishub-sdk-go/common/cache"
+	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/tendermint/tendermint/libs/log"
+	"time"
 )
 
 // Must be used with locker, otherwise there are thread safety issues
@@ -18,7 +17,7 @@ type accountQuery struct {
 	sdk.Queries
 	sdk.GRPCClient
 	log.Logger
-	commoncache.Cache
+	cache.Cache
 	cdc        commoncodec.Marshaler
 	km         sdk.KeyManager
 	expiration time.Duration

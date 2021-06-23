@@ -2,41 +2,59 @@ package types
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 )
 
 const (
-	// RootCodespace is the codespace for all errors defined in irishub
+	// RootCodespace is the codespace for all errors defined in irita
 	RootCodespace = "sdk"
 
-	OK                Code = 0
-	Internal          Code = 1
-	TxDecode          Code = 2
-	InvalidSequence   Code = 3
-	Unauthorized      Code = 4
-	InsufficientFunds Code = 5
-	UnknownRequest    Code = 6
-	InvalidAddress    Code = 7
-	InvalidPubkey     Code = 8
-	UnknownAddress    Code = 9
-	InvalidCoins      Code = 10
-	OutOfGas          Code = 11
-	MemoTooLarge      Code = 12
-	InsufficientFee   Code = 13
-	TooManySignatures Code = 14
-	NoSignatures      Code = 15
-	ErrJsonMarshal    Code = 16
-	ErrJsonUnmarshal  Code = 17
-	InvalidRequest    Code = 18
-	TxInMempoolCache  Code = 19
-	MempoolIsFull     Code = 20
-	TxTooLarge        Code = 21
+	OK                      Code = 0
+	Internal                Code = 1
+	TxDecode                Code = 2
+	InvalidSequence         Code = 3
+	Unauthorized            Code = 4
+	InsufficientFunds       Code = 5
+	UnknownRequest          Code = 6
+	InvalidAddress          Code = 7
+	InvalidPubkey           Code = 8
+	UnknownAddress          Code = 9
+	InvalidCoins            Code = 10
+	OutOfGas                Code = 11
+	MemoTooLarge            Code = 12
+	InsufficientFee         Code = 13
+	TooManySignatures       Code = 14
+	NoSignatures            Code = 15
+	ErrJsonMarshal          Code = 16
+	ErrJsonUnmarshal        Code = 17
+	InvalidRequest          Code = 18
+	TxInMempoolCache        Code = 19
+	MempoolIsFull           Code = 20
+	TxTooLarge              Code = 21
+	KeyNotFound             Code = 22
+	WrongPassword           Code = 23
+	InvalidSigner           Code = 24
+	InvalidGasAdjustment    Code = 25
+	InvalidHeight           Code = 26
+	InvalidVersion          Code = 27
+	InvalidChainID          Code = 28
+	InvalidType             Code = 29
+	TxTimeoutHeight         Code = 30
+	UnknownExtensionOptions Code = 31
+	WrongSequence           Code = 32
+	PackAny                 Code = 33
+	UnpackAny               Code = 34
+	Logic                   Code = 35
+	Conflict                Code = 36
+	Panic                   Code = 111222
 )
 
 var (
 	// errUnknown = register(RootCodespace, 111222, "unknown error")
-	errInvalid = register(RootCodespace, 999999, "sdk check error")
+	errInvalid  = register(RootCodespace, 999999, "sdk check error")
+	wrongSeqMsg = "account sequence mismatch, expected"
 )
 
 func init() {
@@ -62,10 +80,25 @@ func init() {
 	_ = register(RootCodespace, TxInMempoolCache, "tx already in mempool")
 	_ = register(RootCodespace, MempoolIsFull, "mempool is full")
 	_ = register(RootCodespace, TxTooLarge, "tx too large")
+	_ = register(RootCodespace, KeyNotFound, "key not found")
+	_ = register(RootCodespace, WrongPassword, "invalid account password")
+	_ = register(RootCodespace, InvalidSigner, "tx intended signer does not match the given signer")
+	_ = register(RootCodespace, InvalidGasAdjustment, "invalid gas adjustment")
+	_ = register(RootCodespace, InvalidHeight, "invalid height")
+	_ = register(RootCodespace, InvalidVersion, "invalid version")
+	_ = register(RootCodespace, InvalidChainID, "invalid chain-id")
+	_ = register(RootCodespace, InvalidType, "invalid type")
+	_ = register(RootCodespace, TxTimeoutHeight, "tx timeout height")
+	_ = register(RootCodespace, UnknownExtensionOptions, "unknown extension options")
+	_ = register(RootCodespace, WrongSequence, "incorrect account sequence")
+	_ = register(RootCodespace, PackAny, "failed packing protobuf message to Any")
+	_ = register(RootCodespace, UnpackAny, "failed unpacking protobuf message from Any")
+	_ = register(RootCodespace, Logic, "internal logic error")
+	_ = register(RootCodespace, Conflict, "conflict")
+	_ = register(RootCodespace, Panic, "panic")
 }
 
 type Code uint32
-type CodeV017 uint32
 
 // Error represents a root error.
 //
@@ -82,17 +115,14 @@ type Error interface {
 	Codespace() string
 }
 
-// GetError is used to covert irishub error to sdk error
+// GetError is used to covert irita error to sdk error
 func GetError(codespace string, code uint32, log ...string) Error {
-	codeV1, ok := v17CodeMap[code]
+	errID := errorID(codespace, code)
+	err, ok := usedCodes[errID]
 	if !ok {
-		codeV1 = InvalidRequest
+		return Wrap(errors.New(strings.Join(log, ",")))
 	}
-	return sdkError{
-		codespace: codespace,
-		code:      uint32(codeV1),
-		desc:      log[0],
-	}
+	return err
 }
 
 // Wrap extends given error with an additional information.
@@ -105,6 +135,14 @@ func GetError(codespace string, code uint32, log ...string) Error {
 func Wrap(err error) Error {
 	if err == nil {
 		return nil
+	}
+
+	if strings.Contains(err.Error(), wrongSeqMsg) {
+		return sdkError{
+			codespace: RootCodespace,
+			code:      uint32(WrongSequence),
+			desc:      err.Error(),
+		}
 	}
 
 	return sdkError{

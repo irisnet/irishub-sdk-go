@@ -2,7 +2,7 @@ package sdk
 
 import (
 	"github.com/irisnet/irishub-sdk-go/bank"
-	client2 "github.com/irisnet/irishub-sdk-go/client"
+	"github.com/irisnet/irishub-sdk-go/client"
 	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
 	cryptotypes "github.com/irisnet/irishub-sdk-go/common/codec/types"
 	commoncryptocodec "github.com/irisnet/irishub-sdk-go/common/crypto/codec"
@@ -27,7 +27,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	encodingConfig := makeEncodingConfig()
 
 	// create a instance of baseClient
-	baseClient := client2.NewBaseClient(cfg, encodingConfig, nil)
+	baseClient := client.NewBaseClient(cfg, encodingConfig, nil)
 	keysClient := keys.NewClient(baseClient)
 	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
 	//tokenClient := token.NewClient(baseClient, encodingConfig.Marshaler)

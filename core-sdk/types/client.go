@@ -8,10 +8,10 @@ import (
 
 type TxManager interface {
 	TmQuery
-	BuildTxHash(msg []Msg, baseTx BaseTx) (string, Error)
+	SendBatch(msgs Msgs, baseTx BaseTx) ([]ResultTx, Error)
 	BuildAndSend(msg []Msg, baseTx BaseTx) (ResultTx, Error)
 	BuildAndSign(msg []Msg, baseTx BaseTx) ([]byte, Error)
-	SendBatch(msgs Msgs, baseTx BaseTx) ([]ResultTx, Error)
+	BuildTxHash(msg []Msg, baseTx BaseTx) (string, Error)
 	BuildAndSendWithAccount(addr string, accountNumber, sequence uint64, msg []Msg, baseTx BaseTx) (ResultTx, Error)
 }
 
@@ -49,11 +49,8 @@ type TmQuery interface {
 type TokenManager interface {
 	QueryToken(denom string) (Token, error)
 	SaveTokens(tokens ...Token)
-	ToMinCoin(coin ...DecCoin) (Coins, Error)
-	ToMainCoin(coin ...Coin) (DecCoins, Error)
 }
 
-//xs
 type TokenConvert interface {
 	ToMinCoin(coin ...DecCoin) (Coins, Error)
 	ToMainCoin(coin ...Coin) (DecCoins, Error)

@@ -4,6 +4,9 @@ import (
 	"fmt"
 	kmg "github.com/irisnet/irishub-sdk-go/common/crypto"
 	cryptoamino "github.com/irisnet/irishub-sdk-go/common/crypto/codec"
+	"github.com/irisnet/irishub-sdk-go/common/crypto/keys/secp256k1"
+	"github.com/irisnet/irishub-sdk-go/common/crypto/keys/sm2"
+	commoncryptotypes "github.com/irisnet/irishub-sdk-go/common/crypto/types"
 	"github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/types/store"
 	tmcrypto "github.com/tendermint/tendermint/crypto"
@@ -30,7 +33,7 @@ func (k keyManager) Sign(name, password string, data []byte) ([]byte, tmcrypto.P
 		return nil, nil, err
 	}
 
-	return signByte, km.ExportPubKey(), nil
+	return signByte, FromTmPubKey(info.Algo, km.ExportPubKey()), nil
 }
 
 func (k keyManager) Insert(name, password string) (string, string, error) {
@@ -65,12 +68,10 @@ func (k keyManager) Recover(name, password, mnemonic, hdPath string) (string, er
 	if k.keyDAO.Has(name) {
 		return "", fmt.Errorf("name %s has existed", name)
 	}
-
 	var (
 		km  kmg.KeyManager
 		err error
 	)
-
 	if hdPath == "" {
 		km, err = kmg.NewMnemonicKeyManager(mnemonic, k.algo)
 	} else {
@@ -158,5 +159,17 @@ func (k keyManager) Find(name, password string) (tmcrypto.PubKey, types.AccAddre
 		return nil, nil, types.WrapWithMessage(err, "name %s not exist", name)
 	}
 
-	return pubKey, types.AccAddress(pubKey.Address().Bytes()), nil
+	return FromTmPubKey(info.Algo, pubKey), types.AccAddress(pubKey.Address().Bytes()), nil
+}
+
+func FromTmPubKey(algo string, pubKey tmcrypto.PubKey) commoncryptotypes.PubKey {
+	var pubkey commoncryptotypes.PubKey
+	pubkeyBytes := pubKey.Bytes()
+	switch algo {
+	case "sm2":
+		pubkey = &sm2.PubKey{Key: pubkeyBytes}
+	case "secp256k1":
+		pubkey = &secp256k1.PubKey{Key: pubkeyBytes}
+	}
+	return pubkey
 }

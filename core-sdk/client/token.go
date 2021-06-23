@@ -6,7 +6,7 @@ import (
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"strings"
 
-	common "github.com/irisnet/irishub-sdk-go/common/cache"
+	"github.com/irisnet/irishub-sdk-go/common/cache"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -15,7 +15,7 @@ type tokenQuery struct {
 	sdk.GRPCClient
 	cdc commoncodec.Marshaler
 	log.Logger
-	common.Cache
+	cache.Cache
 }
 
 //zs
