@@ -15,6 +15,7 @@ type bankClient struct {
 	commoncodec.Marshaler
 }
 
+//bank NewClient
 func NewClient(bc sdk.BaseClient, cdc commoncodec.Marshaler) Client {
 	return bankClient{
 		BaseClient: bc,

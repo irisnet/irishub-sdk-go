@@ -1,13 +1,12 @@
 package sdk
 
 import (
-	"fmt"
 	"github.com/irisnet/irishub-sdk-go/bank"
+	client2 "github.com/irisnet/irishub-sdk-go/client"
 	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
 	cryptotypes "github.com/irisnet/irishub-sdk-go/common/codec/types"
 	commoncryptocodec "github.com/irisnet/irishub-sdk-go/common/crypto/codec"
 	"github.com/irisnet/irishub-sdk-go/keys"
-
 	"github.com/irisnet/irishub-sdk-go/types"
 	//"github.com/irisnet/irishub-sdk-go/types/token"
 	txtypes "github.com/irisnet/irishub-sdk-go/types/tx"
@@ -28,7 +27,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	encodingConfig := makeEncodingConfig()
 
 	// create a instance of baseClient
-	baseClient := NewBaseClient(cfg, encodingConfig, nil)
+	baseClient := client2.NewBaseClient(cfg, encodingConfig, nil)
 	keysClient := keys.NewClient(baseClient)
 	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
 	//tokenClient := token.NewClient(baseClient, encodingConfig.Marshaler)
@@ -71,14 +70,14 @@ func (client *IRISHUBClient) Manager() types.BaseClient {
 
 func (client *IRISHUBClient) RegisterModule(ms ...types.Module) {
 	for _, m := range ms {
-		_, ok := client.moduleManager[m.Name()]
-		if ok {
-			panic(fmt.Sprintf("%s has register", m.Name()))
-		}
+		//_, ok := client.moduleManager[m.Name()]
+		//if ok {
+		//	panic(fmt.Sprintf("%s has register", m.Name()))
+		//}
 
 		// m.RegisterCodec(client.encodingConfig.Amino)
 		m.RegisterInterfaceTypes(client.encodingConfig.InterfaceRegistry)
-		client.moduleManager[m.Name()] = m
+		//client.moduleManager[m.Name()] = m
 	}
 }
 

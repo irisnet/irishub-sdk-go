@@ -49,8 +49,11 @@ type TmQuery interface {
 type TokenManager interface {
 	QueryToken(denom string) (Token, error)
 	SaveTokens(tokens ...Token)
+	ToMinCoin(coin ...DecCoin) (Coins, Error)
+	ToMainCoin(coin ...Coin) (DecCoins, Error)
 }
 
+//xs
 type TokenConvert interface {
 	ToMinCoin(coin ...DecCoin) (Coins, Error)
 	ToMainCoin(coin ...Coin) (DecCoins, Error)

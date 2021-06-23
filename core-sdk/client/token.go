@@ -1,4 +1,4 @@
-package sdk
+package client
 
 import (
 	"fmt"
@@ -18,6 +18,7 @@ type tokenQuery struct {
 	common.Cache
 }
 
+//zs
 func (l tokenQuery) QueryToken(denom string) (sdk.Token, error) {
 	denom = strings.ToLower(denom)
 	if t, err := l.Get(l.prefixKey(denom)); err == nil {

@@ -1,6 +1,6 @@
 //
 //
-package sdk
+package client
 
 import (
 	"context"
@@ -40,7 +40,7 @@ type baseClient struct {
 	l              *locker
 
 	accountQuery
-	tokenQuery
+	//sdk2.tokenQuery
 }
 
 // NewBaseClient return the baseClient for every sub modules
@@ -78,13 +78,13 @@ func NewBaseClient(cfg sdk.ClientConfig, encodingConfig sdk.EncodingConfig, logg
 		expiration: cacheExpirePeriod,
 	}
 
-	base.tokenQuery = tokenQuery{
-		q:          base,
-		GRPCClient: base.GRPCClient,
-		cdc:        encodingConfig.Marshaler,
-		Logger:     base.Logger(),
-		Cache:      c,
-	}
+	//base.tokenQuery =  tokenQuery{
+	//	q:          base,
+	//	GRPCClient: base.GRPCClient,
+	//	cdc:        encodingConfig.Marshaler,
+	//	Logger:     base.Logger(),
+	//	Cache:      c,
+	//}
 
 	return &base
 }

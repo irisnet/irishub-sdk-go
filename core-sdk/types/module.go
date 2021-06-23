@@ -17,7 +17,7 @@ type SplitAble interface {
 }
 
 type Module interface {
-	Name() string
+	//Name() string
 	RegisterInterfaceTypes(registry codectypes.InterfaceRegistry)
 }
 

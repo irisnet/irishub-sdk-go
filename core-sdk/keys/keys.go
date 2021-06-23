@@ -8,6 +8,7 @@ type keysClient struct {
 	sdk.KeyManager
 }
 
+//keys NewClient
 func NewClient(keyManager sdk.KeyManager) Client {
 	return keysClient{keyManager}
 }
