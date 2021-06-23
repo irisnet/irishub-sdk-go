@@ -58,6 +58,10 @@ type ClientConfig struct {
 
 	//whether to enable caching
 	Cached bool
+
+	TokenManager TokenManager
+
+	TxSizeLimit uint64
 }
 
 func NewClientConfig(uri, grpcAddr, chainID string, options ...Option) (ClientConfig, error) {
@@ -223,6 +227,20 @@ func GasAdjustmentOption(gasAdjustment float64) Option {
 func CachedOption(enabled bool) Option {
 	return func(cfg *ClientConfig) error {
 		cfg.Cached = enabled
+		return nil
+	}
+}
+
+func TokenManagerOption(tokenManager TokenManager) Option {
+	return func(cfg *ClientConfig) error {
+		cfg.TokenManager = tokenManager
+		return nil
+	}
+}
+
+func TxSizeLimitOption(txSizeLimit uint64) Option {
+	return func(cfg *ClientConfig) error {
+		cfg.TxSizeLimit = txSizeLimit
 		return nil
 	}
 }

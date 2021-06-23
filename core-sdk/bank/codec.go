@@ -19,7 +19,7 @@ func init() {
 	amino.Seal()
 }
 
-//不能重复注册
+// No duplicate registration
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),

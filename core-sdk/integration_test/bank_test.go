@@ -142,12 +142,12 @@ func simulate(s IntegrationTestSuite) {
 	s.NoError(err)
 	to := s.GetRandAccount().Address.String()
 	baseTx := types.BaseTx{
-		From:     s.Account().Name,
-		Password: s.Account().Password,
-		Gas:      200000,
-		Memo:     "test",
-		Mode:     types.Commit,
-		Simulate: true,
+		From:               s.Account().Name,
+		Password:           s.Account().Password,
+		Gas:                200000,
+		Memo:               "test",
+		Mode:               types.Commit,
+		SimulateAndExecute: true,
 	}
 
 	result, err := s.Bank.Send(to, coins, baseTx)
