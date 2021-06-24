@@ -144,11 +144,22 @@ func (TokenManager TokenManager) SaveTokens(tokens ...types.Token) {
 	return
 }
 func (TokenManager TokenManager) ToMinCoin(coin ...types.DecCoin) (types.Coins, types.Error) {
+	for _, c := range coin {
+		if c.Denom == "iris" {
+			c.Amount = types.NewDec(c.Amount.RoundInt().Int64() * 1000000)
+		}
+	}
 	fmt.Println("++++++++++++++++++++++++++++++++++++++ coin coin coin:", coin)
 	Coins, _ := types.DecCoins(coin).TruncateDecimal()
 	return Coins, nil
 }
 
 func (TokenManager TokenManager) ToMainCoin(coin ...types.Coin) (types.DecCoins, types.Error) {
+	for _, c := range coin {
+		if c.Denom == "iris" {
+			c.Amount = types.NewInt(c.Amount.Int64() / 1000000)
+		}
+	}
+	fmt.Println("++++++++++++++++++++++++++++++++++++++ coin coin coin:", coin)
 	return types.NewDecCoinsFromCoins(coin...), nil
 }
