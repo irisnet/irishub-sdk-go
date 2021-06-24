@@ -32,6 +32,7 @@ type Account interface {
 	SetSequence(uint64) error
 }
 
+//BaseAccount Have they all been implemented
 var _ Account = (*BaseAccount)(nil)
 
 // GetAddress - Implements sdk.AccountI.
@@ -45,7 +46,6 @@ func (acc *BaseAccount) SetAddress(addr sdk.AccAddress) error {
 	if len(acc.Address) != 0 {
 		return errors.New("cannot override BaseAccount address")
 	}
-
 	acc.Address = addr.String()
 	return nil
 }
@@ -76,10 +76,8 @@ func (acc *BaseAccount) SetPubKey(pubKey crypto.PubKey) error {
 		if err != nil {
 			return err
 		}
-
 		acc.PubKey = any
 	}
-
 	return nil
 }
 
@@ -105,6 +103,7 @@ func (acc *BaseAccount) SetSequence(seq uint64) error {
 	return nil
 }
 
+//json.Marshal BaseAccount
 func (acc BaseAccount) String() string {
 	out, _ := json.Marshal(acc)
 	return string(out)

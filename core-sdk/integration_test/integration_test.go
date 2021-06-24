@@ -1,6 +1,7 @@
 package integration_test
 
 import (
+	"fmt"
 	sdk "github.com/irisnet/irishub-sdk-go"
 	"github.com/irisnet/irishub-sdk-go/common/log"
 	"github.com/irisnet/irishub-sdk-go/types"
@@ -47,9 +48,11 @@ func TestSuite(t *testing.T) {
 }
 
 func (s *IntegrationTestSuite) SetupSuite() {
+
 	options := []types.Option{
 		types.KeyDAOOption(store.NewMemory(nil)),
 		types.TimeoutOption(10),
+		types.TokenManagerOption(TokenManager{}),
 	}
 	cfg, err := types.NewClientConfig(nodeURI, grpcAddr, chainID, options...)
 	if err != nil {
@@ -129,4 +132,23 @@ func getPrivKeyArmor() []byte {
 		panic(err)
 	}
 	return bz
+}
+
+type TokenManager struct{}
+
+func (TokenManager TokenManager) QueryToken(denom string) (types.Token, error) {
+	return types.Token{}, nil
+}
+
+func (TokenManager TokenManager) SaveTokens(tokens ...types.Token) {
+	return
+}
+func (TokenManager TokenManager) ToMinCoin(coin ...types.DecCoin) (types.Coins, types.Error) {
+	fmt.Println("++++++++++++++++++++++++++++++++++++++ coin coin coin:", coin)
+	Coins, _ := types.DecCoins(coin).TruncateDecimal()
+	return Coins, nil
+}
+
+func (TokenManager TokenManager) ToMainCoin(coin ...types.Coin) (types.DecCoins, types.Error) {
+	return types.NewDecCoinsFromCoins(coin...), nil
 }

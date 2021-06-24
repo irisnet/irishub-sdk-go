@@ -55,7 +55,7 @@ type TokenManager interface {
 
 type TokenConvert interface {
 	ToMinCoin(coin ...DecCoin) (Coins, Error)
-	//ToMainCoin(coin ...Coin) (DecCoins, Error)
+	ToMainCoin(coin ...Coin) (DecCoins, Error)
 }
 
 type Logger interface {
@@ -64,7 +64,7 @@ type Logger interface {
 }
 
 type BaseClient interface {
-	TokenConvert
+	TokenManager
 	TxManager
 	KeyManager
 	Queries

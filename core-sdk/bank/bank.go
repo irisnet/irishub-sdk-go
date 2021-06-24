@@ -137,8 +137,7 @@ func (b bankClient) MultiSend(request MultiSendRequest, baseTx sdk.BaseTx) (resT
 	return
 }
 
-func (b bankClient) SendBatch(sender sdk.AccAddress,
-	request MultiSendRequest, baseTx sdk.BaseTx) ([]sdk.ResultTx, sdk.Error) {
+func (b bankClient) SendBatch(sender sdk.AccAddress, request MultiSendRequest, baseTx sdk.BaseTx) ([]sdk.ResultTx, sdk.Error) {
 	batchReceipts := common.SubArray(maxMsgLen, request)
 
 	var msgs sdk.Msgs

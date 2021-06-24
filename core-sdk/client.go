@@ -17,9 +17,7 @@ type IRISHUBClient struct {
 	logger         log.Logger
 	moduleManager  map[string]types.Module
 	encodingConfig types.EncodingConfig
-
 	types.BaseClient
-
 	Bank bank.Client
 }
 
@@ -37,7 +35,6 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 
 		Bank: bankClient,
 	}
-
 	client.RegisterModule(
 		bankClient,
 	)
@@ -66,13 +63,7 @@ func (client *IRISHUBClient) Manager() types.BaseClient {
 
 func (client *IRISHUBClient) RegisterModule(ms ...types.Module) {
 	for _, m := range ms {
-		//_, ok := client.moduleManager[m.Name()]
-		//if ok {
-		//	panic(fmt.Sprintf("%s has register", m.Name()))
-		//}
-		// m.RegisterCodec(client.encodingConfig.Amino)
 		m.RegisterInterfaceTypes(client.encodingConfig.InterfaceRegistry)
-		//client.moduleManager[m.Name()] = m
 	}
 }
 

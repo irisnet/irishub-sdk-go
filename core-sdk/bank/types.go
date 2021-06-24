@@ -193,7 +193,6 @@ func NewOutput(addr sdk.AccAddress, coins sdk.Coins) Output {
 // valid and that the sum of inputs is equal to the sum of outputs.
 func ValidateInputsOutputs(inputs []Input, outputs []Output) error {
 	var totalIn, totalOut sdk.Coins
-
 	for _, in := range inputs {
 		if err := in.ValidateBasic(); err != nil {
 			return err
