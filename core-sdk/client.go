@@ -2,11 +2,11 @@ package sdk
 
 import (
 	"github.com/irisnet/irishub-sdk-go/bank"
-	client2 "github.com/irisnet/irishub-sdk-go/client"
+	"github.com/irisnet/irishub-sdk-go/client"
 	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
 	cryptotypes "github.com/irisnet/irishub-sdk-go/common/codec/types"
 	commoncryptocodec "github.com/irisnet/irishub-sdk-go/common/crypto/codec"
-	"github.com/irisnet/irishub-sdk-go/keys"
+
 	"github.com/irisnet/irishub-sdk-go/types"
 	//"github.com/irisnet/irishub-sdk-go/types/token"
 	txtypes "github.com/irisnet/irishub-sdk-go/types/tx"
@@ -19,7 +19,7 @@ type IRISHUBClient struct {
 	encodingConfig types.EncodingConfig
 
 	types.BaseClient
-	Key  keys.Client
+
 	Bank bank.Client
 }
 
@@ -27,23 +27,19 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	encodingConfig := makeEncodingConfig()
 
 	// create a instance of baseClient
-	baseClient := client2.NewBaseClient(cfg, encodingConfig, nil)
-	keysClient := keys.NewClient(baseClient)
+	baseClient := client.NewBaseClient(cfg, encodingConfig, nil)
 	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
-	//tokenClient := token.NewClient(baseClient, encodingConfig.Marshaler)
-
 	client := &IRISHUBClient{
 		logger:         baseClient.Logger(),
 		BaseClient:     baseClient,
 		moduleManager:  make(map[string]types.Module),
 		encodingConfig: encodingConfig,
-		Key:            keysClient,
-		Bank:           bankClient,
+
+		Bank: bankClient,
 	}
 
 	client.RegisterModule(
 		bankClient,
-		//tokenClient,
 	)
 	return *client
 }
@@ -74,7 +70,6 @@ func (client *IRISHUBClient) RegisterModule(ms ...types.Module) {
 		//if ok {
 		//	panic(fmt.Sprintf("%s has register", m.Name()))
 		//}
-
 		// m.RegisterCodec(client.encodingConfig.Amino)
 		m.RegisterInterfaceTypes(client.encodingConfig.InterfaceRegistry)
 		//client.moduleManager[m.Name()] = m

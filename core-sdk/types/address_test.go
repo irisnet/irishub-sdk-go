@@ -2,11 +2,9 @@ package types
 
 import (
 	"fmt"
-	"testing"
-
-	"github.com/stretchr/testify/require"
-
 	"github.com/irisnet/irishub-sdk-go/common/bech32"
+	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func TestGetFromBech32(t *testing.T) {

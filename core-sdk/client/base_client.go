@@ -1,4 +1,4 @@
-//
+// Package modules is to warpped the API provided by each module of IRITA
 //
 package client
 
@@ -7,12 +7,13 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/avast/retry-go"
 	"github.com/gogo/protobuf/proto"
 	"github.com/irisnet/irishub-sdk-go/common"
 	commoncache "github.com/irisnet/irishub-sdk-go/common/cache"
 	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
 	sdklog "github.com/irisnet/irishub-sdk-go/common/log"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
+	sdktypes "github.com/irisnet/irishub-sdk-go/types"
 	"github.com/irisnet/irishub-sdk-go/types/tx"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/tmhash"
@@ -31,37 +32,36 @@ const (
 )
 
 type baseClient struct {
-	sdk.TmClient
-	sdk.GRPCClient
-	sdk.KeyManager
+	sdktypes.TmClient
+	sdktypes.GRPCClient
+	sdktypes.KeyManager
+	sdktypes.TokenManager
 	logger         log.Logger
-	cfg            *sdk.ClientConfig
-	encodingConfig sdk.EncodingConfig
+	cfg            *sdktypes.ClientConfig
+	encodingConfig sdktypes.EncodingConfig
 	l              *locker
 
 	accountQuery
-	//sdk2.tokenQuery
 }
 
 // NewBaseClient return the baseClient for every sub modules
-func NewBaseClient(cfg sdk.ClientConfig, encodingConfig sdk.EncodingConfig, logger log.Logger) sdk.BaseClient {
+func NewBaseClient(cfg sdktypes.ClientConfig, encodingConfig sdktypes.EncodingConfig, logger log.Logger) sdktypes.BaseClient {
 	// create logger
 	if logger == nil {
 		logger = sdklog.NewLogger(sdklog.Config{
 			Format: sdklog.FormatText,
-			Level:  sdklog.InfoLevel,
+			Level:  cfg.Level,
 		})
 	}
-
 	base := baseClient{
 		TmClient:       NewRPCClient(cfg.NodeURI, encodingConfig.Amino, encodingConfig.TxConfig.TxDecoder(), logger, cfg.Timeout),
 		GRPCClient:     NewGRPCClient(cfg.GRPCAddr),
 		logger:         logger,
 		cfg:            &cfg,
 		encodingConfig: encodingConfig,
-		l:              NewLocker(concurrency),
+		l:              NewLocker(concurrency).setLogger(logger),
 	}
-
+	base.TokenManager = cfg.TokenManager
 	base.KeyManager = keyManager{
 		keyDAO: cfg.KeyDAO,
 		algo:   cfg.Algo,
@@ -77,15 +77,6 @@ func NewBaseClient(cfg sdk.ClientConfig, encodingConfig sdk.EncodingConfig, logg
 		km:         base.KeyManager,
 		expiration: cacheExpirePeriod,
 	}
-
-	//base.tokenQuery =  tokenQuery{
-	//	q:          base,
-	//	GRPCClient: base.GRPCClient,
-	//	cdc:        encodingConfig.Marshaler,
-	//	Logger:     base.Logger(),
-	//	Cache:      c,
-	//}
-
 	return &base
 }
 
@@ -102,75 +93,108 @@ func (base *baseClient) Marshaler() commoncodec.Marshaler {
 	return base.encodingConfig.Marshaler
 }
 
-func (base *baseClient) BuildTxHash(msg []sdk.Msg, baseTx sdk.BaseTx) (string, sdk.Error) {
+func (base *baseClient) BuildTxHash(msg []sdktypes.Msg, baseTx sdktypes.BaseTx) (string, sdktypes.Error) {
 	txByte, _, err := base.buildTx(msg, baseTx)
 	if err != nil {
-		return "", sdk.Wrap(err)
+		return "", sdktypes.Wrap(err)
 	}
 	return strings.ToUpper(hex.EncodeToString(tmhash.Sum(txByte))), nil
 }
 
-func (base *baseClient) BuildAndSign(msg []sdk.Msg, baseTx sdk.BaseTx) ([]byte, sdk.Error) {
+func (base *baseClient) BuildAndSign(msg []sdktypes.Msg, baseTx sdktypes.BaseTx) ([]byte, sdktypes.Error) {
 	builder, err := base.prepare(baseTx)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return nil, sdktypes.Wrap(err)
 	}
 
 	txByte, err := builder.BuildAndSign(baseTx.From, msg, true)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return nil, sdktypes.Wrap(err)
 	}
 
 	base.Logger().Debug("sign transaction success")
 	return txByte, nil
 }
 
-func (base *baseClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	txByte, ctx, err := base.buildTx(msg, baseTx)
+func (base *baseClient) BuildAndSendWithAccount(addr string, accountNumber, sequence uint64, msg []sdktypes.Msg, baseTx sdktypes.BaseTx) (sdktypes.ResultTx, sdktypes.Error) {
+	txByte, ctx, err := base.buildTxWithAccount(addr, accountNumber, sequence, msg, baseTx)
 	if err != nil {
-		return sdk.ResultTx{}, err
+		return sdktypes.ResultTx{}, err
 	}
 
-	if err := base.ValidateTxSize(len(txByte), msg); err != nil {
-		return sdk.ResultTx{}, err
-	}
-
-	res, err := base.broadcastTx(txByte, ctx.Mode(), baseTx.Simulate)
+	valid, err := base.ValidateTxSize(len(txByte), msg)
 	if err != nil {
-		if base.cfg.Cached {
-			_ = base.removeCache(ctx.Address())
+		return sdktypes.ResultTx{}, err
+	}
+	if !valid {
+		base.Logger().Debug("tx is too large")
+		// filter out transactions that have been sent
+		// reset the maximum number of msg in each transaction
+		//batch = batch / 2
+		return sdktypes.ResultTx{}, sdktypes.GetError(sdktypes.RootCodespace, uint32(sdktypes.TxTooLarge))
+	}
+	return base.broadcastTx(txByte, ctx.Mode())
+}
+
+func (base *baseClient) BuildAndSend(msg []sdktypes.Msg, baseTx sdktypes.BaseTx) (sdktypes.ResultTx, sdktypes.Error) {
+	var res sdktypes.ResultTx
+	var address string
+
+	// lock the account
+	base.l.Lock(baseTx.From)
+	defer base.l.Unlock(baseTx.From)
+
+	retryableFunc := func() error {
+		txByte, ctx, e := base.buildTx(msg, baseTx)
+		if e != nil {
+			return e
 		}
 
-		base.Logger().Error("broadcast transaction failed", "errMsg", err.Error())
-		return res, err
+		if res, e = base.broadcastTx(txByte, ctx.Mode()); e != nil {
+			address = ctx.Address()
+			return e
+		}
+		return nil
+	}
+
+	retryIfFunc := func(err error) bool {
+		e, ok := err.(sdktypes.Error)
+		if ok && sdktypes.Code(e.Code()) == sdktypes.WrongSequence {
+			return true
+		}
+		return false
+	}
+
+	onRetryFunc := func(n uint, err error) {
+		_ = base.removeCache(address)
+		base.Logger().Error("wrong sequence, will retry",
+			"address", address, "attempts", n, "err", err.Error())
+	}
+
+	err := retry.Do(retryableFunc,
+		retry.Attempts(tryThreshold),
+		retry.RetryIf(retryIfFunc),
+		retry.OnRetry(onRetryFunc),
+	)
+
+	if err != nil {
+		return res, sdktypes.Wrap(err)
 	}
 	return res, nil
 }
 
-func (base *baseClient) BuildAndSendWithAccount(addr string, accountNumber, sequence uint64, msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	txByte, ctx, err := base.buildTxWithAccount(addr, accountNumber, sequence, msg, baseTx)
-	if err != nil {
-		return sdk.ResultTx{}, err
-	}
-
-	if err := base.ValidateTxSize(len(txByte), msg); err != nil {
-		return sdk.ResultTx{}, err
-	}
-	return base.broadcastTx(txByte, ctx.Mode(), baseTx.Simulate)
-}
-
-func (base *baseClient) SendBatch(msgs sdk.Msgs, baseTx sdk.BaseTx) (rs []sdk.ResultTx, err sdk.Error) {
+func (base *baseClient) SendBatch(msgs sdktypes.Msgs, baseTx sdktypes.BaseTx) (rs []sdktypes.ResultTx, err sdktypes.Error) {
 	if msgs == nil || len(msgs) == 0 {
-		return rs, sdk.Wrapf("must have at least one message in list")
+		return rs, sdktypes.Wrapf("must have at least one message in list")
 	}
 
-	defer sdk.CatchPanic(func(errMsg string) {
+	defer sdktypes.CatchPanic(func(errMsg string) {
 		base.Logger().Error("broadcast msg failed", "errMsg", errMsg)
 	})
 	// validate msg
 	for _, m := range msgs {
 		if err := m.ValidateBasic(); err != nil {
-			return rs, sdk.Wrap(err)
+			return rs, sdktypes.Wrap(err)
 		}
 	}
 	base.Logger().Debug("validate msg success")
@@ -179,53 +203,62 @@ func (base *baseClient) SendBatch(msgs sdk.Msgs, baseTx sdk.BaseTx) (rs []sdk.Re
 	base.l.Lock(baseTx.From)
 	defer base.l.Unlock(baseTx.From)
 
-	batch := maxBatch
-	var tryCnt = 0
+	var address string
+	var batch = maxBatch
 
-resize:
-	for i, ms := range common.SubArray(batch, msgs) {
-		mss := ms.(sdk.Msgs)
-
-	retry:
-		txByte, ctx, err := base.buildTx(mss, baseTx)
-		if err != nil {
-			return rs, err
-		}
-
-		if err := base.ValidateTxSize(len(txByte), mss); err != nil {
-			base.Logger().Debug("tx is too large", "msgsLength", batch, "errMsg", err.Error())
-
-			// filter out transactions that have been sent
-			msgs = msgs[i*batch:]
-			// reset the maximum number of msg in each transaction
-			batch = batch / 2
-			_ = base.removeCache(ctx.Address())
-			goto resize
-		}
-
-		res, err := base.broadcastTx(txByte, ctx.Mode(), baseTx.Simulate)
-		if err != nil {
-			if base.cfg.Cached {
-				base.Logger().Debug("something wrong,retrying ...", "address", ctx.Address(), "tryCnt", tryCnt)
-
-				_ = base.removeCache(ctx.Address())
-				if tryCnt++; tryCnt >= tryThreshold {
-					return rs, err
-				}
-				goto retry
+	retryableFunc := func() error {
+		for i, ms := range common.SubArray(batch, msgs) {
+			mss := ms.(sdktypes.Msgs)
+			txByte, ctx, err := base.buildTx(mss, baseTx)
+			if err != nil {
+				return err
 			}
 
-			base.Logger().Error("broadcast transaction failed", "errMsg", err.Error())
-			return rs, err
+			valid, err := base.ValidateTxSize(len(txByte), mss)
+			if err != nil {
+				return err
+			}
+			if !valid {
+				base.Logger().Debug("tx is too large", "msgsLength", batch)
+				// filter out transactions that have been sent
+				msgs = msgs[i*batch:]
+				// reset the maximum number of msg in each transaction
+				batch = batch / 2
+				return sdktypes.GetError(sdktypes.RootCodespace, uint32(sdktypes.TxTooLarge))
+			}
+			res, err := base.broadcastTx(txByte, ctx.Mode())
+			if err != nil {
+				address = ctx.Address()
+				return err
+			}
+			rs = append(rs, res)
 		}
-		rs = append(rs, res)
-
-		base.Logger().Info("broadcast transaction success", "txHash", res.Hash, "height", res.Height)
+		return nil
 	}
+
+	retryIf := func(err error) bool {
+		e, ok := err.(sdktypes.Error)
+		if ok && (sdktypes.Code(e.Code()) == sdktypes.InvalidSequence || sdktypes.Code(e.Code()) == sdktypes.TxTooLarge) {
+			return true
+		}
+		return false
+	}
+
+	onRetry := func(n uint, err error) {
+		_ = base.removeCache(address)
+		base.Logger().Error("wrong sequence, will retry",
+			"address", address, "attempts", n, "err", err.Error())
+	}
+
+	_ = retry.Do(retryableFunc,
+		retry.Attempts(tryThreshold),
+		retry.RetryIf(retryIf),
+		retry.OnRetry(onRetry),
+	)
 	return rs, nil
 }
 
-func (base baseClient) QueryWithResponse(path string, data interface{}, result sdk.Response) error {
+func (base baseClient) QueryWithResponse(path string, data interface{}, result sdktypes.Response) error {
 	res, err := base.Query(path, data)
 	if err != nil {
 		return err
@@ -265,7 +298,7 @@ func (base baseClient) Query(path string, data interface{}) ([]byte, error) {
 	return resp.Value, nil
 }
 
-func (base baseClient) QueryStore(key sdk.HexBytes, storeName string, height int64, prove bool) (res abci.ResponseQuery, err error) {
+func (base baseClient) QueryStore(key sdktypes.HexBytes, storeName string, height int64, prove bool) (res abci.ResponseQuery, err error) {
 	path := fmt.Sprintf("/store/%s/%s", storeName, "key")
 	opts := rpcclient.ABCIQueryOptions{
 		Prove:  prove,
@@ -284,15 +317,17 @@ func (base baseClient) QueryStore(key sdk.HexBytes, storeName string, height int
 	return resp, nil
 }
 
-func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.Factory, error) {
-	factory := sdk.NewFactory().
+func (base *baseClient) prepare(baseTx sdktypes.BaseTx) (*sdktypes.Factory, error) {
+	factory := sdktypes.NewFactory().
 		WithChainID(base.cfg.ChainID).
 		WithKeyManager(base.KeyManager).
 		WithMode(base.cfg.Mode).
-		WithSimulateAndExecute(baseTx.Simulate).
+		WithSimulateAndExecute(baseTx.SimulateAndExecute).
 		WithGas(base.cfg.Gas).
+		WithGasAdjustment(base.cfg.GasAdjustment).
 		WithSignModeHandler(tx.MakeSignModeHandler(tx.DefaultSignModes)).
-		WithTxConfig(base.encodingConfig.TxConfig)
+		WithTxConfig(base.encodingConfig.TxConfig).
+		WithQueryFunc(base.QueryWithData)
 
 	addr, err := base.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
@@ -300,28 +335,22 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.Factory, error) {
 	}
 	factory.WithAddress(addr.String())
 
-	if baseTx.AccountNumber != 0 && baseTx.Sequence != 0 {
-		factory.WithAccountNumber(baseTx.AccountNumber).
-			WithSequence(baseTx.Sequence).
-			WithPassword(baseTx.Password)
-	} else {
-		account, err := base.QueryAndRefreshAccount(addr.String())
-		if err != nil {
-			return nil, err
-		}
-		factory.WithAccountNumber(account.AccountNumber).
-			WithSequence(account.Sequence).
-			WithPassword(baseTx.Password)
+	account, err := base.QueryAndRefreshAccount(addr.String())
+	if err != nil {
+		return nil, err
 	}
+	factory.WithAccountNumber(account.AccountNumber).
+		WithSequence(account.Sequence).
+		WithPassword(baseTx.Password)
 
 	if !baseTx.Fee.Empty() && baseTx.Fee.IsValid() {
-		fees, err := base.ToMinCoin(baseTx.Fee...)
+		fees, err := base.TokenManager.ToMinCoin(baseTx.Fee...)
 		if err != nil {
 			return nil, err
 		}
 		factory.WithFee(fees)
 	} else {
-		fees, err := base.ToMinCoin(base.cfg.Fee...)
+		fees, err := base.TokenManager.ToMinCoin(base.cfg.Fee...)
 		if err != nil {
 			panic(err)
 		}
@@ -336,6 +365,10 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.Factory, error) {
 		factory.WithGas(baseTx.Gas)
 	}
 
+	if baseTx.GasAdjustment > 0 {
+		factory.WithGasAdjustment(baseTx.GasAdjustment)
+	}
+
 	if len(baseTx.Memo) > 0 {
 		factory.WithMemo(baseTx.Memo)
 	}
@@ -343,12 +376,12 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.Factory, error) {
 }
 
 // TODO
-func (base *baseClient) prepareTemp(addr string, accountNumber, sequence uint64, baseTx sdk.BaseTx) (*sdk.Factory, error) {
-	factory := sdk.NewFactory().
+func (base *baseClient) prepareTemp(addr string, accountNumber, sequence uint64, baseTx sdktypes.BaseTx) (*sdktypes.Factory, error) {
+	factory := sdktypes.NewFactory().
 		WithChainID(base.cfg.ChainID).
 		WithKeyManager(base.KeyManager).
 		WithMode(base.cfg.Mode).
-		WithSimulateAndExecute(baseTx.Simulate).
+		WithSimulateAndExecute(baseTx.SimulateAndExecute).
 		WithGas(base.cfg.Gas).
 		WithSignModeHandler(tx.MakeSignModeHandler(tx.DefaultSignModes)).
 		WithTxConfig(base.encodingConfig.TxConfig)
@@ -359,13 +392,13 @@ func (base *baseClient) prepareTemp(addr string, accountNumber, sequence uint64,
 		WithPassword(baseTx.Password)
 
 	if !baseTx.Fee.Empty() && baseTx.Fee.IsValid() {
-		fees, err := base.ToMinCoin(baseTx.Fee...)
+		fees, err := base.TokenManager.ToMinCoin(baseTx.Fee...)
 		if err != nil {
 			return nil, err
 		}
 		factory.WithFee(fees)
 	} else {
-		fees, err := base.ToMinCoin(base.cfg.Fee...)
+		fees, err := base.TokenManager.ToMinCoin(base.cfg.Fee...)
 		if err != nil {
 			panic(err)
 		}
@@ -386,38 +419,17 @@ func (base *baseClient) prepareTemp(addr string, accountNumber, sequence uint64,
 	return factory, nil
 }
 
-func (base *baseClient) ValidateTxSize(txSize int, msgs []sdk.Msg) sdk.Error {
-	//var isServiceTx bool
-	//for _, msg := range msgs {
-	//	if msg.Route() == service.ModuleName {
-	//		isServiceTx = true
-	//		break
-	//	}
-	//}
-	//if isServiceTx {
-	//	var param service.Params
-	//
-	//	err := base.QueryParams(service.ModuleName, &param)
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//
-	//	if uint64(txSize) > param.TxSizeLimit {
-	//		return sdk.Wrapf("tx size too large, expected: <= %d, got %d", param.TxSizeLimit, txSize)
-	//	}
-	//	return nil
-	//
-	//} else {
-	//	if uint64(txSize) > base.cfg.MaxTxBytes {
-	//		return sdk.Wrapf("tx size too large, expected: <= %d, got %d", base.cfg.MaxTxBytes, txSize)
-	//	}
-	//}
-	return nil
+func (base *baseClient) ValidateTxSize(txSize int, msgs []sdktypes.Msg) (bool, sdktypes.Error) {
+	if uint64(txSize) > base.cfg.TxSizeLimit {
+		return false, nil
+	}
+	return true, nil
 }
 
 type locker struct {
 	shards []chan int
 	size   int
+	logger log.Logger
 }
 
 //NewLocker implement the function of lock, can lock resources according to conditions
@@ -430,6 +442,11 @@ func NewLocker(size int) *locker {
 		shards: shards,
 		size:   size,
 	}
+}
+
+func (l *locker) setLogger(logger log.Logger) *locker {
+	l.logger = logger
+	return l
 }
 
 func (l *locker) Lock(key string) {

@@ -5,6 +5,7 @@ import (
 	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
 	"github.com/irisnet/irishub-sdk-go/common/codec/types"
 	commoncryptocodec "github.com/irisnet/irishub-sdk-go/common/crypto/codec"
+
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 

@@ -2,9 +2,8 @@ package types
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/irisnet/irishub-sdk-go/types/store"
+	"os"
 )
 
 const (
