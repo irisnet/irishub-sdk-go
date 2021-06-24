@@ -61,7 +61,7 @@ func (base baseClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size *int)
 	}, nil
 }
 
-func (base baseClient) QueryBlock(height int64) (sdk.BlockDetail, error) {
+func (base client.baseClient) QueryBlock(height int64) (sdk.BlockDetail, error) {
 	block, err := base.Block(context.Background(), &height)
 	if err != nil {
 		return sdk.BlockDetail{}, err
@@ -79,7 +79,7 @@ func (base baseClient) QueryBlock(height int64) (sdk.BlockDetail, error) {
 	}, nil
 }
 
-func (base baseClient) EstimateTxGas(txBytes []byte) (uint64, error) {
+func (base client.baseClient) EstimateTxGas(txBytes []byte) (uint64, error) {
 	res, err := base.ABCIQuery(context.Background(), "/app/simulate", txBytes)
 	if err != nil {
 		return 0, err
@@ -94,7 +94,7 @@ func (base baseClient) EstimateTxGas(txBytes []byte) (uint64, error) {
 	return adjusted, nil
 }
 
-func (base *baseClient) buildTx(msgs []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *sdk.Factory, sdk.Error) {
+func (base *client.baseClient) buildTx(msgs []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *sdk.Factory, sdk.Error) {
 	builder, err := base.prepare(baseTx)
 	if err != nil {
 		return nil, builder, sdk.Wrap(err)
@@ -109,7 +109,7 @@ func (base *baseClient) buildTx(msgs []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *sdk
 	return txByte, builder, nil
 }
 
-func (base *baseClient) buildTxWithAccount(addr string, accountNumber, sequence uint64, msgs []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *sdk.Factory, sdk.Error) {
+func (base *client.baseClient) buildTxWithAccount(addr string, accountNumber, sequence uint64, msgs []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *sdk.Factory, sdk.Error) {
 	builder, err := base.prepareTemp(addr, accountNumber, sequence, baseTx)
 	if err != nil {
 		return nil, builder, sdk.Wrap(err)
@@ -124,7 +124,16 @@ func (base *baseClient) buildTxWithAccount(addr string, accountNumber, sequence 
 	return txByte, builder, nil
 }
 
-func (base baseClient) broadcastTx(txBytes []byte, mode sdk.BroadcastMode) (res sdk.ResultTx, err sdk.Error) {
+func (base client.baseClient) broadcastTx(txBytes []byte, mode sdk.BroadcastMode, simulate bool) (res sdk.ResultTx, err sdk.Error) {
+	if simulate {
+		estimateGas, err := base.EstimateTxGas(txBytes)
+		if err != nil {
+			return res, sdk.Wrap(err)
+		}
+		res.GasWanted = int64(estimateGas)
+		return res, nil
+	}
+
 	switch mode {
 	case sdk.Commit:
 		res, err = base.broadcastTxCommit(txBytes)
@@ -140,7 +149,7 @@ func (base baseClient) broadcastTx(txBytes []byte, mode sdk.BroadcastMode) (res 
 
 // broadcastTxCommit broadcasts transaction bytes to a Tendermint node
 // and waits for a commit.
-func (base baseClient) broadcastTxCommit(tx []byte) (sdk.ResultTx, sdk.Error) {
+func (base client.baseClient) broadcastTxCommit(tx []byte) (sdk.ResultTx, sdk.Error) {
 	res, err := base.BroadcastTxCommit(context.Background(), tx)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
@@ -165,7 +174,7 @@ func (base baseClient) broadcastTxCommit(tx []byte) (sdk.ResultTx, sdk.Error) {
 
 // BroadcastTxSync broadcasts transaction bytes to a Tendermint node
 // synchronously.
-func (base baseClient) broadcastTxSync(tx []byte) (sdk.ResultTx, sdk.Error) {
+func (base client.baseClient) broadcastTxSync(tx []byte) (sdk.ResultTx, sdk.Error) {
 	res, err := base.BroadcastTxSync(context.Background(), tx)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
@@ -180,7 +189,7 @@ func (base baseClient) broadcastTxSync(tx []byte) (sdk.ResultTx, sdk.Error) {
 
 // BroadcastTxAsync broadcasts transaction bytes to a Tendermint node
 // asynchronously.
-func (base baseClient) broadcastTxAsync(tx []byte) (sdk.ResultTx, sdk.Error) {
+func (base client.baseClient) broadcastTxAsync(tx []byte) (sdk.ResultTx, sdk.Error) {
 	res, err := base.BroadcastTxAsync(context.Background(), tx)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
@@ -189,7 +198,7 @@ func (base baseClient) broadcastTxAsync(tx []byte) (sdk.ResultTx, sdk.Error) {
 	return sdk.ResultTx{Hash: res.Hash.String()}, nil
 }
 
-func (base baseClient) getResultBlocks(resTxs []*ctypes.ResultTx) (map[int64]*ctypes.ResultBlock, error) {
+func (base client.baseClient) getResultBlocks(resTxs []*ctypes.ResultTx) (map[int64]*ctypes.ResultBlock, error) {
 	resBlocks := make(map[int64]*ctypes.ResultBlock)
 	for _, resTx := range resTxs {
 		if _, ok := resBlocks[resTx.Height]; !ok {
@@ -204,7 +213,7 @@ func (base baseClient) getResultBlocks(resTxs []*ctypes.ResultTx) (map[int64]*ct
 	return resBlocks, nil
 }
 
-func (base baseClient) parseTxResult(res *ctypes.ResultTx, resBlock *ctypes.ResultBlock) (sdk.ResultQueryTx, error) {
+func (base client.baseClient) parseTxResult(res *ctypes.ResultTx, resBlock *ctypes.ResultBlock) (sdk.ResultQueryTx, error) {
 	var tx sdk.Tx
 	var err error
 

@@ -1,14 +1,12 @@
 package client
 
-/*
-
 import (
 	"fmt"
 	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"strings"
 
-  "github.com/irisnet/irishub-sdk-go/common/cache"
+	common "github.com/irisnet/irishub-sdk-go/common/cache"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -17,9 +15,8 @@ type tokenQuery struct {
 	sdk.GRPCClient
 	cdc commoncodec.Marshaler
 	log.Logger
-	cache.Cache
+	common.Cache
 }
-
 
 //zs
 func (l tokenQuery) QueryToken(denom string) (sdk.Token, error) {
@@ -100,4 +97,3 @@ func (l tokenQuery) ToMainCoin(coins ...sdk.Coin) (dstCoins sdk.DecCoins, err sd
 func (l tokenQuery) prefixKey(symbol string) string {
 	return fmt.Sprintf("token:%s", symbol)
 }
-*/
