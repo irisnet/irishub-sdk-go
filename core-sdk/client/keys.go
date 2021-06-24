@@ -17,6 +17,10 @@ type keyManager struct {
 	algo   string
 }
 
+func (k keyManager) Add(name, password string) (string, string, types.Error) {
+	address, mnemonic, err := k.Insert(name, password)
+	return address, mnemonic, types.Wrap(err)
+}
 func (k keyManager) Sign(name, password string, data []byte) ([]byte, tmcrypto.PubKey, error) {
 	info, err := k.keyDAO.Read(name, password)
 	if err != nil {

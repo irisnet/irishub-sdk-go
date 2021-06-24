@@ -98,7 +98,7 @@ func multiSend(s IntegrationTestSuite) {
 	receipts := make([]bank.Receipt, accNum)
 	for i := 0; i < accNum; i++ {
 		acc[i] = s.RandStringOfLength(10)
-		addr, _, err := s.Key.Add(acc[i], "1234567890")
+		addr, _, err := s.Add(acc[i], "1234567890")
 
 		s.NoError(err)
 		s.NotEmpty(addr)

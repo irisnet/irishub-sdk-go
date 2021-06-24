@@ -71,7 +71,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 }
 
 func (s *IntegrationTestSuite) initAccount() {
-	_, err := s.Key.Import(
+	_, err := s.Import(
 		s.Account().Name,
 		s.Account().Password,
 		string(getPrivKeyArmor()),
@@ -84,7 +84,7 @@ func (s *IntegrationTestSuite) initAccount() {
 	for i := 0; i < 5; i++ {
 		name := s.RandStringOfLength(10)
 		pwd := s.RandStringOfLength(16)
-		address, _, err := s.Key.Add(name, "11111111")
+		address, _, err := s.Add(name, "11111111")
 		if err != nil {
 			panic("generate test account failed")
 		}

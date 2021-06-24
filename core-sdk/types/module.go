@@ -17,7 +17,6 @@ type SplitAble interface {
 }
 
 type Module interface {
-	//Name() string
 	RegisterInterfaceTypes(registry codectypes.InterfaceRegistry)
 }
 
@@ -29,4 +28,5 @@ type KeyManager interface {
 	Export(name, password string) (privKeyArmor string, err error)
 	Delete(name, password string) error
 	Find(name, password string) (crypto.PubKey, AccAddress, error)
+	Add(name, password string) (address string, mnemonic string, err Error)
 }
