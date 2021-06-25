@@ -48,6 +48,9 @@ const (
 	UnpackAny               Code = 34
 	Logic                   Code = 35
 	Conflict                Code = 36
+	NotSupported            Code = 37
+	NotFound                Code = 38
+	IO                      Code = 39
 	Panic                   Code = 111222
 )
 
@@ -95,6 +98,9 @@ func init() {
 	_ = register(RootCodespace, UnpackAny, "failed unpacking protobuf message from Any")
 	_ = register(RootCodespace, Logic, "internal logic error")
 	_ = register(RootCodespace, Conflict, "conflict")
+	_ = register(RootCodespace, NotSupported, "feature not supported")
+	_ = register(RootCodespace, NotFound, "not found")
+	_ = register(RootCodespace, IO, "Internal IO error")
 	_ = register(RootCodespace, Panic, "panic")
 }
 

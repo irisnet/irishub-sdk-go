@@ -1,7 +1,6 @@
 package integration_test
 
 import (
-	"fmt"
 	sdk "github.com/irisnet/irishub-sdk-go"
 	"github.com/irisnet/irishub-sdk-go/common/log"
 	"github.com/irisnet/irishub-sdk-go/types"
@@ -143,23 +142,26 @@ func (TokenManager TokenManager) QueryToken(denom string) (types.Token, error) {
 func (TokenManager TokenManager) SaveTokens(tokens ...types.Token) {
 	return
 }
-func (TokenManager TokenManager) ToMinCoin(coin ...types.DecCoin) (types.Coins, types.Error) {
-	for _, c := range coin {
-		if c.Denom == "iris" {
-			c.Amount = types.NewDec(c.Amount.RoundInt().Int64() * 1000000)
+
+func (TokenManager TokenManager) ToMinCoin(coins ...types.DecCoin) (types.Coins, types.Error) {
+
+	for i, _ := range coins {
+		if coins[i].Denom == "iris" {
+			coins[i].Denom = "uiris"
+			coins[i].Amount = coins[i].Amount.MulInt(types.NewIntWithDecimal(1, 6))
 		}
 	}
-	fmt.Println("++++++++++++++++++++++++++++++++++++++ coin coin coin:", coin)
-	Coins, _ := types.DecCoins(coin).TruncateDecimal()
-	return Coins, nil
+	ucoins, _ := types.DecCoins(coins).TruncateDecimal()
+	return ucoins, nil
 }
 
-func (TokenManager TokenManager) ToMainCoin(coin ...types.Coin) (types.DecCoins, types.Error) {
-	for _, c := range coin {
-		if c.Denom == "iris" {
-			c.Amount = types.NewInt(c.Amount.Int64() / 1000000)
+func (TokenManager TokenManager) ToMainCoin(coins ...types.Coin) (types.DecCoins, types.Error) {
+	decCoins := make(types.DecCoins, len(coins), 0)
+	for _, coin := range coins {
+		if coin.Denom == "uiris" {
+			amtount := types.NewDecFromInt(coin.Amount).Mul(types.NewDecWithPrec(1, 6))
+			decCoins = append(decCoins, types.NewDecCoinFromDec("iris", amtount))
 		}
 	}
-	fmt.Println("++++++++++++++++++++++++++++++++++++++ coin coin coin:", coin)
-	return types.NewDecCoinsFromCoins(coin...), nil
+	return decCoins, nil
 }

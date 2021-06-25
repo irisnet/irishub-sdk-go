@@ -16,6 +16,7 @@ const (
 	defaultMode          = Sync
 	defaultPath          = "$HOME/irishub-sdk-go/leveldb"
 	defaultGasAdjustment = 1.0
+	defaultTxSizeLimit   = 1048576
 )
 
 type ClientConfig struct {
@@ -121,7 +122,9 @@ func (cfg *ClientConfig) checkAndSetDefault() error {
 	if err := MaxTxBytesOption(cfg.MaxTxBytes)(cfg); err != nil {
 		return err
 	}
-
+	if err := TxSizeLimitOption(cfg.TxSizeLimit)(cfg); err != nil {
+		return err
+	}
 	return GasAdjustmentOption(cfg.GasAdjustment)(cfg)
 }
 
@@ -239,6 +242,9 @@ func TokenManagerOption(tokenManager TokenManager) Option {
 
 func TxSizeLimitOption(txSizeLimit uint64) Option {
 	return func(cfg *ClientConfig) error {
+		if txSizeLimit <= 0 {
+			txSizeLimit = defaultTxSizeLimit
+		}
 		cfg.TxSizeLimit = txSizeLimit
 		return nil
 	}

@@ -3,14 +3,12 @@ package integration_test
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/irisnet/irishub-sdk-go/bank"
+	"github.com/irisnet/irishub-sdk-go/types"
+	"github.com/stretchr/testify/require"
 	"math/rand"
 	"sync"
 	"time"
-
-	"github.com/stretchr/testify/require"
-
-	"github.com/irisnet/irishub-sdk-go/bank"
-	"github.com/irisnet/irishub-sdk-go/types"
 )
 
 func (s IntegrationTestSuite) TestBank() {
@@ -61,11 +59,13 @@ func send(s IntegrationTestSuite) {
 	})
 
 	baseTx := types.BaseTx{
-		From:     s.Account().Name,
-		Gas:      200000,
-		Memo:     "TEST",
-		Mode:     types.Commit,
-		Password: s.Account().Password,
+		From:               s.Account().Name,
+		Gas:                200000,
+		Memo:               "TEST",
+		Mode:               types.Commit,
+		Password:           s.Account().Password,
+		SimulateAndExecute: false,
+		GasAdjustment:      1.5,
 	}
 
 	res, err := s.Bank.Send(to, coins, baseTx)

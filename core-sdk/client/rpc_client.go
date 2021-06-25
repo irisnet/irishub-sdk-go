@@ -48,7 +48,6 @@ func (r rpcClient) SubscribeNewBlock(builder *sdk.EventQueryBuilder, handler sdk
 	if builder == nil {
 		builder = sdk.NewEventQueryBuilder()
 	}
-
 	builder.AddCondition(sdk.Cond(sdk.TypeKey).EQ(tmtypes.EventNewBlock))
 	query := builder.Build()
 
@@ -112,7 +111,6 @@ func (r rpcClient) SubscribeAny(query string, handler sdk.EventHandler) (subscri
 		Query: query,
 		ID:    subscriber,
 	}
-
 	go func() {
 		for {
 			data := <-ch
