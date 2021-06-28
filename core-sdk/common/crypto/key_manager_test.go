@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/irisnet/irishub-sdk-go/common/crypto"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/core-sdk-go/common/crypto"
+	sdk "github.com/irisnet/core-sdk-go/types"
 )
 
 func TestNewMnemonicKeyManager(t *testing.T) {

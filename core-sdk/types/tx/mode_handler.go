@@ -3,8 +3,8 @@ package tx
 import (
 	"fmt"
 
-	"github.com/irisnet/irishub-sdk-go/types"
-	signingtypes "github.com/irisnet/irishub-sdk-go/types/tx/signing"
+	"github.com/irisnet/core-sdk-go/types"
+	signingtypes "github.com/irisnet/core-sdk-go/types/tx/signing"
 )
 
 // DefaultSignModes are the default sign modes enabled for protobuf transactions.

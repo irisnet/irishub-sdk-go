@@ -7,8 +7,8 @@ import (
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
-	github_com_irisnet_irishub_sdk_go_types "github.com/irisnet/irishub-sdk-go/types"
-	types "github.com/irisnet/irishub-sdk-go/types"
+	github_com_irisnet_irishub_sdk_go_types "github.com/irisnet/core-sdk-go/types"
+	types "github.com/irisnet/core-sdk-go/types"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -29,7 +29,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type MsgSend struct {
 	FromAddress string                                        `protobuf:"bytes,1,opt,name=from_address,json=fromAddress,proto3" json:"from_address,omitempty" yaml:"from_address"`
 	ToAddress   string                                        `protobuf:"bytes,2,opt,name=to_address,json=toAddress,proto3" json:"to_address,omitempty" yaml:"to_address"`
-	Amount      github_com_irisnet_irishub_sdk_go_types.Coins `protobuf:"bytes,3,rep,name=amount,proto3,castrepeated=github.com/irisnet/irishub-sdk-go/types.Coins" json:"amount"`
+	Amount      github_com_irisnet_irishub_sdk_go_types.Coins `protobuf:"bytes,3,rep,name=amount,proto3,castrepeated=github.com/irisnet/core-sdk-go/types.Coins" json:"amount"`
 }
 
 func (m *MsgSend) Reset()         { *m = MsgSend{} }

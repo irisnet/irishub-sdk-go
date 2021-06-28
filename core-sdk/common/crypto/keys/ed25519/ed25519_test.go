@@ -10,9 +10,9 @@ import (
 	tmed25519 "github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/sr25519"
 
-	"github.com/irisnet/irishub-sdk-go/common/codec"
-	"github.com/irisnet/irishub-sdk-go/common/crypto/keys/ed25519"
-	cryptotypes "github.com/irisnet/irishub-sdk-go/common/crypto/types"
+	"github.com/irisnet/core-sdk-go/common/codec"
+	"github.com/irisnet/core-sdk-go/common/crypto/keys/ed25519"
+	cryptotypes "github.com/irisnet/core-sdk-go/common/crypto/types"
 )
 
 func TestSignAndValidateEd25519(t *testing.T) {

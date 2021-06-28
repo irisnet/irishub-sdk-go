@@ -6,7 +6,7 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/irisnet/irishub-sdk-go/common/crypto/keys/internal/benchmarking"
+	"github.com/irisnet/core-sdk-go/common/crypto/keys/internal/benchmarking"
 )
 
 func BenchmarkKeyGeneration(b *testing.B) {

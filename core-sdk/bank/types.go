@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	sdk "github.com/irisnet/irishub-sdk-go/types"
+	sdk "github.com/irisnet/core-sdk-go/types"
 )
 
 const (

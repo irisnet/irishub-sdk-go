@@ -1,4 +1,4 @@
-module github.com/irisnet/irishub-sdk-go
+module github.com/irisnet/core-sdk-go
 
 go 1.16
 

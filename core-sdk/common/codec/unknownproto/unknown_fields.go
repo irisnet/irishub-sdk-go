@@ -13,7 +13,7 @@ import (
 	"github.com/gogo/protobuf/protoc-gen-gogo/descriptor"
 	"google.golang.org/protobuf/encoding/protowire"
 
-	"github.com/irisnet/irishub-sdk-go/common/codec/types"
+	"github.com/irisnet/core-sdk-go/common/codec/types"
 )
 
 const bit11NonCritical = 1 << 10

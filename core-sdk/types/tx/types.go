@@ -3,9 +3,10 @@ package tx
 import (
 	"errors"
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/common/codec/types"
 
-	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/core-sdk-go/common/codec/types"
+
+	sdk "github.com/irisnet/core-sdk-go/types"
 )
 
 // MaxGasWanted defines the max gas allowed.

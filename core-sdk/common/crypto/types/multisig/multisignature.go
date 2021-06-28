@@ -6,8 +6,8 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/irisnet/irishub-sdk-go/common/crypto/types"
-	"github.com/irisnet/irishub-sdk-go/types/tx/signing"
+	"github.com/irisnet/core-sdk-go/common/crypto/types"
+	"github.com/irisnet/core-sdk-go/types/tx/signing"
 )
 
 // AminoMultisignature is used to represent amino multi-signatures for StdTx's.

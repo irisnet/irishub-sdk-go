@@ -3,11 +3,12 @@ package bank
 import (
 	"context"
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/common"
-	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
-	"github.com/irisnet/irishub-sdk-go/common/codec/types"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
 	"strings"
+
+	"github.com/irisnet/core-sdk-go/common"
+	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
+	"github.com/irisnet/core-sdk-go/common/codec/types"
+	sdk "github.com/irisnet/core-sdk-go/types"
 )
 
 type bankClient struct {

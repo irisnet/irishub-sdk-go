@@ -4,15 +4,16 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
 	"math"
 	"strings"
+
+	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
 
 	yaml "gopkg.in/yaml.v2"
 
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
-	cryptotypes "github.com/irisnet/irishub-sdk-go/common/codec/types"
+	cryptotypes "github.com/irisnet/core-sdk-go/common/codec/types"
 )
 
 var cdc = commoncodec.NewLegacyAmino()

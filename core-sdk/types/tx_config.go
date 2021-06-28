@@ -1,7 +1,7 @@
 package types
 
 import (
-	signingtypes "github.com/irisnet/irishub-sdk-go/types/tx/signing"
+	signingtypes "github.com/irisnet/core-sdk-go/types/tx/signing"
 )
 
 type (

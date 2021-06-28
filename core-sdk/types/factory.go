@@ -3,7 +3,8 @@ package types
 import (
 	"errors"
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/types/tx/signing"
+
+	"github.com/irisnet/core-sdk-go/types/tx/signing"
 )
 
 // Factory defines a client transaction factory that facilitates generating and

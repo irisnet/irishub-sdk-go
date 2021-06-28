@@ -1,8 +1,9 @@
 package common
 
 import (
-	"github.com/irisnet/irishub-sdk-go/types"
 	"testing"
+
+	"github.com/irisnet/core-sdk-go/types"
 
 	"github.com/stretchr/testify/require"
 )

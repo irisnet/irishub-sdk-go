@@ -8,7 +8,7 @@ import (
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/irisnet/irishub-sdk-go/common/codec/types"
+	"github.com/irisnet/core-sdk-go/common/codec/types"
 )
 
 // ProtoCodec defines a codec that utilizes Protobuf for both binary and JSON

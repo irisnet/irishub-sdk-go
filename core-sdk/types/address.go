@@ -6,7 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/irisnet/irishub-sdk-go/common/bech32"
+
+	"github.com/irisnet/core-sdk-go/common/bech32"
 )
 
 const (

@@ -1,9 +1,9 @@
 package legacy
 
 import (
-	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
+	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
 
-	cryptocodec "github.com/irisnet/irishub-sdk-go/common/crypto/codec"
+	cryptocodec "github.com/irisnet/core-sdk-go/common/crypto/codec"
 )
 
 // Cdc defines a global generic sealed Amino codec to be used throughout sdk. It

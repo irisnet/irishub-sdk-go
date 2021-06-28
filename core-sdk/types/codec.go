@@ -1,8 +1,8 @@
 package types
 
 import (
-	"github.com/irisnet/irishub-sdk-go/common/codec"
-	"github.com/irisnet/irishub-sdk-go/common/codec/types"
+	"github.com/irisnet/core-sdk-go/common/codec"
+	"github.com/irisnet/core-sdk-go/common/codec/types"
 )
 
 // EncodingConfig specifies the concrete encoding types to use for a given app.

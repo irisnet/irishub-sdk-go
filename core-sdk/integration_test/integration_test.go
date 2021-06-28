@@ -1,18 +1,20 @@
 package integration_test
 
 import (
-	sdk "github.com/irisnet/irishub-sdk-go"
-	"github.com/irisnet/irishub-sdk-go/common/crypto"
-	"github.com/irisnet/irishub-sdk-go/common/log"
-	"github.com/irisnet/irishub-sdk-go/types"
-	"github.com/irisnet/irishub-sdk-go/types/store"
-	"github.com/stretchr/testify/suite"
 	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/suite"
+
+	sdk "github.com/irisnet/core-sdk-go"
+	"github.com/irisnet/core-sdk-go/common/crypto"
+	"github.com/irisnet/core-sdk-go/common/log"
+	"github.com/irisnet/core-sdk-go/types"
+	"github.com/irisnet/core-sdk-go/types/store"
 )
 
 const (
@@ -25,7 +27,7 @@ const (
 
 type IntegrationTestSuite struct {
 	suite.Suite
-	sdk.IRISHUBClient
+	sdk.Client
 	r            *rand.Rand
 	rootAccount  MockAccount
 	randAccounts []MockAccount
@@ -59,7 +61,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		panic(err)
 	}
 
-	s.IRISHUBClient = sdk.NewIRISHUBClient(cfg)
+	s.Client = sdk.NewClient(cfg)
 	s.r = rand.New(rand.NewSource(time.Now().UnixNano()))
 	s.rootAccount = MockAccount{
 		Name:     "validator",
@@ -146,7 +148,7 @@ func (TokenManager TokenManager) SaveTokens(tokens ...types.Token) {
 
 func (TokenManager TokenManager) ToMinCoin(coins ...types.DecCoin) (types.Coins, types.Error) {
 
-	for i, _ := range coins {
+	for i := range coins {
 		if coins[i].Denom == "iris" {
 			coins[i].Denom = "uiris"
 			coins[i].Amount = coins[i].Amount.MulInt(types.NewIntWithDecimal(1, 6))

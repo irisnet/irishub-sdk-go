@@ -5,11 +5,11 @@ import (
 	tmed25519 "github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/sr25519"
 
-	commoncrypto "github.com/irisnet/irishub-sdk-go/common/codec"
-	"github.com/irisnet/irishub-sdk-go/common/crypto/keys/ed25519"
-	kmultisig "github.com/irisnet/irishub-sdk-go/common/crypto/keys/multisig"
-	"github.com/irisnet/irishub-sdk-go/common/crypto/keys/secp256k1"
-	cryptotypes "github.com/irisnet/irishub-sdk-go/common/crypto/types"
+	commoncrypto "github.com/irisnet/core-sdk-go/common/codec"
+	"github.com/irisnet/core-sdk-go/common/crypto/keys/ed25519"
+	kmultisig "github.com/irisnet/core-sdk-go/common/crypto/keys/multisig"
+	"github.com/irisnet/core-sdk-go/common/crypto/keys/secp256k1"
+	cryptotypes "github.com/irisnet/core-sdk-go/common/crypto/types"
 )
 
 var amino *commoncrypto.LegacyAmino

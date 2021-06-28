@@ -3,11 +3,11 @@ package codec
 import (
 	tmcrypto "github.com/tendermint/tendermint/crypto"
 
-	codectypes "github.com/irisnet/irishub-sdk-go/common/codec/types"
-	"github.com/irisnet/irishub-sdk-go/common/crypto/keys/ed25519"
-	"github.com/irisnet/irishub-sdk-go/common/crypto/keys/multisig"
-	"github.com/irisnet/irishub-sdk-go/common/crypto/keys/secp256k1"
-	cryptotypes "github.com/irisnet/irishub-sdk-go/common/crypto/types"
+	codectypes "github.com/irisnet/core-sdk-go/common/codec/types"
+	"github.com/irisnet/core-sdk-go/common/crypto/keys/ed25519"
+	"github.com/irisnet/core-sdk-go/common/crypto/keys/multisig"
+	"github.com/irisnet/core-sdk-go/common/crypto/keys/secp256k1"
+	cryptotypes "github.com/irisnet/core-sdk-go/common/crypto/types"
 )
 
 // RegisterInterfaces registers the sdk.Tx interface.

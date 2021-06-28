@@ -1,11 +1,11 @@
 package bank
 
 import (
-	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
-	"github.com/irisnet/irishub-sdk-go/common/codec/types"
-	commoncryptocodec "github.com/irisnet/irishub-sdk-go/common/crypto/codec"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
-	"github.com/irisnet/irishub-sdk-go/types/auth"
+	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
+	"github.com/irisnet/core-sdk-go/common/codec/types"
+	commoncryptocodec "github.com/irisnet/core-sdk-go/common/crypto/codec"
+	sdk "github.com/irisnet/core-sdk-go/types"
+	"github.com/irisnet/core-sdk-go/types/auth"
 )
 
 var (

@@ -7,7 +7,7 @@ import (
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
-	types "github.com/irisnet/irishub-sdk-go/common/codec/types"
+	types "github.com/irisnet/core-sdk-go/common/codec/types"
 	io "io"
 	math "math"
 	math_bits "math/bits"

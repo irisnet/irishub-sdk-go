@@ -4,10 +4,10 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/sr25519"
 
-	"github.com/irisnet/irishub-sdk-go/common/codec"
-	"github.com/irisnet/irishub-sdk-go/common/crypto/keys/ed25519"
-	"github.com/irisnet/irishub-sdk-go/common/crypto/keys/secp256k1"
-	cryptotypes "github.com/irisnet/irishub-sdk-go/common/crypto/types"
+	"github.com/irisnet/core-sdk-go/common/codec"
+	"github.com/irisnet/core-sdk-go/common/crypto/keys/ed25519"
+	"github.com/irisnet/core-sdk-go/common/crypto/keys/secp256k1"
+	cryptotypes "github.com/irisnet/core-sdk-go/common/crypto/types"
 )
 
 // TODO: Figure out API for others to either add their own pubkey types, or

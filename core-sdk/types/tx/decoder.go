@@ -1,9 +1,9 @@
 package tx
 
 import (
-	"github.com/irisnet/irishub-sdk-go/common/codec"
-	"github.com/irisnet/irishub-sdk-go/common/codec/unknownproto"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/core-sdk-go/common/codec"
+	"github.com/irisnet/core-sdk-go/common/codec/unknownproto"
+	sdk "github.com/irisnet/core-sdk-go/types"
 )
 
 // DefaultTxDecoder returns a default protobuf TxDecoder using the provided Marshaler.

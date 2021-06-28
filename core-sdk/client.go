@@ -1,19 +1,18 @@
 package sdk
 
 import (
-	"github.com/irisnet/irishub-sdk-go/bank"
-	"github.com/irisnet/irishub-sdk-go/client"
-	commoncodec "github.com/irisnet/irishub-sdk-go/common/codec"
-	cryptotypes "github.com/irisnet/irishub-sdk-go/common/codec/types"
-	commoncryptocodec "github.com/irisnet/irishub-sdk-go/common/crypto/codec"
-
-	"github.com/irisnet/irishub-sdk-go/types"
-	//"github.com/irisnet/irishub-sdk-go/types/token"
-	txtypes "github.com/irisnet/irishub-sdk-go/types/tx"
 	"github.com/tendermint/tendermint/libs/log"
+
+	"github.com/irisnet/core-sdk-go/bank"
+	"github.com/irisnet/core-sdk-go/client"
+	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
+	cryptotypes "github.com/irisnet/core-sdk-go/common/codec/types"
+	commoncryptocodec "github.com/irisnet/core-sdk-go/common/crypto/codec"
+	"github.com/irisnet/core-sdk-go/types"
+	txtypes "github.com/irisnet/core-sdk-go/types/tx"
 )
 
-type IRISHUBClient struct {
+type Client struct {
 	logger         log.Logger
 	moduleManager  map[string]types.Module
 	encodingConfig types.EncodingConfig
@@ -21,13 +20,13 @@ type IRISHUBClient struct {
 	Bank bank.Client
 }
 
-func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
+func NewClient(cfg types.ClientConfig) Client {
 	encodingConfig := makeEncodingConfig()
 
 	// create a instance of baseClient
 	baseClient := client.NewBaseClient(cfg, encodingConfig, nil)
 	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
-	client := &IRISHUBClient{
+	client := &Client{
 		logger:         baseClient.Logger(),
 		BaseClient:     baseClient,
 		moduleManager:  make(map[string]types.Module),
@@ -41,33 +40,33 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	return *client
 }
 
-func (client *IRISHUBClient) SetLogger(logger log.Logger) {
+func (client *Client) SetLogger(logger log.Logger) {
 	client.BaseClient.SetLogger(logger)
 }
 
-func (client *IRISHUBClient) Codec() *commoncodec.LegacyAmino {
+func (client *Client) Codec() *commoncodec.LegacyAmino {
 	return client.encodingConfig.Amino
 }
 
-func (client *IRISHUBClient) AppCodec() commoncodec.Marshaler {
+func (client *Client) AppCodec() commoncodec.Marshaler {
 	return client.encodingConfig.Marshaler
 }
 
-func (client *IRISHUBClient) EncodingConfig() types.EncodingConfig {
+func (client *Client) EncodingConfig() types.EncodingConfig {
 	return client.encodingConfig
 }
 
-func (client *IRISHUBClient) Manager() types.BaseClient {
+func (client *Client) Manager() types.BaseClient {
 	return client.BaseClient
 }
 
-func (client *IRISHUBClient) RegisterModule(ms ...types.Module) {
+func (client *Client) RegisterModule(ms ...types.Module) {
 	for _, m := range ms {
 		m.RegisterInterfaceTypes(client.encodingConfig.InterfaceRegistry)
 	}
 }
 
-func (client *IRISHUBClient) Module(name string) types.Module {
+func (client *Client) Module(name string) types.Module {
 	return client.moduleManager[name]
 }
 
