@@ -1,10 +1,10 @@
-module coinswap
+module nft
 
 go 1.16
 
 require (
-github.com/gogo/protobuf v1.3.3
-github.com/irisnet/core-sdk-go v0.1.0
+    github.com/irisnet/core-sdk-go v0.1.0
+    github.com/gogo/protobuf v1.3.3
 )
 
 replace (
