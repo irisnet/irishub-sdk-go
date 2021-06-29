@@ -25,7 +25,7 @@ const (
 
 type IntegrationTestSuite struct {
 	suite.Suite
-	sdk.IRISHUBClient
+	sdk.Client
 	r            *rand.Rand
 	rootAccount  MockAccount
 	randAccounts []MockAccount
@@ -59,7 +59,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		panic(err)
 	}
 
-	s.IRISHUBClient = sdk.NewIRISHUBClient(cfg)
+	s.Client = sdk.NewClient(cfg)
 	s.r = rand.New(rand.NewSource(time.Now().UnixNano()))
 	s.rootAccount = MockAccount{
 		Name:     "validator",
