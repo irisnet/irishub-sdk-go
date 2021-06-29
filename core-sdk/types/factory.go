@@ -3,7 +3,6 @@ package types
 import (
 	"errors"
 	"fmt"
-
 	"github.com/irisnet/core-sdk-go/types/tx/signing"
 )
 

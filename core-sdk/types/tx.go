@@ -1,9 +1,8 @@
 package types
 
 import (
-	"github.com/tendermint/tendermint/crypto"
-
 	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 type (

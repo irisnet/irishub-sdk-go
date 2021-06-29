@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
 	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
 )
 

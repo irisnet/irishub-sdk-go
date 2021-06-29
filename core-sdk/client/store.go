@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"errors"
-
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 )
 

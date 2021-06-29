@@ -1,9 +1,8 @@
 package types
 
 import (
-	"github.com/tendermint/tendermint/crypto"
-
 	codectypes "github.com/irisnet/core-sdk-go/common/codec/types"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 //The purpose of this interface is to convert the irishub system type to the user receiving type

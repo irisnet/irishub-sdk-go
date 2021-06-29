@@ -3,14 +3,12 @@ package integration_test
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/irisnet/core-sdk-go/bank"
+	"github.com/irisnet/core-sdk-go/types"
+	"github.com/stretchr/testify/require"
 	"math/rand"
 	"sync"
 	"time"
-
-	"github.com/stretchr/testify/require"
-
-	"github.com/irisnet/core-sdk-go/bank"
-	"github.com/irisnet/core-sdk-go/types"
 )
 
 func (s IntegrationTestSuite) TestBank() {

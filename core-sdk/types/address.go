@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
 	"github.com/irisnet/core-sdk-go/common/bech32"
 )
 

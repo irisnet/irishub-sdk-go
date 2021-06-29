@@ -3,7 +3,6 @@ package bech32
 import (
 	"errors"
 	"fmt"
-
 	"github.com/btcsuite/btcutil/bech32"
 )
 

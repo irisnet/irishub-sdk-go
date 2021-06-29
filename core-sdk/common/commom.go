@@ -2,7 +2,6 @@ package common
 
 import (
 	"crypto/rand"
-
 	"github.com/irisnet/core-sdk-go/types"
 )
 

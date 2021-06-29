@@ -2,10 +2,9 @@ package types
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/irisnet/core-sdk-go/common/crypto"
 	"github.com/irisnet/core-sdk-go/types/store"
+	"os"
 )
 
 const (

@@ -1,13 +1,12 @@
 package types
 
 import (
+	cryptoAmino "github.com/irisnet/core-sdk-go/common/crypto/codec"
+	"github.com/irisnet/core-sdk-go/types/kv"
 	"github.com/tendermint/tendermint/crypto"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmclient "github.com/tendermint/tendermint/rpc/client"
 	tmtypes "github.com/tendermint/tendermint/types"
-
-	cryptoAmino "github.com/irisnet/core-sdk-go/common/crypto/codec"
-	"github.com/irisnet/core-sdk-go/types/kv"
 )
 
 type (

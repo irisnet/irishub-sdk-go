@@ -2,10 +2,9 @@ package types
 
 import (
 	"fmt"
+	abci "github.com/tendermint/tendermint/abci/types"
 	"sort"
 	"strings"
-
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // ----------------------------------------------------------------------------

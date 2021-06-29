@@ -3,16 +3,14 @@ package ed25519
 import (
 	"crypto/subtle"
 	"fmt"
+	"github.com/irisnet/core-sdk-go/common/codec"
 	"io"
 
-	"github.com/irisnet/core-sdk-go/common/codec"
-
+	cryptotypes "github.com/irisnet/core-sdk-go/common/crypto/types"
 	"github.com/tendermint/tendermint/crypto"
 	tmed25519 "github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"golang.org/x/crypto/ed25519"
-
-	cryptotypes "github.com/irisnet/core-sdk-go/common/crypto/types"
 )
 
 //-------------------------------------

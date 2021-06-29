@@ -2,13 +2,11 @@ package types
 
 import (
 	"encoding/base64"
-
+	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/encoding"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmtypes "github.com/tendermint/tendermint/types"
-
-	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
 )
 
 type Block struct {

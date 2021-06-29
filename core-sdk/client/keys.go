@@ -2,9 +2,6 @@ package client
 
 import (
 	"fmt"
-
-	tmcrypto "github.com/tendermint/tendermint/crypto"
-
 	kmg "github.com/irisnet/core-sdk-go/common/crypto"
 	cryptoamino "github.com/irisnet/core-sdk-go/common/crypto/codec"
 	"github.com/irisnet/core-sdk-go/common/crypto/keys/secp256k1"
@@ -12,6 +9,7 @@ import (
 	commoncryptotypes "github.com/irisnet/core-sdk-go/common/crypto/types"
 	"github.com/irisnet/core-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/types/store"
+	tmcrypto "github.com/tendermint/tendermint/crypto"
 )
 
 type keyManager struct {

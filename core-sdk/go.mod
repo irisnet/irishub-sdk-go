@@ -9,6 +9,7 @@ require (
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/cosmos/go-bip39 v0.0.0-20180819234021-555e2067c45d
 	github.com/gogo/protobuf v1.3.3
+	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/magiconair/properties v1.8.1
 	github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5 // indirect
 	github.com/pkg/errors v0.9.1

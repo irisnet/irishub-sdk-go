@@ -3,14 +3,12 @@ package client
 import (
 	"context"
 	"fmt"
-
+	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/libs/log"
 	rpc "github.com/tendermint/tendermint/rpc/client"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	tmtypes "github.com/tendermint/tendermint/types"
-
-	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
 
 	"github.com/irisnet/core-sdk-go/common/uuid"
 	sdk "github.com/irisnet/core-sdk-go/types"
