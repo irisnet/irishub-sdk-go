@@ -26,7 +26,7 @@ import (
 	txtypes "github.com/irisnet/irishub-sdk-go/types/tx"
 )
 
-type IRISHUBClient struct {
+type Client struct {
 	logger         log.Logger
 	moduleManager  map[string]types.Module
 	encodingConfig types.EncodingConfig
@@ -46,7 +46,7 @@ type IRISHUBClient struct {
 	Swap    coinswap.Client
 }
 
-func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
+func NewIRISHUBClient(cfg types.ClientConfig) Client {
 	encodingConfig := makeEncodingConfig()
 
 	// create a instance of baseClient
@@ -66,7 +66,7 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	htlcClient := htlc.NewClient(baseClient, encodingConfig.Marshaler)
 	swapClient := coinswap.NewClient(baseClient, encodingConfig.Marshaler, bankClient.TotalSupply)
 
-	client := &IRISHUBClient{
+	client := &Client{
 		logger:         baseClient.Logger(),
 		BaseClient:     baseClient,
 		moduleManager:  make(map[string]types.Module),
@@ -101,27 +101,27 @@ func NewIRISHUBClient(cfg types.ClientConfig) IRISHUBClient {
 	return *client
 }
 
-func (client *IRISHUBClient) SetLogger(logger log.Logger) {
+func (client *Client) SetLogger(logger log.Logger) {
 	client.BaseClient.SetLogger(logger)
 }
 
-func (client *IRISHUBClient) Codec() *codec.LegacyAmino {
+func (client *Client) Codec() *codec.LegacyAmino {
 	return client.encodingConfig.Amino
 }
 
-func (client *IRISHUBClient) AppCodec() codec.Marshaler {
+func (client *Client) AppCodec() codec.Marshaler {
 	return client.encodingConfig.Marshaler
 }
 
-func (client *IRISHUBClient) EncodingConfig() types.EncodingConfig {
+func (client *Client) EncodingConfig() types.EncodingConfig {
 	return client.encodingConfig
 }
 
-func (client *IRISHUBClient) Manager() types.BaseClient {
+func (client *Client) Manager() types.BaseClient {
 	return client.BaseClient
 }
 
-func (client *IRISHUBClient) RegisterModule(ms ...types.Module) {
+func (client *Client) RegisterModule(ms ...types.Module) {
 	for _, m := range ms {
 		_, ok := client.moduleManager[m.Name()]
 		if ok {
@@ -134,7 +134,7 @@ func (client *IRISHUBClient) RegisterModule(ms ...types.Module) {
 	}
 }
 
-func (client *IRISHUBClient) Module(name string) types.Module {
+func (client *Client) Module(name string) types.Module {
 	return client.moduleManager[name]
 }
 
