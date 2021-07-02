@@ -1,0 +1,48 @@
+syntax = "proto3";
+package irismod.htlc;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/irisnet/irishub-sdk-go/modules/htlc";
+option (gogoproto.goproto_getters_all) = false;
+
+
+// Msg defines the HTLC Msg service
+service Msg {
+    // CreateHTLC defines a method for creating a HTLC
+    rpc CreateHTLC(MsgCreateHTLC) returns (MsgCreateHTLCResponse);
+
+    // ClaimHTLC defines a method for claiming a HTLC
+    rpc ClaimHTLC(MsgClaimHTLC) returns (MsgClaimHTLCResponse);
+}
+
+// MsgCreateHTLC defines a message to create an HTLC
+message MsgCreateHTLC {
+    option (gogoproto.equal) = true;
+
+    string sender = 1;
+    string to = 2;
+    string receiver_on_other_chain = 3 [ (gogoproto.moretags) = "yaml:\"receiver_on_other_chain\"" ];
+    string sender_on_other_chain = 4 [ (gogoproto.moretags) = "yaml:\"sender_on_other_chain\"" ];
+    repeated cosmos.base.v1beta1.Coin amount = 5 [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/irisnet/irishub-sdk-go/types.Coins" ];
+    string hash_lock = 6 [ (gogoproto.moretags) = "yaml:\"hash_lock\"" ];
+    uint64 timestamp = 7;
+    uint64 time_lock = 8 [ (gogoproto.moretags) = "yaml:\"time_lock\"" ];
+    bool transfer = 9;
+}
+
+// MsgCreateHTLCResponse defines the Msg/CreateHTLC response type
+message MsgCreateHTLCResponse {}
+
+// MsgClaimHTLC defines a message to claim an HTLC
+message MsgClaimHTLC {
+    option (gogoproto.equal) = true;
+
+    string sender = 1;
+    string id = 2 [ (gogoproto.moretags) = "yaml:\"id\"" ];
+    string secret = 3;
+}
+
+// MsgClaimHTLCResponse defines the Msg/ClaimHTLC response type
+message MsgClaimHTLCResponse {}
