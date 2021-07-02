@@ -3,11 +3,11 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"strings"
 	"github.com/irisnet/core-sdk-go/common/codec"
 	"github.com/irisnet/core-sdk-go/common/codec/types"
-	"github.com/irisnet/core-sdk-go/types/query"
 	sdk "github.com/irisnet/core-sdk-go/types"
+	"github.com/irisnet/core-sdk-go/types/query"
+	"strings"
 )
 
 type serviceClient struct {

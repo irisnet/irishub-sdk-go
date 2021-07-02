@@ -3,11 +3,11 @@ package staking
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
-	"time"
-	yaml "gopkg.in/yaml.v2"
 	"github.com/irisnet/core-sdk-go/common/codec"
 	sdk "github.com/irisnet/core-sdk-go/types"
+	yaml "gopkg.in/yaml.v2"
+	"strings"
+	"time"
 )
 
 // Implements Delegation interface

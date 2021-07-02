@@ -1,4 +1,4 @@
-module github.com/irisnet/module-sdk-go
+module github.com/irisnet/record-sdk-go
 
 go 1.16
 

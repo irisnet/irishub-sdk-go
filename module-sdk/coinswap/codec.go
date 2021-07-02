@@ -1,12 +1,10 @@
 package coinswap
 
 import (
-
 	"github.com/irisnet/core-sdk-go/common/codec"
 	"github.com/irisnet/core-sdk-go/common/codec/types"
 	cryptocodec "github.com/irisnet/core-sdk-go/common/crypto/codec"
 	sdk "github.com/irisnet/core-sdk-go/types"
-
 )
 
 var (

@@ -2,12 +2,12 @@ package gov
 
 import (
 	"fmt"
-	"strings"
-	"time"
 	"github.com/gogo/protobuf/proto"
-	yaml "gopkg.in/yaml.v2"
 	"github.com/irisnet/core-sdk-go/common/codec/types"
 	sdk "github.com/irisnet/core-sdk-go/types"
+	yaml "gopkg.in/yaml.v2"
+	"strings"
+	"time"
 )
 
 // DefaultStartingProposalID is 1
