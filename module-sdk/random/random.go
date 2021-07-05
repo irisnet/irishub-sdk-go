@@ -2,10 +2,11 @@ package random
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/irisnet/core-sdk-go/common/codec"
 	cdctypes "github.com/irisnet/core-sdk-go/common/codec/types"
 	sdk "github.com/irisnet/core-sdk-go/types"
-	"strconv"
 )
 
 type randomClient struct {

@@ -3,8 +3,9 @@ package token
 import (
 	json2 "encoding/json"
 	"errors"
-	sdk "github.com/irisnet/core-sdk-go/types"
 	"strconv"
+
+	sdk "github.com/irisnet/core-sdk-go/types"
 )
 
 const (

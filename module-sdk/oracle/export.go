@@ -1,8 +1,9 @@
 package oracle
 
 import (
-	sdk "github.com/irisnet/core-sdk-go/types"
 	"time"
+
+	sdk "github.com/irisnet/core-sdk-go/types"
 )
 
 // expose Oracle module api for user

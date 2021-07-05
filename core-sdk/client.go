@@ -1,6 +1,8 @@
 package sdk
 
 import (
+	"github.com/tendermint/tendermint/libs/log"
+
 	"github.com/irisnet/core-sdk-go/bank"
 	"github.com/irisnet/core-sdk-go/client"
 	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
@@ -8,7 +10,6 @@ import (
 	commoncryptocodec "github.com/irisnet/core-sdk-go/common/crypto/codec"
 	"github.com/irisnet/core-sdk-go/types"
 	txtypes "github.com/irisnet/core-sdk-go/types/tx"
-	"github.com/tendermint/tendermint/libs/log"
 )
 
 type Client struct {

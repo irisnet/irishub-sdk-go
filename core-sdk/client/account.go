@@ -3,13 +3,15 @@ package client
 import (
 	"context"
 	"fmt"
+	"time"
+
+	"github.com/tendermint/tendermint/libs/log"
+
 	"github.com/irisnet/core-sdk-go/bank"
 	cache "github.com/irisnet/core-sdk-go/common/cache"
 	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
 	sdk "github.com/irisnet/core-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/types/auth"
-	"github.com/tendermint/tendermint/libs/log"
-	"time"
 )
 
 // Must be used with locker, otherwise there are thread safety issues

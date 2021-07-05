@@ -2,6 +2,7 @@ package record
 
 import (
 	"fmt"
+
 	sdk "github.com/irisnet/core-sdk-go/types"
 )
 

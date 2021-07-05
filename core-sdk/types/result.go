@@ -4,9 +4,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
 	"math"
 	"strings"
+
+	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
 
 	yaml "gopkg.in/yaml.v2"
 

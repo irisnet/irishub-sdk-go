@@ -5,10 +5,11 @@ package token
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/irisnet/core-sdk-go/common/codec"
 	"github.com/irisnet/core-sdk-go/common/codec/types"
 	sdk "github.com/irisnet/core-sdk-go/types"
-	"strconv"
 )
 
 type tokenClient struct {

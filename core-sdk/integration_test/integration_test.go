@@ -1,18 +1,20 @@
 package integration_test
 
 import (
-	sdk "github.com/irisnet/core-sdk-go"
-	"github.com/irisnet/core-sdk-go/common/crypto"
-	"github.com/irisnet/core-sdk-go/common/log"
-	"github.com/irisnet/core-sdk-go/types"
-	"github.com/irisnet/core-sdk-go/types/store"
-	"github.com/stretchr/testify/suite"
 	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/suite"
+
+	sdk "github.com/irisnet/core-sdk-go"
+	"github.com/irisnet/core-sdk-go/common/crypto"
+	"github.com/irisnet/core-sdk-go/common/log"
+	"github.com/irisnet/core-sdk-go/types"
+	"github.com/irisnet/core-sdk-go/types/store"
 )
 
 const (

@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+
 	sdk "github.com/irisnet/core-sdk-go/types"
 	"github.com/irisnet/htlc-sdk-go"
 	"github.com/stretchr/testify/require"

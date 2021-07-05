@@ -2,6 +2,7 @@ package integrationtest
 
 import (
 	"fmt"
+
 	sdk "github.com/irisnet/core-sdk-go/types"
 	"github.com/irisnet/record-sdk-go"
 	"github.com/stretchr/testify/require"

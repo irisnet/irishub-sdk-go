@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"crypto/rand"
 	"fmt"
-	"github.com/tjfoc/gmsm/sm2"
 	"log"
+
+	"github.com/tjfoc/gmsm/sm2"
 )
 
 //Generate key pair

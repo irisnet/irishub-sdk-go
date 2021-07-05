@@ -1,10 +1,11 @@
 package integrationtest
 
 import (
-	"github.com/irisnet/core-sdk-go/types"
-	"github.com/irisnet/random-sdk-go"
 	"strconv"
 	"time"
+
+	"github.com/irisnet/core-sdk-go/types"
+	"github.com/irisnet/random-sdk-go"
 )
 
 type TestRandom struct {

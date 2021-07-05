@@ -1,11 +1,12 @@
 package integrationtest
 
 import (
+	"time"
+
 	sdk "github.com/irisnet/core-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/types/query"
 	"github.com/irisnet/service-sdk-go"
 	"github.com/stretchr/testify/require"
-	"time"
 )
 
 func (s IntegrationTestSuite) TestService() {

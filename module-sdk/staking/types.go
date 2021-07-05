@@ -2,6 +2,7 @@ package staking
 
 import (
 	"bytes"
+
 	"github.com/irisnet/core-sdk-go/common/codec"
 	codectypes "github.com/irisnet/core-sdk-go/common/codec/types"
 	crypto "github.com/irisnet/core-sdk-go/common/crypto/types"

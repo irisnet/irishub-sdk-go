@@ -2,6 +2,7 @@ package htlc
 
 import (
 	"encoding/hex"
+
 	sdk "github.com/irisnet/core-sdk-go/types"
 )
 

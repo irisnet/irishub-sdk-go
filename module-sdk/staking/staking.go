@@ -2,6 +2,7 @@ package staking
 
 import (
 	"context"
+
 	"github.com/irisnet/core-sdk-go/common"
 	"github.com/irisnet/core-sdk-go/common/codec"
 	"github.com/irisnet/core-sdk-go/common/codec/types"

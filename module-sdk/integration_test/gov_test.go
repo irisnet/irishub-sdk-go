@@ -3,6 +3,7 @@ package integrationtest
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/irisnet/core-sdk-go/types"
 	"github.com/irisnet/gov-sdk-go"
 	"github.com/stretchr/testify/require"

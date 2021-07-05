@@ -3,9 +3,10 @@ package oracle
 import (
 	"bytes"
 	"fmt"
-	sdk "github.com/irisnet/core-sdk-go/types"
 	"regexp"
 	"strings"
+
+	sdk "github.com/irisnet/core-sdk-go/types"
 )
 
 const (

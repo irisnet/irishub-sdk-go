@@ -1,12 +1,14 @@
 package client
 
 import (
-	"github.com/irisnet/core-sdk-go/types"
+	"sync"
+	"time"
+
 	"github.com/prometheus/common/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
-	"sync"
-	"time"
+
+	"github.com/irisnet/core-sdk-go/types"
 )
 
 var clientConnSingleton *grpc.ClientConn

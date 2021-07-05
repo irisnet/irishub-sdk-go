@@ -2,10 +2,11 @@ package integrationtest
 
 import (
 	"fmt"
+	"strings"
+
 	sdk "github.com/irisnet/core-sdk-go/types"
 	"github.com/irisnet/nft-sdk-go"
 	"github.com/stretchr/testify/require"
-	"strings"
 )
 
 func (s IntegrationTestSuite) TestNFT() {

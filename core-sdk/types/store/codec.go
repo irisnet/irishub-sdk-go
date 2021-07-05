@@ -1,10 +1,11 @@
 package store
 
 import (
+	"github.com/tendermint/tendermint/crypto"
+
 	"github.com/irisnet/core-sdk-go/common/codec"
 	cryptocodec "github.com/irisnet/core-sdk-go/common/crypto/codec"
 	"github.com/irisnet/core-sdk-go/common/crypto/hd"
-	"github.com/tendermint/tendermint/crypto"
 )
 
 var cdc *codec.LegacyAmino

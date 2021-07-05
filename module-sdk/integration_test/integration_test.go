@@ -1,16 +1,17 @@
 package integrationtest
 
 import (
-	"github.com/irisnet/core-sdk-go/common/log"
-	"github.com/irisnet/core-sdk-go/types"
-	"github.com/irisnet/core-sdk-go/types/store"
-	"github.com/stretchr/testify/suite"
 	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/irisnet/core-sdk-go/common/log"
+	"github.com/irisnet/core-sdk-go/types"
+	"github.com/irisnet/core-sdk-go/types/store"
+	"github.com/stretchr/testify/suite"
 )
 
 const (
