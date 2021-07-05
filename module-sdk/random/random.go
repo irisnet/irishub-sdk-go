@@ -71,7 +71,7 @@ func (rc randomClient) QueryRandom(reqID string) (QueryRandomResp, sdk.Error) {
 	}
 
 	conn, err := rc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryRandomResp{}, sdk.Wrap(err)
 	}
@@ -92,7 +92,7 @@ func (rc randomClient) QueryRandomRequestQueue(height int64) ([]QueryRandomReque
 	}
 
 	conn, err := rc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return []QueryRandomRequestQueueResp{}, sdk.Wrap(err)
 	}

@@ -1,12 +1,10 @@
-package integration_test
+package integrationtest
 
 import (
-	"strings"
-
+	sdk "github.com/irisnet/core-sdk-go/types"
+	"github.com/irisnet/token-sdk-go"
 	"github.com/stretchr/testify/require"
-
-	"github.com/irisnet/irishub-sdk-go/modules/token"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"strings"
 )
 
 func (s IntegrationTestSuite) TestToken() {

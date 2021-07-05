@@ -1,19 +1,16 @@
-package integration_test
+package integrationtest
 
 import (
+	"github.com/irisnet/core-sdk-go/common/log"
+	"github.com/irisnet/core-sdk-go/types"
+	"github.com/irisnet/core-sdk-go/types/store"
+	"github.com/stretchr/testify/suite"
 	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
-
-	sdk "github.com/irisnet/irishub-sdk-go"
-	"github.com/irisnet/irishub-sdk-go/types"
-	"github.com/irisnet/irishub-sdk-go/types/store"
-	"github.com/irisnet/irishub-sdk-go/utils/log"
-
-	"github.com/stretchr/testify/suite"
 )
 
 const (
@@ -26,7 +23,7 @@ const (
 
 type IntegrationTestSuite struct {
 	suite.Suite
-	sdk.Client
+	Client
 	r            *rand.Rand
 	rootAccount  MockAccount
 	randAccounts []MockAccount
@@ -57,7 +54,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		panic(err)
 	}
 
-	s.Client = sdk.NewIRISHUBClient(cfg)
+	s.Client = NewClient(cfg)
 	s.r = rand.New(rand.NewSource(time.Now().UnixNano()))
 	s.rootAccount = MockAccount{
 		Name:     "validator",

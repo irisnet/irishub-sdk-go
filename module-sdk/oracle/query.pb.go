@@ -9,7 +9,7 @@ import (
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
-	service "github.com/irisnet/module-sdk/service"
+	service "github.com/irisnet/service-sdk-go"
 	github_com_irisnet_irishub_sdk_go_types "github.com/irisnet/core-sdk-go/types"
 	types "github.com/irisnet/core-sdk-go/types"
 	_ "google.golang.org/genproto/googleapis/api/annotations"

@@ -156,7 +156,7 @@ func (sc stakingClient) BeginRedelegate(request BeginRedelegateRequest, baseTx s
 // about status, you can see BondStatus_value
 func (sc stakingClient) QueryValidators(status string, page, size uint64) (QueryValidatorsResp, sdk.Error) {
 	conn, err := sc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryValidatorsResp{}, sdk.Wrap(err)
 	}
@@ -181,7 +181,7 @@ func (sc stakingClient) QueryValidators(status string, page, size uint64) (Query
 
 func (sc stakingClient) QueryValidator(validatorAddr string) (QueryValidatorResp, sdk.Error) {
 	conn, err := sc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryValidatorResp{}, sdk.Wrap(err)
 	}
@@ -200,7 +200,7 @@ func (sc stakingClient) QueryValidator(validatorAddr string) (QueryValidatorResp
 
 func (sc stakingClient) QueryValidatorDelegations(validatorAddr string, page, size uint64) (QueryValidatorDelegationsResp, sdk.Error) {
 	conn, err := sc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryValidatorDelegationsResp{}, sdk.Wrap(err)
 	}
@@ -225,7 +225,7 @@ func (sc stakingClient) QueryValidatorDelegations(validatorAddr string, page, si
 
 func (sc stakingClient) QueryValidatorUnbondingDelegations(validatorAddr string, page, size uint64) (QueryValidatorUnbondingDelegationsResp, sdk.Error) {
 	conn, err := sc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryValidatorUnbondingDelegationsResp{}, sdk.Wrap(err)
 	}
@@ -250,7 +250,7 @@ func (sc stakingClient) QueryValidatorUnbondingDelegations(validatorAddr string,
 
 func (sc stakingClient) QueryDelegation(delegatorAddr string, validatorAddr string) (QueryDelegationResp, sdk.Error) {
 	conn, err := sc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryDelegationResp{}, sdk.Wrap(err)
 	}
@@ -270,7 +270,7 @@ func (sc stakingClient) QueryDelegation(delegatorAddr string, validatorAddr stri
 
 func (sc stakingClient) QueryUnbondingDelegation(delegatorAddr string, validatorAddr string) (QueryUnbondingDelegationResp, sdk.Error) {
 	conn, err := sc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryUnbondingDelegationResp{}, sdk.Wrap(err)
 	}
@@ -290,7 +290,7 @@ func (sc stakingClient) QueryUnbondingDelegation(delegatorAddr string, validator
 
 func (sc stakingClient) QueryDelegatorDelegations(delegatorAddr string, page, size uint64) (QueryDelegatorDelegationsResp, sdk.Error) {
 	conn, err := sc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryDelegatorDelegationsResp{}, sdk.Wrap(err)
 	}
@@ -315,7 +315,7 @@ func (sc stakingClient) QueryDelegatorDelegations(delegatorAddr string, page, si
 
 func (sc stakingClient) QueryDelegatorUnbondingDelegations(delegatorAddr string, page, size uint64) (QueryDelegatorUnbondingDelegationsResp, sdk.Error) {
 	conn, err := sc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryDelegatorUnbondingDelegationsResp{}, sdk.Wrap(err)
 	}
@@ -340,7 +340,7 @@ func (sc stakingClient) QueryDelegatorUnbondingDelegations(delegatorAddr string,
 
 func (sc stakingClient) QueryRedelegations(request QueryRedelegationsReq) (QueryRedelegationsResp, sdk.Error) {
 	conn, err := sc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryRedelegationsResp{}, sdk.Wrap(err)
 	}
@@ -367,7 +367,7 @@ func (sc stakingClient) QueryRedelegations(request QueryRedelegationsReq) (Query
 
 func (sc stakingClient) QueryDelegatorValidators(delegatorAddr string, page, size uint64) (QueryDelegatorValidatorsResp, sdk.Error) {
 	conn, err := sc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryDelegatorValidatorsResp{}, sdk.Wrap(err)
 	}
@@ -392,7 +392,7 @@ func (sc stakingClient) QueryDelegatorValidators(delegatorAddr string, page, siz
 
 func (sc stakingClient) QueryDelegatorValidator(delegatorAddr string, validatorAddr string) (QueryValidatorResp, sdk.Error) {
 	conn, err := sc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryValidatorResp{}, sdk.Wrap(err)
 	}
@@ -413,7 +413,7 @@ func (sc stakingClient) QueryDelegatorValidator(delegatorAddr string, validatorA
 // QueryHistoricalInfo tendermint only save latest 100 block, previous block is aborted
 func (sc stakingClient) QueryHistoricalInfo(height int64) (QueryHistoricalInfoResp, sdk.Error) {
 	conn, err := sc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryHistoricalInfoResp{}, sdk.Wrap(err)
 	}
@@ -432,7 +432,7 @@ func (sc stakingClient) QueryHistoricalInfo(height int64) (QueryHistoricalInfoRe
 
 func (sc stakingClient) QueryPool() (QueryPoolResp, sdk.Error) {
 	conn, err := sc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryPoolResp{}, sdk.Wrap(err)
 	}
@@ -453,7 +453,7 @@ func (sc stakingClient) QueryPool() (QueryPoolResp, sdk.Error) {
 
 func (sc stakingClient) QueryParams() (QueryParamsResp, sdk.Error) {
 	conn, err := sc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryParamsResp{}, sdk.Wrap(err)
 	}

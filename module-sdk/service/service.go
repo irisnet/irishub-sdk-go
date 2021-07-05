@@ -437,7 +437,7 @@ func (s serviceClient) SubscribeServiceRequest(serviceName string,
 // QueryServiceDefinition return a service definition of the specified name
 func (s serviceClient) QueryServiceDefinition(serviceName string) (QueryServiceDefinitionResponse, sdk.Error) {
 	conn, err := s.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryServiceDefinitionResponse{}, sdk.Wrap(err)
 	}
@@ -456,7 +456,7 @@ func (s serviceClient) QueryServiceDefinition(serviceName string) (QueryServiceD
 // QueryServiceBinding return the specified service binding
 func (s serviceClient) QueryServiceBinding(serviceName string, provider string) (QueryServiceBindingResponse, sdk.Error) {
 	conn, err := s.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryServiceBindingResponse{}, sdk.Wrap(err)
 	}
@@ -482,7 +482,7 @@ func (s serviceClient) QueryServiceBinding(serviceName string, provider string) 
 // QueryServiceBindings returns all bindings of the specified service
 func (s serviceClient) QueryServiceBindings(serviceName string, pageReq *query.PageRequest) ([]QueryServiceBindingResponse, sdk.Error) {
 	conn, err := s.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}
@@ -504,7 +504,7 @@ func (s serviceClient) QueryServiceBindings(serviceName string, pageReq *query.P
 // QueryServiceRequest returns  the active request of the specified requestID
 func (s serviceClient) QueryServiceRequest(requestID string) (QueryServiceRequestResponse, sdk.Error) {
 	conn, err := s.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryServiceRequestResponse{}, sdk.Wrap(err)
 	}
@@ -530,7 +530,7 @@ func (s serviceClient) QueryServiceRequest(requestID string) (QueryServiceReques
 // QueryServiceRequests returns all the active requests of the specified service binding
 func (s serviceClient) QueryServiceRequests(serviceName string, provider string, pageReq *query.PageRequest) ([]QueryServiceRequestResponse, sdk.Error) {
 	conn, err := s.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}
@@ -557,7 +557,7 @@ func (s serviceClient) QueryServiceRequests(serviceName string, provider string,
 // QueryRequestsByReqCtx returns all requests of the specified request context ID and batch counter
 func (s serviceClient) QueryRequestsByReqCtx(reqCtxID string, batchCounter uint64, pageReq *query.PageRequest) ([]QueryServiceRequestResponse, sdk.Error) {
 	conn, err := s.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}
@@ -580,7 +580,7 @@ func (s serviceClient) QueryRequestsByReqCtx(reqCtxID string, batchCounter uint6
 // QueryServiceResponse returns a response with the speicified request ID
 func (s serviceClient) QueryServiceResponse(requestID string) (QueryServiceResponseResponse, sdk.Error) {
 	conn, err := s.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryServiceResponseResponse{}, sdk.Wrap(err)
 	}
@@ -605,7 +605,7 @@ func (s serviceClient) QueryServiceResponse(requestID string) (QueryServiceRespo
 // QueryServiceResponses returns all responses of the specified request context and batch counter
 func (s serviceClient) QueryServiceResponses(reqCtxID string, batchCounter uint64, pageReq *query.PageRequest) ([]QueryServiceResponseResponse, sdk.Error) {
 	conn, err := s.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}
@@ -628,7 +628,7 @@ func (s serviceClient) QueryServiceResponses(reqCtxID string, batchCounter uint6
 // QueryRequestContext return the specified request context
 func (s serviceClient) QueryRequestContext(reqCtxID string) (QueryRequestContextResp, sdk.Error) {
 	conn, err := s.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryRequestContextResp{}, sdk.Wrap(err)
 	}
@@ -656,7 +656,7 @@ func (s serviceClient) QueryFees(provider string) (sdk.Coins, sdk.Error) {
 	}
 
 	conn, err := s.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}
@@ -673,7 +673,7 @@ func (s serviceClient) QueryFees(provider string) (sdk.Coins, sdk.Error) {
 
 func (s serviceClient) QueryParams() (QueryParamsResp, sdk.Error) {
 	conn, err := s.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryParamsResp{}, sdk.Wrap(err)
 	}

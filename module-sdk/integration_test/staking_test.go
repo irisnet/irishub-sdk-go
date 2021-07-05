@@ -1,12 +1,10 @@
-package integration_test
+package integrationtest
 
 import (
 	"context"
-
+	sdk "github.com/irisnet/core-sdk-go/types"
+	"github.com/irisnet/staking-sdk-go"
 	"github.com/stretchr/testify/require"
-
-	"github.com/irisnet/irishub-sdk-go/modules/staking"
-	sdk "github.com/irisnet/irishub-sdk-go/types"
 )
 
 func (s IntegrationTestSuite) TestStaking() {

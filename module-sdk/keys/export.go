@@ -1,7 +1,7 @@
 package keys
 
 import (
-	sdk "github.com/irisnet/irishub-sdk-go/types"
+	sdk "github.com/irisnet/core-sdk-go/types"
 )
 
 type Client interface {

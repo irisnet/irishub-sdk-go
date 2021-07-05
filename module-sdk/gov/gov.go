@@ -100,7 +100,7 @@ func (gc govClient) Vote(request VoteRequest, baseTx sdk.BaseTx) (sdk.ResultTx, 
 
 func (gc govClient) QueryProposal(proposalId uint64) (QueryProposalResp, sdk.Error) {
 	conn, err := gc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryProposalResp{}, sdk.Wrap(err)
 	}
@@ -120,7 +120,7 @@ func (gc govClient) QueryProposal(proposalId uint64) (QueryProposalResp, sdk.Err
 // about proposalStatus see VoteOption_value
 func (gc govClient) QueryProposals(proposalStatus string) ([]QueryProposalResp, sdk.Error) {
 	conn, err := gc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}
@@ -144,7 +144,7 @@ func (gc govClient) QueryProposals(proposalStatus string) ([]QueryProposalResp, 
 // about QueryVoteResp.Option see VoteOption_name
 func (gc govClient) QueryVote(proposalId uint64, voter string) (QueryVoteResp, sdk.Error) {
 	conn, err := gc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryVoteResp{}, sdk.Wrap(err)
 	}
@@ -163,7 +163,7 @@ func (gc govClient) QueryVote(proposalId uint64, voter string) (QueryVoteResp, s
 
 func (gc govClient) QueryVotes(proposalId uint64) ([]QueryVoteResp, sdk.Error) {
 	conn, err := gc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}
@@ -187,7 +187,7 @@ func (gc govClient) QueryVotes(proposalId uint64) ([]QueryVoteResp, sdk.Error) {
 // QueryParams params_type("voting", "tallying", "deposit"), if don't pass will return all params_typ res
 func (gc govClient) QueryParams(paramsType string) (QueryParamsResp, sdk.Error) {
 	conn, err := gc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryParamsResp{}, sdk.Wrap(err)
 	}
@@ -206,7 +206,7 @@ func (gc govClient) QueryParams(paramsType string) (QueryParamsResp, sdk.Error) 
 
 func (gc govClient) QueryDeposit(proposalId uint64, depositor string) (QueryDepositResp, sdk.Error) {
 	conn, err := gc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryDepositResp{}, sdk.Wrap(err)
 	}
@@ -226,7 +226,7 @@ func (gc govClient) QueryDeposit(proposalId uint64, depositor string) (QueryDepo
 
 func (gc govClient) QueryDeposits(proposalId uint64) ([]QueryDepositResp, sdk.Error) {
 	conn, err := gc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}
@@ -250,7 +250,7 @@ func (gc govClient) QueryDeposits(proposalId uint64) ([]QueryDepositResp, sdk.Er
 
 func (gc govClient) QueryTallyResult(proposalId uint64) (QueryTallyResultResp, sdk.Error) {
 	conn, err := gc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryTallyResultResp{}, sdk.Wrap(err)
 	}

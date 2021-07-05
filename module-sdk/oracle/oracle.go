@@ -113,7 +113,7 @@ func (oc oracleClient) QueryFeed(feedName string) (QueryFeedResp, sdk.Error) {
 	}
 
 	conn, err := oc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return QueryFeedResp{}, sdk.Wrap(err)
 	}
@@ -135,7 +135,7 @@ func (oc oracleClient) QueryFeeds(state string) ([]QueryFeedResp, sdk.Error) {
 	}
 
 	conn, err := oc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}
@@ -156,7 +156,7 @@ func (oc oracleClient) QueryFeedValue(feedName string) ([]QueryFeedValueResp, sd
 	}
 
 	conn, err := oc.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}
