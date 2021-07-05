@@ -4,8 +4,9 @@ import (
 	"fmt"
 
 	sdk "github.com/irisnet/core-sdk-go/types"
-	"github.com/irisnet/record-sdk-go"
 	"github.com/stretchr/testify/require"
+
+	"github.com/irisnet/record-sdk-go"
 )
 
 func (s IntegrationTestSuite) TestRecord() {

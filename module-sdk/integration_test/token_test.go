@@ -4,8 +4,9 @@ import (
 	"strings"
 
 	sdk "github.com/irisnet/core-sdk-go/types"
-	"github.com/irisnet/token-sdk-go"
 	"github.com/stretchr/testify/require"
+
+	"github.com/irisnet/token-sdk-go"
 )
 
 func (s IntegrationTestSuite) TestToken() {

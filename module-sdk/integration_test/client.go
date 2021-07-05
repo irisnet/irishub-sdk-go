@@ -1,7 +1,6 @@
 package integrationtest
 
 import (
-	"github.com/irisnet/coinswap-sdk-go"
 	"github.com/irisnet/core-sdk-go/bank"
 	"github.com/irisnet/core-sdk-go/client"
 	"github.com/irisnet/core-sdk-go/common/codec"
@@ -9,17 +8,29 @@ import (
 	cryptocodec "github.com/irisnet/core-sdk-go/common/crypto/codec"
 	"github.com/irisnet/core-sdk-go/types"
 	txtypes "github.com/irisnet/core-sdk-go/types/tx"
-	"github.com/irisnet/gov-sdk-go"
-	"github.com/irisnet/htlc-sdk-go"
-	"github.com/irisnet/keys-sdk-go"
-	"github.com/irisnet/nft-sdk-go"
-	"github.com/irisnet/oracle-sdk-go"
-	"github.com/irisnet/random-sdk-go"
-	"github.com/irisnet/record-sdk-go"
-	"github.com/irisnet/service-sdk-go"
-	"github.com/irisnet/staking-sdk-go"
-	"github.com/irisnet/token-sdk-go"
 	"github.com/tendermint/tendermint/libs/log"
+
+	"github.com/irisnet/token-sdk-go"
+
+	"github.com/irisnet/coinswap-sdk-go"
+
+	"github.com/irisnet/staking-sdk-go"
+
+	"github.com/irisnet/service-sdk-go"
+
+	"github.com/irisnet/record-sdk-go"
+
+	"github.com/irisnet/random-sdk-go"
+
+	"github.com/irisnet/oracle-sdk-go"
+
+	"github.com/irisnet/nft-sdk-go"
+
+	"github.com/irisnet/keys-sdk-go"
+
+	"github.com/irisnet/htlc-sdk-go"
+
+	"github.com/irisnet/gov-sdk-go"
 )
 
 type Client struct {

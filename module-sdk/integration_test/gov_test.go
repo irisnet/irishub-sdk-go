@@ -5,8 +5,9 @@ import (
 	"fmt"
 
 	"github.com/irisnet/core-sdk-go/types"
-	"github.com/irisnet/gov-sdk-go"
 	"github.com/stretchr/testify/require"
+
+	"github.com/irisnet/gov-sdk-go"
 )
 
 func (s IntegrationTestSuite) TestGov() {

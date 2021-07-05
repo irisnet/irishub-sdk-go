@@ -6,9 +6,10 @@ import (
 	"fmt"
 
 	sdk "github.com/irisnet/core-sdk-go/types"
-	"github.com/irisnet/htlc-sdk-go"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/tmhash"
+
+	"github.com/irisnet/htlc-sdk-go"
 )
 
 func (s IntegrationTestSuite) TestHTLC() {

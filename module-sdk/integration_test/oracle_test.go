@@ -5,9 +5,11 @@ import (
 	"time"
 
 	sdk "github.com/irisnet/core-sdk-go/types"
-	"github.com/irisnet/oracle-sdk-go"
-	"github.com/irisnet/service-sdk-go"
 	"github.com/stretchr/testify/require"
+
+	"github.com/irisnet/service-sdk-go"
+
+	"github.com/irisnet/oracle-sdk-go"
 )
 
 var serviceName = generateServiceName()

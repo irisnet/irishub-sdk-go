@@ -3,10 +3,12 @@ package integrationtest
 import (
 	"time"
 
-	"github.com/irisnet/coinswap-sdk-go"
 	sdk "github.com/irisnet/core-sdk-go/types"
-	"github.com/irisnet/token-sdk-go"
 	"github.com/stretchr/testify/require"
+
+	"github.com/irisnet/token-sdk-go"
+
+	"github.com/irisnet/coinswap-sdk-go"
 )
 
 func (s IntegrationTestSuite) TestCoinSwap() {

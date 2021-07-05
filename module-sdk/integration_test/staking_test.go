@@ -4,8 +4,9 @@ import (
 	"context"
 
 	sdk "github.com/irisnet/core-sdk-go/types"
-	"github.com/irisnet/staking-sdk-go"
 	"github.com/stretchr/testify/require"
+
+	"github.com/irisnet/staking-sdk-go"
 )
 
 func (s IntegrationTestSuite) TestStaking() {
