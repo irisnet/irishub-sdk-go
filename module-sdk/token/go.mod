@@ -8,6 +8,6 @@ require (
 )
 
 replace (
-github.com/irisnet/core-sdk-go => /Users/nicker/sandbox/bianjie/sdk/irishub-sdk-go/core-sdk
+github.com/irisnet/core-sdk-go => ../../../core-sdk
 github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 )
