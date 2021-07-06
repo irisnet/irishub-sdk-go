@@ -127,6 +127,10 @@ func (cfg *ClientConfig) checkAndSetDefault() error {
 		return err
 	}
 
+	if err := TokenManagerOption(cfg.TokenManager)(cfg); err != nil {
+		return err
+	}
+
 	if err := TxSizeLimitOption(cfg.TxSizeLimit)(cfg); err != nil {
 		return err
 	}
