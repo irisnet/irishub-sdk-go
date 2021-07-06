@@ -242,7 +242,7 @@ func (swap coinswapClient) SellTokenWithAutoEstimate(gotTokenDenom string, soldC
 
 func (swap coinswapClient) QueryPool(denom string) (*QueryPoolResponse, error) {
 	conn, err := swap.GenConn()
-	defer func() { _ = conn.Close() }()
+
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}

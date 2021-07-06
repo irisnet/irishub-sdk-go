@@ -23,7 +23,7 @@ require (
 replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/irisnet/coinswap-sdk-go => ../../module-sdk/coinswap
-	github.com/irisnet/core-sdk-go => ../../../core-sdk
+	github.com/irisnet/core-sdk-go => ../../core-sdk
 	github.com/irisnet/gov-sdk-go => ../../module-sdk/gov
 	github.com/irisnet/htlc-sdk-go => ../../module-sdk/htlc
 	github.com/irisnet/keys-sdk-go => ../../module-sdk/keys

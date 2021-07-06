@@ -15,10 +15,6 @@ func (s IntegrationTestSuite) TestStaking() {
 			"TestStaking",
 			testStaking,
 		},
-		//{
-		//	"TestCreateAndEdit",
-		//	testCreateAndEdit,
-		//},
 		{
 			"TestQueryHistoricalInfo",
 			queryHistoricalInfo,

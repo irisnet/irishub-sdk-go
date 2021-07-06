@@ -112,7 +112,28 @@ func (t tokenClient) MintToken(symbol string, amount uint64, to string, baseTx s
 }
 
 func (t tokenClient) QueryToken(denom string) (sdk.Token, error) {
-	return t.BaseClient.QueryToken(denom)
+	conn, err := t.GenConn()
+	if err != nil {
+		return sdk.Token{}, sdk.Wrap(err)
+	}
+
+	request := &QueryTokenRequest{
+		Denom: denom,
+	}
+	res, err := NewQueryClient(conn).Token(context.Background(), request)
+	if err != nil {
+		return sdk.Token{}, err
+	}
+	var evi TokenInterface
+	if err = t.UnpackAny(res.Token, &evi); err != nil {
+		return sdk.Token{}, err
+	}
+	tokens := make(Tokens, 0)
+	tokens = append(tokens, evi.(*Token))
+	ts := tokens.Convert().(sdk.Tokens)
+	t.SaveTokens(ts...)
+	//return t.BaseClient.QueryToken(denom)
+	return ts[0], nil
 }
 
 func (t tokenClient) QueryTokens(owner string) (sdk.Tokens, error) {
