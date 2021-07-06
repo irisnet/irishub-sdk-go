@@ -9,7 +9,7 @@ import (
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
-	github_com_irisnet_irishub_sdk_go_types "github.com/irisnet/core-sdk-go/types"
+	github_com_irisnet_core_sdk_go_types "github.com/irisnet/core-sdk-go/types"
 	types "github.com/irisnet/core-sdk-go/types"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -33,8 +33,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // MsgAddLiquidity defines a msg for adding liquidity to a reserve pool
 type MsgAddLiquidity struct {
 	MaxToken         types.Coin                                  `protobuf:"bytes,1,opt,name=max_token,json=maxToken,proto3" json:"max_token" yaml:"max_token"`
-	ExactStandardAmt github_com_irisnet_irishub_sdk_go_types.Int `protobuf:"bytes,2,opt,name=exact_standard_amt,json=exactStandardAmt,proto3,customtype=github.com/irisnet/irishub-sdk-go/types.Int" json:"exact_standard_amt" yaml:"exact_standard_amt"`
-	MinLiquidity     github_com_irisnet_irishub_sdk_go_types.Int `protobuf:"bytes,3,opt,name=min_liquidity,json=minLiquidity,proto3,customtype=github.com/irisnet/irishub-sdk-go/types.Int" json:"min_liquidity" yaml:"min_liquidity"`
+	ExactStandardAmt github_com_irisnet_core_sdk_go_types.Int `protobuf:"bytes,2,opt,name=exact_standard_amt,json=exactStandardAmt,proto3,customtype=github.com/irisnet/irishub-sdk-go/types.Int" json:"exact_standard_amt" yaml:"exact_standard_amt"`
+	MinLiquidity     github_com_irisnet_core_sdk_go_types.Int `protobuf:"bytes,3,opt,name=min_liquidity,json=minLiquidity,proto3,customtype=github.com/irisnet/irishub-sdk-go/types.Int" json:"min_liquidity" yaml:"min_liquidity"`
 	Deadline         int64                                       `protobuf:"varint,4,opt,name=deadline,proto3" json:"deadline,omitempty"`
 	Sender           string                                      `protobuf:"bytes,5,opt,name=sender,proto3" json:"sender,omitempty"`
 }
@@ -113,8 +113,8 @@ var xxx_messageInfo_MsgAddLiquidityResponse proto.InternalMessageInfo
 // MsgRemoveLiquidity defines a msg for removing liquidity from a reserve pool
 type MsgRemoveLiquidity struct {
 	WithdrawLiquidity types.Coin                                  `protobuf:"bytes,1,opt,name=withdraw_liquidity,json=withdrawLiquidity,proto3" json:"withdraw_liquidity" yaml:"withdraw_liquidity"`
-	MinToken          github_com_irisnet_irishub_sdk_go_types.Int `protobuf:"bytes,2,opt,name=min_token,json=minToken,proto3,customtype=github.com/irisnet/irishub-sdk-go/types.Int" json:"min_token" yaml:"min_token"`
-	MinStandardAmt    github_com_irisnet_irishub_sdk_go_types.Int `protobuf:"bytes,3,opt,name=min_standard_amt,json=minStandardAmt,proto3,customtype=github.com/irisnet/irishub-sdk-go/types.Int" json:"min_standard_amt" yaml:"min_standard_amt"`
+	MinToken          github_com_irisnet_core_sdk_go_types.Int `protobuf:"bytes,2,opt,name=min_token,json=minToken,proto3,customtype=github.com/irisnet/irishub-sdk-go/types.Int" json:"min_token" yaml:"min_token"`
+	MinStandardAmt    github_com_irisnet_core_sdk_go_types.Int `protobuf:"bytes,3,opt,name=min_standard_amt,json=minStandardAmt,proto3,customtype=github.com/irisnet/irishub-sdk-go/types.Int" json:"min_standard_amt" yaml:"min_standard_amt"`
 	Deadline          int64                                       `protobuf:"varint,4,opt,name=deadline,proto3" json:"deadline,omitempty"`
 	Sender            string                                      `protobuf:"bytes,5,opt,name=sender,proto3" json:"sender,omitempty"`
 }

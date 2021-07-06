@@ -147,7 +147,6 @@ func (TokenManager TokenManager) SaveTokens(tokens ...types.Token) {
 }
 
 func (TokenManager TokenManager) ToMinCoin(coins ...types.DecCoin) (types.Coins, types.Error) {
-
 	for i := range coins {
 		if coins[i].Denom == "iris" {
 			coins[i].Denom = "uiris"

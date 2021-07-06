@@ -7,7 +7,7 @@ import (
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
-	github_com_irisnet_irishub_sdk_go_types "github.com/irisnet/core-sdk-go/types"
+	github_com_irisnet_core_sdk_go_types "github.com/irisnet/core-sdk-go/types"
 	types "github.com/irisnet/core-sdk-go/types"
 	io "io"
 	math "math"
@@ -105,7 +105,7 @@ var xxx_messageInfo_Output proto.InternalMessageInfo
 
 // Params defines token module's parameters
 type Params struct {
-	Fee github_com_irisnet_irishub_sdk_go_types.Dec `protobuf:"bytes,1,opt,name=fee,proto3,customtype=github.com/irisnet/irishub-sdk-go/types.Dec" json:"fee"`
+	Fee github_com_irisnet_core_sdk_go_types.Dec `protobuf:"bytes,1,opt,name=fee,proto3,customtype=github.com/irisnet/irishub-sdk-go/types.Dec" json:"fee"`
 }
 
 func (m *Params) Reset()         { *m = Params{} }
