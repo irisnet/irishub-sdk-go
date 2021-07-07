@@ -132,7 +132,6 @@ func (t tokenClient) QueryToken(denom string) (sdk.Token, error) {
 	tokens = append(tokens, evi.(*Token))
 	ts := tokens.Convert().(sdk.Tokens)
 	t.SaveTokens(ts...)
-	//return t.BaseClient.QueryToken(denom)
 	return ts[0], nil
 }
 
