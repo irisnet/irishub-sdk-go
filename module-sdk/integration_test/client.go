@@ -130,9 +130,7 @@ func (client Client) Manager() types.BaseClient {
 
 func (client Client) RegisterModule(ms ...types.Module) {
 	for _, m := range ms {
-		// m.RegisterCodec(client.encodingConfig.Amino)
 		m.RegisterInterfaceTypes(client.encodingConfig.InterfaceRegistry)
-
 	}
 }
 
