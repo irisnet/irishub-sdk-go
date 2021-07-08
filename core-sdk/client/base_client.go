@@ -63,8 +63,7 @@ func NewBaseClient(cfg sdktypes.ClientConfig, encodingConfig sdktypes.EncodingCo
 		cfg:            &cfg,
 		encodingConfig: encodingConfig,
 		l:              NewLocker(concurrency).setLogger(logger),
-		//KeyManager:     cfg.KeyManager,
-		TokenManager: cfg.TokenManager,
+		TokenManager:   cfg.TokenManager,
 	}
 
 	base.KeyManager = keyManager{
