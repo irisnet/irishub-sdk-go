@@ -1,10 +1,12 @@
 package client
 
 import (
-	"github.com/irisnet/core-sdk-go/types"
+	"sync"
+
 	"github.com/prometheus/common/log"
 	"google.golang.org/grpc"
-	"sync"
+
+	"github.com/irisnet/core-sdk-go/types"
 )
 
 var clientConnSingleton *grpc.ClientConn
@@ -25,7 +27,6 @@ func NewGRPCClient(url string) types.GRPCClient {
 		}
 		clientConnSingleton = clientConn
 	})
-
 	return &grpcClient{}
 }
 
