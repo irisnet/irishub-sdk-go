@@ -15,17 +15,17 @@ import (
 )
 
 // Must be used with locker, otherwise there are thread safety issues
-type accountQuery struct {
+type AccountQuery struct {
 	sdk.Queries
 	sdk.GRPCClient
 	log.Logger
 	cache.Cache
 	cdc        commoncodec.Marshaler
-	km         sdk.KeyManager
+	Km         sdk.KeyManager
 	expiration time.Duration
 }
 
-func (a accountQuery) QueryAndRefreshAccount(address string) (sdk.BaseAccount, sdk.Error) {
+func (a AccountQuery) QueryAndRefreshAccount(address string) (sdk.BaseAccount, sdk.Error) {
 	account, err := a.Get(a.prefixKey(address))
 	if err != nil {
 		return a.refresh(address)
@@ -43,7 +43,7 @@ func (a accountQuery) QueryAndRefreshAccount(address string) (sdk.BaseAccount, s
 	return baseAcc, nil
 }
 
-func (a accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) {
+func (a AccountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) {
 	conn, err := a.GenConn()
 
 	if err != nil {
@@ -79,7 +79,7 @@ func (a accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) 
 	return account, nil
 }
 
-func (a accountQuery) QueryAddress(name, password string) (sdk.AccAddress, sdk.Error) {
+func (a AccountQuery) QueryAddress(name, password string) (sdk.AccAddress, sdk.Error) {
 	addr, err := a.Get(a.prefixKey(name))
 	if err == nil {
 		address, err := sdk.AccAddressFromBech32(addr.(string))
@@ -91,7 +91,7 @@ func (a accountQuery) QueryAddress(name, password string) (sdk.AccAddress, sdk.E
 		}
 	}
 
-	_, address, err := a.km.Find(name, password)
+	_, address, err := a.Km.Find(name, password)
 	if err != nil {
 		a.Debug("can't find account", "name", name)
 		return address, sdk.Wrap(err)
@@ -104,11 +104,11 @@ func (a accountQuery) QueryAddress(name, password string) (sdk.AccAddress, sdk.E
 	return address, nil
 }
 
-func (a accountQuery) removeCache(address string) bool {
+func (a AccountQuery) removeCache(address string) bool {
 	return a.Remove(a.prefixKey(address))
 }
 
-func (a accountQuery) refresh(address string) (sdk.BaseAccount, sdk.Error) {
+func (a AccountQuery) refresh(address string) (sdk.BaseAccount, sdk.Error) {
 	account, err := a.QueryAccount(address)
 	if err != nil {
 		a.Error("update cache failed", "address", address, "errMsg", err.Error())
@@ -119,7 +119,7 @@ func (a accountQuery) refresh(address string) (sdk.BaseAccount, sdk.Error) {
 	return account, nil
 }
 
-func (a accountQuery) saveAccount(account sdk.BaseAccount) {
+func (a AccountQuery) saveAccount(account sdk.BaseAccount) {
 	address := account.Address
 	info := accountInfo{
 		N: account.AccountNumber,
@@ -132,7 +132,7 @@ func (a accountQuery) saveAccount(account sdk.BaseAccount) {
 	a.Debug("cache account", "address", address, "expiration", a.expiration.String())
 }
 
-func (a accountQuery) prefixKey(address string) string {
+func (a AccountQuery) prefixKey(address string) string {
 	return fmt.Sprintf("account:%s", address)
 }
 

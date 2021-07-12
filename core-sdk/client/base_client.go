@@ -17,6 +17,8 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 
+	"google.golang.org/grpc"
+
 	"github.com/irisnet/core-sdk-go/common"
 	commoncache "github.com/irisnet/core-sdk-go/common/cache"
 	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
@@ -35,15 +37,11 @@ const (
 
 type baseClient struct {
 	sdktypes.TmClient
-	sdktypes.GRPCClient
 	sdktypes.TokenManager
-	sdktypes.KeyManager
-	logger         log.Logger
 	cfg            *sdktypes.ClientConfig
 	encodingConfig sdktypes.EncodingConfig
-
-	l *locker
-	accountQuery
+	l              *locker
+	AccountQuery
 }
 
 // NewBaseClient return the baseClient for every sub modules
@@ -58,43 +56,43 @@ func NewBaseClient(cfg sdktypes.ClientConfig, encodingConfig sdktypes.EncodingCo
 
 	base := baseClient{
 		TmClient:       NewRPCClient(cfg.NodeURI, encodingConfig.Amino, encodingConfig.TxConfig.TxDecoder(), logger, cfg.Timeout),
-		GRPCClient:     NewGRPCClient(cfg.GRPCAddr),
-		logger:         logger,
 		cfg:            &cfg,
 		encodingConfig: encodingConfig,
 		l:              NewLocker(concurrency).setLogger(logger),
 		TokenManager:   cfg.TokenManager,
 	}
 
-	base.KeyManager = keyManager{
-		keyDAO: cfg.KeyDAO,
-		algo:   cfg.Algo,
-	}
-
 	c := commoncache.NewCache(cacheCapacity, cfg.Cached)
-	base.accountQuery = accountQuery{
+	base.AccountQuery = AccountQuery{
 		Queries:    base,
-		GRPCClient: base.GRPCClient,
-		Logger:     base.Logger(),
+		GRPCClient: NewGRPCClient(cfg.GRPCAddr),
+		Logger:     logger,
 		Cache:      c,
 		cdc:        encodingConfig.Marshaler,
-		km:         base.KeyManager,
+		Km: KeyManager{
+			KeyDAO: cfg.KeyDAO,
+			Algo:   cfg.Algo,
+		},
 		expiration: cacheExpirePeriod,
 	}
 	return &base
 }
 
 func (base *baseClient) Logger() log.Logger {
-	return base.logger
+	return base.AccountQuery.Logger
 }
 
 func (base *baseClient) SetLogger(logger log.Logger) {
-	base.logger = logger
+	base.AccountQuery.Logger = logger
 }
 
 // Codec returns codec.
 func (base *baseClient) Marshaler() commoncodec.Marshaler {
 	return base.encodingConfig.Marshaler
+}
+
+func (base *baseClient) GenConn() (*grpc.ClientConn, error) {
+	return base.AccountQuery.GenConn()
 }
 
 func (base *baseClient) BuildTxHash(msg []sdktypes.Msg, baseTx sdktypes.BaseTx) (string, sdktypes.Error) {
@@ -324,7 +322,7 @@ func (base baseClient) QueryStore(key sdktypes.HexBytes, storeName string, heigh
 func (base *baseClient) prepare(baseTx sdktypes.BaseTx) (*sdktypes.Factory, error) {
 	factory := sdktypes.NewFactory().
 		WithChainID(base.cfg.ChainID).
-		WithKeyManager(base.KeyManager).
+		WithKeyManager(base.AccountQuery.Km).
 		WithMode(base.cfg.Mode).
 		WithSimulateAndExecute(baseTx.SimulateAndExecute).
 		WithGas(base.cfg.Gas).
@@ -383,7 +381,7 @@ func (base *baseClient) prepare(baseTx sdktypes.BaseTx) (*sdktypes.Factory, erro
 func (base *baseClient) prepareWithAccount(addr string, accountNumber, sequence uint64, baseTx sdktypes.BaseTx) (*sdktypes.Factory, error) {
 	factory := sdktypes.NewFactory().
 		WithChainID(base.cfg.ChainID).
-		WithKeyManager(base.KeyManager).
+		WithKeyManager(base.AccountQuery.Km).
 		WithMode(base.cfg.Mode).
 		WithSimulateAndExecute(baseTx.SimulateAndExecute).
 		WithGas(base.cfg.Gas).

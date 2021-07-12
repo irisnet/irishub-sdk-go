@@ -17,6 +17,7 @@ type Client struct {
 	moduleManager  map[string]types.Module
 	encodingConfig types.EncodingConfig
 	types.BaseClient
+	types.KeyManager
 	Bank bank.Client
 }
 
@@ -25,19 +26,23 @@ func NewClient(cfg types.ClientConfig) Client {
 
 	// create a instance of baseClient
 	baseClient := client.NewBaseClient(cfg, encodingConfig, nil)
+
 	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
-	client := &Client{
+	client := Client{
 		logger:         baseClient.Logger(),
 		BaseClient:     baseClient,
 		moduleManager:  make(map[string]types.Module),
 		encodingConfig: encodingConfig,
-
+		KeyManager: client.KeyManager{
+			KeyDAO: cfg.KeyDAO,
+			Algo:   cfg.Algo,
+		},
 		Bank: bankClient,
 	}
 	client.RegisterModule(
 		bankClient,
 	)
-	return *client
+	return client
 }
 
 func (client *Client) SetLogger(logger log.Logger) {

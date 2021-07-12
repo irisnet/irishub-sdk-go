@@ -61,9 +61,9 @@ type Logger interface {
 type BaseClient interface {
 	TokenManager
 	TxManager
-	KeyManager
 	Queries
 	TmClient
 	Logger
 	GRPCClient
+	//	KeyManager
 }
