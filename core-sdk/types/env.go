@@ -21,7 +21,7 @@ const (
 )
 
 var (
-	prefixCfg = &AddrPrefixCfg{
+	PrefixCfg = &AddrPrefixCfg{
 		bech32AddressPrefix: map[string]string{
 			"account_addr":   prefixChain + prefixAccount + prefixAddress,
 			"validator_addr": prefixChain + prefixValidator + prefixAddress,
@@ -39,7 +39,7 @@ type AddrPrefixCfg struct {
 
 // GetAddrPrefixCfg returns the config instance for the corresponding Network type
 func GetAddrPrefixCfg() *AddrPrefixCfg {
-	return prefixCfg
+	return PrefixCfg
 }
 
 // GetBech32AccountAddrPrefix returns the Bech32 prefix for account address
