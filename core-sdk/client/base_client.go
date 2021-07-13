@@ -38,6 +38,7 @@ const (
 type baseClient struct {
 	sdktypes.TmClient
 	sdktypes.TokenManager
+	sdktypes.KeyManager
 	cfg            *sdktypes.ClientConfig
 	encodingConfig sdktypes.EncodingConfig
 	l              *locker
@@ -61,6 +62,10 @@ func NewBaseClient(cfg sdktypes.ClientConfig, encodingConfig sdktypes.EncodingCo
 		l:              NewLocker(concurrency).setLogger(logger),
 		TokenManager:   cfg.TokenManager,
 	}
+	base.KeyManager = KeyManager{
+		KeyDAO: cfg.KeyDAO,
+		Algo:   cfg.Algo,
+	}
 
 	c := commoncache.NewCache(cacheCapacity, cfg.Cached)
 	base.AccountQuery = AccountQuery{
@@ -69,10 +74,7 @@ func NewBaseClient(cfg sdktypes.ClientConfig, encodingConfig sdktypes.EncodingCo
 		Logger:     logger,
 		Cache:      c,
 		cdc:        encodingConfig.Marshaler,
-		Km: KeyManager{
-			KeyDAO: cfg.KeyDAO,
-			Algo:   cfg.Algo,
-		},
+		Km:         base.KeyManager,
 		expiration: cacheExpirePeriod,
 	}
 	return &base

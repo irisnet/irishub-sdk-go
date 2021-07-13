@@ -22,11 +22,11 @@ import (
 
 	"github.com/irisnet/random-sdk-go"
 
+	keys "github.com/irisnet/core-sdk-go/client"
+
 	"github.com/irisnet/oracle-sdk-go"
 
 	"github.com/irisnet/nft-sdk-go"
-
-	"github.com/irisnet/keys-sdk-go"
 
 	"github.com/irisnet/htlc-sdk-go"
 

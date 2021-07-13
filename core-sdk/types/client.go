@@ -65,5 +65,5 @@ type BaseClient interface {
 	TmClient
 	Logger
 	GRPCClient
-	//	KeyManager
+	KeyManager
 }

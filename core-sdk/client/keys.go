@@ -180,3 +180,59 @@ func FromTmPubKey(Algo string, pubKey tmcrypto.PubKey) commoncryptotypes.PubKey 
 	}
 	return pubkey
 }
+
+type Client interface {
+	Add(name, password string) (address string, mnemonic string, err types.Error)
+	Recover(name, password, mnemonic string) (address string, err types.Error)
+	RecoverWithHDPath(name, password, mnemonic, hdPath string) (address string, err types.Error)
+	Import(name, password, privKeyArmor string) (address string, err types.Error)
+	Export(name, password string) (privKeyArmor string, err types.Error)
+	Delete(name, password string) types.Error
+	Show(name, password string) (string, types.Error)
+}
+
+type keysClient struct {
+	types.KeyManager
+}
+
+func NewClient(keyManager types.KeyManager) Client {
+	return keysClient{keyManager}
+}
+
+func (k keysClient) Add(name, password string) (string, string, types.Error) {
+	address, mnemonic, err := k.Insert(name, password)
+	return address, mnemonic, types.Wrap(err)
+}
+
+func (k keysClient) Recover(name, password, mnemonic string) (string, types.Error) {
+	address, err := k.KeyManager.Recover(name, password, mnemonic, "")
+	return address, types.Wrap(err)
+}
+
+func (k keysClient) RecoverWithHDPath(name, password, mnemonic, hdPath string) (string, types.Error) {
+	address, err := k.KeyManager.Recover(name, password, mnemonic, hdPath)
+	return address, types.Wrap(err)
+}
+
+func (k keysClient) Import(name, password, privKeyArmor string) (string, types.Error) {
+	address, err := k.KeyManager.Import(name, password, privKeyArmor)
+	return address, types.Wrap(err)
+}
+
+func (k keysClient) Export(name, password string) (string, types.Error) {
+	keystore, err := k.KeyManager.Export(name, password)
+	return keystore, types.Wrap(err)
+}
+
+func (k keysClient) Delete(name, password string) types.Error {
+	err := k.KeyManager.Delete(name, password)
+	return types.Wrap(err)
+}
+
+func (k keysClient) Show(name, password string) (string, types.Error) {
+	_, address, err := k.KeyManager.Find(name, password)
+	if err != nil {
+		return "", types.Wrap(err)
+	}
+	return address.String(), nil
+}
