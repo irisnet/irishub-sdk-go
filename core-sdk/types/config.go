@@ -66,6 +66,9 @@ type ClientConfig struct {
 	KeyManager crypto.KeyManager
 
 	TxSizeLimit uint64
+
+	//bech32 Address Prefix
+	Bech32AddressPrefix AddrPrefixCfg
 }
 
 func NewClientConfig(uri, grpcAddr, chainID string, options ...Option) (ClientConfig, error) {
@@ -127,7 +130,15 @@ func (cfg *ClientConfig) checkAndSetDefault() error {
 		return err
 	}
 
+	if err := TokenManagerOption(cfg.TokenManager)(cfg); err != nil {
+		return err
+	}
+
 	if err := TxSizeLimitOption(cfg.TxSizeLimit)(cfg); err != nil {
+		return err
+	}
+
+	if err := Bech32AddressPrefixOption(cfg.Bech32AddressPrefix)(cfg); err != nil {
 		return err
 	}
 
@@ -241,6 +252,9 @@ func CachedOption(enabled bool) Option {
 
 func TokenManagerOption(tokenManager TokenManager) Option {
 	return func(cfg *ClientConfig) error {
+		if tokenManager == nil {
+			tokenManager = DefaultTokenManager{}
+		}
 		cfg.TokenManager = tokenManager
 		return nil
 	}
@@ -259,6 +273,16 @@ func TxSizeLimitOption(txSizeLimit uint64) Option {
 func KeyManagerOption(keyManager crypto.KeyManager) Option {
 	return func(cfg *ClientConfig) error {
 		cfg.KeyManager = keyManager
+		return nil
+	}
+}
+
+func Bech32AddressPrefixOption(bech32AddressPrefix AddrPrefixCfg) Option {
+	return func(cfg *ClientConfig) error {
+		if bech32AddressPrefix.Bech32AddressPrefix == nil {
+			bech32AddressPrefix = *PrefixCfg
+		}
+		cfg.Bech32AddressPrefix = bech32AddressPrefix
 		return nil
 	}
 }

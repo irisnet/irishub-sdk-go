@@ -21,8 +21,8 @@ const (
 )
 
 var (
-	prefixCfg = &AddrPrefixCfg{
-		bech32AddressPrefix: map[string]string{
+	PrefixCfg = &AddrPrefixCfg{
+		Bech32AddressPrefix: map[string]string{
 			"account_addr":   prefixChain + prefixAccount + prefixAddress,
 			"validator_addr": prefixChain + prefixValidator + prefixAddress,
 			"consensus_addr": prefixChain + prefixConsensus + prefixAddress,
@@ -34,40 +34,40 @@ var (
 )
 
 type AddrPrefixCfg struct {
-	bech32AddressPrefix map[string]string
+	Bech32AddressPrefix map[string]string
 }
 
 // GetAddrPrefixCfg returns the config instance for the corresponding Network type
 func GetAddrPrefixCfg() *AddrPrefixCfg {
-	return prefixCfg
+	return PrefixCfg
 }
 
 // GetBech32AccountAddrPrefix returns the Bech32 prefix for account address
 func (config *AddrPrefixCfg) GetBech32AccountAddrPrefix() string {
-	return config.bech32AddressPrefix["account_addr"]
+	return config.Bech32AddressPrefix["account_addr"]
 }
 
 // GetBech32ValidatorAddrPrefix returns the Bech32 prefix for validator address
 func (config *AddrPrefixCfg) GetBech32ValidatorAddrPrefix() string {
-	return config.bech32AddressPrefix["validator_addr"]
+	return config.Bech32AddressPrefix["validator_addr"]
 }
 
 // GetBech32ConsensusAddrPrefix returns the Bech32 prefix for consensus node address
 func (config *AddrPrefixCfg) GetBech32ConsensusAddrPrefix() string {
-	return config.bech32AddressPrefix["consensus_addr"]
+	return config.Bech32AddressPrefix["consensus_addr"]
 }
 
 // GetBech32AccountPubPrefix returns the Bech32 prefix for account public key
 func (config *AddrPrefixCfg) GetBech32AccountPubPrefix() string {
-	return config.bech32AddressPrefix["account_pub"]
+	return config.Bech32AddressPrefix["account_pub"]
 }
 
 // GetBech32ValidatorPubPrefix returns the Bech32 prefix for validator public key
 func (config *AddrPrefixCfg) GetBech32ValidatorPubPrefix() string {
-	return config.bech32AddressPrefix["validator_pub"]
+	return config.Bech32AddressPrefix["validator_pub"]
 }
 
 // GetBech32ConsensusPubPrefix returns the Bech32 prefix for consensus node public key
 func (config *AddrPrefixCfg) GetBech32ConsensusPubPrefix() string {
-	return config.bech32AddressPrefix["consensus_pub"]
+	return config.Bech32AddressPrefix["consensus_pub"]
 }

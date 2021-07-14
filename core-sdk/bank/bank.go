@@ -45,7 +45,6 @@ func (b bankClient) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) {
 //  TotalSupply queries the total supply of all coins.
 func (b bankClient) TotalSupply() (sdk.Coins, sdk.Error) {
 	conn, err := b.GenConn()
-	defer func() { _ = conn.Close() }()
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}
