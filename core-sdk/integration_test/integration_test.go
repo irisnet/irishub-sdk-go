@@ -49,12 +49,21 @@ func TestSuite(t *testing.T) {
 }
 
 func (s *IntegrationTestSuite) SetupSuite() {
-
+	bech32AddressPrefix := types.AddrPrefixCfg{
+		Bech32AddressPrefix: map[string]string{
+			"account_addr":   "aaaa",
+			"validator_addr": "aaaa",
+			"consensus_addr": "aaaa",
+			"account_pub":    "aaaa",
+			"validator_pub":  "aaaa",
+			"consensus_pub":  "aaaa"},
+	}
 	options := []types.Option{
 		types.KeyDAOOption(store.NewMemory(nil)),
 		types.TimeoutOption(10),
 		types.TokenManagerOption(TokenManager{}),
 		types.KeyManagerOption(crypto.NewKeyManager()),
+		types.Bech32AddressPrefixOption(bech32AddressPrefix),
 	}
 	cfg, err := types.NewClientConfig(nodeURI, grpcAddr, chainID, options...)
 	if err != nil {

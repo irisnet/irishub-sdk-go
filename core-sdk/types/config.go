@@ -279,7 +279,7 @@ func KeyManagerOption(keyManager crypto.KeyManager) Option {
 
 func Bech32AddressPrefixOption(bech32AddressPrefix AddrPrefixCfg) Option {
 	return func(cfg *ClientConfig) error {
-		if bech32AddressPrefix.bech32AddressPrefix == nil {
+		if bech32AddressPrefix.Bech32AddressPrefix == nil {
 			bech32AddressPrefix = *PrefixCfg
 		}
 		cfg.Bech32AddressPrefix = bech32AddressPrefix
