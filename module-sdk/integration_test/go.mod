@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/irisnet/coinswap-sdk-go v0.1.0
-	github.com/irisnet/core-sdk-go v0.0.0-20210713083711-a3be069f0258
+	github.com/irisnet/core-sdk-go v0.0.0-20210719031639-9c6ece68d908
 	github.com/irisnet/gov-sdk-go v0.1.0
 	github.com/irisnet/htlc-sdk-go v0.1.0
 	github.com/irisnet/nft-sdk-go v0.1.0
