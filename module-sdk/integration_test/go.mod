@@ -21,15 +21,15 @@ require (
 
 replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/irisnet/coinswap-sdk-go => ../../module-sdk/coinswap
-	github.com/irisnet/gov-sdk-go => ../../module-sdk/gov
-	github.com/irisnet/htlc-sdk-go => ../../module-sdk/htlc
-	github.com/irisnet/nft-sdk-go => ../../module-sdk/nft
-	github.com/irisnet/oracle-sdk-go => ../../module-sdk/oracle
-	github.com/irisnet/random-sdk-go => ../../module-sdk/random
-	github.com/irisnet/record-sdk-go => ../../module-sdk/record
-	github.com/irisnet/service-sdk-go => ../../module-sdk/service
-	github.com/irisnet/staking-sdk-go => ../../module-sdk/staking
-	github.com/irisnet/token-sdk-go => ../../module-sdk/token
+	github.com/irisnet/coinswap-sdk-go => ../coinswap
+	github.com/irisnet/gov-sdk-go => ../gov
+	github.com/irisnet/htlc-sdk-go => ../htlc
+	github.com/irisnet/nft-sdk-go => ../nft
+	github.com/irisnet/oracle-sdk-go => ../oracle
+	github.com/irisnet/random-sdk-go => ../random
+	github.com/irisnet/record-sdk-go => ../record
+	github.com/irisnet/service-sdk-go => ../service
+	github.com/irisnet/staking-sdk-go => ../staking
+	github.com/irisnet/token-sdk-go => ../token
 	github.com/tendermint/tendermint => github.com/bianjieai/tendermint v0.34.1-irita-210113
 )
