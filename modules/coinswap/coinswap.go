@@ -242,7 +242,7 @@ func (swap coinswapClient) SellTokenWithAutoEstimate(gotTokenDenom string, soldC
 	return swap.SwapCoin(req, baseTx)
 }
 
-func (swap coinswapClient) QueryPool(denom string) (*QueryPoolResponse, error) {
+func (swap coinswapClient) QueryPool(lptDenom string) (*QueryPoolResponse, error) {
 	conn, err := swap.GenConn()
 	defer func() { _ = conn.Close() }()
 	if err != nil {
@@ -251,7 +251,7 @@ func (swap coinswapClient) QueryPool(denom string) (*QueryPoolResponse, error) {
 
 	resp, err := NewQueryClient(conn).LiquidityPool(
 		context.Background(),
-		&QueryLiquidityPoolRequest{LptDenom: denom},
+		&QueryLiquidityPoolRequest{LptDenom: lptDenom},
 	)
 	if err != nil {
 		return nil, sdk.Wrap(err)

@@ -24,7 +24,7 @@ type Client interface {
 		baseTx sdk.BaseTx,
 	) (res *SwapCoinResponse, err error)
 
-	QueryPool(denom string) (*QueryPoolResponse, error)
+	QueryPool(lptDenom string) (*QueryPoolResponse, error)
 	QueryAllPools(pageReq sdk.PageRequest) (*QueryAllPoolsResponse, error)
 
 	EstimateTokenForSoldBase(tokenDenom string,
