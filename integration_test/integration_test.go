@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	nodeURI  = "tcp://localhost:26657"
-	grpcAddr = "localhost:9090"
-	chainID  = "test"
+	nodeURI  = "tcp://192.168.150.40:26657"
+	grpcAddr = "192.168.150.40:9090"
+	chainID  = "iris"
 	charset  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	addr     = "iaa1w9lvhwlvkwqvg08q84n2k4nn896u9pqx93velx"
 )

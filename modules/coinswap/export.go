@@ -2,6 +2,7 @@ package coinswap
 
 import (
 	sdk "github.com/irisnet/irishub-sdk-go/types"
+	"github.com/irisnet/irishub-sdk-go/types/query"
 )
 
 // expose Record module api for user
@@ -24,7 +25,7 @@ type Client interface {
 	) (res *SwapCoinResponse, err error)
 
 	QueryPool(denom string) (*QueryPoolResponse, error)
-	QueryAllPools() (*QueryAllPoolsResponse, error)
+	QueryAllPools(pageReq sdk.PageRequest) (*QueryAllPoolsResponse, error)
 
 	EstimateTokenForSoldBase(tokenDenom string,
 		soldBase sdk.Int,
@@ -82,12 +83,10 @@ type SwapCoinResponse struct {
 }
 
 type QueryPoolResponse struct {
-	BaseCoin  sdk.Coin
-	TokenCoin sdk.Coin
-	Liquidity sdk.Coin
-	Fee       string
+	Pool sdk.PoolInfo
 }
 
 type QueryAllPoolsResponse struct {
-	Pools []QueryPoolResponse
+	Pools      []sdk.PoolInfo
+	Pagination *query.PageResponse
 }
