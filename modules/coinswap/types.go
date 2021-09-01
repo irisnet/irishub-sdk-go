@@ -154,11 +154,33 @@ func (msg MsgSwapOrder) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{from}
 }
 
-func (m QueryLiquidityResponse) Convert() interface{} {
+func (m QueryLiquidityPoolResponse) Convert() interface{} {
 	return &QueryPoolResponse{
-		BaseCoin:  m.Standard,
-		TokenCoin: m.Token,
-		Liquidity: m.Liquidity,
-		Fee:       m.Fee,
+		Pool: _loadPoolInfo(m.Pool),
 	}
+}
+
+func (m QueryLiquidityPoolsResponse) Convert() interface{} {
+
+	return &QueryAllPoolsResponse{
+		Pagination: m.Pagination,
+		Pools:      _loadPools(m.Pools),
+	}
+}
+
+func _loadPoolInfo(info PoolInfo) sdk.PoolInfo {
+	return sdk.PoolInfo{
+		Id:            info.Id,
+		EscrowAddress: info.EscrowAddress,
+		Standard:      info.Standard,
+		Token:         info.Token,
+		Lpt:           info.Lpt,
+		Fee:           info.Fee,
+	}
+}
+func _loadPools(pools []PoolInfo) (ret []sdk.PoolInfo) {
+	for _, pool := range pools {
+		ret = append(ret, _loadPoolInfo(pool))
+	}
+	return
 }

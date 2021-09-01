@@ -1,6 +1,7 @@
 package integration_test
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/stretchr/testify/require"
@@ -61,4 +62,19 @@ func (s IntegrationTestSuite) TestCoinSwap() {
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), resp.TxHash)
 	require.True(s.T(), resp.OutputAmt.Equal(sdk.NewInt(99)))
+}
+
+func (s IntegrationTestSuite) TestQuery() {
+	res, err := s.Swap.QueryAllPools(sdk.PageRequest{
+		Offset:     0,
+		Limit:      10,
+		CountTotal: false,
+	})
+	require.NoError(s.T(), err)
+	fmt.Println(res)
+
+	res1, err1 := s.Swap.QueryPool("lpt-1")
+	require.NoError(s.T(), err1)
+	fmt.Println(res1)
+
 }

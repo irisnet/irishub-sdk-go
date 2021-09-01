@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/irisnet/irishub-sdk-go/types/query"
 	"strings"
 
+	ctypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/irisnet/irishub-sdk-go/codec"
 	"github.com/irisnet/irishub-sdk-go/codec/types"
 	sdk "github.com/irisnet/irishub-sdk-go/types"
@@ -42,8 +44,8 @@ func (swap coinswapClient) AddLiquidity(request AddLiquidityRequest,
 
 	msg := &MsgAddLiquidity{
 		MaxToken:         request.MaxToken,
-		ExactStandardAmt: request.BaseAmt,
-		MinLiquidity:     request.MinLiquidity,
+		ExactStandardAmt: ctypes.NewInt(request.BaseAmt.Int64()),
+		MinLiquidity:     ctypes.NewInt(request.MinLiquidity.Int64()),
 		Deadline:         request.Deadline,
 		Sender:           creator.String(),
 	}
@@ -86,8 +88,8 @@ func (swap coinswapClient) RemoveLiquidity(request RemoveLiquidityRequest,
 
 	msg := &MsgRemoveLiquidity{
 		WithdrawLiquidity: request.Liquidity,
-		MinToken:          request.MinTokenAmt,
-		MinStandardAmt:    request.MinBaseAmt,
+		MinToken:          ctypes.NewInt(request.MinTokenAmt.Int64()),
+		MinStandardAmt:    ctypes.NewInt(request.MinBaseAmt.Int64()),
 		Deadline:          request.Deadline,
 		Sender:            creator.String(),
 	}
@@ -240,16 +242,16 @@ func (swap coinswapClient) SellTokenWithAutoEstimate(gotTokenDenom string, soldC
 	return swap.SwapCoin(req, baseTx)
 }
 
-func (swap coinswapClient) QueryPool(denom string) (*QueryPoolResponse, error) {
+func (swap coinswapClient) QueryPool(lptDenom string) (*QueryPoolResponse, error) {
 	conn, err := swap.GenConn()
 	defer func() { _ = conn.Close() }()
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}
 
-	resp, err := NewQueryClient(conn).Liquidity(
+	resp, err := NewQueryClient(conn).LiquidityPool(
 		context.Background(),
-		&QueryLiquidityRequest{Denom: denom},
+		&QueryLiquidityPoolRequest{LptDenom: lptDenom},
 	)
 	if err != nil {
 		return nil, sdk.Wrap(err)
@@ -257,29 +259,28 @@ func (swap coinswapClient) QueryPool(denom string) (*QueryPoolResponse, error) {
 	return resp.Convert().(*QueryPoolResponse), err
 }
 
-func (swap coinswapClient) QueryAllPools() (*QueryAllPoolsResponse, error) {
-	coins, err := swap.totalSupply()
+func (swap coinswapClient) QueryAllPools(req sdk.PageRequest) (*QueryAllPoolsResponse, error) {
+	conn, err := swap.GenConn()
+	defer func() { _ = conn.Close() }()
 	if err != nil {
 		return nil, sdk.Wrap(err)
 	}
 
-	var pools []QueryPoolResponse
-	for _, coin := range coins {
-		//Compatible with old data
-		if strings.HasPrefix(coin.Denom, "swap/") {
-			continue
-		}
-		denom, err := GetTokenDenomFrom(coin.Denom)
-		if err != nil {
-			continue
-		}
-		res, err := swap.QueryPool(denom)
-		if err != nil {
-			return nil, sdk.Wrap(err)
-		}
-		pools = append(pools, *res)
+	resp, err := NewQueryClient(conn).LiquidityPools(
+		context.Background(),
+		&QueryLiquidityPoolsRequest{
+			Pagination: &query.PageRequest{
+				Key:        req.Key,
+				Offset:     req.Offset,
+				Limit:      req.Limit,
+				CountTotal: req.CountTotal,
+			},
+		},
+	)
+	if err != nil {
+		return nil, sdk.Wrap(err)
 	}
-	return &QueryAllPoolsResponse{pools}, err
+	return resp.Convert().(*QueryAllPoolsResponse), err
 }
 
 func (swap coinswapClient) EstimateTokenForSoldBase(tokenDenom string,
@@ -289,9 +290,9 @@ func (swap coinswapClient) EstimateTokenForSoldBase(tokenDenom string,
 	if err != nil {
 		return sdk.ZeroInt(), err
 	}
-	fee := sdk.MustNewDecFromStr(result.Fee)
+	fee := sdk.MustNewDecFromStr(result.Pool.Fee)
 	amount := getInputPrice(soldBaseAmt,
-		result.BaseCoin.Amount, result.TokenCoin.Amount, fee)
+		result.Pool.Standard.Amount, result.Pool.Token.Amount, fee)
 	return amount, nil
 }
 
@@ -300,9 +301,9 @@ func (swap coinswapClient) EstimateBaseForSoldToken(soldToken sdk.Coin) (sdk.Int
 	if err != nil {
 		return sdk.ZeroInt(), err
 	}
-	fee := sdk.MustNewDecFromStr(result.Fee)
+	fee := sdk.MustNewDecFromStr(result.Pool.Fee)
 	amount := getInputPrice(soldToken.Amount,
-		result.TokenCoin.Amount, result.BaseCoin.Amount, fee)
+		result.Pool.Token.Amount, result.Pool.Standard.Amount, fee)
 	return amount, nil
 }
 
@@ -325,9 +326,9 @@ func (swap coinswapClient) EstimateTokenForBoughtBase(soldTokenDenom string,
 	if err != nil {
 		return sdk.ZeroInt(), err
 	}
-	fee := sdk.MustNewDecFromStr(result.Fee)
+	fee := sdk.MustNewDecFromStr(result.Pool.Fee)
 	amount := getOutputPrice(exactBoughtBaseAmt,
-		result.TokenCoin.Amount, result.BaseCoin.Amount, fee)
+		result.Pool.Token.Amount, result.Pool.Standard.Amount, fee)
 	return amount, nil
 }
 
@@ -336,9 +337,9 @@ func (swap coinswapClient) EstimateBaseForBoughtToken(boughtToken sdk.Coin) (sdk
 	if err != nil {
 		return sdk.ZeroInt(), err
 	}
-	fee := sdk.MustNewDecFromStr(result.Fee)
+	fee := sdk.MustNewDecFromStr(result.Pool.Fee)
 	amount := getOutputPrice(boughtToken.Amount,
-		result.BaseCoin.Amount, result.TokenCoin.Amount, fee)
+		result.Pool.Standard.Amount, result.Pool.Token.Amount, fee)
 	return amount, nil
 }
 
