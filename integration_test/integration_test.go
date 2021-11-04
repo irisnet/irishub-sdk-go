@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	nodeURI  = "tcp://192.168.150.40:26657"
-	grpcAddr = "192.168.150.40:9090"
-	chainID  = "iris"
+	nodeURI  = "tcp://192.168.150.60:26657"
+	grpcAddr = "192.168.150.60:9090"
+	chainID  = "irishub-qa"
 	charset  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	addr     = "iaa1w9lvhwlvkwqvg08q84n2k4nn896u9pqx93velx"
 )
