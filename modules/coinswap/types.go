@@ -9,6 +9,7 @@ const (
 
 	eventTypeTransfer = "transfer"
 	eventTypeSwap     = "swap"
+	eventTypeCoinbase = "coinbase"
 
 	attributeKeyAmount = "amount"
 )

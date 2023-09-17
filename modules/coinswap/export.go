@@ -15,11 +15,11 @@ type Client interface {
 	SwapCoin(request SwapCoinRequest,
 		baseTx sdk.BaseTx) (*SwapCoinResponse, error)
 
-	BuyTokenWithAutoEstimate(paidTokenDenom string, boughtCoin sdk.Coin,
+	BuyTokenWithAutoEstimate(paidTokenDenom string, boughtCoin sdk.Coin, pools []sdk.PoolInfo,
 		deadline int64,
 		baseTx sdk.BaseTx,
 	) (res *SwapCoinResponse, err error)
-	SellTokenWithAutoEstimate(gotTokenDenom string, soldCoin sdk.Coin,
+	SellTokenWithAutoEstimate(gotTokenDenom string, soldCoin sdk.Coin, pools []sdk.PoolInfo,
 		deadline int64,
 		baseTx sdk.BaseTx,
 	) (res *SwapCoinResponse, err error)
@@ -28,16 +28,16 @@ type Client interface {
 	QueryAllPools(pageReq sdk.PageRequest) (*QueryAllPoolsResponse, error)
 
 	EstimateTokenForSoldBase(tokenDenom string,
-		soldBase sdk.Int,
+		soldBase sdk.Int, pool *sdk.PoolInfo,
 	) (sdk.Int, error)
-	EstimateBaseForSoldToken(soldToken sdk.Coin) (sdk.Int, error)
+	EstimateBaseForSoldToken(soldToken sdk.Coin, pool *sdk.PoolInfo) (sdk.Int, error)
 	EstimateTokenForSoldToken(boughtTokenDenom string,
-		soldToken sdk.Coin) (sdk.Int, error)
+		soldToken sdk.Coin, pools []sdk.PoolInfo) (sdk.Int, error)
 	EstimateTokenForBoughtBase(soldTokenDenom string,
-		boughtBase sdk.Int) (sdk.Int, error)
-	EstimateBaseForBoughtToken(boughtToken sdk.Coin) (sdk.Int, error)
+		boughtBase sdk.Int, pool *sdk.PoolInfo) (sdk.Int, error)
+	EstimateBaseForBoughtToken(boughtToken sdk.Coin, pool *sdk.PoolInfo) (sdk.Int, error)
 	EstimateTokenForBoughtToken(soldTokenDenom string,
-		boughtToken sdk.Coin) (sdk.Int, error)
+		boughtToken sdk.Coin, pool []sdk.PoolInfo) (sdk.Int, error)
 }
 
 type AddLiquidityRequest struct {
@@ -50,7 +50,7 @@ type AddLiquidityRequest struct {
 type AddLiquidityResponse struct {
 	TokenAmt  sdk.Int
 	BaseAmt   sdk.Int
-	Liquidity sdk.Int
+	Liquidity sdk.Coin
 	TxHash    string
 }
 
