@@ -1,6 +1,4 @@
 // Package modules is to warpped the API provided by each module of IRIS-Hub
-//
-//
 package modules
 
 import (
@@ -346,6 +344,10 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*clienttx.Factory, error) {
 	if len(baseTx.Memo) > 0 {
 		factory.WithMemo(baseTx.Memo)
 	}
+
+	if baseTx.TimeoutHeight > 0 {
+		factory.WithTimeout(baseTx.TimeoutHeight)
+	}
 	return factory, nil
 }
 
@@ -390,6 +392,10 @@ func (base *baseClient) prepareTemp(addr string, accountNumber, sequence uint64,
 	if len(baseTx.Memo) > 0 {
 		factory.WithMemo(baseTx.Memo)
 	}
+
+	if baseTx.TimeoutHeight > 0 {
+		factory.WithTimeout(baseTx.TimeoutHeight)
+	}
 	return factory, nil
 }
 
@@ -427,7 +433,7 @@ type locker struct {
 	size   int
 }
 
-//NewLocker implement the function of lock, can lock resources according to conditions
+// NewLocker implement the function of lock, can lock resources according to conditions
 func NewLocker(size int) *locker {
 	shards := make([]chan int, size)
 	for i := 0; i < size; i++ {

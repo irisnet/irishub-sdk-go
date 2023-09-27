@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 	"strings"
 	"time"
 
@@ -129,6 +130,11 @@ func (base *baseClient) buildTxWithAccount(addr string, accountNumber, sequence 
 }
 
 func (base baseClient) broadcastTx(txBytes []byte, mode sdk.BroadcastMode, simulate bool) (res sdk.ResultTx, err sdk.Error) {
+	defer func() {
+		if res.Hash == "" {
+			res.Hash = strings.ToUpper(hex.EncodeToString(tmhash.Sum(txBytes)))
+		}
+	}()
 	if simulate {
 		estimateGas, err := base.EstimateTxGas(txBytes)
 		if err != nil {
