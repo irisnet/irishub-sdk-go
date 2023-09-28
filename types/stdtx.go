@@ -129,7 +129,7 @@ func NewStdTx(msgs []Msg, fee StdFee, sigs []StdSignature, memo string) StdTx {
 	}
 }
 
-//nolint
+// nolint
 // GetMsgs returns the all the transaction's messages.
 func (tx StdTx) GetMsgs() []Msg { return tx.Msgs }
 func (tx StdTx) GetSignBytes() []string {
@@ -186,7 +186,7 @@ func (tx StdTx) GetSigners() []AccAddress {
 	return signers
 }
 
-//nolint
+// nolint
 func (tx StdTx) GetMemo() string { return tx.Memo }
 
 // GetSignatures returns the signature of signers who signed the Msg.
@@ -208,6 +208,7 @@ type BaseTx struct {
 	Simulate      bool          `json:"simulate"`
 	AccountNumber uint64        `json:"account_number"`
 	Sequence      uint64        `json:"sequence"`
+	TimeoutHeight uint64        `json:"timeout_height"`
 }
 
 // ResultTx encapsulates the return result of the transaction. When the transaction fails,
